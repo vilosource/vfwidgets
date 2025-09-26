@@ -219,7 +219,7 @@ class TestMemoryUsage:
 
         # Generate events with large data
         large_text = "x" * 10000
-        for i in range(100):
+        for _i in range(100):
             widget.bridge.on_key_pressed(large_text, "Key", False, False, False)
 
         # Clear event references
@@ -493,7 +493,7 @@ class TestBenchmarks:
                 widget.bridge.on_selection_changed(f"benchmark {i}")
 
         # Run benchmark
-        result = benchmark(process_events)
+        benchmark(process_events)
 
         # Verify all events were processed
         assert len(events_received) == 1000
@@ -519,7 +519,7 @@ class TestBenchmarks:
 
         def connect_many_handlers():
             handlers = []
-            for i in range(100):
+            for _i in range(100):
                 handler = Mock()
                 handlers.append(handler)
                 widget.selectionChanged.connect(handler)
@@ -585,7 +585,7 @@ class TestResourceUsage:
         widgets = []
         try:
             # Create multiple widgets
-            for i in range(10):
+            for _i in range(10):
                 widget = TerminalWidget(port=0)
                 qtbot.addWidget(widget)
                 widgets.append(widget)
@@ -601,8 +601,8 @@ class TestResourceUsage:
             for widget in widgets:
                 try:
                     widget.close_terminal()
-                except:
-                    pass
+                except Exception:
+                    pass  # Widget already closed
 
         # FDs should be released
         final_fds = process.num_fds() if hasattr(process, "num_fds") else 0

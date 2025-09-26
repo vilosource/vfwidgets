@@ -13,11 +13,11 @@ import pytest
 src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QTimer  # noqa: E402
+from PySide6.QtWidgets import QApplication  # noqa: E402
 
 # Import our components
-from vfwidgets_terminal import (
+from vfwidgets_terminal import (  # noqa: E402
     ContextMenuEvent,
     EmbeddedTerminalServer,
     EventCategory,
@@ -172,8 +172,8 @@ def real_terminal_widget(qtbot) -> Generator[TerminalWidget, None, None]:
         widget.close_terminal()
         widget.close()
         widget.deleteLater()
-    except:
-        pass
+    except Exception:
+        pass  # Widget already closed or invalid
 
 
 # =============================================================================
@@ -195,8 +195,8 @@ def embedded_server() -> Generator[EmbeddedTerminalServer, None, None]:
     # Cleanup
     try:
         server.stop()
-    except:
-        pass
+    except Exception:
+        pass  # Widget already closed or invalid
 
 
 @pytest.fixture
@@ -209,8 +209,8 @@ def python_server() -> Generator[EmbeddedTerminalServer, None, None]:
     # Cleanup
     try:
         server.stop()
-    except:
-        pass
+    except Exception:
+        pass  # Widget already closed or invalid
 
 
 # =============================================================================

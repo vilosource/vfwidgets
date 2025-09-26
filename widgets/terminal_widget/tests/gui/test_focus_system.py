@@ -144,7 +144,7 @@ class TestEventFiltering:
         # Call eventFilter
         with patch("super") as mock_super:
             mock_super.return_value.eventFilter.return_value = False
-            result = widget.eventFilter(mock_focus_proxy, mock_event)
+            widget.eventFilter(mock_focus_proxy, mock_event)
 
         # Should not emit focus signals and call parent eventFilter
         focus_in_signal.assert_not_called()
@@ -171,7 +171,7 @@ class TestEventFiltering:
         # Call eventFilter with different object
         with patch("super") as mock_super:
             mock_super.return_value.eventFilter.return_value = False
-            result = widget.eventFilter(other_object, mock_event)
+            widget.eventFilter(other_object, mock_event)
 
         # Should not emit signal and call parent eventFilter
         focus_signal.assert_not_called()
@@ -446,7 +446,7 @@ class TestFocusSystemIntegration:
         if widget.web_view.focusProxy():
             proxy = widget.web_view.focusProxy()
 
-            for i in range(10):
+            for _i in range(10):
                 focus_in_event = QFocusEvent(QEvent.Type.FocusIn)
                 focus_out_event = QFocusEvent(QEvent.Type.FocusOut)
 
@@ -475,7 +475,7 @@ class TestFocusSystemIntegration:
             widget.focusLost.connect(lambda w=i: focus_events.append(f"widget_{w}_focus_out"))
 
         # Simulate focus events on different widgets
-        for i, widget in enumerate(widgets):
+        for _i, widget in enumerate(widgets):
             if widget.web_view.focusProxy():
                 focus_in_event = QFocusEvent(QEvent.Type.FocusIn)
                 widget.eventFilter(widget.web_view.focusProxy(), focus_in_event)
@@ -488,5 +488,5 @@ class TestFocusSystemIntegration:
         for widget in widgets:
             try:
                 widget.close_terminal()
-            except:
-                pass
+            except Exception:
+                pass  # Widget already closed

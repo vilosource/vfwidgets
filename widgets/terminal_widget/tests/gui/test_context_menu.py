@@ -111,7 +111,7 @@ class TestDefaultContextMenu:
         widget = TerminalWidget()
         qtbot.addWidget(widget)
 
-        pos = QPoint(100, 100)
+        QPoint(100, 100)
         global_pos = QPoint(500, 400)
 
         # Call the default context menu method directly
@@ -137,7 +137,7 @@ class TestDefaultContextMenu:
         widget = TerminalWidget()
         qtbot.addWidget(widget)
 
-        pos = QPoint(100, 100)
+        QPoint(100, 100)
         global_pos = QPoint(500, 400)
         selected_text = "selected terminal text"
 

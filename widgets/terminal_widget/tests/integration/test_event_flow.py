@@ -457,7 +457,7 @@ class TestRealTerminalIntegration:
         assert len(input_events) >= 1
 
         # Might have output events
-        output_events = event_collector.get_events_of_type("output_received")
+        event_collector.get_events_of_type("output_received")
         # Output events are optional as they depend on capture_output setting
 
     def test_real_terminal_process_info_integration(self, real_terminal_widget, qtbot):
@@ -599,7 +599,7 @@ class TestErrorHandlingIntegration:
 
         # Connect multiple handlers to same signal
         handlers = []
-        for i in range(10):
+        for _i in range(10):
             handler = Mock()
             handlers.append(handler)
             widget.selectionChanged.connect(handler)

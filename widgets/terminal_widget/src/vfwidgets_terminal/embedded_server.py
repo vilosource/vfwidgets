@@ -10,7 +10,7 @@ import struct
 import termios
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from flask import Flask
 from flask_socketio import SocketIO
@@ -33,9 +33,9 @@ class EmbeddedTerminalServer(QObject):
     def __init__(
         self,
         command: str = "bash",
-        args: Optional[List[str]] = None,
+        args: Optional[list[str]] = None,
         cwd: Optional[str] = None,
-        env: Optional[Dict[str, str]] = None,
+        env: Optional[dict[str, str]] = None,
         port: int = DEFAULT_PORT,
         host: str = DEFAULT_HOST,
         capture_output: bool = False,
@@ -210,8 +210,8 @@ class EmbeddedTerminalServer(QObject):
                         sig = os.WTERMSIG(status)
                         logger.info(f"Process {self.child_pid} terminated by signal {sig}")
                         exit_code = -sig
-            except:
-                pass
+            except Exception:
+                pass  # Process already dead or not accessible
 
         # Emit process ended signal
         logger.debug(f"Emitting process_ended signal with exit code {exit_code}")
@@ -415,7 +415,7 @@ class EmbeddedTerminalServer(QObject):
         if self.fd:
             os.write(self.fd, b"\x1bc")  # ESC c
 
-    def get_process_info(self) -> Dict[str, Any]:
+    def get_process_info(self) -> dict[str, Any]:
         """Get information about the running process.
 
         Returns:

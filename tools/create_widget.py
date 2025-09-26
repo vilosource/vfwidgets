@@ -4,7 +4,7 @@
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def to_camel_case(snake_str: str) -> str:
@@ -62,7 +62,7 @@ def create_widget_structure(
         print(f"  Created: {dir_path.relative_to(root_dir)}")
 
     # Template variables
-    template_vars: Dict[str, Any] = {
+    template_vars: dict[str, Any] = {
         "widget_name": widget_name,
         "package_name": package_name,
         "class_name": class_name,

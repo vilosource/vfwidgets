@@ -6,7 +6,7 @@ import warnings
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QThread, QUrl, Signal, Slot
 from PySide6.QtGui import QAction, QContextMenuEvent
@@ -319,9 +319,9 @@ class TerminalWidget(QWidget):
     def __init__(
         self,
         command: str = "bash",
-        args: Optional[List[str]] = None,
+        args: Optional[list[str]] = None,
         cwd: Optional[str] = None,
-        env: Optional[Dict[str, str]] = None,
+        env: Optional[dict[str, str]] = None,
         parent: Optional[QWidget] = None,
         # Server options
         server_url: Optional[str] = None,  # Use external server
@@ -1075,7 +1075,7 @@ class TerminalWidget(QWidget):
                 self.send_command(line)
                 QThread.msleep(100)  # Small delay between commands
 
-    def get_process_info(self) -> Dict[str, Any]:
+    def get_process_info(self) -> dict[str, Any]:
         """Get information about the running process.
 
         Returns:
@@ -1137,7 +1137,7 @@ class TerminalWidget(QWidget):
         logger.debug("get_current_line not yet fully implemented")
         return ""
 
-    def set_theme(self, theme_dict: Dict[str, str]) -> None:
+    def set_theme(self, theme_dict: dict[str, str]) -> None:
         """Set terminal color theme.
 
         Args:
@@ -1249,7 +1249,7 @@ class TerminalWidget(QWidget):
             self.sizeChanged.emit(rows, cols)
         logger.debug(f"Terminal resized to {rows}x{cols}")
 
-    def get_scrollback_buffer(self) -> List[str]:
+    def get_scrollback_buffer(self) -> list[str]:
         """Get scrollback buffer content.
 
         Returns:

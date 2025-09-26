@@ -220,7 +220,7 @@ class TestTerminalWidget:
         widget.server = mock_server_instance
 
         # Connect to signal
-        signal_spy = qtbot.waitSignal(widget.terminal_closed, timeout=100)
+        qtbot.waitSignal(widget.terminal_closed, timeout=100)
 
         # Close terminal
         widget.close_terminal()

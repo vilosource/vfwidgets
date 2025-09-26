@@ -117,7 +117,7 @@ def get_widget_resource_path(
 
         return resource_path
     except Exception as e:
-        raise FileNotFoundError(f"Could not load resource {resource_name}: {e}")
+        raise FileNotFoundError(f"Could not load resource {resource_name}: {e}") from e
 
 
 def ensure_widget_size(

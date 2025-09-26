@@ -1,6 +1,6 @@
 """Base widget class for all VFWidgets."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from PySide6.QtCore import QEvent, Signal
 from PySide6.QtWidgets import QWidget
@@ -21,7 +21,7 @@ class VFBaseWidget(QWidget):
             **kwargs: Additional keyword arguments for customization
         """
         super().__init__(parent)
-        self._config: Dict[str, Any] = kwargs
+        self._config: dict[str, Any] = kwargs
         self._initialized: bool = False
         self._setup_widget()
 
