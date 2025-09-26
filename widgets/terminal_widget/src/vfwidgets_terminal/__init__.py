@@ -1,0 +1,70 @@
+"""VFWidgets Terminal - A powerful PySide6 terminal emulator widget.
+
+This module provides a fully-featured terminal emulator widget that can be
+embedded in PySide6/Qt applications. It uses xterm.js for terminal emulation
+and Flask/SocketIO for the backend server.
+
+Basic Usage:
+    from vfwidgets_terminal import TerminalWidget
+    from PySide6.QtWidgets import QApplication, QMainWindow
+
+    app = QApplication([])
+    window = QMainWindow()
+    terminal = TerminalWidget()
+    window.setCentralWidget(terminal)
+    window.show()
+    app.exec()
+"""
+
+__version__ = "0.1.0"
+__author__ = "Vilosource"
+__email__ = "vilosource@viloforge.com"
+
+from .constants import DEFAULT_COLS, DEFAULT_ROWS, THEMES
+from .embedded_server import EmbeddedTerminalServer
+from .terminal import (
+    ContextMenuEvent,
+    DebugWebEngineView,
+    EventCategory,
+    EventConfig,
+    KeyEvent,
+    ProcessEvent,
+    TerminalBridge,
+    TerminalWidget,
+)
+
+__all__ = [
+    # Main widget
+    "TerminalWidget",
+    # Event system types (Phase 2 & 3)
+    "ProcessEvent",
+    "KeyEvent",
+    "ContextMenuEvent",
+    "EventCategory",
+    "EventConfig",
+    # Internal classes (for advanced usage)
+    "TerminalBridge",
+    "DebugWebEngineView",
+    "EmbeddedTerminalServer",
+    # Constants
+    "THEMES",
+    "DEFAULT_ROWS",
+    "DEFAULT_COLS",
+]
+
+# Optional: Setup environment for better compatibility
+import os
+
+
+def setup_environment():
+    """Setup environment variables for better compatibility in WSL/VM."""
+    # Only set if not already configured
+    if "QT_OPENGL" not in os.environ:
+        os.environ["QT_OPENGL"] = "software"
+    if "QTWEBENGINE_DISABLE_SANDBOX" not in os.environ:
+        os.environ["QTWEBENGINE_DISABLE_SANDBOX"] = "1"
+
+
+# Auto-setup can be disabled by setting VFWIDGETS_NO_AUTO_SETUP=1
+if os.environ.get("VFWIDGETS_NO_AUTO_SETUP") != "1":
+    setup_environment()

@@ -1,0 +1,127 @@
+[run]
+# Coverage configuration for VFWidgets Terminal Widget
+
+# Source code location
+source = src/vfwidgets_terminal
+
+# Files to include in coverage
+include =
+    src/vfwidgets_terminal/*.py
+    src/vfwidgets_terminal/**/*.py
+
+# Files to exclude from coverage
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */.*
+    setup.py
+    venv/*
+    .venv/*
+
+# Branches coverage (important for complex logic)
+branch = True
+
+# Parallel processing support
+parallel = True
+
+# Measurement context
+context = test
+
+[report]
+# Reporting configuration
+
+# Target coverage percentage
+fail_under = 80
+
+# Show missing lines
+show_missing = True
+
+# Skip covered files in report
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+# Precision for percentages
+precision = 1
+
+# Sort by coverage percentage
+sort = Cover
+
+# Exclude lines from coverage
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if False:
+    if __name__ == .__main__.:
+
+    # Don't complain about abstract methods
+    @abstractmethod
+
+    # Don't complain about type checking code
+    if TYPE_CHECKING:
+
+    # Don't complain about platform specific code
+    if sys.platform
+
+    # Don't complain about Qt event handlers that are hard to test
+    def closeEvent
+    def showEvent
+    def hideEvent
+    def resizeEvent
+
+    # Don't complain about error handling that's hard to trigger
+    except ImportError
+    except OSError
+    except ProcessLookupError
+
+    # Logging and debug statements
+    logger\.debug
+    logger\.info
+    print\(.*debug
+
+# Partial coverage (for complex branches)
+partial_branches =
+    # Don't complain about simple defensive programming
+    pragma: no branch
+
+    # Don't complain about platform checks
+    if sys.platform
+
+    # Don't complain about version checks
+    if.*version
+
+[html]
+# HTML report configuration
+directory = htmlcov
+title = VFWidgets Terminal Widget Coverage Report
+
+# Show context (lines around uncovered code)
+show_contexts = True
+
+# Skip files with 100% coverage
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+[xml]
+# XML report for CI/CD
+output = coverage.xml
+
+[json]
+# JSON report for analysis
+output = coverage.json
+show_contexts = True

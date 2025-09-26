@@ -1,0 +1,1308 @@
+"""Terminal Widget - Main PySide6 terminal widget implementation."""
+
+import json
+import logging
+import warnings
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+from PySide6.QtCore import QEvent, QObject, QPoint, QThread, QUrl, Signal, Slot
+from PySide6.QtGui import QAction, QContextMenuEvent
+from PySide6.QtWebChannel import QWebChannel
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QApplication, QMenu, QVBoxLayout, QWidget
+
+from .constants import DEFAULT_COLS, DEFAULT_ROWS, DEFAULT_SCROLLBACK
+from .embedded_server import EmbeddedTerminalServer
+
+logger = logging.getLogger(__name__)
+
+
+# Phase 2: Event Data Classes for structured event information
+@dataclass
+class ProcessEvent:
+    """Structured data for process-related events."""
+
+    command: str
+    pid: Optional[int] = None
+    working_directory: Optional[str] = None
+    timestamp: datetime = None
+
+    def __post_init__(self) -> None:
+        if self.timestamp is None:
+            self.timestamp = datetime.now()
+
+
+@dataclass
+class KeyEvent:
+    """Structured data for keyboard events."""
+
+    key: str
+    code: str
+    ctrl: bool
+    alt: bool
+    shift: bool
+    timestamp: datetime = None
+
+    def __post_init__(self) -> None:
+        if self.timestamp is None:
+            self.timestamp = datetime.now()
+
+
+@dataclass
+class ContextMenuEvent:
+    """Structured data for context menu events."""
+
+    position: QPoint
+    global_position: Optional[QPoint] = None
+    selected_text: str = ""
+    cursor_position: Optional[tuple[int, int]] = None
+    timestamp: datetime = None
+
+    def __post_init__(self) -> None:
+        if self.timestamp is None:
+            self.timestamp = datetime.now()
+
+
+# Phase 3: Event Categories for configuration
+class EventCategory(Enum):
+    """Event categories for filtering and configuration."""
+
+    LIFECYCLE = "lifecycle"  # terminalReady, terminalClosed, serverStarted
+    PROCESS = "process"  # processStarted, processFinished
+    CONTENT = "content"  # outputReceived, errorReceived, inputSent
+    INTERACTION = "interaction"  # keyPressed, selectionChanged
+    FOCUS = "focus"  # focusReceived, focusLost
+    APPEARANCE = "appearance"  # sizeChanged, titleChanged, bellActivated
+
+
+@dataclass
+class EventConfig:
+    """Configuration for terminal events."""
+
+    enabled_categories: set[EventCategory] = None
+    throttle_high_frequency: bool = True
+    debug_logging: bool = False
+    enable_deprecation_warnings: bool = True
+
+    def __post_init__(self) -> None:
+        if self.enabled_categories is None:
+            self.enabled_categories = set(EventCategory)
+
+
+def _emit_deprecation_warning(old_signal_name: str, new_signal_name: str):
+    """Emit a deprecation warning for old signal names."""
+    warnings.warn(
+        f"Signal '{old_signal_name}' is deprecated. Use '{new_signal_name}' instead. "
+        f"The old signal will be removed in a future version.",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+
+
+class DebugWebEngineView(QWebEngineView):
+    """Enhanced QWebEngineView that captures context menu events."""
+
+    # Signal to notify parent of right-click events
+    right_clicked = Signal(QPoint)
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.debug_enabled = False
+
+    def contextMenuEvent(self, event: QContextMenuEvent) -> None:
+        """Intercept context menu events and forward to parent."""
+        if self.debug_enabled:
+            logger.info(
+                f"🖱️  WEBVIEW: Right-click intercepted at ({event.pos().x()}, {event.pos().y()})"
+            )
+
+        # Emit signal to parent
+        self.right_clicked.emit(event.pos())
+
+        # Forward event to parent widget (our TerminalWidget)
+        parent_widget = self.parent()
+        if parent_widget and hasattr(parent_widget, "contextMenuEvent"):
+            if self.debug_enabled:
+                logger.info("🔄 WEBVIEW: Forwarding context menu event to parent")
+            parent_widget.contextMenuEvent(event)
+        else:
+            # Fallback to default behavior
+            if self.debug_enabled:
+                logger.info("📋 WEBVIEW: Using default context menu")
+            super().contextMenuEvent(event)
+
+    def set_debug(self, enabled: bool) -> None:
+        """Enable/disable debug logging."""
+        self.debug_enabled = enabled
+
+
+class TerminalBridge(QObject):
+    """Bridge between JavaScript (xterm.js) and Python (PySide6).
+
+    This class enables bidirectional communication between the xterm.js terminal
+    running in QWebEngineView and the Python TerminalWidget. It exposes xterm.js
+    events as Qt signals and provides methods for JavaScript to call.
+    """
+
+    # Signals for events from xterm.js (Phase 3: Rich events)
+    selection_changed = Signal(str)  # selected text
+    cursor_moved = Signal(int, int)  # row, col
+    bell_rang = Signal()  # bell/notification
+    title_changed = Signal(str)  # terminal title
+    key_pressed = Signal(str, str, bool, bool, bool)  # key, code, ctrl, alt, shift
+    data_received = Signal(str)  # input data from user
+    scroll_occurred = Signal(int)  # scroll position
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self._last_selection = ""  # Track current selection for context menu
+        logger.debug("TerminalBridge initialized")
+
+    @Slot(str)
+    def on_selection_changed(self, selected_text: str) -> None:
+        """Handle selection change from xterm.js."""
+        self._last_selection = selected_text  # Store for context menu
+        logger.debug(f"Selection changed: {len(selected_text)} characters selected")
+        self.selection_changed.emit(selected_text)
+
+    @Slot(int, int)
+    def on_cursor_moved(self, row: int, col: int) -> None:
+        """Handle cursor movement from xterm.js."""
+        # Only log occasionally to avoid spam
+        if row % 10 == 0 or col % 10 == 0:
+            logger.debug(f"Cursor moved to ({row}, {col})")
+        self.cursor_moved.emit(row, col)
+
+    @Slot()
+    def on_bell(self) -> None:
+        """Handle bell event from xterm.js."""
+        logger.debug("Terminal bell rang")
+        self.bell_rang.emit()
+
+    @Slot(str)
+    def on_title_changed(self, title: str) -> None:
+        """Handle title change from xterm.js."""
+        logger.debug(f"Terminal title changed to: {title}")
+        self.title_changed.emit(title)
+
+    @Slot(str, str, bool, bool, bool)
+    def on_key_pressed(self, key: str, code: str, ctrl: bool, alt: bool, shift: bool) -> None:
+        """Handle key press from xterm.js."""
+        # Only log special keys to avoid spam
+        if ctrl or alt or len(key) > 1:
+            logger.debug(
+                f"Key pressed: {key} (code: {code}, ctrl: {ctrl}, alt: {alt}, shift: {shift})"
+            )
+        self.key_pressed.emit(key, code, ctrl, alt, shift)
+
+    @Slot(str)
+    def on_data_received(self, data: str) -> None:
+        """Handle data input from xterm.js."""
+        # Only log non-trivial data to avoid spam
+        if len(data) > 1 or data in ["\r", "\n"]:
+            logger.debug(f"Data received: {repr(data)}")
+        self.data_received.emit(data)
+
+    @Slot(int)
+    def on_scroll(self, position: int) -> None:
+        """Handle scroll event from xterm.js."""
+        logger.debug(f"Terminal scrolled to position: {position}")
+        self.scroll_occurred.emit(position)
+
+    @Slot(str, result=str)
+    def execute_command(self, command: str) -> str:
+        """Execute a command and return result (for future use)."""
+        logger.debug(f"JavaScript requested command execution: {command}")
+        # This will be implemented later when we add advanced APIs
+        return json.dumps({"status": "not_implemented", "command": command})
+
+    @Slot(result=str)
+    def get_terminal_info(self) -> str:
+        """Get terminal information (for future use)."""
+        logger.debug("JavaScript requested terminal info")
+        # This will be implemented later
+        return json.dumps({"status": "active", "type": "xterm.js"})
+
+
+class TerminalWidget(QWidget):
+    """PySide6 terminal widget powered by xterm.js.
+
+    A fully-featured terminal emulator widget that can be embedded in Qt applications.
+    Supports both embedded and external server modes for flexibility.
+    """
+
+    # ============================================================================
+    # NEW Qt-Compliant Signals (Phase 1: Proper API Design)
+    # ============================================================================
+
+    # Terminal Lifecycle Signals (EventCategory.LIFECYCLE)
+    terminalReady = Signal()  # Terminal is ready for use
+    terminalClosed = Signal(int)  # Terminal closed with exit code
+    serverStarted = Signal(str)  # Server started at URL
+    connectionLost = Signal()  # Connection to terminal lost
+    connectionRestored = Signal()  # Connection to terminal restored
+
+    # Process Management Signals (EventCategory.PROCESS)
+    processStarted = Signal(ProcessEvent)  # Process started with details
+    processFinished = Signal(int)  # Process finished with exit code
+
+    # Content Signals (EventCategory.CONTENT)
+    outputReceived = Signal(str)  # Terminal output received
+    errorReceived = Signal(str)  # Terminal error output received
+    inputSent = Signal(str)  # Input sent to terminal
+
+    # User Interaction Signals (EventCategory.INTERACTION)
+    keyPressed = Signal(KeyEvent)  # Key pressed with full details
+    selectionChanged = Signal(str)  # Text selection changed
+    contextMenuRequested = Signal(ContextMenuEvent)  # Context menu requested
+
+    # Focus & Display Signals (EventCategory.FOCUS, EventCategory.APPEARANCE)
+    focusReceived = Signal()  # Terminal received focus
+    focusLost = Signal()  # Terminal lost focus
+    sizeChanged = Signal(int, int)  # Terminal size changed (rows, cols)
+    titleChanged = Signal(str)  # Terminal title changed
+    bellActivated = Signal()  # Terminal bell/notification
+    scrollOccurred = Signal(int)  # Terminal scrolled to position
+
+    # ============================================================================
+    # DEPRECATED Signals (Phase 7: Backwards Compatibility)
+    # These signals are deprecated and will be removed in a future version.
+    # Use the Qt-compliant signals above instead.
+    # ============================================================================
+
+    # Deprecated - use terminalReady instead
+    terminal_ready = Signal()
+    # Deprecated - use terminalClosed instead
+    terminal_closed = Signal(int)
+    # Deprecated - use processStarted instead
+    command_started = Signal(str)
+    # Deprecated - use processFinished instead
+    command_finished = Signal(int)
+    # Deprecated - use outputReceived instead
+    output_received = Signal(str)
+    # Deprecated - use errorReceived instead
+    error_received = Signal(str)
+    # Deprecated - use inputSent instead
+    input_sent = Signal(str)
+    # Deprecated - use sizeChanged instead
+    resize_occurred = Signal(int, int)
+    # Deprecated - use connectionLost instead
+    connection_lost = Signal()
+    # Deprecated - use connectionRestored instead
+    connection_restored = Signal()
+    # Deprecated - use serverStarted instead
+    server_started = Signal(str)
+    # Deprecated - use focusReceived instead
+    focus_received = Signal()
+    # Deprecated - use focusLost instead
+    focus_lost = Signal()
+    # Deprecated - use selectionChanged instead
+    selection_changed = Signal(str)
+    # Deprecated - future: cursor tracking
+    cursor_moved = Signal(int, int)
+    # Deprecated - use bellActivated instead
+    bell_rang = Signal()
+    # Deprecated - use titleChanged instead
+    title_changed = Signal(str)
+    # Deprecated - use keyPressed instead
+    key_pressed = Signal(str, str, bool, bool, bool)
+    # Deprecated - use inputSent instead
+    terminal_data = Signal(str)
+    # Deprecated - use scrollOccurred instead
+    scroll_occurred = Signal(int)
+    # Deprecated - use contextMenuRequested instead
+    context_menu_requested = Signal(QPoint, str)
+
+    def __init__(
+        self,
+        command: str = "bash",
+        args: Optional[List[str]] = None,
+        cwd: Optional[str] = None,
+        env: Optional[Dict[str, str]] = None,
+        parent: Optional[QWidget] = None,
+        # Server options
+        server_url: Optional[str] = None,  # Use external server
+        port: int = 0,  # 0 = random port
+        host: str = "127.0.0.1",
+        # Terminal options
+        rows: int = DEFAULT_ROWS,
+        cols: int = DEFAULT_COLS,
+        scrollback: int = DEFAULT_SCROLLBACK,
+        theme: str = "dark",  # 'dark', 'light', or custom dict
+        # Developer features
+        capture_output: bool = False,
+        output_filter: Optional[Callable[[str], str]] = None,
+        output_parser: Optional[Callable[[str], Any]] = None,
+        read_only: bool = False,
+        debug: bool = False,
+        # Phase 3: Event configuration
+        event_config: Optional[EventConfig] = None,
+    ):
+        """Initialize the Terminal Widget.
+
+        Args:
+            command: Shell command to execute (e.g., 'bash', 'python')
+            args: Arguments for the command
+            cwd: Working directory for the terminal
+            env: Environment variables
+            parent: Parent widget
+            server_url: URL of external terminal server (if not using embedded)
+            port: Port for embedded server (0 for random)
+            host: Host for embedded server
+            rows: Initial number of terminal rows
+            cols: Initial number of terminal columns
+            scrollback: Number of scrollback lines
+            theme: Color theme ('dark', 'light', or custom dict)
+            capture_output: Whether to capture output for retrieval
+            output_filter: Function to filter/process output
+            output_parser: Function to parse output
+            read_only: Make terminal read-only
+            debug: Enable debug logging
+            event_config: Event system configuration (Phase 3)
+        """
+        super().__init__(parent)
+
+        # Store configuration
+        self.command = command
+        self.args = args or []
+        self.cwd = cwd
+        self.env = env or {}
+        self.server_url = server_url
+        self.port = port
+        self.host = host
+        self.rows = rows
+        self.cols = cols
+        self.scrollback = scrollback
+        self.theme = theme
+        self.capture_output = capture_output
+        self.output_filter = output_filter
+        self.output_parser = output_parser
+        self.read_only = read_only
+        self.debug = debug
+
+        # Internal state
+        self.server = None
+        self.web_view = None
+        self.output_buffer = [] if capture_output else None
+        self.is_connected = False
+        self.process_info = {}
+
+        # Phase 2: QWebChannel bridge for JavaScript communication
+        self.bridge = None
+        self.web_channel = None
+
+        # Phase 3: Event configuration system
+        self.event_config = event_config or EventConfig()
+
+        # Phase 4: Context menu customization
+        self.custom_context_menu_handler = None
+        self.custom_context_actions = []
+
+        # Phase 7: Set up signal forwarding for backwards compatibility
+        self._setup_signal_forwarding()
+
+        # Setup logging - always log important events
+        if debug:
+            logging.basicConfig(level=logging.DEBUG)
+            logger.setLevel(logging.DEBUG)
+        else:
+            # Still log important events even when not in debug mode
+            logger.setLevel(logging.INFO)
+
+        # Initialize UI and server
+        self._setup_ui()
+        self._start_terminal()
+
+    def _setup_signal_forwarding(self) -> None:
+        """Set up signal forwarding from new signals to deprecated signals for backwards compatibility."""
+
+        # Emit deprecation warnings and forward signals
+        def forward_with_warning(old_signal_name: str, new_signal_name: str):
+            def forwarder(*args):
+                if self.event_config.enable_deprecation_warnings:
+                    _emit_deprecation_warning(old_signal_name, new_signal_name)
+                return args
+
+            return forwarder
+
+        # Connect new signals to old signals for backwards compatibility
+        self.terminalReady.connect(lambda: self.terminal_ready.emit())
+        self.terminalClosed.connect(lambda code: self.terminal_closed.emit(code))
+        self.processStarted.connect(lambda event: self.command_started.emit(event.command))
+        self.processFinished.connect(lambda code: self.command_finished.emit(code))
+        self.outputReceived.connect(lambda data: self.output_received.emit(data))
+        self.errorReceived.connect(lambda data: self.error_received.emit(data))
+        self.inputSent.connect(lambda text: self.input_sent.emit(text))
+        self.sizeChanged.connect(lambda rows, cols: self.resize_occurred.emit(rows, cols))
+        self.connectionLost.connect(lambda: self.connection_lost.emit())
+        self.connectionRestored.connect(lambda: self.connection_restored.emit())
+        self.serverStarted.connect(lambda url: self.server_started.emit(url))
+        self.focusReceived.connect(lambda: self.focus_received.emit())
+        self.focusLost.connect(lambda: self.focus_lost.emit())
+        self.selectionChanged.connect(lambda text: self.selection_changed.emit(text))
+        self.bellActivated.connect(lambda: self.bell_rang.emit())
+        self.titleChanged.connect(lambda title: self.title_changed.emit(title))
+        self.keyPressed.connect(
+            lambda event: self.key_pressed.emit(
+                event.key, event.code, event.ctrl, event.alt, event.shift
+            )
+        )
+        self.inputSent.connect(
+            lambda text: self.terminal_data.emit(text)
+        )  # terminal_data was duplicate of input_sent
+        self.scrollOccurred.connect(lambda pos: self.scroll_occurred.emit(pos))
+        self.contextMenuRequested.connect(
+            lambda event: self.context_menu_requested.emit(event.position, event.selected_text)
+        )
+
+    # Phase 4: Intuitive Developer API Helper Methods
+
+    def configure_events(self, config: EventConfig) -> None:
+        """Configure the event system.
+
+        Args:
+            config: Event configuration settings
+        """
+        self.event_config = config
+        logger.info(
+            f"Event configuration updated: enabled categories={[cat.value for cat in config.enabled_categories]}"
+        )
+
+    def enable_event_category(self, category: EventCategory) -> None:
+        """Enable a specific event category.
+
+        Args:
+            category: Event category to enable
+        """
+        self.event_config.enabled_categories.add(category)
+        logger.debug(f"Enabled event category: {category.value}")
+
+    def disable_event_category(self, category: EventCategory) -> None:
+        """Disable a specific event category.
+
+        Args:
+            category: Event category to disable
+        """
+        self.event_config.enabled_categories.discard(category)
+        logger.debug(f"Disabled event category: {category.value}")
+
+    def monitor_command_execution(self, callback: Callable[[ProcessEvent], None]) -> None:
+        """Set up monitoring for command execution (helper method for common use case).
+
+        Args:
+            callback: Function to call when process events occur
+        """
+        self.processStarted.connect(callback)
+        logger.debug("Command execution monitoring enabled")
+
+    def add_context_menu_handler(
+        self, handler: Callable[[ContextMenuEvent], Optional[QMenu]]
+    ) -> None:
+        """Add a custom context menu handler (helper method).
+
+        Args:
+            handler: Function that creates a custom context menu
+        """
+        self.custom_context_menu_handler = handler
+        logger.debug("Custom context menu handler added")
+
+    def set_selection_handler(self, handler: Callable[[str], None]) -> None:
+        """Set up a handler for text selection changes (helper method).
+
+        Args:
+            handler: Function to call when selection changes
+        """
+        self.selectionChanged.connect(handler)
+        logger.debug("Selection change handler added")
+
+    def enable_session_recording(self, callback: Callable[[str], None]) -> None:
+        """Enable session recording (helper method for common use case).
+
+        Args:
+            callback: Function to call with output data for recording
+        """
+        self.outputReceived.connect(callback)
+        logger.debug("Session recording enabled")
+
+    def _setup_ui(self) -> None:
+        """Set up the widget UI."""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create web view for terminal (use our enhanced version for context menu debugging)
+        self.web_view = DebugWebEngineView(self)
+        self.web_view.set_debug(self.debug)
+        layout.addWidget(self.web_view)
+
+        # Connect right-click signal
+        self.web_view.right_clicked.connect(
+            lambda pos: logger.info(
+                f"🖱️  RIGHT-CLICK: Detected via QWebEngineView at ({pos.x()}, {pos.y()})"
+            )
+        )
+
+        # Connect page load signals
+        self.web_view.loadFinished.connect(self._on_load_finished)
+
+        # Install event filter on focus proxy for proper focus detection
+        # This is needed because QWebEngineView doesn't propagate focus events normally
+        self._setup_focus_detection()
+
+        # Set up QWebChannel bridge for JavaScript communication
+        self._setup_web_channel_bridge()
+
+    def _setup_focus_detection(self) -> None:
+        """Set up proper focus event detection for QWebEngineView.
+
+        QWebEngineView doesn't propagate focus events normally, so we need to
+        install an event filter on its focus proxy to detect when the terminal
+        actually receives or loses focus.
+        """
+
+        # Wait for the web view to be fully initialized
+        def setup_after_load():
+            focus_proxy = self.web_view.focusProxy()
+            if focus_proxy:
+                focus_proxy.installEventFilter(self)
+                logger.info(
+                    "✅ FOCUS SETUP: Installed focus event filter on QWebEngineView focus proxy"
+                )
+                logger.info(f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}")
+            else:
+                logger.warning("❌ FOCUS SETUP: QWebEngineView focus proxy not available")
+
+        # Try immediate setup first
+        focus_proxy = self.web_view.focusProxy()
+        if focus_proxy:
+            focus_proxy.installEventFilter(self)
+            logger.info("✅ FOCUS SETUP: Installed focus event filter immediately")
+            logger.info(f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}")
+        else:
+            logger.info("⏳ FOCUS SETUP: Focus proxy not ready, will try after page loads")
+
+        # Also set up after page loads as backup
+        def delayed_setup():
+            focus_proxy = self.web_view.focusProxy()
+            if focus_proxy and not hasattr(focus_proxy, "_vf_filter_installed"):
+                focus_proxy.installEventFilter(self)
+                focus_proxy._vf_filter_installed = True  # Mark as installed
+                logger.info("✅ FOCUS SETUP: Installed focus event filter after page load")
+            elif focus_proxy:
+                logger.debug("🔍 FOCUS SETUP: Focus proxy already has filter installed")
+            else:
+                logger.warning("❌ FOCUS SETUP: Still no focus proxy available after page load")
+
+        # Set up focus detection after page loads
+        self.web_view.loadFinished.connect(
+            lambda success: delayed_setup()
+            if success
+            else logger.warning("❌ FOCUS SETUP: Page failed to load")
+        )
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        """Handle events from the QWebEngineView focus proxy.
+
+        This is where we catch the actual focus events that QWebEngineView
+        receives but doesn't normally propagate to the parent widget.
+        """
+        # Log all events when debugging to see what's happening
+        if self.debug and obj == self.web_view.focusProxy():
+            event_name = event.type().name if hasattr(event.type(), "name") else str(event.type())
+            logger.debug(f"🔍 EVENT FILTER: Received {event_name} on focus proxy")
+
+        if obj == self.web_view.focusProxy():
+            if event.type() == QEvent.Type.FocusIn:
+                logger.info("🎯 FOCUS: Terminal received focus (via focus proxy)")
+                if EventCategory.FOCUS in self.event_config.enabled_categories:
+                    self.focusReceived.emit()
+                return False  # Let the event continue to be processed
+            elif event.type() == QEvent.Type.FocusOut:
+                logger.info("❌ FOCUS: Terminal lost focus (via focus proxy)")
+                if EventCategory.FOCUS in self.event_config.enabled_categories:
+                    self.focusLost.emit()
+                return False  # Let the event continue to be processed
+
+        # Pass other events to parent class
+        return super().eventFilter(obj, event)
+
+    def contextMenuEvent(self, event: QContextMenuEvent) -> None:
+        """Handle context menu requests (Phase 4: Enhanced context menu system).
+
+        Provides a customizable context menu with terminal-specific actions
+        and allows developers to add their own custom actions.
+        """
+        # Log the right-click event for testing
+        logger.info(f"🖱️  RIGHT-CLICK detected at position ({event.pos().x()}, {event.pos().y()})")
+
+        # Get current selection from the bridge if available
+        selected_text = ""
+        if self.bridge and hasattr(self.bridge, "_last_selection"):
+            selected_text = getattr(self.bridge, "_last_selection", "")
+
+        logger.info(
+            f"📝 Selected text: '{selected_text[:50]}{'...' if len(selected_text) > 50 else ''}'"
+        )
+        logger.info("🎯 Emitting context_menu_requested signal")
+
+        # Create structured context menu event data
+        context_event = ContextMenuEvent(
+            position=event.pos(),
+            global_position=event.globalPos(),
+            selected_text=selected_text,
+            cursor_position=None,  # TODO: Get from bridge when available
+        )
+
+        # Emit signal for developers who want to handle context menu themselves
+        if EventCategory.INTERACTION in self.event_config.enabled_categories:
+            self.contextMenuRequested.emit(context_event)
+
+        # If developer provided custom handler, use it
+        if self.custom_context_menu_handler:
+            try:
+                logger.info("🔧 Using custom context menu handler")
+                menu = self.custom_context_menu_handler(event.pos(), selected_text)
+                if menu:
+                    logger.info("📋 Showing custom context menu")
+                    menu.exec_(event.globalPos())
+                    return
+                else:
+                    logger.info("❌ Custom handler returned None, falling back to default menu")
+            except Exception as e:
+                logger.warning(f"Custom context menu handler failed: {e}")
+
+        # Default context menu
+        logger.info("📋 Showing default context menu")
+        self._show_default_context_menu(event.globalPos(), selected_text)
+
+    def _show_default_context_menu(self, global_pos: QPoint, selected_text: str) -> None:
+        """Show the default terminal context menu."""
+        logger.debug(
+            f"Creating default context menu at global position ({global_pos.x()}, {global_pos.y()})"
+        )
+        menu = QMenu(self)
+
+        action_count = 0
+
+        # Copy action (only if text is selected)
+        if selected_text:
+            copy_action = QAction("Copy", self)
+            copy_action.triggered.connect(lambda: self._copy_to_clipboard(selected_text))
+            menu.addAction(copy_action)
+            action_count += 1
+            logger.debug(f"➕ Added 'Copy' action (text length: {len(selected_text)})")
+
+        # Paste action
+        paste_action = QAction("Paste", self)
+        paste_action.triggered.connect(self._paste_from_clipboard)
+        menu.addAction(paste_action)
+        action_count += 1
+        logger.debug("➕ Added 'Paste' action")
+
+        if selected_text and selected_text.strip():
+            menu.addSeparator()
+
+            # Clear action
+            clear_action = QAction("Clear Terminal", self)
+            clear_action.triggered.connect(self.clear_terminal)
+            menu.addAction(clear_action)
+            action_count += 1
+            logger.debug("➕ Added 'Clear Terminal' action")
+
+        # Add custom actions if any
+        if self.custom_context_actions:
+            menu.addSeparator()
+            for action in self.custom_context_actions:
+                menu.addAction(action)
+                action_count += 1
+                logger.debug(f"➕ Added custom action: '{action.text()}'")
+
+        logger.info(f"🎯 Displaying context menu with {action_count} actions")
+        menu.exec_(global_pos)
+        logger.debug("✅ Context menu closed")
+
+    def _copy_to_clipboard(self, text: str) -> None:
+        """Copy text to system clipboard."""
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+        logger.info(
+            f"📋 Copied {len(text)} characters to clipboard: '{text[:30]}{'...' if len(text) > 30 else ''}'"
+        )
+
+    def _paste_from_clipboard(self) -> None:
+        """Paste text from system clipboard to terminal."""
+        clipboard = QApplication.clipboard()
+        text = clipboard.text()
+        if text and self.server:
+            self.server.send_input(text)
+            logger.info(
+                f"📥 Pasted {len(text)} characters from clipboard: '{text[:30]}{'...' if len(text) > 30 else ''}'"
+            )
+        elif not text:
+            logger.info("📥 Paste attempted but clipboard is empty")
+        else:
+            logger.warning("📥 Paste failed - terminal server not available")
+
+    # Phase 4: Context menu customization API for developers
+
+    def set_context_menu_handler(self, handler: Callable[[QPoint, str], Optional[QMenu]]) -> None:
+        """Set a custom context menu handler.
+
+        Args:
+            handler: Function that takes (position, selected_text) and returns QMenu or None
+        """
+        self.custom_context_menu_handler = handler
+        logger.debug("Custom context menu handler set")
+
+    def add_context_menu_action(self, action: QAction) -> None:
+        """Add a custom action to the default context menu.
+
+        Args:
+            action: QAction to add to the context menu
+        """
+        self.custom_context_actions.append(action)
+        logger.debug(f"Added custom context menu action: {action.text()}")
+
+    def remove_context_menu_action(self, action: QAction) -> None:
+        """Remove a custom action from the context menu.
+
+        Args:
+            action: QAction to remove
+        """
+        if action in self.custom_context_actions:
+            self.custom_context_actions.remove(action)
+            logger.debug(f"Removed custom context menu action: {action.text()}")
+
+    def clear_context_menu_actions(self) -> None:
+        """Clear all custom context menu actions."""
+        self.custom_context_actions.clear()
+        logger.debug("Cleared all custom context menu actions")
+
+    def _setup_web_channel_bridge(self) -> None:
+        """Set up QWebChannel bridge for JavaScript communication.
+
+        This enables bidirectional communication between xterm.js running in the
+        QWebEngineView and this Python widget. JavaScript can call methods on
+        the bridge, and the bridge can emit signals that this widget listens to.
+        """
+        # Create bridge and web channel
+        self.bridge = TerminalBridge(self)
+        self.web_channel = QWebChannel(self)
+
+        # Register the bridge object so JavaScript can access it
+        self.web_channel.registerObject("terminalBridge", self.bridge)
+
+        # Set the web channel on the QWebEngineView's page
+        self.web_view.page().setWebChannel(self.web_channel)
+
+        # Connect bridge signals to widget signals (Phase 3: Rich events)
+        self._connect_bridge_signals()
+
+        logger.debug("QWebChannel bridge set up successfully")
+
+    def _connect_bridge_signals(self) -> None:
+        """Connect TerminalBridge signals to TerminalWidget signals."""
+        if not self.bridge:
+            return
+
+        # Connect rich events from the bridge to new Qt-compliant signals on this widget
+        self.bridge.selection_changed.connect(
+            lambda text: self.selectionChanged.emit(text)
+            if EventCategory.INTERACTION in self.event_config.enabled_categories
+            else None
+        )
+        self.bridge.cursor_moved.connect(
+            lambda row, col: self.cursor_moved.emit(row, col)
+            if EventCategory.INTERACTION in self.event_config.enabled_categories
+            else None
+        )
+        self.bridge.bell_rang.connect(
+            lambda: self.bellActivated.emit()
+            if EventCategory.APPEARANCE in self.event_config.enabled_categories
+            else None
+        )
+        self.bridge.title_changed.connect(
+            lambda title: self.titleChanged.emit(title)
+            if EventCategory.APPEARANCE in self.event_config.enabled_categories
+            else None
+        )
+        self.bridge.key_pressed.connect(
+            lambda key, code, ctrl, alt, shift: self._emit_key_event(key, code, ctrl, alt, shift)
+        )
+        self.bridge.data_received.connect(
+            lambda data: self.inputSent.emit(data)
+            if EventCategory.CONTENT in self.event_config.enabled_categories
+            else None
+        )
+        self.bridge.scroll_occurred.connect(
+            lambda pos: self.scrollOccurred.emit(pos)
+            if EventCategory.APPEARANCE in self.event_config.enabled_categories
+            else None
+        )
+
+        logger.debug("Bridge signals connected to widget signals")
+
+    def _emit_key_event(self, key: str, code: str, ctrl: bool, alt: bool, shift: bool) -> None:
+        """Emit structured key event with category checking."""
+        if EventCategory.INTERACTION in self.event_config.enabled_categories:
+            key_event = KeyEvent(key=key, code=code, ctrl=ctrl, alt=alt, shift=shift)
+            self.keyPressed.emit(key_event)
+
+    def _start_terminal(self) -> None:
+        """Start the terminal server and load the terminal."""
+        try:
+            if self.server_url:
+                # Use external server
+                logger.info(f"Connecting to external server: {self.server_url}")
+                self._load_terminal_url(self.server_url)
+            else:
+                # Start embedded server
+                logger.info("Starting embedded terminal server")
+                self.server = EmbeddedTerminalServer(
+                    command=self.command,
+                    args=self.args,
+                    cwd=self.cwd,
+                    env=self.env,
+                    port=self.port,
+                    host=self.host,
+                    capture_output=self.capture_output,
+                )
+
+                # Connect server signals
+                self._connect_server_signals()
+
+                # Start server
+                actual_port = self.server.start()
+                terminal_url = f"http://{self.host}:{actual_port}"
+
+                # Give server a moment to start
+                QThread.msleep(200)
+
+                # Load terminal
+                self._load_terminal_url(terminal_url)
+                if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
+                    self.serverStarted.emit(terminal_url)
+                logger.info(f"Terminal server started at {terminal_url}")
+
+        except Exception as e:
+            logger.error(f"Failed to start terminal: {e}")
+            self._show_error(f"Terminal failed to start:\n{str(e)}")
+
+    def _connect_server_signals(self) -> None:
+        """Connect signals from embedded server."""
+        if not self.server:
+            return
+
+        logger.debug("Connecting server signals")
+        # Connect server signals to widget signals
+        if hasattr(self.server, "output_received"):
+            self.server.output_received.connect(self._handle_output)
+        if hasattr(self.server, "process_started"):
+            self.server.process_started.connect(lambda: self._on_command_started())
+        if hasattr(self.server, "process_ended"):
+            self.server.process_ended.connect(self._on_command_finished)
+
+    def _on_command_started(self) -> None:
+        """Handle command started event."""
+        logger.debug(f"Command started: {self.command}")
+
+        # Create structured process event data
+        process_event = ProcessEvent(
+            command=self.command,
+            pid=self.server.child_pid if self.server else None,
+            working_directory=self.cwd,
+        )
+
+        if EventCategory.PROCESS in self.event_config.enabled_categories:
+            self.processStarted.emit(process_event)
+
+    def _on_command_finished(self, exit_code: int) -> None:
+        """Handle command finished event."""
+        logger.debug(f"Command finished with exit code: {exit_code}")
+
+        if EventCategory.PROCESS in self.event_config.enabled_categories:
+            self.processFinished.emit(exit_code)
+
+    def _load_terminal_url(self, url: str) -> None:
+        """Load terminal URL in web view."""
+        logger.debug(f"Loading terminal URL: {url}")
+        self.web_view.load(QUrl(url))
+
+    def _on_load_finished(self, success: bool) -> None:
+        """Handle terminal page load completion."""
+        if success:
+            logger.info("Terminal loaded successfully")
+            self.is_connected = True
+            if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
+                self.terminalReady.emit()
+            logger.debug("Emitted terminal_ready signal")
+
+            # Inject any custom configuration
+            self._configure_terminal()
+        else:
+            logger.error("Failed to load terminal")
+            if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
+                self.connectionLost.emit()
+            logger.debug("Emitted connection_lost signal")
+
+    def _configure_terminal(self) -> None:
+        """Configure terminal after loading."""
+        # Apply theme
+        if self.theme:
+            self._apply_theme(self.theme)
+
+        # Set read-only mode if requested
+        if self.read_only:
+            self.set_read_only(True)
+
+    def _apply_theme(self, theme) -> None:
+        """Apply color theme to terminal."""
+        # This would inject JavaScript to configure xterm.js theme
+        pass
+
+    def _handle_output(self, data: str) -> None:
+        """Handle output from terminal."""
+        # Apply filter if provided
+        if self.output_filter:
+            data = self.output_filter(data)
+
+        # Parse if parser provided
+        if self.output_parser:
+            data = self.output_parser(data)
+
+        # Store in buffer if capturing
+        if self.capture_output and self.output_buffer is not None:
+            self.output_buffer.append(data)
+
+        # Emit signal
+        if EventCategory.CONTENT in self.event_config.enabled_categories:
+            self.outputReceived.emit(data)
+
+    def _show_error(self, message: str) -> None:
+        """Display error message in the widget."""
+        from PySide6.QtWidgets import QLabel
+
+        error_label = QLabel(message)
+        error_label.setWordWrap(True)
+        error_label.setStyleSheet("QLabel { color: red; padding: 10px; }")
+        self.layout().addWidget(error_label)
+
+    # Public API methods
+
+    def send_command(self, command: str) -> None:
+        """Send a command to the terminal.
+
+        Args:
+            command: Command to execute
+        """
+        logger.debug(f"Sending command: {command}")
+        if self.server:
+            self.server.send_input(command + "\n")
+        if EventCategory.CONTENT in self.event_config.enabled_categories:
+            self.inputSent.emit(command)
+
+    def send_input(self, text: str) -> None:
+        """Send raw input to the terminal.
+
+        Args:
+            text: Text to send
+        """
+        if self.server:
+            self.server.send_input(text)
+        if EventCategory.CONTENT in self.event_config.enabled_categories:
+            self.inputSent.emit(text)
+
+    def clear(self) -> None:
+        """Clear the terminal screen."""
+        self.send_input("\x0c")  # Ctrl+L
+
+    def clear_terminal(self) -> None:
+        """Clear the terminal screen (alias for clear)."""
+        logger.info("🧹 Clearing terminal screen via context menu")
+        self.clear()
+
+    def reset(self) -> None:
+        """Reset terminal state."""
+        if self.server:
+            self.server.reset_terminal()
+
+    def get_output(self, last_n_lines: Optional[int] = None) -> str:
+        """Get terminal output as string.
+
+        Args:
+            last_n_lines: Number of last lines to retrieve
+
+        Returns:
+            Terminal output as string
+        """
+        if not self.capture_output or not self.output_buffer:
+            return ""
+
+        lines = self.output_buffer
+        if last_n_lines:
+            lines = lines[-last_n_lines:]
+        return "".join(lines)
+
+    def save_output(self, filepath: str) -> None:
+        """Save terminal output to file.
+
+        Args:
+            filepath: Path to save file
+        """
+        output = self.get_output()
+        with open(filepath, "w") as f:
+            f.write(output)
+
+    def set_read_only(self, read_only: bool) -> None:
+        """Set terminal read-only mode.
+
+        Args:
+            read_only: Whether terminal should be read-only
+        """
+        self.read_only = read_only
+        # This would inject JavaScript to disable input
+
+    def execute_script(self, script: str) -> None:
+        """Execute a multi-line script.
+
+        Args:
+            script: Script to execute
+        """
+        for line in script.splitlines():
+            if line.strip():
+                self.send_command(line)
+                QThread.msleep(100)  # Small delay between commands
+
+    def get_process_info(self) -> Dict[str, Any]:
+        """Get information about the running process.
+
+        Returns:
+            Dictionary with process information
+        """
+        if self.server:
+            return self.server.get_process_info()
+        return {}
+
+    def set_working_directory(self, path: str) -> None:
+        """Change working directory.
+
+        Args:
+            path: New working directory
+        """
+        self.send_command(f"cd {path}")
+
+    def close_terminal(self) -> None:
+        """Close the terminal and cleanup resources."""
+        logger.info("Closing terminal")
+
+        if self.server:
+            exit_code = self.server.stop()
+            self.server = None
+            if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
+                self.terminalClosed.emit(exit_code or 0)
+
+        self.is_connected = False
+
+    # Phase 5: Advanced Developer API Methods
+
+    def get_selected_text(self) -> str:
+        """Get currently selected text in the terminal.
+
+        Returns:
+            Selected text or empty string if no selection
+        """
+        if self.bridge:
+            return getattr(self.bridge, "_last_selection", "")
+        return ""
+
+    def get_cursor_position(self) -> tuple[int, int]:
+        """Get current cursor position.
+
+        Returns:
+            Tuple of (row, col) or (0, 0) if unavailable
+        """
+        # This would need to be implemented via JavaScript bridge in the future
+        logger.debug("get_cursor_position not yet fully implemented")
+        return (0, 0)
+
+    def get_current_line(self) -> str:
+        """Get the current line where cursor is located.
+
+        Returns:
+            Current line text or empty string if unavailable
+        """
+        # This would need to be implemented via JavaScript bridge in the future
+        logger.debug("get_current_line not yet fully implemented")
+        return ""
+
+    def set_theme(self, theme_dict: Dict[str, str]) -> None:
+        """Set terminal color theme.
+
+        Args:
+            theme_dict: Dictionary with color definitions (background, foreground, etc.)
+        """
+        self.theme = theme_dict
+        # Inject JavaScript to update xterm.js theme
+        if self.web_view and self.is_connected:
+            js_theme = json.dumps(theme_dict)
+            js_code = f"if (window.terminal) {{ window.terminal.options.theme = {js_theme}; }}"
+            self.inject_javascript(js_code)
+        logger.debug(f"Theme updated: {len(theme_dict)} colors")
+
+    def add_search_highlight(self, text: str, case_sensitive: bool = False) -> None:
+        """Highlight text in the terminal.
+
+        Args:
+            text: Text to highlight
+            case_sensitive: Whether search should be case sensitive
+        """
+        if self.web_view and self.is_connected:
+            js_text = json.dumps(text)
+            js_code = f"""
+            if (window.terminal && window.terminal.searchAddon) {{
+                window.terminal.searchAddon.findNext({js_text}, {{ caseSensitive: {str(case_sensitive).lower()} }});
+            }}
+            """
+            self.inject_javascript(js_code)
+        logger.debug(f"Added search highlight for: {text}")
+
+    def scroll_to_line(self, line_number: int) -> None:
+        """Scroll terminal to specific line.
+
+        Args:
+            line_number: Line number to scroll to (0-based)
+        """
+        if self.web_view and self.is_connected:
+            js_code = f"""
+            if (window.terminal) {{
+                window.terminal.scrollToLine({line_number});
+            }}
+            """
+            self.inject_javascript(js_code)
+        logger.debug(f"Scrolled to line: {line_number}")
+
+    def inject_javascript(self, js_code: str) -> None:
+        """Execute custom JavaScript in the terminal context.
+
+        Args:
+            js_code: JavaScript code to execute
+        """
+        if self.web_view and self.web_view.page():
+            self.web_view.page().runJavaScript(js_code)
+            logger.debug(f"Injected JavaScript: {js_code[:100]}...")
+        else:
+            logger.warning("Cannot inject JavaScript: web view not ready")
+
+    def add_keyboard_shortcut(self, key_combination: str, callback: Callable[[], None]) -> None:
+        """Add custom keyboard shortcut.
+
+        Args:
+            key_combination: Key combination (e.g., 'Ctrl+Shift+T')
+            callback: Function to call when shortcut is pressed
+
+        Note:
+            This is a simplified version. Full implementation would require
+            more sophisticated key handling via the bridge.
+        """
+        # Store the callback for future use
+        if not hasattr(self, "_keyboard_shortcuts"):
+            self._keyboard_shortcuts = {}
+
+        self._keyboard_shortcuts[key_combination] = callback
+        logger.debug(f"Added keyboard shortcut: {key_combination}")
+
+        # In a full implementation, this would set up JavaScript event handlers
+        # via the bridge to detect the key combination and call the callback
+
+    def get_terminal_dimensions(self) -> tuple[int, int]:
+        """Get terminal dimensions in characters.
+
+        Returns:
+            Tuple of (rows, cols)
+        """
+        return (self.rows, self.cols)
+
+    def set_terminal_size(self, rows: int, cols: int) -> None:
+        """Set terminal size in characters.
+
+        Args:
+            rows: Number of rows
+            cols: Number of columns
+        """
+        self.rows = rows
+        self.cols = cols
+        if self.server:
+            self.server.resize(rows, cols)
+
+        # Also update xterm.js dimensions
+        if self.web_view and self.is_connected:
+            js_code = f"""
+            if (window.terminal && window.terminal.resize) {{
+                window.terminal.resize({cols}, {rows});
+            }}
+            """
+            self.inject_javascript(js_code)
+
+        if EventCategory.APPEARANCE in self.event_config.enabled_categories:
+            self.sizeChanged.emit(rows, cols)
+        logger.debug(f"Terminal resized to {rows}x{cols}")
+
+    def get_scrollback_buffer(self) -> List[str]:
+        """Get scrollback buffer content.
+
+        Returns:
+            List of lines in scrollback buffer
+        """
+        if self.capture_output and self.output_buffer:
+            return self.output_buffer.copy()
+        return []
+
+    def clear_scrollback_buffer(self) -> None:
+        """Clear the scrollback buffer."""
+        if self.capture_output and self.output_buffer:
+            self.output_buffer.clear()
+
+        # Clear xterm.js scrollback
+        if self.web_view and self.is_connected:
+            js_code = "if (window.terminal) { window.terminal.clear(); }"
+            self.inject_javascript(js_code)
+
+        logger.debug("Scrollback buffer cleared")
+
+    def enable_logging(self, log_level: str = "INFO") -> None:
+        """Enable or change logging level.
+
+        Args:
+            log_level: Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR')
+        """
+        level = getattr(logging, log_level.upper(), logging.INFO)
+        logger.setLevel(level)
+        logger.info(f"Logging level set to {log_level}")
+
+    # Note: We don't override focusInEvent/focusOutEvent because QWebEngineView
+    # doesn't propagate focus events properly. Instead, we use an event filter
+    # on the focus proxy in _setup_focus_detection() and eventFilter() methods.
+
+    def resizeEvent(self, event) -> None:
+        """Handle resize event."""
+        logger.debug(f"Terminal widget resized to {event.size().width()}x{event.size().height()}")
+        super().resizeEvent(event)
+        # Terminal will handle resize through xterm.js fit addon
+
+    def showEvent(self, event) -> None:
+        """Handle show event."""
+        logger.debug("Terminal widget shown")
+        super().showEvent(event)
+
+    def hideEvent(self, event) -> None:
+        """Handle hide event."""
+        logger.debug("Terminal widget hidden")
+        super().hideEvent(event)
+
+    def closeEvent(self, event) -> None:
+        """Handle widget close event."""
+        logger.debug("Terminal widget closing")
+        self.close_terminal()
+        super().closeEvent(event)
