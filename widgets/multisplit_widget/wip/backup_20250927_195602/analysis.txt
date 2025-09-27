@@ -1,0 +1,23 @@
+BACKUP ANALYSIS
+==================================================
+Timestamp: 2025-09-27 19:56:02.961985
+
+Files backed up:
+- core/types.py
+
+Reason: Preparing for Phase 0 implementation
+
+Existing functionality to preserve:
+- PaneId type
+- Orientation, WherePosition, Direction enums
+- Exception classes
+- Size, Position, Rect dataclasses
+
+Functionality to move:
+- generate_pane_id() → utils.py
+- validate_ratio(s)() → utils.py
+- normalize_ratios() → tree_utils.py
+
+Functionality to add:
+- NodeId, WidgetId types
+- Bounds dataclass

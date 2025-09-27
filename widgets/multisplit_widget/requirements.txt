@@ -1,0 +1,3 @@
+# Core dependencies for vfwidgets-multisplit
+PySide6>=6.9.0
+# Add widget-specific dependencies here
