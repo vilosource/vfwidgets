@@ -306,8 +306,17 @@ class ChromeTabbedWindow(QWidget):
                     # Check if click is on empty tab bar area
                     tab_index = self._tab_bar.tabAt(event.pos())
 
-                    # Also check for new tab button
-                    if not self._tab_bar.new_tab_button_rect.contains(event.pos()) and tab_index == -1:
+                    # CRITICAL: Validate that tab_index is truly valid
+                    # Qt's tabAt() can return stale indices after tab removal
+                    is_valid_tab = (tab_index >= 0 and tab_index < self._tab_bar.count())
+
+                    # IMPORTANT: Only intercept clicks on empty areas or invalid indices
+                    # Let all clicks on actual valid tabs pass through to the tab bar for close buttons
+                    if not is_valid_tab:
+                        # Check if click is on new tab button - if so, let it pass through
+                        if self._tab_bar.new_tab_button_rect.contains(event.pos()):
+                            return False  # Let new tab button handle it
+
                         # Empty tab bar area - start window drag using native system move
                         # Try Qt's native window dragging (Qt 5.15+)
                         if hasattr(self.windowHandle(), 'startSystemMove'):
@@ -319,6 +328,8 @@ class ChromeTabbedWindow(QWidget):
                         frame_top_left = self.frameGeometry().topLeft()
                         self._drag_pos = global_pos - frame_top_left
                         return True  # Event handled, don't pass to tab bar
+                    else:
+                        return False  # Let tab bar handle the click (for close buttons, etc.)
 
             elif event.type() == event.Type.MouseMove:
                 if hasattr(self, '_drag_pos') and event.buttons() == Qt.MouseButton.LeftButton:
@@ -513,7 +524,8 @@ class ChromeTabbedWindow(QWidget):
 
     def _on_tab_close_requested(self, index: int) -> None:
         """Handle tab close request from view."""
-        self.tabCloseRequested.emit(index)
+        if 0 <= index < self.count():
+            self.tabCloseRequested.emit(index)
 
     def _on_new_tab_requested(self) -> None:
         """Handle new tab request from the Chrome-style new tab button."""
@@ -617,7 +629,8 @@ class ChromeTabbedWindow(QWidget):
         This method matches QTabWidget.removeTab() exactly including
         signal timing and current index adjustment.
         """
-        self._model.remove_tab(index)
+        if 0 <= index < self.count():
+            self._model.remove_tab(index)
         # Update Qt properties for compatibility
         self._update_qt_property('count', self.count())
         self._update_qt_property('currentIndex', self.currentIndex())

@@ -332,12 +332,24 @@ class ChromeTabBar(QTabBar):
                 return
 
             index = self.tabAt(event.pos())
+            # Double-validate tab index to prevent operations on non-existent tabs
+            # Qt's tabAt() can return stale indices after tab removal due to deferred layout updates
             if index >= 0:
+                # CRITICAL: Check if the index is actually valid BEFORE using it
+                if index >= self.count():
+                    # Qt returned an invalid index - treat as empty area click
+                    event.ignore()
+                    return
+
+                # Now we know the index is truly valid
                 # Check if close button clicked
                 tab_rect = self.tabRect(index)
                 close_rect = self._close_button_rect(tab_rect)
+
                 if close_rect.contains(event.pos()) and hasattr(self, '_model') and self._model.tabs_closable():
-                    self.tabCloseClicked.emit(index)
+                    # Final validation before emitting signal
+                    if index < self.count():
+                        self.tabCloseClicked.emit(index)
                     return
 
                 # Start potential drag operation
@@ -350,7 +362,8 @@ class ChromeTabBar(QTabBar):
 
         elif event.button() == Qt.MouseButton.MiddleButton:
             index = self.tabAt(event.pos())
-            if index >= 0:
+            # Also validate middle-click tab index
+            if index >= 0 and index < self.count():
                 self.tabMiddleClicked.emit(index)
                 return
 
@@ -443,6 +456,8 @@ class ChromeTabBar(QTabBar):
         super().resizeEvent(event)
         # Trigger geometry update which will call tabSizeHint
         self.updateGeometry()
+        # Update new tab button position
+        self.new_tab_button_rect = self._calculate_new_tab_button_position()
         self.update()
 
     def tabInserted(self, index: int) -> None:
@@ -450,12 +465,18 @@ class ChromeTabBar(QTabBar):
         super().tabInserted(index)
         # Trigger geometry update for tab width recalculation
         self.updateGeometry()
+        # Update new tab button position
+        self.new_tab_button_rect = self._calculate_new_tab_button_position()
 
     def tabRemoved(self, index: int) -> None:
         """Called when a tab is removed."""
         super().tabRemoved(index)
         # Trigger geometry update for tab width recalculation
         self.updateGeometry()
+        # Update new tab button position
+        self.new_tab_button_rect = self._calculate_new_tab_button_position()
+        # Trigger repaint to ensure visual update
+        self.update()
 
     # ==================== Size Management ====================
 
