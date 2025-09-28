@@ -282,6 +282,42 @@ tab_bar.setElideMode(Qt.ElideRight)
 tab_bar.setDocumentMode(True)
 ```
 
+### ❌ Mistake 5: Not Validating Qt's Stale Indices
+
+**Problem**: Qt's `tabAt()` can return stale indices after tab removal due to deferred layout updates
+
+```python
+# WRONG - Trusting Qt's indices without validation
+def mousePressEvent(self, event):
+    index = self.tabAt(event.pos())
+    if index >= 0:
+        # This can fail! Qt may return index 1 when only index 0 exists
+        self.removeTab(index)  # IndexError or removes wrong tab!
+```
+
+**Why it happens**:
+- Qt defers layout updates after tab removal for performance
+- `tabAt()` and `tabRect()` continue returning old values until layout updates
+- Rapid clicking exposes this timing issue
+
+**Solution**: Always double-validate indices
+
+```python
+# CORRECT - Double validation pattern
+def mousePressEvent(self, event):
+    index = self.tabAt(event.pos())
+    if index >= 0:
+        # CRITICAL: Validate index is actually valid BEFORE using it
+        if index >= self.count():
+            # Qt returned a stale index - ignore it
+            event.ignore()
+            return
+        # Now safe to use index
+        self.removeTab(index)
+```
+
+> **Note**: For detailed information about this issue including a real-world case study, see [Known Issues Documentation](./known-issues-BUGFIX.md#1-tab-closing-synchronization-bug-fixed)
+
 ---
 
 ## Performance Considerations
@@ -535,6 +571,11 @@ if __name__ == "__main__":
 ### Community Solutions
 - [Stack Overflow: Chrome-style tabs](https://stackoverflow.com/questions/71607560/how-to-make-tabs-like-chrome-browser)
 - [Qt Forum: Tab width management](https://forum.qt.io/topic/45487/qtabwidget-style-sheet)
+
+### Project Documentation
+- [Known Issues and Bug Fixes](./known-issues-BUGFIX.md) - Critical bugs discovered and fixed during development
+- [Architecture Overview](./architecture.md) - System design and component relationships
+- [API Documentation](./api.md) - Complete API reference
 
 ### Key Takeaways
 
