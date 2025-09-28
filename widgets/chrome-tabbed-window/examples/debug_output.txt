@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/kuja/GitHub/vfwidgets/widgets/chrome-tabbed-window/examples/debug_dragging.py", line 189, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/kuja/GitHub/vfwidgets/widgets/chrome-tabbed-window/examples/debug_dragging.py", line 159, in main
+    window = DebugWindow()  # No parent = frameless
+             ^^^^^^^^^^^^^
+  File "/home/kuja/GitHub/vfwidgets/widgets/chrome-tabbed-window/examples/debug_dragging.py", line 80, in __init__
+    self._tab_bar.currentChanged.connect(self._on_current_changed)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DebugWindow' object has no attribute '_on_current_changed'. Did you mean: 'currentChanged'?
