@@ -13,7 +13,7 @@ from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QBrush, QColor, QMouseEvent, QPainter, QPainterPath, QPaintEvent, QPen
 from PySide6.QtWidgets import QSizePolicy, QTabBar, QWidget
 
-from ..components import ChromeTabRenderer, TabAnimator, TabState
+from ..components import ChromeTabRenderer, TabState
 from ..model import TabModel
 
 
@@ -72,9 +72,7 @@ class ChromeTabBar(QTabBar):
         self.CHROME_MIN_TAB_WIDTH = 52  # Minimum width (favicon + close button)
         self.CHROME_MAX_TAB_WIDTH = ChromeTabRenderer.TAB_MAX_WIDTH
 
-        # Tab animation system
-        self._animator = TabAnimator(self)
-        self._animator.animationFinished.connect(self.update)
+        # Animation removed - was causing tab removal sync issues
 
         # Set base properties
         self.setMouseTracking(True)
@@ -128,23 +126,14 @@ class ChromeTabBar(QTabBar):
         text = self._model.tab_text(index) if hasattr(self, '_model') else ""
         self.insertTab(index, text)
 
-        # Trigger insertion animation
-        if hasattr(self, '_animator'):
-            self._animator.animate_tab_insertion(self, index)
+        # Animation removed to ensure proper sync
 
     def _on_tab_removed(self, index: int) -> None:
         """Handle tab removal from model."""
         if index < self.count():
-            # Trigger removal animation before actually removing
-            if hasattr(self, '_animator'):
-                self._animator.animate_tab_removal(self, index)
-                # Note: Actual tab removal will happen after animation completes
-                # Connect the animation finished signal to complete the removal
-                self._animator.removalAnimationFinished.connect(
-                    lambda idx: self.removeTab(idx) if idx < self.count() else None
-                )
-            else:
-                self.removeTab(index)
+            # For now, skip animation and directly remove tab to fix the sync issue
+            # Animation can be re-enabled once the basic functionality works
+            self.removeTab(index)
 
     def _on_tab_text_changed(self, index: int) -> None:
         """Handle tab text change from model."""
@@ -394,15 +383,7 @@ class ChromeTabBar(QTabBar):
             old_hovered = self._hovered_tab
             self._hovered_tab = index
 
-            # Trigger hover animations
-            if hasattr(self, '_animator'):
-                # Animate hover out for previously hovered tab
-                if old_hovered >= 0:
-                    self._animator.animate_hover(self, False)
-
-                # Animate hover in for newly hovered tab
-                if index >= 0:
-                    self._animator.animate_hover(self, True)
+            # Update hover state (animation removed)
 
             self.update()
 
@@ -603,9 +584,7 @@ class ChromeTabBar(QTabBar):
             if drop_index > self._dragged_tab_index:
                 drop_index -= 1
 
-            # Animate the reorder
-            if hasattr(self, '_animator'):
-                self._animator.animate_tab_reorder(self, self._dragged_tab_index, drop_index)
+            # Perform tab reordering (animation removed)
 
             # Update model
             self._model.move_tab(self._dragged_tab_index, drop_index)
