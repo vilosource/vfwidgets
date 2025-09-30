@@ -1,0 +1,156 @@
+{
+  "$schema": "https://vfwidgets.org/schemas/theme-v1.json",
+  "name": "Light Default",
+  "type": "light",
+  "version": "1.0.0",
+  "metadata": {
+    "author": "VFWidgets Team",
+    "description": "Default light theme for VFWidgets applications",
+    "license": "MIT"
+  },
+  "colors": {
+    "window.background": "#ffffff",
+    "window.foreground": "#333333",
+    "window.border": "#cccccc",
+    "window.activeBorder": "#0066cc",
+    "window.inactiveBorder": "#dddddd",
+
+    "widget.background": "#f3f3f3",
+    "widget.foreground": "#333333",
+    "widget.border": "#d4d4d4",
+    "widget.shadow": "rgba(0, 0, 0, 0.12)",
+
+    "button.background": "#0066cc",
+    "button.foreground": "#ffffff",
+    "button.hoverBackground": "#0080ff",
+    "button.activeBackground": "#004499",
+    "button.disabledBackground": "#cccccc",
+    "button.disabledForeground": "#999999",
+    "button.border": "transparent",
+
+    "input.background": "#ffffff",
+    "input.foreground": "#333333",
+    "input.border": "#cccccc",
+    "input.focusBorder": "#0066cc",
+    "input.placeholderForeground": "#999999",
+    "input.selectionBackground": "#add6ff",
+    "input.selectionForeground": "#000000",
+
+    "list.background": "#ffffff",
+    "list.foreground": "#333333",
+    "list.hoverBackground": "#e8e8e8",
+    "list.selectedBackground": "#0060c0",
+    "list.selectedForeground": "#ffffff",
+    "list.inactiveSelectedBackground": "#cccedb",
+    "list.focusOutline": "#0066cc",
+
+    "editor.background": "#ffffff",
+    "editor.foreground": "#333333",
+    "editor.lineHighlightBackground": "#f0f0f0",
+    "editor.selectionBackground": "#add6ff",
+    "editor.selectionForeground": "#000000",
+    "editor.cursorForeground": "#333333",
+    "editor.findMatchBackground": "#ffff00",
+    "editor.findMatchHighlightBackground": "rgba(255, 165, 0, 0.2)",
+
+    "statusBar.background": "#0066cc",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.border": "transparent",
+
+    "tabs.background": "#f3f3f3",
+    "tabs.activeBackground": "#ffffff",
+    "tabs.inactiveBackground": "#f3f3f3",
+    "tabs.activeForeground": "#333333",
+    "tabs.inactiveForeground": "#666666",
+    "tabs.border": "#cccccc",
+    "tabs.activeBorder": "#0066cc",
+
+    "scrollbar.background": "rgba(100, 100, 100, 0.2)",
+    "scrollbar.hoverBackground": "rgba(100, 100, 100, 0.4)",
+    "scrollbar.activeBackground": "rgba(0, 0, 0, 0.3)",
+
+    "terminal.background": "#ffffff",
+    "terminal.foreground": "#333333",
+    "terminal.ansiBlack": "#000000",
+    "terminal.ansiRed": "#cd3131",
+    "terminal.ansiGreen": "#00bc00",
+    "terminal.ansiYellow": "#949800",
+    "terminal.ansiBlue": "#0451a5",
+    "terminal.ansiMagenta": "#bc05bc",
+    "terminal.ansiCyan": "#0598bc",
+    "terminal.ansiWhite": "#555555",
+    "terminal.ansiBrightBlack": "#666666",
+    "terminal.ansiBrightRed": "#cd3131",
+    "terminal.ansiBrightGreen": "#14ce14",
+    "terminal.ansiBrightYellow": "#b5ba00",
+    "terminal.ansiBrightBlue": "#0451a5",
+    "terminal.ansiBrightMagenta": "#bc05bc",
+    "terminal.ansiBrightCyan": "#0598bc",
+    "terminal.ansiBrightWhite": "#a5a5a5",
+
+    "error.foreground": "#a31515",
+    "error.background": "rgba(163, 21, 21, 0.1)",
+    "warning.foreground": "#bf8803",
+    "warning.background": "rgba(191, 136, 3, 0.1)",
+    "success.foreground": "#008000",
+    "success.background": "rgba(0, 128, 0, 0.1)",
+    "info.foreground": "#0066cc",
+    "info.background": "rgba(0, 102, 204, 0.1)",
+
+    "accent.primary": "#0066cc",
+    "accent.secondary": "#008000",
+    "accent.tertiary": "#ff6600"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": ["comment", "punctuation.definition.comment"],
+      "settings": {
+        "foreground": "#008000",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "name": "Keyword",
+      "scope": ["keyword", "storage.type", "storage.modifier"],
+      "settings": {
+        "foreground": "#0000ff"
+      }
+    },
+    {
+      "name": "String",
+      "scope": ["string", "string.quoted"],
+      "settings": {
+        "foreground": "#a31515"
+      }
+    },
+    {
+      "name": "Number",
+      "scope": ["constant.numeric"],
+      "settings": {
+        "foreground": "#098658"
+      }
+    },
+    {
+      "name": "Function",
+      "scope": ["entity.name.function", "support.function"],
+      "settings": {
+        "foreground": "#795e26"
+      }
+    },
+    {
+      "name": "Class",
+      "scope": ["entity.name.class", "entity.name.type.class"],
+      "settings": {
+        "foreground": "#267f99"
+      }
+    },
+    {
+      "name": "Variable",
+      "scope": ["variable", "variable.other"],
+      "settings": {
+        "foreground": "#001080"
+      }
+    }
+  ]
+}

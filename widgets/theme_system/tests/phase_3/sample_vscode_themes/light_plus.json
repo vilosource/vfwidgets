@@ -1,0 +1,234 @@
+{
+  "name": "Light+ (default light)",
+  "type": "light",
+  "author": "Microsoft",
+  "description": "Default light theme for Visual Studio Code",
+  "colors": {
+    "editor.background": "#ffffff",
+    "editor.foreground": "#000000",
+    "editorCursor.foreground": "#000000",
+    "editor.lineHighlightBackground": "#f0f0f0",
+    "editor.selectionBackground": "#add6ff",
+    "editor.selectionHighlightBackground": "#add6ff4d",
+    "editor.wordHighlightBackground": "#b3d4fc",
+    "editor.wordHighlightStrongBackground": "#a8c2fa",
+    "editorIndentGuide.background": "#d3d3d3",
+    "editorIndentGuide.activeBackground": "#939393",
+    "editorRuler.foreground": "#d3d3d3",
+    "editorCodeLens.foreground": "#999999",
+    "editorBracketMatch.background": "#0064001a",
+    "editorBracketMatch.border": "#b9b9b9",
+
+    "foreground": "#616161",
+    "focusBorder": "#0078d4",
+    "selection.background": "#0078d4",
+
+    "button.background": "#0078d4",
+    "button.foreground": "#ffffff",
+    "button.hoverBackground": "#106ebe",
+
+    "input.background": "#ffffff",
+    "input.border": "#cecece",
+    "input.foreground": "#000000",
+    "input.placeholderForeground": "#767676",
+
+    "dropdown.background": "#ffffff",
+    "dropdown.border": "#cecece",
+    "dropdown.foreground": "#000000",
+
+    "list.activeSelectionBackground": "#0078d4",
+    "list.activeSelectionForeground": "#ffffff",
+    "list.inactiveSelectionBackground": "#e4e6f1",
+    "list.inactiveSelectionForeground": "#000000",
+    "list.hoverBackground": "#f0f0f0",
+    "list.hoverForeground": "#000000",
+
+    "activityBar.background": "#2c2c2c",
+    "activityBar.foreground": "#ffffff",
+    "activityBar.border": "#2c2c2c",
+    "activityBarBadge.background": "#007acc",
+    "activityBarBadge.foreground": "#ffffff",
+
+    "sideBar.background": "#f8f8f8",
+    "sideBar.foreground": "#000000",
+    "sideBar.border": "#e5e5e5",
+    "sideBarTitle.foreground": "#000000",
+
+    "tab.activeBackground": "#ffffff",
+    "tab.activeForeground": "#000000",
+    "tab.activeBorder": "#0078d4",
+    "tab.inactiveBackground": "#ececec",
+    "tab.inactiveForeground": "#000000",
+    "tab.border": "#e5e5e5",
+
+    "panel.background": "#f8f8f8",
+    "panel.border": "#e5e5e5",
+    "panelTitle.activeBorder": "#0078d4",
+    "panelTitle.activeForeground": "#000000",
+    "panelTitle.inactiveForeground": "#616161",
+
+    "statusBar.background": "#007acc",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.border": "#007acc",
+
+    "titleBar.activeBackground": "#dddddd",
+    "titleBar.activeForeground": "#000000",
+    "titleBar.inactiveBackground": "#eeeeee",
+    "titleBar.inactiveForeground": "#999999",
+    "titleBar.border": "#e5e5e5",
+
+    "terminal.background": "#ffffff",
+    "terminal.foreground": "#000000",
+    "terminal.ansiBlack": "#000000",
+    "terminal.ansiBlue": "#0000ff",
+    "terminal.ansiBrightBlack": "#808080",
+    "terminal.ansiBrightBlue": "#0000ff",
+    "terminal.ansiBrightCyan": "#00ffff",
+    "terminal.ansiBrightGreen": "#00ff00",
+    "terminal.ansiBrightMagenta": "#ff00ff",
+    "terminal.ansiBrightRed": "#ff0000",
+    "terminal.ansiBrightWhite": "#ffffff",
+    "terminal.ansiBrightYellow": "#ffff00",
+    "terminal.ansiCyan": "#00ffff",
+    "terminal.ansiGreen": "#00ff00",
+    "terminal.ansiMagenta": "#ff00ff",
+    "terminal.ansiRed": "#ff0000",
+    "terminal.ansiWhite": "#ffffff",
+    "terminal.ansiYellow": "#ffff00"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": [
+        "comment",
+        "punctuation.definition.comment"
+      ],
+      "settings": {
+        "foreground": "#008000",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "name": "String",
+      "scope": [
+        "string",
+        "punctuation.definition.string"
+      ],
+      "settings": {
+        "foreground": "#a31515"
+      }
+    },
+    {
+      "name": "Number",
+      "scope": [
+        "constant.numeric"
+      ],
+      "settings": {
+        "foreground": "#09885a"
+      }
+    },
+    {
+      "name": "Keyword",
+      "scope": [
+        "keyword",
+        "storage.type",
+        "storage.modifier"
+      ],
+      "settings": {
+        "foreground": "#0000ff"
+      }
+    },
+    {
+      "name": "Function name",
+      "scope": [
+        "entity.name.function",
+        "meta.function-call.generic",
+        "support.function",
+        "keyword.other.special-method"
+      ],
+      "settings": {
+        "foreground": "#795e26"
+      }
+    },
+    {
+      "name": "Class name",
+      "scope": [
+        "entity.name.class",
+        "entity.name.type.class"
+      ],
+      "settings": {
+        "foreground": "#267f99"
+      }
+    },
+    {
+      "name": "Variable",
+      "scope": [
+        "variable",
+        "meta.definition.variable"
+      ],
+      "settings": {
+        "foreground": "#001080"
+      }
+    },
+    {
+      "name": "Built-in constant",
+      "scope": [
+        "constant.language",
+        "support.constant",
+        "variable.language"
+      ],
+      "settings": {
+        "foreground": "#0000ff"
+      }
+    },
+    {
+      "name": "User-defined constant",
+      "scope": [
+        "constant.character",
+        "constant.other"
+      ],
+      "settings": {
+        "foreground": "#0000ff"
+      }
+    },
+    {
+      "name": "Tag",
+      "scope": [
+        "entity.name.tag",
+        "punctuation.definition.tag"
+      ],
+      "settings": {
+        "foreground": "#800000"
+      }
+    },
+    {
+      "name": "Tag attribute",
+      "scope": [
+        "entity.other.attribute-name"
+      ],
+      "settings": {
+        "foreground": "#ff0000"
+      }
+    },
+    {
+      "name": "Library function",
+      "scope": [
+        "support.function",
+        "support.macro"
+      ],
+      "settings": {
+        "foreground": "#795e26"
+      }
+    },
+    {
+      "name": "Library class/type",
+      "scope": [
+        "support.type",
+        "support.class"
+      ],
+      "settings": {
+        "foreground": "#267f99"
+      }
+    }
+  ]
+}

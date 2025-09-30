@@ -1,0 +1,30 @@
+Testing VFWidgets Theme System Examples - ACTUAL RUNTIME
+============================================================
+
+Testing 01_minimal_hello_world.py...
+  ✓ Running (timed out as expected for GUI)
+
+Testing 02_theme_switching.py...
+  ✓ Running (timed out as expected for GUI)
+
+Testing 03_custom_themed_widgets.py...
+  ✓ Running (timed out as expected for GUI)
+
+Testing 04_multi_window_application.py...
+  ✓ Running (timed out as expected for GUI)
+
+Testing 05_complete_application.py...
+  ✓ Running (timed out as expected for GUI)
+
+============================================================
+Runtime Test Summary:
+  ✓ PASS: 01_minimal_hello_world.py
+  ✓ PASS: 02_theme_switching.py
+  ✓ PASS: 03_custom_themed_widgets.py
+  ✓ PASS: 04_multi_window_application.py
+  ✓ PASS: 05_complete_application.py
+
+Results: 5 passed, 0 failed
+
+✓ All examples run successfully!
+Exit code: 0

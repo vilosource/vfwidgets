@@ -1,0 +1,3 @@
+# Core dependencies for VFWidgets Theme System
+PySide6>=6.5.0
+typing-extensions>=4.0.0

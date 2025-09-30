@@ -1,0 +1,83 @@
+{
+  "report_timestamp": "2025-09-29T20:51:54.673806",
+  "summary": {
+    "total_scenarios": 5,
+    "passed_scenarios": 5,
+    "failed_scenarios": 0,
+    "success_rate": 1.0,
+    "total_duration_ms": 11356.49768399162,
+    "total_errors": 0
+  },
+  "performance": {
+    "fastest_scenario": {
+      "name": "error_recovery",
+      "duration_ms": 100.10028299439
+    },
+    "slowest_scenario": {
+      "name": "theme_switching",
+      "duration_ms": 10710.673380999651
+    },
+    "average_duration_ms": 2271.299536798324
+  },
+  "scenarios": [
+    {
+      "name": "complex_application",
+      "success": true,
+      "duration_ms": 195.49312700110022,
+      "summary": {},
+      "error_count": 0,
+      "timestamp": "2025-09-29T20:51:43.510812"
+    },
+    {
+      "name": "theme_switching",
+      "success": true,
+      "duration_ms": 10710.673380999651,
+      "summary": {
+        "total_widgets": 50,
+        "total_themes": 5,
+        "sequential_avg_time": 0.033728801645338535,
+        "rapid_switch_rate": 196.47733470233644,
+        "concurrent_operations": 60,
+        "consistency_passed": true,
+        "stress_max_rate": 926
+      },
+      "error_count": 0,
+      "timestamp": "2025-09-29T20:51:54.222946"
+    },
+    {
+      "name": "error_recovery",
+      "success": true,
+      "duration_ms": 100.10028299439,
+      "summary": {},
+      "error_count": 0,
+      "timestamp": "2025-09-29T20:51:54.323236"
+    },
+    {
+      "name": "migration",
+      "success": true,
+      "duration_ms": 150.10326199990232,
+      "summary": {},
+      "error_count": 0,
+      "timestamp": "2025-09-29T20:51:54.473385"
+    },
+    {
+      "name": "plugin_integration",
+      "success": true,
+      "duration_ms": 200.12763099657604,
+      "summary": {},
+      "error_count": 0,
+      "timestamp": "2025-09-29T20:51:54.673561"
+    }
+  ],
+  "system_info": {
+    "validation_framework_mode": "DEBUG",
+    "validation_stats": {
+      "total_validations": 0,
+      "failed_validations": 0,
+      "validation_time_ms": 0.0,
+      "success_rate": 0.0,
+      "average_validation_time_ms": 0.0
+    }
+  },
+  "errors": []
+}
