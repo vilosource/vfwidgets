@@ -3,6 +3,7 @@ Widget layer components.
 
 This module contains the user-facing widget classes and theming mixins:
 - ThemedWidget: The primary API - simple inheritance provides complete theming
+- ThemedQWidget, ThemedMainWindow, ThemedDialog: Convenience classes
 - ThemedApplication: Application-level theme management
 - Property descriptors: Type-safe theme properties
 - Theming mixins: Composable theming behavior
@@ -15,6 +16,13 @@ engine, and utils is hidden behind clean, simple APIs here.
 from .base import (
     ThemedWidget,
     create_themed_widget,
+)
+
+# Convenience themed widgets
+from .convenience import (
+    ThemedQWidget,
+    ThemedMainWindow,
+    ThemedDialog,
 )
 
 from .application import (
@@ -47,7 +55,10 @@ from .mixins import (
 
 __all__ = [
     # Primary user-facing classes - THE API
-    "ThemedWidget",      # THE way to create themed widgets
+    "ThemedWidget",      # THE way to create themed widgets (flexible, multiple inheritance)
+    "ThemedQWidget",     # Convenience class for themed QWidget (single inheritance)
+    "ThemedMainWindow",  # Convenience class for themed QMainWindow (single inheritance)
+    "ThemedDialog",      # Convenience class for themed QDialog (single inheritance)
     "ThemedApplication", # THE way to manage themes
     "create_themed_widget",
     "get_themed_application",

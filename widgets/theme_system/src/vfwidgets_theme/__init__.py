@@ -129,6 +129,9 @@ __description__ = "Performance-first theme system for PySide6/Qt applications"
 # Primary user-facing imports - THE API
 from .widgets import (
     ThemedWidget,
+    ThemedQWidget,
+    ThemedMainWindow,
+    ThemedDialog,
     ThemedApplication,
     create_themed_widget,
     get_themed_application,
@@ -141,7 +144,10 @@ __all__ = [
     # ======================================
     # PRIMARY API - THE way to use theming
     # ======================================
-    "ThemedWidget",           # THE way to create themed widgets
+    "ThemedWidget",           # THE way to create themed widgets (flexible, multiple inheritance)
+    "ThemedQWidget",          # Convenience class for themed QWidget (single inheritance)
+    "ThemedMainWindow",       # Convenience class for themed QMainWindow (single inheritance)
+    "ThemedDialog",           # Convenience class for themed QDialog (single inheritance)
     "ThemedApplication",      # THE way to manage themes
     "create_themed_widget",   # Factory for themed widgets
     "create_themed_application",  # Factory for themed application
