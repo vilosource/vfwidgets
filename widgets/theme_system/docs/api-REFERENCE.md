@@ -78,6 +78,83 @@ font_size = self.get_theme_property("editor.fontSize", default=12)
 
 ---
 
+### `ThemedQWidget` (New - Recommended)
+
+Convenience class that combines ThemedWidget with QWidget inheritance.
+
+```python
+from vfwidgets_theme import ThemedQWidget
+
+class MyWidget(ThemedQWidget):  # Single inheritance - simpler!
+    theme_config = {
+        'bg': 'colors.background',
+        'fg': 'colors.foreground'
+    }
+
+    def __init__(self):
+        super().__init__()
+        # Widget has full theming + QWidget functionality
+```
+
+**Benefits over ThemedWidget:**
+- Single inheritance (simpler to understand)
+- No inheritance order concerns
+- Clearer intent
+
+---
+
+### `ThemedMainWindow` (New - Recommended)
+
+Convenience class for themed main windows.
+
+```python
+from vfwidgets_theme import ThemedMainWindow
+
+class MyWindow(ThemedMainWindow):  # Single inheritance!
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My App")
+        # Full QMainWindow + theming functionality
+```
+
+---
+
+### `ThemedDialog` (New - Recommended)
+
+Convenience class for themed dialogs.
+
+```python
+from vfwidgets_theme import ThemedDialog
+
+class MyDialog(ThemedDialog):  # Single inheritance!
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Settings")
+        # Full QDialog + theming functionality
+```
+
+---
+
+### Property Access with Smart Defaults
+
+Theme properties now have intelligent defaults:
+
+```python
+# Old way (still works)
+bg = getattr(self.theme, 'background', '#ffffff')
+
+# New way (recommended)
+bg = self.theme.background  # Automatic smart default if not in theme
+```
+
+**Smart defaults provided for:**
+- Colors (background, foreground, accent, error, warning, success, info)
+- Fonts (font, font_family, font_size)
+- Dimensions (padding, margin, border, spacing)
+- Opacity (opacity, alpha)
+
+---
+
 ### `ThemedApplication`
 
 Application wrapper that sets up theming for your entire app.
