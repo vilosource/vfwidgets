@@ -34,12 +34,13 @@ import threading
 import uuid
 import weakref
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 try:
     from PySide6.QtCore import QObject, QTimer, Signal
     from PySide6.QtGui import QCloseEvent, QPalette
     from PySide6.QtWidgets import QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
@@ -96,11 +97,12 @@ except ImportError:
     class QCloseEvent:
         pass
 
+
 # Import foundation modules
 from ..core.manager import ThemeManager
 from ..core.theme import Theme
 from ..errors import PropertyNotFoundError, ThemeError, get_global_error_recovery_manager
-from ..lifecycle import LifecycleManager, WidgetRegistry
+from ..lifecycle import LifecycleManager
 from ..logging import get_debug_logger
 from ..threading import ThreadSafeThemeManager
 
@@ -117,7 +119,7 @@ class ThemePropertyDescriptor:
     property_path: str
     cache_key: Optional[str] = None
     default_value: Any = None
-    _cache: Dict[str, Any] = field(default_factory=dict)
+    _cache: dict[str, Any] = field(default_factory=dict)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def __set_name__(self, owner, name):
@@ -173,9 +175,9 @@ class ThemePropertyDescriptor:
 class ThemePropertiesManager:
     """Manager for theme property access with caching and performance optimization."""
 
-    def __init__(self, widget: 'ThemedWidget'):
+    def __init__(self, widget: "ThemedWidget"):
         self._widget = weakref.ref(widget)
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
         self._lock = threading.RLock()
         self._cache_hits = 0
         self._cache_misses = 0
@@ -212,7 +214,7 @@ class ThemePropertiesManager:
 
                 # Look up the property path from theme_config
                 property_path = property_name
-                if hasattr(widget, '_theme_config') and property_name in widget._theme_config:
+                if hasattr(widget, "_theme_config") and property_name in widget._theme_config:
                     property_path = widget._theme_config[property_name]
 
                 # Resolve property path
@@ -252,7 +254,7 @@ class ThemePropertiesManager:
         """Resolve dot-separated property path in theme."""
         try:
             # Split path and navigate through theme data
-            parts = property_path.split('.')
+            parts = property_path.split(".")
             current = theme
 
             for part in parts:
@@ -262,7 +264,7 @@ class ThemePropertiesManager:
                     current = current[part]
                 else:
                     # Try theme-specific resolution
-                    if hasattr(theme, 'resolve_property'):
+                    if hasattr(theme, "resolve_property"):
                         return theme.resolve_property(property_path)
                     return None
 
@@ -277,13 +279,13 @@ class ThemePropertiesManager:
         with self._lock:
             self._cache.clear()
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get cache statistics for performance monitoring."""
         return {
-            'cache_size': len(self._cache),
-            'cache_hits': self._cache_hits,
-            'cache_misses': self._cache_misses,
-            'hit_rate': self.cache_hit_rate
+            "cache_size": len(self._cache),
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
+            "hit_rate": self.cache_hit_rate,
         }
 
 
@@ -299,40 +301,37 @@ class ThemeAccess:
     # Smart defaults for common property patterns
     _SMART_DEFAULTS = {
         # Colors
-        'background': '#ffffff',
-        'foreground': '#000000',
-        'color': '#000000',
-        'text': '#000000',
-        'border': '#cccccc',
-        'hover': '#e0e0e0',
-        'active': '#d0d0d0',
-        'disabled': '#a0a0a0',
-        'accent': '#0078d4',
-        'primary': '#0078d4',
-        'secondary': '#6c757d',
-        'error': '#dc3545',
-        'warning': '#ffc107',
-        'success': '#28a745',
-        'info': '#17a2b8',
-
+        "background": "#ffffff",
+        "foreground": "#000000",
+        "color": "#000000",
+        "text": "#000000",
+        "border": "#cccccc",
+        "hover": "#e0e0e0",
+        "active": "#d0d0d0",
+        "disabled": "#a0a0a0",
+        "accent": "#0078d4",
+        "primary": "#0078d4",
+        "secondary": "#6c757d",
+        "error": "#dc3545",
+        "warning": "#ffc107",
+        "success": "#28a745",
+        "info": "#17a2b8",
         # Fonts
-        'font': 'Arial, sans-serif',
-        'font_family': 'Arial, sans-serif',
-        'font_size': '12px',
-
+        "font": "Arial, sans-serif",
+        "font_family": "Arial, sans-serif",
+        "font_size": "12px",
         # Dimensions
-        'padding': '8px',
-        'margin': '8px',
-        'border_width': '1px',
-        'border_radius': '4px',
-        'spacing': '8px',
-
+        "padding": "8px",
+        "margin": "8px",
+        "border_width": "1px",
+        "border_radius": "4px",
+        "spacing": "8px",
         # Opacity
-        'opacity': '1.0',
-        'alpha': '1.0',
+        "opacity": "1.0",
+        "alpha": "1.0",
     }
 
-    def __init__(self, widget: 'ThemedWidget'):
+    def __init__(self, widget: "ThemedWidget"):
         self._widget = weakref.ref(widget)
 
     def _get_smart_default(self, name: str) -> Any:
@@ -345,44 +344,44 @@ class ThemeAccess:
         name_lower = name.lower()
 
         # Color properties
-        if any(word in name_lower for word in ['color', 'background', 'foreground', 'bg', 'fg']):
-            if 'error' in name_lower or 'danger' in name_lower:
-                return self._SMART_DEFAULTS['error']
-            elif 'warning' in name_lower:
-                return self._SMART_DEFAULTS['warning']
-            elif 'success' in name_lower:
-                return self._SMART_DEFAULTS['success']
-            elif 'info' in name_lower:
-                return self._SMART_DEFAULTS['info']
-            elif 'background' in name_lower or 'bg' in name_lower:
-                return self._SMART_DEFAULTS['background']
-            elif 'foreground' in name_lower or 'fg' in name_lower or 'text' in name_lower:
-                return self._SMART_DEFAULTS['foreground']
+        if any(word in name_lower for word in ["color", "background", "foreground", "bg", "fg"]):
+            if "error" in name_lower or "danger" in name_lower:
+                return self._SMART_DEFAULTS["error"]
+            elif "warning" in name_lower:
+                return self._SMART_DEFAULTS["warning"]
+            elif "success" in name_lower:
+                return self._SMART_DEFAULTS["success"]
+            elif "info" in name_lower:
+                return self._SMART_DEFAULTS["info"]
+            elif "background" in name_lower or "bg" in name_lower:
+                return self._SMART_DEFAULTS["background"]
+            elif "foreground" in name_lower or "fg" in name_lower or "text" in name_lower:
+                return self._SMART_DEFAULTS["foreground"]
             else:
-                return self._SMART_DEFAULTS['color']
+                return self._SMART_DEFAULTS["color"]
 
         # Font properties
-        if 'font' in name_lower:
-            if 'size' in name_lower:
-                return self._SMART_DEFAULTS['font_size']
+        if "font" in name_lower:
+            if "size" in name_lower:
+                return self._SMART_DEFAULTS["font_size"]
             else:
-                return self._SMART_DEFAULTS['font']
+                return self._SMART_DEFAULTS["font"]
 
         # Dimension properties
-        if any(word in name_lower for word in ['padding', 'margin', 'spacing']):
-            return self._SMART_DEFAULTS['padding']
+        if any(word in name_lower for word in ["padding", "margin", "spacing"]):
+            return self._SMART_DEFAULTS["padding"]
 
-        if 'border' in name_lower:
-            if 'radius' in name_lower:
-                return self._SMART_DEFAULTS['border_radius']
-            elif 'width' in name_lower:
-                return self._SMART_DEFAULTS['border_width']
+        if "border" in name_lower:
+            if "radius" in name_lower:
+                return self._SMART_DEFAULTS["border_radius"]
+            elif "width" in name_lower:
+                return self._SMART_DEFAULTS["border_width"]
             else:
-                return self._SMART_DEFAULTS['border']
+                return self._SMART_DEFAULTS["border"]
 
         # Opacity properties
-        if any(word in name_lower for word in ['opacity', 'alpha']):
-            return self._SMART_DEFAULTS['opacity']
+        if any(word in name_lower for word in ["opacity", "alpha"]):
+            return self._SMART_DEFAULTS["opacity"]
 
         # No smart default found
         return None
@@ -401,7 +400,7 @@ class ThemeAccess:
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Dynamic property setting."""
-        if name.startswith('_'):
+        if name.startswith("_"):
             super().__setattr__(name, value)
             return
 
@@ -439,12 +438,12 @@ class ThemedWidgetMeta(type(QWidget)):
 
         # Collect configs from base classes
         for base in reversed(bases):
-            if hasattr(base, '_merged_theme_config'):
+            if hasattr(base, "_merged_theme_config"):
                 merged_config.update(base._merged_theme_config)
 
         # Add current class config
-        if 'theme_config' in namespace:
-            merged_config.update(namespace['theme_config'])
+        if "theme_config" in namespace:
+            merged_config.update(namespace["theme_config"])
 
         # Set merged config
         cls._merged_theme_config = merged_config
@@ -490,15 +489,15 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
 
     # Default theme configuration
     theme_config = {
-        'background': 'window.background',
-        'color': 'window.foreground',
-        'font': 'text.font'
+        "background": "window.background",
+        "color": "window.foreground",
+        "font": "text.font",
     }
 
     # Qt signals for theme updates
     if QT_AVAILABLE:
         theme_changed = Signal(str)  # Emitted when theme changes
-        theme_applied = Signal()     # Emitted when theme is applied to this widget
+        theme_applied = Signal()  # Emitted when theme is applied to this widget
         property_changed = Signal(str, object, object)  # property, old_value, new_value
     else:
         # Mock signals for testing
@@ -506,7 +505,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         theme_applied = None
         property_changed = None
 
-    def __init__(self, parent: Optional['QWidget'] = None, **kwargs):
+    def __init__(self, parent: Optional["QWidget"] = None, **kwargs):
         """Initialize themed widget with automatic setup.
 
         All complexity is hidden here:
@@ -543,7 +542,9 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         self._property_cache_enabled = True
 
         # Merge theme config from class hierarchy
-        self._theme_config = getattr(self.__class__, '_merged_theme_config', self.theme_config.copy())
+        self._theme_config = getattr(
+            self.__class__, "_merged_theme_config", self.theme_config.copy()
+        )
 
         # Performance tracking
         self._theme_update_count = 0
@@ -572,7 +573,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             self._thread_manager = None  # Will be created if needed
 
             # Register widget with shared registry from ThemeManager
-            if self._theme_manager and hasattr(self._theme_manager, '_widget_registry'):
+            if self._theme_manager and hasattr(self._theme_manager, "_widget_registry"):
                 registry = self._theme_manager._widget_registry
                 registry.register_widget(self)
                 self._is_theme_registered = True
@@ -583,6 +584,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             # Connect to the application's theme_changed signal if available
             try:
                 from .application import ThemedApplication
+
                 app = ThemedApplication.instance()
                 if app:
                     app.theme_changed.connect(self._on_global_theme_changed)
@@ -598,6 +600,12 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             # Mark as ready
             self._is_theme_system_ready = True
 
+            # Apply initial theme styling
+            self._apply_theme_update()
+
+            # Validate that stylesheet was actually applied (development safety check)
+            self._validate_styling_applied()
+
             logger.debug(f"Theme system initialized for widget {self._widget_id}")
 
         except Exception as e:
@@ -610,7 +618,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             error_manager.handle_error(
                 ThemeError(f"Theme system initialization failed: {e}"),
                 operation="initialize_theme_system",
-                context={"widget_type": type(self).__name__, "widget_id": self._widget_id}
+                context={"widget_type": type(self).__name__, "widget_id": self._widget_id},
             )
 
     def _get_theme_property(self, property_path: str, default_value: Any = None) -> Any:
@@ -650,6 +658,9 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             # Invalidate property cache
             self._theme_properties.invalidate_cache()
 
+            # Apply theme update (regenerate and apply stylesheet)
+            self._apply_theme_update()
+
             # Call the public on_theme_changed method
             self.on_theme_changed()
 
@@ -657,7 +668,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             logger.error(f"Error handling theme change: {e}")
 
     def _on_theme_changed(self, theme: Theme) -> None:
-        """Internal slot for handling global theme changes.
+        """Handle global theme changes.
 
         This method is automatically connected to theme change signals
         and ensures this widget updates when the global theme changes.
@@ -676,7 +687,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             self._apply_theme_update()
 
             # Call user-defined handler if it exists
-            if hasattr(self, 'on_theme_changed') and callable(self.on_theme_changed):
+            if hasattr(self, "on_theme_changed") and callable(self.on_theme_changed):
                 try:
                     self.on_theme_changed()
                 except Exception as e:
@@ -688,6 +699,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
 
             # Update performance tracking
             import time
+
             self._theme_update_count += 1
             self._last_theme_update = time.time()
 
@@ -699,7 +711,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             error_manager = get_global_error_recovery_manager()
             error_manager.handle_error(
                 ThemeError(f"Theme change handling failed: {e}"),
-                context={"widget_id": self._widget_id, "theme": theme.name if theme else "unknown"}
+                context={"widget_id": self._widget_id, "theme": theme.name if theme else "unknown"},
             )
 
     def _apply_theme_update(self) -> None:
@@ -714,37 +726,89 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
                 self.setStyleSheet(stylesheet)
 
             # Force repaint
-            if hasattr(self, 'update'):
+            if hasattr(self, "update"):
                 self.update()
 
         except Exception as e:
             logger.error(f"Error applying theme update: {e}")
 
     def _generate_stylesheet(self) -> str:
-        """Generate Qt stylesheet based on current theme."""
+        """Generate Qt stylesheet based on current theme.
+
+        Uses StylesheetGenerator to create comprehensive stylesheets that cascade
+        to all child widgets. Subclasses can override _generate_custom_stylesheet()
+        to add custom styling on top of the base theme.
+
+        Returns:
+            Complete Qt stylesheet string
+
+        """
         try:
             if not self._is_theme_system_ready:
                 return ""
 
-            # Get theme properties
-            background = self.theme.get('background', '#ffffff')
-            color = self.theme.get('color', '#000000')
-            font = self.theme.get('font', 'Arial, sans-serif')
+            # Check if this widget has opted out of theming
+            if self.property("vftheme_disable"):
+                return ""
 
-            # Build stylesheet
-            stylesheet = f"""
-            {self.__class__.__name__} {{
-                background-color: {background};
-                color: {color};
-                font-family: {font};
-            }}
-            """
+            # Get current theme
+            if not self._theme_manager or not self._theme_manager.current_theme:
+                return ""
 
-            return stylesheet.strip()
+            theme = self._theme_manager.current_theme
+
+            # Use StylesheetGenerator for comprehensive styling
+            from .stylesheet_generator import StylesheetGenerator
+
+            generator = StylesheetGenerator(theme, self.__class__.__name__)
+            base_stylesheet = generator.generate_comprehensive_stylesheet()
+
+            # Allow subclasses to add custom styling
+            custom_stylesheet = self._generate_custom_stylesheet()
+
+            # Combine base + custom
+            if custom_stylesheet:
+                return base_stylesheet + "\n\n" + custom_stylesheet
+            else:
+                return base_stylesheet
 
         except Exception as e:
             logger.error(f"Error generating stylesheet: {e}")
-            return ""
+            # Fallback to minimal styling
+            try:
+                bg = self.theme.get("colors.background", "#ffffff")
+                fg = self.theme.get("colors.foreground", "#000000")
+                return f"{self.__class__.__name__} {{ background-color: {bg}; color: {fg}; }}"
+            except Exception:
+                return ""
+
+    def _generate_custom_stylesheet(self) -> str:
+        """Generate custom stylesheet for this widget.
+
+        Subclasses can override this method to add custom styling beyond
+        the base theme. The custom stylesheet is appended to the base stylesheet.
+
+        Example:
+            class MyEditor(ThemedWidget, QTextEdit):
+                theme_config = {
+                    "bg": "editor.background",
+                    "fg": "editor.foreground",
+                }
+
+                def _generate_custom_stylesheet(self) -> str:
+                    return f'''
+                        QTextEdit {{
+                            background-color: {self.theme.bg};
+                            color: {self.theme.fg};
+                            border: 2px solid red;
+                        }}
+                    '''
+
+        Returns:
+            Custom stylesheet string (empty string if no custom styling)
+
+        """
+        return ""
 
     @property
     def theme_name(self) -> Optional[str]:
@@ -757,15 +821,15 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         return self._is_theme_system_ready
 
     @property
-    def theme_statistics(self) -> Dict[str, Any]:
+    def theme_statistics(self) -> dict[str, Any]:
         """Get theme-related statistics for monitoring."""
         stats = {
-            'widget_id': self._widget_id,
-            'theme_name': self._current_theme_name,
-            'is_registered': self._is_theme_registered,
-            'is_ready': self._is_theme_system_ready,
-            'update_count': self._theme_update_count,
-            'last_update': self._last_theme_update
+            "widget_id": self._widget_id,
+            "theme_name": self._current_theme_name,
+            "is_registered": self._is_theme_registered,
+            "is_ready": self._is_theme_system_ready,
+            "update_count": self._theme_update_count,
+            "last_update": self._last_theme_update,
         }
 
         # Add property manager statistics
@@ -774,6 +838,46 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
 
         return stats
 
+    def debug_styling_status(self) -> str:
+        """Get debug information about widget styling status.
+
+        Returns a formatted string showing:
+        - Whether stylesheet is applied
+        - Stylesheet length
+        - Theme name
+        - Whether theme system is ready
+
+        Useful for debugging theme issues.
+
+        Example:
+            widget = ThemedMainWindow()
+            print(widget.debug_styling_status())
+
+        """
+        lines = [
+            f"Widget: {self.__class__.__name__}",
+            f"Widget ID: {self._widget_id}",
+            f"Theme System Ready: {self._is_theme_system_ready}",
+            f"Current Theme: {self._current_theme_name}",
+            f"Registered: {self._is_theme_registered}",
+        ]
+
+        try:
+            stylesheet = self.styleSheet()
+            lines.append(f"Stylesheet Length: {len(stylesheet)} chars")
+
+            if len(stylesheet) == 0:
+                lines.append("⚠️  WARNING: No stylesheet applied!")
+            elif len(stylesheet) < 100:
+                lines.append("⚠️  WARNING: Stylesheet suspiciously short!")
+            else:
+                lines.append("✅ Stylesheet applied successfully")
+
+        except Exception as e:
+            lines.append(f"❌ Error getting stylesheet: {e}")
+
+        return "\n".join(lines)
+
     def on_theme_changed(self) -> None:
         """Override this method to handle theme changes.
 
@@ -781,6 +885,51 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         Default implementation does nothing - override in subclasses.
         """
         pass  # Default implementation - user can override
+
+    def _validate_styling_applied(self) -> None:
+        """Validate that stylesheet was applied to this widget.
+
+        This is a development-time safety check to catch issues like:
+        - Stylesheet generation not being called
+        - Empty stylesheets being generated
+        - Theme system not properly initialized
+
+        Issues a warning (not an error) since the widget should still function,
+        just without theming.
+        """
+        try:
+            # Only validate if theme system is ready and not opted out
+            if not self._is_theme_system_ready:
+                return
+
+            if self.property("vftheme_disable"):
+                return
+
+            # Check if stylesheet was applied
+            stylesheet = self.styleSheet()
+
+            # Warning if stylesheet is empty or suspiciously short
+            if len(stylesheet) == 0:
+                logger.warning(
+                    f"ThemedWidget {self.__class__.__name__} has no stylesheet applied! "
+                    f"Widget will use Qt defaults instead of theme styling. "
+                    f"This usually indicates a bug in the theme system."
+                )
+            elif len(stylesheet) < 100:
+                logger.warning(
+                    f"ThemedWidget {self.__class__.__name__} has suspiciously short stylesheet "
+                    f"({len(stylesheet)} chars). Expected comprehensive theming (several KB). "
+                    f"Theme may not be fully applied."
+                )
+            else:
+                # Success - stylesheet looks reasonable
+                logger.debug(
+                    f"Styling validated for {self.__class__.__name__}: "
+                    f"{len(stylesheet)} char stylesheet applied"
+                )
+
+        except Exception as e:
+            logger.debug(f"Could not validate styling (non-critical): {e}")
 
     def _validate_inheritance_order(self) -> None:
         """Validate that ThemedWidget comes before Qt base classes in inheritance.
@@ -804,19 +953,29 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         qt_widget_class_name = None
 
         for i, cls in enumerate(mro):
-            if cls.__name__ == 'ThemedWidget':
+            if cls.__name__ == "ThemedWidget":
                 themed_widget_index = i
-            elif cls.__name__ in ('QWidget', 'QMainWindow', 'QDialog', 'QFrame', 'QLabel',
-                                   'QPushButton', 'QTextEdit', 'QListWidget', 'QTableWidget'):
+            elif cls.__name__ in (
+                "QWidget",
+                "QMainWindow",
+                "QDialog",
+                "QFrame",
+                "QLabel",
+                "QPushButton",
+                "QTextEdit",
+                "QListWidget",
+                "QTableWidget",
+            ):
                 if qt_widget_index is None:  # Only check the first Qt widget found
                     qt_widget_index = i
                     qt_widget_class_name = cls.__name__
 
         # If both are present and Qt widget comes before ThemedWidget, that's an error
-        if (themed_widget_index is not None and
-            qt_widget_index is not None and
-            qt_widget_index < themed_widget_index):
-
+        if (
+            themed_widget_index is not None
+            and qt_widget_index is not None
+            and qt_widget_index < themed_widget_index
+        ):
             class_name = type(self).__name__
             error_msg = (
                 f"\n"
@@ -849,8 +1008,9 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
                         pass  # May already be disconnected
 
                 # Unregister from registry
-                registry = WidgetRegistry.get_instance()
-                registry.unregister_widget(self._widget_id)
+                if self._theme_manager and hasattr(self._theme_manager, "_widget_registry"):
+                    registry = self._theme_manager._widget_registry
+                    registry.unregister_widget(self._widget_id)
 
                 self._is_theme_registered = False
 
@@ -895,12 +1055,9 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
 
 # Utility function for creating themed widgets
 def create_themed_widget(
-    widget_class: type,
-    theme_name: Optional[str] = None,
-    parent: Optional[QWidget] = None,
-    **kwargs
+    widget_class: type, theme_name: Optional[str] = None, parent: Optional[QWidget] = None, **kwargs
 ) -> ThemedWidget:
-    """Factory function for creating themed widgets.
+    """Create themed widgets.
 
     This provides an alternative to inheritance for creating themed widgets.
 
@@ -919,7 +1076,7 @@ def create_themed_widget(
         widget = widget_class(parent=parent, **kwargs)
 
         # Apply specific theme if requested
-        if theme_name and hasattr(widget, '_theme_manager') and widget._theme_manager:
+        if theme_name and hasattr(widget, "_theme_manager") and widget._theme_manager:
             try:
                 widget._theme_manager.set_theme(theme_name)
             except Exception as e:
