@@ -7,11 +7,11 @@
 The main base class for creating themed widgets. Handles all complexity internally.
 
 ```python
-class ThemedWidget(QWidget):
+class ThemedWidget(metaclass=ThemedWidgetMeta):
     """
-    Simple inheritance for themed widgets.
+    Mixin for themed widgets - use with multiple inheritance.
 
-    What you see: Simple base class
+    What you see: Simple mixin class
     What it does: Clean architecture with dependency injection,
                   memory management, and thread safety
     """
@@ -21,10 +21,13 @@ class ThemedWidget(QWidget):
 
 ```python
 from vfwidgets_theme import ThemedWidget
+from PySide6.QtWidgets import QWidget
 
-class YourWidget(ThemedWidget):
-    pass  # ✅ That's it! Fully themed with clean architecture
+class YourWidget(ThemedWidget, QWidget):
+    pass  # ✅ Fully themed with clean architecture
 ```
+
+**Note**: For single inheritance, use `ThemedQWidget` instead (recommended).
 
 #### Configuration
 
@@ -49,32 +52,16 @@ class YourWidget(ThemedWidget):
 Override to react to theme changes.
 
 ```python
-class YourWidget(ThemedWidget):
+class YourWidget(ThemedWidget, QWidget):
     def on_theme_changed(self):
         """Called when theme changes - override to update your widget"""
         self.update()  # Trigger repaint
         self.update_syntax_colors()  # Custom updates
 ```
 
-##### `get_theme_color(key: str, default: str = None) -> str`
-Get a color from the current theme.
-
-```python
-color = self.get_theme_color("button.background", default="#0066cc")
-```
-
-##### `get_theme_property(key: str, default: Any = None) -> Any`
-Get any theme property.
-
-```python
-font_size = self.get_theme_property("editor.fontSize", default=12)
-```
-
 #### Properties
 
-- `theme` - Dynamic property accessor for configured theme properties
-- `theme_type: str` - Current theme type ("dark" or "light")
-- `is_dark_theme: bool` - Convenience property for dark theme detection
+- `theme` - Dynamic property accessor for configured theme properties (returns ThemePropertyProxy with smart defaults)
 
 ---
 
@@ -200,18 +187,13 @@ Load a custom theme from file.
 app.load_theme_file("my-custom-theme.json")
 ```
 
-##### `import_vscode_theme(path: str | Path)`
+##### `import_vscode_theme(path: str | Path) -> bool`
 Import a VSCode theme.
 
 ```python
-app.import_vscode_theme("monokai.json")
-```
-
-##### `toggle_dark_mode()`
-Toggle between dark and light themes.
-
-```python
-app.toggle_dark_mode()
+success = app.import_vscode_theme("monokai.json")
+if success:
+    app.set_theme("Monokai")
 ```
 
 #### Properties
@@ -261,55 +243,6 @@ class ThemeProvider(Protocol):
 
 ---
 
-## Decorators
-
-### `@theme_property`
-
-Create computed theme properties.
-
-```python
-class MyWidget(ThemedWidget):
-    theme_config = {
-        'start': 'gradient.start',
-        'end': 'gradient.end'
-    }
-
-    @theme_property
-    def gradient_background(self) -> str:
-        return f"linear-gradient({self.theme.start}, {self.theme.end})"
-```
-
----
-
-## Utility Functions
-
-### Color Utilities
-
-```python
-from vfwidgets_theme.utils import lighten, darken, ensure_contrast
-
-# Lighten/darken colors
-lighter = lighten("#000000", 20)  # Returns "#333333"
-darker = darken("#ffffff", 20)    # Returns "#cccccc"
-
-# Ensure readable text
-text_color = ensure_contrast(text_color, bg_color, min_ratio=4.5)
-```
-
-### Theme Detection
-
-```python
-from vfwidgets_theme.utils import is_dark_color, detect_system_theme
-
-# Check if color is dark
-if is_dark_color(bg_color):
-    use_light_text()
-
-# Detect system theme
-if detect_system_theme() == "dark":
-    app.set_theme("dark-modern")
-```
-
 ---
 
 ## Common Patterns
@@ -317,7 +250,9 @@ if detect_system_theme() == "dark":
 ### Basic Themed Widget
 
 ```python
-class MyLabel(ThemedWidget):
+from vfwidgets_theme import ThemedQWidget
+
+class MyLabel(ThemedQWidget):
     """Automatically themed label - no config needed!"""
     pass
 ```
@@ -325,7 +260,12 @@ class MyLabel(ThemedWidget):
 ### Widget with Custom Colors
 
 ```python
-class MyButton(ThemedWidget):
+from vfwidgets_theme import ThemedWidget
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtGui import QPainter, QColor
+from PySide6.QtCore import Qt
+
+class MyButton(ThemedWidget, QPushButton):
     theme_config = {
         'bg': 'button.background',
         'hover': 'button.hoverBackground',
@@ -342,7 +282,10 @@ class MyButton(ThemedWidget):
 ### Widget with Theme Reaction
 
 ```python
-class CodeEditor(ThemedWidget):
+from vfwidgets_theme import ThemedWidget
+from PySide6.QtWidgets import QTextEdit
+
+class CodeEditor(ThemedWidget, QTextEdit):
     theme_config = {
         'bg': 'editor.background',
         'fg': 'editor.foreground',
@@ -350,10 +293,9 @@ class CodeEditor(ThemedWidget):
     }
 
     def on_theme_changed(self):
-        # Update syntax highlighter
-        self.highlighter.set_theme_colors(self.get_current_theme())
-        # Update editor palette
-        self.update_palette()
+        # Update syntax highlighter with new colors
+        if hasattr(self, 'highlighter'):
+            self.highlighter.update_colors()
         # Refresh display
         self.update()
 ```
@@ -361,7 +303,10 @@ class CodeEditor(ThemedWidget):
 ### Complex Widget with Progressive Enhancement
 
 ```python
-class AdvancedPanel(ThemedWidget):
+from vfwidgets_theme import ThemedQWidget
+from PySide6.QtWidgets import QLabel, QVBoxLayout
+
+class AdvancedPanel(ThemedQWidget):
     theme_config = {
         'panel_bg': 'panel.background',
         'panel_border': 'panel.border',
@@ -374,8 +319,11 @@ class AdvancedPanel(ThemedWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        # UI setup code
-        pass
+        layout = QVBoxLayout(self)
+        self.title_label = QLabel("Title")
+        self.content_area = QLabel("Content")
+        layout.addWidget(self.title_label)
+        layout.addWidget(self.content_area)
 
     def on_theme_changed(self):
         # Apply theme to child widgets
@@ -584,4 +532,4 @@ class NewButton(ThemedWidget, QPushButton):
 
 ---
 
-*For more examples, see the [Integration Guide](integration-GUIDE.md) and [Patterns Cookbook](patterns-cookbook.md).*
+*For more examples, see the [Quick Start Guide](quick-start-GUIDE.md) and the examples directory.*
