@@ -323,7 +323,8 @@ python 06_role_markers.py         # Role marker demo
 
 - **[API Reference](api-REFERENCE.md)** - Complete API documentation
 - **[Theme Customization](theme-customization-GUIDE.md)** - Create custom themes
-- **[Architecture Design](architecture-DESIGN.md)** - System internals for contributors
+- **[Architecture](ARCHITECTURE.md)** - System internals for contributors
+- **[Roadmap](ROADMAP.md)** - Design rationale and future plans
 
 ### 3. Explore Advanced Features
 

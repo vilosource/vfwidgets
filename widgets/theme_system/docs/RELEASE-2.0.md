@@ -144,7 +144,8 @@ Complete documentation suite:
 - **docs/api-REFERENCE.md** - Complete API documentation
 - **docs/best-practices-GUIDE.md** - Patterns and anti-patterns
 - **docs/integration-GUIDE.md** - Integration with existing apps
-- **docs/architecture-DESIGN.md** - System architecture
+- **docs/ARCHITECTURE.md** - System architecture (actual implementation)
+- **docs/ROADMAP.md** - Design rationale and future plans
 - **docs/implementation-progress.md** - Development timeline
 
 ---
@@ -334,7 +335,8 @@ All Phase 1-9 success criteria met:
 - [Theme Customization](theme-customization-GUIDE.md) - Create custom themes
 - [API Reference](api-REFERENCE.md) - Complete API docs
 - [Best Practices](best-practices-GUIDE.md) - Patterns and anti-patterns
-- [Architecture](architecture-DESIGN.md) - System design
+- [Architecture](ARCHITECTURE.md) - Actual system implementation
+- [Roadmap](ROADMAP.md) - Design rationale and future plans
 - [Examples](../examples/) - 6 complete examples
 
 ---
@@ -379,7 +381,7 @@ All Phase 1-9 success criteria met:
 
 ### For Developers
 
-1. **Review** [Architecture](architecture-DESIGN.md)
+1. **Review** [Architecture](ARCHITECTURE.md) and [Roadmap](ROADMAP.md)
 2. **Study** [implementation progress](implementation-progress.md)
 3. **Contribute** improvements and bug fixes
 4. **Create** additional themes
