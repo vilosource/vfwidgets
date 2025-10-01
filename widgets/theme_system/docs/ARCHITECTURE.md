@@ -26,7 +26,7 @@ The VFWidgets Theme System provides comprehensive theming for PySide6/Qt applica
 
 **Key Statistics:**
 - 69 Python files across 19 modules
-- 197 theme tokens (192 colors + 5 fonts)
+- ~179 theme tokens (colors + fonts)
 - < 100ms theme switching (100+ widgets)
 - < 1KB memory overhead per widget
 - Thread-safe by design
@@ -42,7 +42,7 @@ class MyWidget(ThemedWidget, QWidget):
     }
 
 app = ThemedApplication(sys.argv)
-app.set_theme("vscode")  # Instant theme switching
+app.set_theme("dark")  # Instant theme switching
 ```
 
 ---
@@ -246,7 +246,7 @@ def register_widget(self, widget: ThemedWidget) -> None:
 
 ### Theme (Immutable Data Model)
 
-**Location:** `src/vfwidgets_theme/core/theme.py:68`
+**Location:** `src/vfwidgets_theme/core/theme.py:69`
 
 **Purpose:** Immutable, validated theme data structure.
 
@@ -440,21 +440,23 @@ class StylesheetGenerator:
 
 **Location:** `src/vfwidgets_theme/core/tokens.py`
 
-**Purpose:** Central registry of all 197 theme tokens with smart defaults.
+**Purpose:** Central registry of ~179 theme tokens with smart defaults.
 
-**Token Categories:**
+**Token Categories (approximate counts):**
 - Base colors (11): `colors.*`
 - Buttons (18): `button.*`
 - Inputs (18): `input.*`
-- Editor (35): `editor.*`
+- Editor (35+): `editor.*`
 - Lists/Trees (22): `list.*`, `tree.*`
-- Tables (10): `table.*`
 - Tabs (17): `tab.*`
 - Menus (11): `menu.*`
 - Panels (8): `panel.*`
 - Status bar (11): `statusBar.*`
-- Fonts (14): `font.*`
-- Others (22): `scrollbar.*`, `progressBar.*`, etc.
+- Sidebar (7): `sideBar.*`
+- Activity bar (8): `activityBar.*`
+- Title bar (5): `titleBar.*`
+- Scrollbar (4): `scrollbar.*`
+- Misc (8): `badge.*`, `progressBar.*`, etc.
 
 **Smart Defaults:**
 ```python
@@ -516,7 +518,7 @@ class ColorTokenRegistry:
 ### Theme Switching Flow
 
 ```
-1. User: app.set_theme("vscode")
+1. User: app.set_theme("dark")
          ↓
 2. Manager: Retrieve theme from repository
          ↓
@@ -633,10 +635,10 @@ class MockThemeProvider: ...        # For testing
 ```python
 # User sees:
 manager = ThemeManager.get_instance()
-manager.set_theme("vscode")
+manager.set_theme("dark")
 
 # Behind the facade:
-theme = self._repository.get_theme("vscode")
+theme = self._repository.get_theme("dark")
 self._current_theme = theme
 self._applicator.apply_to_all_widgets(theme)
 self._applicator.apply_to_application(theme)

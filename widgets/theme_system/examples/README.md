@@ -1,74 +1,200 @@
 # VFWidgets Theme System - Examples
 
-This directory contains comprehensive examples demonstrating all the capabilities of the VFWidgets theme system. The examples are organized by complexity and functionality, making it easy to learn and understand the system progressively.
+## Learning Path: Progressive Disclosure
 
-## 🚀 Quick Start
+This directory is organized to teach you the theme system through **progressive complexity**. Start at Example 01 and work your way up. Each example introduces only what you need at that stage.
 
-To get started with the VFWidgets theme system, run the main showcase:
+---
 
-```bash
-python phase_5_living_example.py
+## Stage 1: Simple Apps (Examples 01-04)
+
+**You are here if:** Building a themed application with standard Qt widgets
+
+**What you'll learn:** The simple API for 90% of use cases
+
+### Example 01: Hello World
+**File:** `01_hello_world.py`
+
+The simplest possible themed application - just a few lines!
+
+```python
+from vfwidgets_theme import ThemedApplication, ThemedQWidget
+
+class HelloWidget(ThemedQWidget):
+    """Dead simple - one base class."""
+    pass
 ```
 
-This will open a comprehensive demo showing all the examples and features.
+**Key concepts:**
+- Creating a ThemedApplication
+- Using ThemedQWidget for simple container widgets
+- Automatic theme application with zero configuration
 
-## 📚 Tutorial Series (Recommended Starting Point)
+---
 
-The tutorial series provides a progressive learning experience, starting from the basics and building up to complete applications. **Start here if you're new to the theme system.**
+### Example 02: Buttons and Layout
+**File:** `02_buttons_and_layout.py`
 
-### [`tutorials/`](tutorials/)
+Building a real application window with buttons and layouts.
 
-| Tutorial | Description | Key Concepts |
-|----------|-------------|--------------|
-| **[01_hello_theme.py](tutorials/01_hello_theme.py)** | Your first themed application | ThemedWidget basics, theme switching |
-| **[02_custom_theme.py](tutorials/02_custom_theme.py)** | Creating custom themes | Theme structure, custom colors |
-| **[03_theme_switching.py](tutorials/03_theme_switching.py)** | Advanced theme management | Dynamic switching, global sync |
-| **[04_vscode_import.py](tutorials/04_vscode_import.py)** | Importing VSCode themes | Theme conversion, external themes |
-| **[05_custom_widget.py](tutorials/05_custom_widget.py)** | Building custom themed widgets | Custom painting, theme-aware widgets |
-| **[06_complete_app.py](tutorials/06_complete_app.py)** | Complete themed application | Full app architecture, best practices |
+```python
+from vfwidgets_theme import ThemedMainWindow
 
-**Learning Path**: Follow the tutorials in order (01 → 06) for the best learning experience.
+class MyApp(ThemedMainWindow):
+    """Main application window - still simple!"""
+    pass
+```
 
-## 🧱 Basic Widget Examples
+**Key concepts:**
+- Using ThemedMainWindow for application windows
+- Standard Qt widgets (QPushButton, QLabel) work automatically
+- All widgets inherit theme from parent
 
-Fundamental themed widgets that form the building blocks of any application.
+---
 
-### [`basic/`](basic/)
+### Example 03: Theme Switching
+**File:** `03_theme_switching.py`
 
-| Example | Description | Demonstrates |
-|---------|-------------|-------------|
-| **[themed_button.py](basic/themed_button.py)** | Themed buttons with states | Button theming, hover/press states |
-| **[themed_label.py](basic/themed_label.py)** | Dynamic text labels | Text styling, different label types |
-| **[themed_input.py](basic/themed_input.py)** | Input fields with validation | Input theming, validation states |
-| **[themed_list.py](basic/themed_list.py)** | List widgets with alternating rows | List theming, selection states |
-| **[themed_dialog.py](basic/themed_dialog.py)** | Modal and modeless dialogs | Dialog theming, consistent styling |
+Switching between light and dark themes dynamically.
 
-## 📐 Layout Examples
+```python
+app = ThemedApplication(sys.argv)
+app.set_theme('dark')  # Or 'light', 'default', 'minimal'
+```
 
-Advanced layout management with theme-aware containers and organizers.
+**Key concepts:**
+- Available built-in themes
+- Dynamic theme switching
+- Theme changes propagate automatically to all widgets
 
-### [`layouts/`](layouts/)
+---
 
-| Example | Description | Demonstrates |
-|---------|-------------|-------------|
-| **[grid_layout.py](layouts/grid_layout.py)** | Grid layouts with themed cells | Grid theming, cell styling |
-| **[tab_widget.py](layouts/tab_widget.py)** | Tabbed interfaces | Tab styling, content theming |
-| **[splitter.py](layouts/splitter.py)** | Resizable split layouts | Splitter theming, handle styling |
-| **[dock_widget.py](layouts/dock_widget.py)** | Dockable panels | Dock theming, title bars |
-| **[stacked_widget.py](layouts/stacked_widget.py)** | Stacked page navigation | Page transitions, navigation |
+### Example 04: Input Forms and Dialogs
+**File:** `04_input_forms.py`
 
-## 🎨 Theme Features
+Building forms with input widgets and themed dialogs.
 
-| Feature | Description | Examples |
-|---------|-------------|----------|
-| **Automatic Updates** | Widgets automatically update when themes change | All examples |
-| **Custom Properties** | Define your own theme properties | `tutorials/02_custom_theme.py` |
-| **Nested Themes** | Hierarchical theme property organization | `tutorials/02_custom_theme.py` |
-| **Theme Inheritance** | Widgets inherit parent theme properties | `layouts/tab_widget.py` |
-| **Performance Optimized** | Efficient theme switching with caching | All examples |
-| **Memory Safe** | Automatic cleanup prevents memory leaks | All examples |
+```python
+from vfwidgets_theme import ThemedDialog
 
-## 🏃‍♂️ Running Examples
+class PreferencesDialog(ThemedDialog):
+    """Dialogs get themed automatically too!"""
+    pass
+```
+
+**Key concepts:**
+- Using ThemedDialog for dialog windows
+- Themed input widgets (QLineEdit, QTextEdit, QCheckBox)
+- Form layouts with themed widgets
+
+**API so far:**
+- `ThemedApplication` - Your application class
+- `ThemedMainWindow` - For main windows
+- `ThemedDialog` - For dialog windows
+- `ThemedQWidget` - For simple container widgets
+
+**That's it! 90% of users never need more than this.**
+
+---
+
+## Stage 2: Custom Widgets (Example 05+)
+
+**Go here when:** You need widgets beyond plain QWidget (like QTextEdit, QFrame, QPushButton subclasses)
+
+### Example 05: Custom Text Editor (THE BRIDGE)
+**File:** `05_vscode_editor.py`
+
+**START HERE when you need custom widgets!**
+
+This example introduces `ThemedWidget` for the first time, with a clear explanation of WHY and WHEN you need it.
+
+```python
+from vfwidgets_theme import ThemedWidget
+from PySide6.QtWidgets import QTextEdit
+
+class CodeEditor(ThemedWidget, QTextEdit):
+    """Now we're using the advanced API!
+
+    WHY: We need a QTextEdit subclass, and ThemedQWidget only works with QWidget.
+
+    PATTERN: class MyWidget(ThemedWidget, QtBaseClass)
+             ThemedWidget MUST come first!
+    """
+    pass
+```
+
+**The "Aha!" moment:**
+```python
+# ThemedQWidget is actually just this:
+class ThemedQWidget(ThemedWidget, QWidget):
+    pass
+
+# Now you understand the full pattern!
+```
+
+**Key concepts:**
+- When you need `ThemedWidget` (the mixin)
+- Multiple inheritance rules (ThemedWidget comes FIRST)
+- The relationship between ThemedQWidget and ThemedWidget
+- Building a VS Code-inspired editor
+
+**API added:**
+- `ThemedWidget` - The powerful mixin that works with ANY Qt base class
+
+---
+
+### Example 06: Role Markers
+**File:** `06_role_markers.py`
+
+Semantic widget styling using role properties.
+
+```python
+# Apply semantic styling without custom CSS
+danger_btn = QPushButton("Delete")
+danger_btn.setProperty("role", "danger")  # Automatically styled red
+
+editor = QTextEdit()
+editor.setProperty("role", "editor")  # Automatically uses monospace font
+```
+
+**Key concepts:**
+- Built-in role markers (danger, success, warning, editor, secondary)
+- Semantic styling without writing CSS
+- Role-based theme customization
+
+---
+
+## Stage 3: Advanced Features
+
+**See:** `legacy/` directory for more complex examples (being reorganized)
+
+**Coming soon:**
+- Example 07: Advanced theming features
+- Example 08: Custom themes and token constants
+- Example 09: Building reusable widget libraries
+
+---
+
+## Quick Decision Tree
+
+**Q: Building a main window?**
+→ Use `ThemedMainWindow` (Example 01)
+
+**Q: Building a dialog?**
+→ Use `ThemedDialog` (Example 04)
+
+**Q: Building a simple container widget?**
+→ Use `ThemedQWidget` (Examples 01-02)
+
+**Q: Need QTextEdit/QFrame/QPushButton/etc. subclass?**
+→ Use `ThemedWidget` mixin (Example 05) ⭐ **Bridge example**
+
+**Q: Building a widget library?**
+→ See advanced examples (coming soon)
+
+---
+
+## Running Examples
 
 ### Prerequisites
 
@@ -76,245 +202,134 @@ Advanced layout management with theme-aware containers and organizers.
 # Ensure PySide6 is installed
 pip install PySide6
 
-# Navigate to the theme system directory
+# Navigate to theme system directory
 cd widgets/theme_system
 ```
 
 ### Running Individual Examples
 
 ```bash
-# Basic widgets
-python examples/basic/themed_button.py
-python examples/basic/themed_label.py
-python examples/basic/themed_input.py
+# Start here!
+python examples/01_hello_world.py
 
-# Layouts
-python examples/layouts/grid_layout.py
-python examples/layouts/tab_widget.py
+# Work your way up
+python examples/02_buttons_and_layout.py
+python examples/03_theme_switching.py
+python examples/04_input_forms.py
 
-# Tutorials (start here!)
-python examples/tutorials/01_hello_theme.py
-python examples/tutorials/02_custom_theme.py
+# When you need custom widgets (QTextEdit, QFrame, etc.)
+python examples/05_vscode_editor.py
+
+# Advanced features
+python examples/06_role_markers.py
 ```
 
-### Running the Main Showcase
+### Running All Examples (Test Suite)
 
 ```bash
-# Comprehensive demo of all features
-python examples/phase_5_living_example.py
-```
-
-## 🎯 Example Categories
-
-### By Complexity Level
-
-- **🟢 Beginner**: `tutorials/01_hello_theme.py`, `basic/themed_button.py`
-- **🟡 Intermediate**: `tutorials/02_custom_theme.py`, `layouts/grid_layout.py`
-- **🔴 Advanced**: `tutorials/06_complete_app.py`, `layouts/dock_widget.py`
-
-### By Use Case
-
-- **Learning**: All files in `tutorials/`
-- **UI Components**: All files in `basic/`
-- **Layout Management**: All files in `layouts/`
-- **Complete Applications**: `tutorials/06_complete_app.py`, `phase_5_living_example.py`
-
-## 🔧 Customization Guide
-
-### Creating Your Own Themes
-
-1. **Start with the tutorial**: `tutorials/02_custom_theme.py`
-2. **Define theme structure**:
-   ```python
-   my_theme = {
-       'name': 'my_theme',
-       'window': {
-           'background': '#your_bg_color',
-           'foreground': '#your_text_color'
-       },
-       'button': {
-           'background': '#button_bg',
-           'foreground': '#button_text',
-           'hover': {'background': '#button_hover'}
-       }
-   }
-   ```
-3. **Register with application**:
-   ```python
-   app.register_theme('my_theme', my_theme)
-   app.set_theme('my_theme')
-   ```
-
-### Creating Custom Widgets
-
-1. **Inherit from ThemedWidget**:
-   ```python
-   class MyWidget(ThemedWidget):
-       theme_config = {
-           'bg': 'my_widget.background',
-           'fg': 'my_widget.foreground'
-       }
-   ```
-2. **Implement theme response**:
-   ```python
-   def on_theme_changed(self):
-       # Update widget appearance
-       self.update_styling()
-   ```
-3. **See**: `tutorials/05_custom_widget.py` for complete examples
-
-## 📋 Best Practices
-
-### 1. Theme Property Naming
-- Use descriptive, hierarchical names: `button.hover.background`
-- Group related properties: `window.*`, `button.*`, `input.*`
-- Provide fallback values: `self.theme.get('color', '#000000')`
-
-### 2. Widget Design
-- Always inherit from `ThemedWidget`
-- Define `theme_config` for property mapping
-- Implement `on_theme_changed()` for updates
-- Use semantic property names
-
-### 3. Performance
-- Use theme property caching (automatic)
-- Minimize unnecessary theme updates
-- Batch theme changes when possible
-
-### 4. Accessibility
-- Ensure sufficient color contrast
-- Test with different themes
-- Support high-contrast themes
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**
-   ```bash
-   # Ensure you're in the correct directory
-   cd widgets/theme_system
-   python examples/tutorials/01_hello_theme.py
-   ```
-
-2. **Theme Not Updating**
-   ```python
-   # Ensure on_theme_changed() is implemented
-   def on_theme_changed(self):
-       self.update_styling()
-   ```
-
-3. **Property Not Found**
-   ```python
-   # Always provide fallback values
-   color = self.theme.get('my_property', '#default_color')
-   ```
-
-### Getting Help
-
-- 📖 **Start with tutorials**: Follow the 6-part tutorial series
-- 🔍 **Check examples**: Find similar use cases in the examples
-- 🎨 **Use the showcase**: Run `phase_5_living_example.py` for inspiration
-
-## 📈 Example Statistics
-
-| Category | Count | Lines of Code | Features Demonstrated |
-|----------|-------|---------------|----------------------|
-| Tutorials | 6 | ~1,800 | Complete learning path |
-| Basic Widgets | 5 | ~1,500 | Core widget theming |
-| Layouts | 5 | ~1,200 | Advanced layouts |
-| **Total** | **16** | **~4,500** | **Complete theme system** |
-
-## 🎉 Next Steps
-
-After exploring these examples:
-
-1. **Build your own themed application** using the patterns shown
-2. **Create custom themes** for your brand or preferences
-3. **Develop custom widgets** that integrate seamlessly
-4. **Contribute back** with new examples or improvements
-
-## 📝 Example Template
-
-Use this template to create new themed widgets:
-
-```python
-#!/usr/bin/env python3
-"""
-my_widget.py - Description of your widget
-
-Shows how to create [specific functionality].
-
-Key Concepts:
-- [Concept 1]
-- [Concept 2]
-- [Concept 3]
-"""
-
-import sys
-from PySide6.QtWidgets import QWidget, QVBoxLayout
-from vfwidgets_theme import ThemedWidget, ThemedApplication
-
-class MyThemedWidget(ThemedWidget):
-    """Your custom themed widget."""
-
-    theme_config = {
-        'bg': 'my_widget.background',
-        'fg': 'my_widget.foreground',
-        # Add more properties as needed
-    }
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setup_ui()
-
-    def setup_ui(self):
-        """Set up the widget UI."""
-        layout = QVBoxLayout(self)
-        # Add your UI elements
-
-    def on_theme_changed(self):
-        """Called when theme changes."""
-        self.update_styling()
-
-    def update_styling(self):
-        """Update widget styling based on current theme."""
-        bg = self.theme.get('bg', '#ffffff')
-        fg = self.theme.get('fg', '#000000')
-
-        self.setStyleSheet(f"""
-        MyThemedWidget {{
-            background-color: {bg};
-            color: {fg};
-        }}
-        """)
-
-def main():
-    app = ThemedApplication(sys.argv)
-
-    # Define your theme
-    theme = {
-        'name': 'my_theme',
-        'my_widget': {
-            'background': '#ffffff',
-            'foreground': '#000000'
-        }
-    }
-
-    app.register_theme('my_theme', theme)
-    app.set_theme('my_theme')
-
-    widget = MyThemedWidget()
-    widget.show()
-
-    return app.exec()
-
-if __name__ == '__main__':
-    sys.exit(main())
+cd examples
+./run_tests.sh
 ```
 
 ---
 
-**Happy theming!** 🎨✨
+## Understanding the API Structure
 
-*The VFWidgets theme system makes it easy to create beautiful, consistent, and accessible user interfaces. Start with the tutorials and work your way up to building complete themed applications.*
+The theme system uses **progressive disclosure** - you start simple and graduate to advanced features only when needed:
+
+```
+Simple API (Training Wheels)        Advanced API (Full Bicycle)
+├─ ThemedMainWindow                 ├─ ThemedWidget mixin
+├─ ThemedDialog              →      ├─ Works with ANY Qt base
+└─ ThemedQWidget                    └─ Maximum flexibility
+```
+
+**The secret:** All the convenience classes (ThemedMainWindow, ThemedDialog, ThemedQWidget) are just pre-combined versions of ThemedWidget!
+
+```python
+# Under the hood:
+class ThemedMainWindow(ThemedWidget, QMainWindow):
+    pass
+
+class ThemedDialog(ThemedWidget, QDialog):
+    pass
+
+class ThemedQWidget(ThemedWidget, QWidget):
+    pass
+```
+
+When you discover you need ThemedWidget (Example 05), you'll understand the pattern that was there all along!
+
+---
+
+## Best Practices
+
+### For App Developers (Examples 01-04)
+- Start with ThemedMainWindow or ThemedDialog
+- Use ThemedQWidget for simple containers
+- Let standard Qt widgets inherit theming automatically
+- Don't overthink it - the simple API is enough!
+
+### For Custom Widget Developers (Example 05+)
+- Only use ThemedWidget when you need non-QWidget bases
+- Always put ThemedWidget FIRST in inheritance: `class MyWidget(ThemedWidget, QtBaseClass)`
+- Use role markers for semantic styling
+- Read Example 05 carefully - it explains the transition
+
+### For Widget Library Authors
+- See advanced examples (coming soon)
+- Use token constants and ThemeProperty descriptors
+- Implement lifecycle hooks for complex widgets
+- Read the widget-development-GUIDE.md
+
+---
+
+## Troubleshooting
+
+### "I don't know which class to use"
+→ Follow the decision tree above, or start with Example 01
+
+### "My widget isn't getting themed"
+→ Make sure it's a child of a themed widget (ThemedMainWindow, ThemedDialog, or ThemedQWidget)
+
+### "I need a QTextEdit subclass but ThemedQWidget doesn't work"
+→ You've reached Example 05! Use ThemedWidget mixin instead
+
+### "TypeError about inheritance order"
+→ ThemedWidget must come FIRST: `class MyWidget(ThemedWidget, QTextEdit)` not `class MyWidget(QTextEdit, ThemedWidget)`
+
+---
+
+## What's in legacy/?
+
+The `legacy/` directory contains older examples that are being reorganized:
+- `tutorials/` - Old tutorial series (being updated)
+- `basic/` - Basic widget examples (being migrated)
+- `layouts/` - Layout examples (being migrated)
+- `user_examples/` - User-contributed examples
+- `development_examples/` - Development/testing examples
+
+These will be reorganized into the new progressive structure in upcoming releases.
+
+---
+
+## Next Steps
+
+After completing these examples:
+
+1. **Read the guides:**
+   - `docs/quick-start-GUIDE.md` - Quick reference for simple API
+   - `docs/widget-development-GUIDE.md` - Deep dive into ThemedWidget
+   - `docs/api-REFERENCE.md` - Complete API documentation
+
+2. **Build your own app** using the patterns shown
+
+3. **Create custom themes** for your brand or preferences
+
+4. **Contribute** new examples or improvements!
+
+---
+
+**Happy theming!**
+
+The VFWidgets theme system makes it easy to create beautiful, consistent, and accessible user interfaces. Start simple with Examples 01-04, then naturally graduate to advanced features when you need them.

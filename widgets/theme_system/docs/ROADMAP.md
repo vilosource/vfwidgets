@@ -4,15 +4,49 @@ This document explains the design rationale behind the current architecture and 
 
 **Related Documents:**
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Current system implementation
+- [API-STRATEGY.md](API-STRATEGY.md) - Progressive disclosure API philosophy
 - [api-REFERENCE.md](api-REFERENCE.md) - User-facing API documentation
 
 ---
 
 ## Table of Contents
 
-1. [Design Rationale](#design-rationale)
-2. [Known Limitations](#known-limitations)
-3. [Future Enhancements](#future-enhancements)
+1. [API Philosophy](#api-philosophy)
+2. [Design Rationale](#design-rationale)
+3. [Known Limitations](#known-limitations)
+4. [Future Enhancements](#future-enhancements)
+
+---
+
+## API Philosophy
+
+### Progressive Disclosure Strategy
+
+**See:** [API-STRATEGY.md](API-STRATEGY.md) for complete details.
+
+**Core Principle:** Users start simple and naturally graduate to advanced features only when needed.
+
+**Two-Tier API:**
+
+```
+Simple API (90% of users)           Advanced API (10% of users)
+├─ ThemedMainWindow                 ├─ ThemedWidget (mixin)
+├─ ThemedDialog                     ├─ Tokens (constants)
+└─ ThemedQWidget                    ├─ ThemeProperty (descriptors)
+                                    ├─ WidgetRole (enum)
+                                    └─ Advanced lifecycle hooks
+```
+
+**User Journey:**
+1. **App Developer** → Starts with `ThemedMainWindow` (simple, one base class)
+2. **Custom Widget Developer** → Graduates to `ThemedWidget + QtBase` (when needs flexibility)
+3. **Widget Library Author** → Masters full API with advanced features
+
+**Key Insight:** The convenience classes (ThemedMainWindow, ThemedDialog, ThemedQWidget) aren't "alternative APIs" - they're **training wheels** that lead naturally to the full ThemedWidget mixin when needed.
+
+**Related Sections:**
+- [Why ThemedWidget is a Mixin](#why-themedwidget-is-a-mixin) - Technical rationale
+- [Why Convenience Classes Exist](#why-convenience-classes-exist) - Progressive learning
 
 ---
 
@@ -28,14 +62,56 @@ This document explains the design rationale behind the current architecture and 
 - **Flexibility**: Users can theme any Qt widget (QWidget, QMainWindow, QDialog, custom widgets)
 - **No Inheritance Conflicts**: Avoids diamond inheritance problems with complex Qt hierarchies
 - **Composition Over Restriction**: Doesn't force a specific base class
+- **Supports Progressive Disclosure**: Enables convenience classes for beginners while preserving power for advanced users
 
 **Trade-off Accepted:**
 - Inheritance order matters (ThemedWidget must come first)
-- Slightly more complex for beginners vs single inheritance
+- Beginners need to learn multiple inheritance eventually (for custom widgets)
+
+**Why This Trade-off is Worth It:**
+- 90% of users never see the complexity (use convenience classes)
+- 10% who need it are building custom widgets (already understand inheritance)
+- No other approach gives both simplicity AND flexibility
 
 **Future:**
-- Continue providing convenience classes (ThemedQWidget, ThemedMainWindow) for common cases
-- Investigate if metaclass complexity can be reduced in Python 3.12+
+- Continue providing convenience classes (ThemedQWidget, ThemedMainWindow) as "Simple API"
+- Position ThemedWidget as "Advanced API" in documentation
+- Add runtime validation to catch inheritance order mistakes early
+
+### Why Convenience Classes Exist
+
+**Current Implementation:** ThemedQWidget, ThemedMainWindow, ThemedDialog
+
+**Decision:** Provide pre-combined classes for common Qt base types.
+
+**Rationale:**
+- **Beginner-Friendly**: Single inheritance is easier to learn than multiple inheritance
+- **Common Case Optimization**: 90% of users building apps, not custom widget libraries
+- **Natural Learning Path**: Users start simple, discover ThemedWidget when they need QTextEdit/QFrame/etc.
+- **Marketing**: "class MyApp(ThemedMainWindow)" is excellent for quick starts
+
+**What They Are:**
+```python
+# Just shortcuts - not magic
+class ThemedQWidget(ThemedWidget, QWidget):
+    pass
+
+class ThemedMainWindow(ThemedWidget, QMainWindow):
+    pass
+```
+
+**Trade-off Accepted:**
+- More classes in API surface
+- Users need to learn "when to use which"
+
+**Why This Trade-off is Worth It:**
+- Decision tree is simple: "Building app window? → ThemedMainWindow. Need QTextEdit? → ThemedWidget"
+- Reduces barrier to entry significantly
+- Power users naturally discover the pattern
+
+**Future:**
+- May add ThemedTextEdit, ThemedFrame if usage data shows high demand
+- Decision based on actual user needs, not theoretical completeness
 
 ### Why ThemeManager is a Facade
 
@@ -58,7 +134,7 @@ This document explains the design rationale behind the current architecture and 
 
 ### Why Themes are Immutable
 
-**Current Implementation:** [ARCHITECTURE.md > Theme Data Model](ARCHITECTURE.md#theme-data-model)
+**Current Implementation:** [ARCHITECTURE.md > Theme Data Model](ARCHITECTURE.md#theme-immutable-data-model)
 
 **Decision:** Theme instances are frozen dataclasses that cannot be modified after creation.
 
@@ -160,16 +236,16 @@ for widget in registry.get_all_widgets():
 - Minimize widget count by reusing widgets
 - Use `QApplication.setOverrideCursor(Qt.WaitCursor)` during switch
 
-**Planned Fix:** [Phase 1: Batch Application](#phase-1-performance-optimization)
+**Planned Fix:** [Phase 1: Batch Application](#phase-1-performance-optimization-v11)
 
 ### 2. No Lazy Theme Loading
 
-**Current Behavior:** [ARCHITECTURE.md > ThemeRepository](ARCHITECTURE.md#themerepository)
+**Current Behavior:** [ARCHITECTURE.md > ThemeManager](ARCHITECTURE.md#thememanager)
 
 All built-in themes load at application startup:
 ```python
 def _initialize_builtin_themes(self):
-    for theme_name in ["vscode", "default", "minimal"]:
+    for theme_name in ["dark", "light", "default", "minimal"]:
         theme = load_builtin_theme(theme_name)  # All loaded upfront
         self._repository.add_theme(theme)
 ```
@@ -182,38 +258,27 @@ def _initialize_builtin_themes(self):
 - Pre-build theme JSON files to reduce parsing time
 - Use smaller built-in theme set
 
-**Planned Fix:** [Phase 1: Lazy Loading](#phase-1-performance-optimization)
+**Planned Fix:** [Phase 1: Lazy Loading](#phase-1-performance-optimization-v11)
 
-### 3. No Theme Inheritance/Composition
+### 3. ~~No Theme Inheritance/Composition~~ ✅ IMPLEMENTED (Phase 2)
 
-**Current Behavior:** [ARCHITECTURE.md > Theme](ARCHITECTURE.md#theme-data-model)
+**Status:** RESOLVED in Phase 2
 
-Themes cannot extend or compose other themes (except through VSCode import):
+Theme inheritance and composition are now fully supported:
 ```python
-# NOT SUPPORTED:
-custom_theme = ThemeBuilder("custom")
-    .extend("vscode")        # ❌ No extend()
-    .override("button.*")    # ❌ No selective override
-    .compose(partial_theme)  # ❌ No composition
-    .build()
+# ✅ SUPPORTED (as of Phase 2):
+custom_theme = (ThemeBuilder("custom")
+    .extend("dark")          # ✅ Inherit from built-in theme
+    .add_color("button.background", "#custom")  # Override specific properties
+    .build())
+
+# Compose multiple themes:
+from vfwidgets_theme.core.theme import ThemeComposer
+composer = ThemeComposer()
+merged = composer.compose(theme1, theme2, name="merged")
 ```
 
-**Impact:**
-- Must duplicate all properties when customizing a theme
-- Cannot create theme variants efficiently
-- No partial themes for component libraries
-
-**Workaround:**
-```python
-# Current approach: Manual copying
-base = app.get_current_theme()
-custom = ThemeBuilder("custom")
-    .add_colors(base.colors)  # Copy all
-    .add_color("button.background", "#custom")  # Override one
-    .build()
-```
-
-**Planned Fix:** [Phase 2: Theme Inheritance](#phase-2-developer-experience)
+See [Phase 2: Developer Experience](#phase-2-developer-experience-v12) for full feature list.
 
 ### 4. No Platform Theme Sync
 
@@ -230,34 +295,36 @@ import subprocess
 result = subprocess.run(["gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"],
                        capture_output=True)
 if "dark" in result.stdout.decode().lower():
-    app.set_theme("vscode")
+    app.set_theme("dark")
 else:
     app.set_theme("default")
 ```
 
-**Planned Fix:** [Phase 3: Platform Integration](#phase-3-platform-integration)
+**Planned Fix:** [Phase 3: Platform Integration](#phase-3-platform-integration-v13)
 
-### 5. Limited Theme Validation
+### 5. ~~Limited Theme Validation~~ ✅ PARTIALLY RESOLVED (Phase 2)
 
-**Current Behavior:** [ARCHITECTURE.md > Validation](ARCHITECTURE.md#validation)
+**Status:** PARTIALLY RESOLVED in Phase 2
 
-Theme validation is basic:
-- Checks JSON structure
-- Validates color formats
-- No semantic validation (e.g., "is contrast sufficient?")
-- No computed property safety (no sandboxing)
+Phase 2 added accessibility validation:
+```python
+from vfwidgets_theme.core.theme import ThemeValidator
 
-**Impact:**
-- Malformed themes can cause visual issues
-- No warnings for accessibility problems
-- Unsafe computed properties could execute arbitrary code
+validator = ThemeValidator()
+result = validator.validate_accessibility(theme)  # ✅ WCAG contrast ratios
 
-**Workaround:**
-- Manually test themes thoroughly
-- Use built-in themes as templates
-- Avoid computed properties
+if not result.is_valid:
+    for warning in result.warnings:
+        print(warning)  # "Text contrast 2.1:1 is below WCAG AA (4.5:1)"
+```
 
-**Planned Fix:** [Phase 2: Validation Improvements](#phase-2-developer-experience)
+**Still Missing:**
+- Computed property sandboxing (deferred to Phase 4)
+- Advanced semantic validation
+
+**Workaround for remaining issues:**
+- Avoid computed properties (not yet implemented)
+- Use ThemeValidator for accessibility checks
 
 ### 6. No Stylesheet Caching
 
@@ -271,7 +338,7 @@ Theme validation is basic:
 - Avoid rapid theme switching
 - Profile application if theme switch performance is critical
 
-**Planned Fix:** [Phase 1: L2/L3 Cache](#phase-1-performance-optimization)
+**Planned Fix:** [Phase 1: L2/L3 Cache](#phase-1-performance-optimization-v11)
 
 ---
 
@@ -380,15 +447,17 @@ app.set_theme(theme.name)
 - Non-blocking theme loading
 - Better UX for large theme files
 
-### Phase 2: Developer Experience (v1.2)
+### Phase 2: Developer Experience (v1.2) ✅ COMPLETED
 
 **Goal:** Make theme customization 10x easier.
 
-**Target Release:** Q3 2025
+**Status:** ✅ COMPLETED (All 4 features implemented)
 
-#### 2.1 Theme Inheritance
+**Target Release:** Q3 2025 (Delivered early!)
 
-**Current:** [Limitation #3](#3-no-theme-inheritancecomposition)
+#### 2.1 Theme Inheritance ✅ IMPLEMENTED
+
+**Status:** ✅ COMPLETED - See [theme-customization-GUIDE.md > Theme Inheritance](theme-customization-GUIDE.md#theme-inheritance)
 
 **Implementation:**
 ```python
@@ -409,8 +478,8 @@ class ThemeBuilder:
         return self
 
 # Usage:
-custom = (ThemeBuilder("my-vscode-variant")
-    .extend("vscode")                      # Inherit everything
+custom = (ThemeBuilder("my-dark-variant")
+    .extend("dark")                         # Inherit everything
     .add_color("button.background", "#f00") # Override one property
     .build())
 ```
@@ -420,7 +489,9 @@ custom = (ThemeBuilder("my-vscode-variant")
 - Easy theme variants
 - Clear inheritance chain
 
-#### 2.2 Theme Composition
+#### 2.2 Theme Composition ✅ IMPLEMENTED
+
+**Status:** ✅ COMPLETED - See [theme-customization-GUIDE.md > Theme Composition](theme-customization-GUIDE.md#theme-composition)
 
 **Implementation:**
 ```python
@@ -436,7 +507,7 @@ class ThemeComposer:
         return result.build()
 
 # Usage:
-base = get_theme("vscode")
+base = get_theme("dark")
 buttons = get_theme("custom-buttons")
 inputs = get_theme("custom-inputs")
 
@@ -448,7 +519,9 @@ app_theme = compose(base, buttons, inputs)  # Layer themes
 - Mix-and-match theme features
 - Cleaner theme organization
 
-#### 2.3 Better Validation
+#### 2.3 Better Validation ✅ IMPLEMENTED
+
+**Status:** ✅ COMPLETED - See [theme-customization-GUIDE.md > Accessibility Validation](theme-customization-GUIDE.md#accessibility-validation)
 
 **Implementation:**
 ```python
@@ -475,7 +548,9 @@ class ThemeValidator:
 - Helpful error messages with suggestions
 - Theme quality guidelines
 
-#### 2.4 Enhanced Error Messages
+#### 2.4 Enhanced Error Messages ✅ IMPLEMENTED
+
+**Status:** ✅ COMPLETED - See [api-REFERENCE.md > ThemeValidator](api-REFERENCE.md#themevalidator)
 
 **Implementation:**
 ```python
@@ -528,7 +603,7 @@ class PlatformThemeAdapter:
 # Usage:
 adapter = PlatformThemeAdapter()
 if adapter.detect_system_theme() == "dark":
-    app.set_theme("vscode")
+    app.set_theme("dark")
 
 adapter.watch_system_theme_changes(lambda: app.sync_with_system())
 ```
@@ -584,7 +659,7 @@ class AnimatedThemeTransition:
             await asyncio.sleep(0.016)
 
 # Usage:
-await app.transition_theme("vscode", duration_ms=300)
+await app.transition_theme("dark", duration_ms=300)
 ```
 
 **Benefits:**
