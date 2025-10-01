@@ -170,8 +170,14 @@ app = ThemedApplication(sys.argv)
 window = ThemedMainWindow()
 window.setWindowTitle("My Themed App")
 
-central = window.create_central_widget()
+from vfwidgets_theme import ThemedQWidget
+from PySide6.QtWidgets import QVBoxLayout
+central = ThemedQWidget()
+window.setCentralWidget(central)
+layout = QVBoxLayout(central)
+
 button = QPushButton("Click Me!", central)
+layout.addWidget(button)
 
 window.show()
 sys.exit(app.exec())
