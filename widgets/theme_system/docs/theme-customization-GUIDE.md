@@ -30,8 +30,8 @@ my_theme = (ThemeBuilder("my_theme")
     .add_color("colors.foreground", "#d4d4d4")
     .add_color("button.background", "#0e639c")
     .add_color("button.foreground", "#ffffff")
-    .add_font("font.default.family", "Arial, sans-serif")
-    .add_font("font.default.size", "9pt")
+    .add_color("font.default.family", "Arial, sans-serif")
+    .add_color("font.default.size", "9pt")
     .build())
 ```
 
@@ -112,7 +112,7 @@ from vfwidgets_theme.core.theme import ThemeBuilder
 
 theme = (ThemeBuilder("my_simple_theme")
     .set_type("dark")
-    .set_description("My first custom theme")
+    .add_metadata("description", "My first custom theme")
     .add_color("colors.foreground", "#ffffff")
     .add_color("colors.background", "#1e1e1e")
     .build())
@@ -123,7 +123,7 @@ theme = (ThemeBuilder("my_simple_theme")
 ```python
 theme = (ThemeBuilder("my_comprehensive_theme")
     .set_type("dark")
-    .set_description("A complete custom theme")
+    .add_metadata("description", "A complete custom theme")
 
     # Base colors
     .add_color("colors.foreground", "#e0e0e0")
@@ -161,10 +161,10 @@ theme = (ThemeBuilder("my_comprehensive_theme")
     .add_color("list.hoverBackground", "#2a2d2e")
 
     # Fonts
-    .add_font("font.default.family", "Segoe UI, Arial, sans-serif")
-    .add_font("font.default.size", "9pt")
-    .add_font("font.editor.family", "Courier New, Consolas, monospace")
-    .add_font("font.editor.size", "11pt")
+    .add_color("font.default.family", "Segoe UI, Arial, sans-serif")
+    .add_color("font.default.size", "9pt")
+    .add_color("font.editor.family", "Courier New, Consolas, monospace")
+    .add_color("font.editor.size", "11pt")
 
     .build())
 ```
@@ -211,7 +211,7 @@ from vfwidgets_theme.core.theme import ThemeBuilder
 # Create custom purple theme
 purple_theme = (ThemeBuilder("purple_dream")
     .set_type("dark")
-    .set_description("A beautiful purple theme")
+    .add_metadata("description", "A beautiful purple theme")
 
     # Base colors - Purple palette
     .add_color("colors.foreground", "#e8d5f0")
@@ -292,12 +292,12 @@ purple_theme = (ThemeBuilder("purple_dream")
     .add_color("statusBar.foreground", "#ffffff")
 
     # Fonts
-    .add_font("font.default.family", "Segoe UI, Arial, sans-serif")
-    .add_font("font.default.size", "9pt")
-    .add_font("font.editor.family", "Courier New, Consolas, monospace")
-    .add_font("font.editor.size", "11pt")
-    .add_font("font.button.family", "Segoe UI, Arial, sans-serif")
-    .add_font("font.button.size", "9pt")
+    .add_color("font.default.family", "Segoe UI, Arial, sans-serif")
+    .add_color("font.default.size", "9pt")
+    .add_color("font.editor.family", "Courier New, Consolas, monospace")
+    .add_color("font.editor.size", "11pt")
+    .add_color("font.button.family", "Segoe UI, Arial, sans-serif")
+    .add_color("font.button.size", "9pt")
 
     .build())
 
@@ -306,9 +306,19 @@ def main():
     """Run the purple-themed application."""
     app = ThemedApplication(sys.argv)
 
-    # Add custom theme to application
-    app._available_themes["purple_dream"] = purple_theme
-    app._theme_manager.add_theme(purple_theme)
+    # Save theme to file
+    import json
+    from pathlib import Path
+    theme_file = Path("purple_dream.json")
+    theme_file.write_text(json.dumps({
+        "name": purple_theme.name,
+        "type": purple_theme.type,
+        "colors": purple_theme.colors,
+        "version": purple_theme.version
+    }, indent=2))
+
+    # Load custom theme
+    app.load_theme_file(theme_file)
 
     # Set the purple theme
     app.set_theme("purple_dream")
@@ -319,7 +329,9 @@ def main():
     window.setMinimumSize(500, 400)
 
     # Create UI
-    central = window.create_central_widget()
+    from vfwidgets_theme import ThemedQWidget
+    central = ThemedQWidget()
+    window.setCentralWidget(central)
     layout = QVBoxLayout(central)
 
     # Add some widgets to see the theme
@@ -351,28 +363,7 @@ Save this as `purple_theme_example.py` and run it!
 
 ## Loading Custom Themes
 
-### Method 1: Add to ThemedApplication
-
-```python
-from vfwidgets_theme import ThemedApplication
-from vfwidgets_theme.core.theme import ThemeBuilder
-
-app = ThemedApplication(sys.argv)
-
-# Create custom theme
-my_theme = (ThemeBuilder("custom")
-    # ... theme definition ...
-    .build())
-
-# Add to application
-app._available_themes["custom"] = my_theme
-app._theme_manager.add_theme(my_theme)
-
-# Use it
-app.set_theme("custom")
-```
-
-### Method 2: Save to JSON and Load
+### Method 1: Save to JSON and Load
 
 ```python
 import json
@@ -393,13 +384,12 @@ theme_data = {
 
 Path("my_theme.json").write_text(json.dumps(theme_data, indent=2))
 
-# Load from JSON (later)
-theme_data = json.loads(Path("my_theme.json").read_text())
+# Load from JSON in your application
+from vfwidgets_theme import ThemedApplication
 
-loaded_theme = (ThemeBuilder(theme_data["name"])
-    .set_type(theme_data["type"])
-    .add_colors(theme_data["colors"])
-    .build())
+app = ThemedApplication(sys.argv)
+app.load_theme_file("my_theme.json")
+app.set_theme("my_theme")
 ```
 
 ---
@@ -411,6 +401,8 @@ loaded_theme = (ThemeBuilder(theme_data["name"])
 ```python
 from vfwidgets_theme import ThemedApplication
 from vfwidgets_theme.core.theme import ThemeBuilder
+import json
+from pathlib import Path
 
 app = ThemedApplication(sys.argv)
 
@@ -425,9 +417,16 @@ custom_theme = (ThemeBuilder("vscode_custom")
     .add_color("button.background", "#cc0000")  # Custom button
     .build())
 
-# Use it
-app._available_themes["vscode_custom"] = custom_theme
-app._theme_manager.add_theme(custom_theme)
+# Save and load the custom theme
+theme_file = Path("vscode_custom.json")
+theme_file.write_text(json.dumps({
+    "name": custom_theme.name,
+    "type": custom_theme.type,
+    "colors": custom_theme.colors,
+    "version": custom_theme.version
+}, indent=2))
+
+app.load_theme_file(theme_file)
 app.set_theme("vscode_custom")
 ```
 
@@ -480,8 +479,8 @@ theme = (ThemeBuilder("minimal")
     .add_color("editor.foreground", "#ffffff")
 
     # Fonts (required)
-    .add_font("font.default.family", "Arial, sans-serif")
-    .add_font("font.default.size", "9pt")
+    .add_color("font.default.family", "Arial, sans-serif")
+    .add_color("font.default.size", "9pt")
 
     .build())
 ```
@@ -569,7 +568,7 @@ Make sure to test your theme with:
 
 ```python
 theme = (ThemeBuilder("my_theme")
-    .set_description(
+    .add_metadata("description",
         "A custom theme inspired by X. "
         "Features high contrast and accessibility support."
     )
