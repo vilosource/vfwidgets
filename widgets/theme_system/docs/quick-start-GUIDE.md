@@ -32,8 +32,8 @@ pip install -e .
 ```python
 #!/usr/bin/env python3
 import sys
-from PySide6.QtWidgets import QPushButton
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
+from PySide6.QtWidgets import QPushButton, QVBoxLayout
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
 
 # 1. Use ThemedApplication instead of QApplication
 app = ThemedApplication(sys.argv)
@@ -43,11 +43,14 @@ window = ThemedMainWindow()
 window.setWindowTitle("My First Themed App")
 
 # 3. Create central widget
-central = window.create_central_widget()
+central = ThemedQWidget()
+window.setCentralWidget(central)
+layout = QVBoxLayout(central)
 
 # 4. Add a button - it's automatically themed!
 button = QPushButton("Click Me!", central)
 button.clicked.connect(lambda: print("Button clicked!"))
+layout.addWidget(button)
 
 window.show()
 sys.exit(app.exec())
@@ -114,7 +117,7 @@ import sys
 from PySide6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QVBoxLayout
 )
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
 
 app = ThemedApplication(sys.argv)
 
@@ -122,7 +125,8 @@ window = ThemedMainWindow()
 window.setWindowTitle("More Widgets")
 window.setMinimumSize(400, 300)
 
-central = window.create_central_widget()
+central = ThemedQWidget()
+window.setCentralWidget(central)
 layout = QVBoxLayout(central)
 
 # Label - automatically themed
@@ -199,7 +203,7 @@ import sys
 from PySide6.QtWidgets import (
     QPushButton, QLabel, QComboBox, QVBoxLayout
 )
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
 
 app = ThemedApplication(sys.argv)
 
@@ -207,7 +211,8 @@ window = ThemedMainWindow()
 window.setWindowTitle("Theme Switcher")
 window.setMinimumSize(400, 200)
 
-central = window.create_central_widget()
+central = ThemedQWidget()
+window.setCentralWidget(central)
 layout = QVBoxLayout(central)
 
 # Theme selector
@@ -318,8 +323,7 @@ python 06_role_markers.py         # Role marker demo
 
 - **[API Reference](api-REFERENCE.md)** - Complete API documentation
 - **[Theme Customization](theme-customization-GUIDE.md)** - Create custom themes
-- **[Best Practices](best-practices-GUIDE.md)** - Patterns and anti-patterns
-- **[Integration Guide](integration-GUIDE.md)** - Integrate with existing apps
+- **[Architecture Design](architecture-DESIGN.md)** - System internals for contributors
 
 ### 3. Explore Advanced Features
 
@@ -370,14 +374,17 @@ class MyWidget(ThemedQWidget):
 ### Pattern 1: Main Application Window
 
 ```python
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
+from PySide6.QtWidgets import QVBoxLayout
 
 app = ThemedApplication(sys.argv)
 window = ThemedMainWindow()
 
 # Create your UI
-central = window.create_central_widget()
-# Add widgets to central...
+central = ThemedQWidget()
+window.setCentralWidget(central)
+layout = QVBoxLayout(central)
+# Add widgets to layout...
 
 window.show()
 sys.exit(app.exec())
