@@ -140,19 +140,27 @@ class Theme:
 ### 2. ThemedWidget - The Simple API
 
 ```python
-class ThemedWidget(QWidget):
+class ThemedWidget(metaclass=ThemedWidgetMeta):
     """
-    The main way to create themed widgets. Handles everything correctly internally.
+    The main way to create themed widgets. Mixin for multiple inheritance.
 
-    What developers see: Simple inheritance
+    What developers see: Simple mixin
     What happens inside: Clean architecture with DI, memory safety, thread safety
+
+    Usage:
+        class MyWidget(ThemedWidget, QWidget):
+            pass
+
+    Or use convenience classes:
+        class MyWidget(ThemedQWidget):  # Single inheritance
+            pass
     """
 
     # Optional configuration for custom properties
     theme_config = {}
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         # Internally uses dependency injection, but hidden from user
         self._setup_theming()
 
@@ -231,11 +239,11 @@ class CleanupProtocol:
         # Clear caches
         # Release resources
 
-class ThemedWidget(QWidget):
-    """Actual implementation showing memory safety"""
+class ThemedWidget(metaclass=ThemedWidgetMeta):
+    """Actual implementation showing memory safety (mixin pattern)"""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, **kwargs):
+        super().__init__(parent=parent, **kwargs)
         self._cleanup = CleanupProtocol(self)
         self._theme_provider = ThemeProvider.default()  # DI
         self._theme_provider.subscribe(self)  # Weak reference
@@ -244,6 +252,11 @@ class ThemedWidget(QWidget):
         """Proper cleanup on window close"""
         self._cleanup.cleanup()
         super().closeEvent(event)
+
+# Convenience class for single inheritance
+class ThemedQWidget(ThemedWidget, QWidget):
+    """Single inheritance convenience class"""
+    pass
 ```
 
 ### 5. Property System
