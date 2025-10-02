@@ -11,14 +11,16 @@ This example verifies:
 5. The simple API is functional
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QComboBox
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QColor
-from vfwidgets_theme import ThemedWidget, ThemedApplication
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import QComboBox, QLabel, QPushButton, QVBoxLayout
+
+from vfwidgets_theme import ThemedApplication, ThemedWidget
 
 
 class SimpleThemedWidget(ThemedWidget):
@@ -141,14 +143,14 @@ def main():
 
     # Set initial theme
     app.set_theme('dark')
-    print(f"✓ Theme set to 'dark'")
+    print("✓ Theme set to 'dark'")
     print(f"✓ Available themes: {app.available_themes}")
 
     # Create widget
     widget = SimpleThemedWidget()
     widget.setWindowTitle("ThemedWidget Test - Phase 1")
     widget.show()
-    print(f"✓ SimpleThemedWidget created and shown")
+    print("✓ SimpleThemedWidget created and shown")
 
     # Test that the widget is registered
     from vfwidgets_theme.lifecycle import WidgetRegistry

@@ -4,21 +4,17 @@ Integration tests for widget lifecycle management.
 Tests the complete lifecycle from widget creation to cleanup,
 including theme registration, updates, and memory management.
 """
-import unittest
+import gc
 import threading
 import time
+import unittest
 import weakref
-import gc
-from unittest.mock import Mock, patch
-from typing import List, Dict, Any
+from unittest.mock import patch
 
-import pytest
-
-from vfwidgets_theme.widgets.base import ThemedWidget
-from vfwidgets_theme.widgets.application import ThemedApplication
-from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.lifecycle import WidgetRegistry
-from vfwidgets_theme.testing import ThemedTestCase, ThemeBenchmark, MemoryProfiler
+from vfwidgets_theme.testing import MemoryProfiler, ThemeBenchmark, ThemedTestCase
+from vfwidgets_theme.widgets.application import ThemedApplication
+from vfwidgets_theme.widgets.base import ThemedWidget
 
 
 class TestWidgetLifecycleIntegration(ThemedTestCase):

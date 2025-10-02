@@ -1,5 +1,4 @@
-"""
-Theme Persistence Storage System
+"""Theme Persistence Storage System
 
 This module implements comprehensive theme persistence with:
 - JSON serialization for theme data
@@ -9,32 +8,34 @@ This module implements comprehensive theme persistence with:
 - Compression for large themes
 """
 
-import json
-import gzip
-import shutil
 import datetime
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+import gzip
+import json
+import shutil
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from ..core.theme import Theme
-from ..protocols import ThemeData
 from ..errors import ThemeError
 
 
 class PersistenceError(ThemeError):
     """Base error for persistence operations."""
+
     pass
 
 
 class ThemeFormatError(PersistenceError):
     """Error for invalid theme format."""
+
     pass
 
 
 @dataclass
 class ThemeValidationResult:
     """Result of theme validation."""
+
     is_valid: bool
     errors: List[str]
     warnings: List[str]
@@ -301,8 +302,7 @@ class ThemePersistence:
         self.validator = ThemeValidator()
 
     def save_theme(self, theme: Theme, filename: Optional[str] = None, compress: bool = False) -> Path:
-        """
-        Save theme to disk with validation and backup.
+        """Save theme to disk with validation and backup.
 
         Args:
             theme: Theme to save
@@ -311,6 +311,7 @@ class ThemePersistence:
 
         Returns:
             Path to saved file
+
         """
         if filename is None:
             filename = f"{theme.name.replace(' ', '_').lower()}.json"
@@ -352,8 +353,7 @@ class ThemePersistence:
             raise PersistenceError(f"Failed to save theme: {e}") from e
 
     def load_theme(self, path: Path, validate: bool = True) -> Theme:
-        """
-        Load theme from disk with migration and validation.
+        """Load theme from disk with migration and validation.
 
         Args:
             path: Path to theme file
@@ -361,6 +361,7 @@ class ThemePersistence:
 
         Returns:
             Loaded Theme object
+
         """
         file_path = Path(path)
 
@@ -373,7 +374,7 @@ class ThemePersistence:
                 with gzip.open(file_path, 'rt', encoding='utf-8') as f:
                     theme_data = json.load(f)
             else:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding='utf-8') as f:
                     theme_data = json.load(f)
 
             # Migrate if needed
@@ -412,7 +413,7 @@ class ThemePersistence:
                 with gzip.open(file_path, 'rt', encoding='utf-8') as f:
                     theme_data = json.load(f)
             else:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding='utf-8') as f:
                     theme_data = json.load(f)
 
             # Return metadata only

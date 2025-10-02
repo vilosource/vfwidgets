@@ -7,12 +7,12 @@ This scenario tests rapid theme switching capabilities and ensures
 the system remains stable under heavy theme change loads.
 """
 
-import time
-import threading
 import random
-from typing import List, Dict, Any, Optional
-from pathlib import Path
 import sys
+import threading
+import time
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))

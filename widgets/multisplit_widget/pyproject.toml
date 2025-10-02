@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vfwidgets-multisplit"
-version = "0.1.0"
+version = "1.0.0"
 description = "PySide6 multisplit widget for VFWidgets collection"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -14,8 +14,7 @@ authors = [
 ]
 dependencies = [
     "PySide6>=6.9.0",
-    # Uncomment to use shared utilities:
-    # "vfwidgets-common @ file://../../shared/vfwidgets_common"
+    "vfwidgets-theme-system @ file:///home/kuja/GitHub/vfwidgets/widgets/theme_system",
 ]
 keywords = ["pyside6", "qt", "widget", "gui", "multisplit"]
 classifiers = [

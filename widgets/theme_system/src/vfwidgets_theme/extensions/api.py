@@ -1,13 +1,12 @@
-"""
-Extension API for theme system.
+"""Extension API for theme system.
 
 Provides safe APIs that extensions can use to interact with the theme system
 and access required functionality.
 """
 
-from typing import Any, Dict, List, Optional, Callable
 import weakref
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 from ..core.theme import Theme, ThemeColors
 from ..errors import ExtensionError
@@ -17,8 +16,7 @@ logger = get_logger(__name__)
 
 
 class ExtensionAPI:
-    """
-    Safe API interface for extensions.
+    """Safe API interface for extensions.
 
     Provides controlled access to theme system functionality while
     maintaining security boundaries.
@@ -36,68 +34,67 @@ class ExtensionAPI:
         logger.debug("Extension API initialized")
 
     def register_api(self, name: str, api_object: Any) -> None:
-        """
-        Register an API for extensions to use.
+        """Register an API for extensions to use.
 
         Args:
             name: API name
             api_object: API object to register
+
         """
         self._registered_apis[name] = api_object
         logger.debug(f"Registered API: {name}")
 
     def get_api(self, name: str) -> Optional[Any]:
-        """
-        Get registered API by name.
+        """Get registered API by name.
 
         Args:
             name: API name
 
         Returns:
             API object or None if not found
+
         """
         return self._registered_apis.get(name)
 
     # Theme Management API
     def get_current_theme(self) -> Optional[Theme]:
-        """
-        Get currently active theme.
+        """Get currently active theme.
 
         Returns:
             Current theme or None
+
         """
         if self._theme_manager:
             return self._theme_manager.get_current_theme()
         return None
 
     def get_theme_by_name(self, name: str) -> Optional[Theme]:
-        """
-        Get theme by name.
+        """Get theme by name.
 
         Args:
             name: Theme name
 
         Returns:
             Theme or None if not found
+
         """
         if self._theme_manager:
             return self._theme_manager.get_theme(name)
         return None
 
     def list_themes(self) -> List[Theme]:
-        """
-        Get list of available themes.
+        """Get list of available themes.
 
         Returns:
             List of themes
+
         """
         if self._theme_manager:
             return self._theme_manager.list_themes()
         return []
 
     def create_theme(self, name: str, base_theme: Optional[Theme] = None) -> Theme:
-        """
-        Create a new theme.
+        """Create a new theme.
 
         Args:
             name: Theme name
@@ -108,6 +105,7 @@ class ExtensionAPI:
 
         Raises:
             ExtensionError: If theme creation fails
+
         """
         try:
             if base_theme:
@@ -133,8 +131,7 @@ class ExtensionAPI:
             raise ExtensionError(f"Failed to create theme: {e}")
 
     def modify_theme_colors(self, theme: Theme, color_changes: Dict[str, str]) -> Theme:
-        """
-        Modify theme colors.
+        """Modify theme colors.
 
         Args:
             theme: Theme to modify
@@ -145,6 +142,7 @@ class ExtensionAPI:
 
         Raises:
             ExtensionError: If modification fails
+
         """
         try:
             # Create a copy to avoid modifying original
@@ -170,8 +168,7 @@ class ExtensionAPI:
 
     # Color Utilities
     def darken_color(self, color: str, factor: float = 0.2) -> str:
-        """
-        Darken a color.
+        """Darken a color.
 
         Args:
             color: Hex color string
@@ -179,12 +176,12 @@ class ExtensionAPI:
 
         Returns:
             Darkened color
+
         """
         return self._adjust_color_brightness(color, -factor)
 
     def lighten_color(self, color: str, factor: float = 0.2) -> str:
-        """
-        Lighten a color.
+        """Lighten a color.
 
         Args:
             color: Hex color string
@@ -192,12 +189,12 @@ class ExtensionAPI:
 
         Returns:
             Lightened color
+
         """
         return self._adjust_color_brightness(color, factor)
 
     def mix_colors(self, color1: str, color2: str, ratio: float = 0.5) -> str:
-        """
-        Mix two colors.
+        """Mix two colors.
 
         Args:
             color1: First hex color
@@ -206,6 +203,7 @@ class ExtensionAPI:
 
         Returns:
             Mixed color
+
         """
         try:
             # Parse hex colors
@@ -264,23 +262,23 @@ class ExtensionAPI:
 
     # Event System API
     def emit_event(self, event_name: str, **kwargs) -> None:
-        """
-        Emit an event.
+        """Emit an event.
 
         Args:
             event_name: Name of event
             **kwargs: Event data
+
         """
         if self._event_system:
             self._event_system.emit(event_name, **kwargs)
 
     def subscribe_to_event(self, event_name: str, callback: Callable) -> None:
-        """
-        Subscribe to an event.
+        """Subscribe to an event.
 
         Args:
             event_name: Event name
             callback: Callback function
+
         """
         if self._event_system:
             self._event_system.subscribe(event_name, callback)
@@ -304,8 +302,7 @@ class ExtensionAPI:
 
     # File System API (restricted)
     def read_theme_file(self, file_path: Path) -> str:
-        """
-        Read theme file content (restricted to theme directories).
+        """Read theme file content (restricted to theme directories).
 
         Args:
             file_path: Path to theme file
@@ -315,13 +312,14 @@ class ExtensionAPI:
 
         Raises:
             ExtensionError: If file access is not allowed
+
         """
         # Validate file path
         if not self._is_safe_theme_path(file_path):
             raise ExtensionError(f"Access to file path not allowed: {file_path}")
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
             raise ExtensionError(f"Failed to read file {file_path}: {e}")
@@ -350,8 +348,7 @@ class ExtensionAPI:
 
     # Configuration API
     def get_extension_config(self, extension_name: str, key: str, default: Any = None) -> Any:
-        """
-        Get extension configuration value.
+        """Get extension configuration value.
 
         Args:
             extension_name: Extension name
@@ -360,33 +357,34 @@ class ExtensionAPI:
 
         Returns:
             Configuration value
+
         """
         # TODO: Implement configuration storage
         logger.debug(f"Getting config for {extension_name}.{key}")
         return default
 
     def set_extension_config(self, extension_name: str, key: str, value: Any) -> None:
-        """
-        Set extension configuration value.
+        """Set extension configuration value.
 
         Args:
             extension_name: Extension name
             key: Configuration key
             value: Configuration value
+
         """
         # TODO: Implement configuration storage
         logger.debug(f"Setting config for {extension_name}.{key} = {value}")
 
     # Validation API
     def validate_theme(self, theme: Theme) -> List[str]:
-        """
-        Validate theme and return list of issues.
+        """Validate theme and return list of issues.
 
         Args:
             theme: Theme to validate
 
         Returns:
             List of validation issues (empty if valid)
+
         """
         issues = []
 
@@ -430,8 +428,7 @@ class ExtensionAPI:
 
     # Widget API
     def create_custom_widget(self, widget_class: type, **kwargs) -> Any:
-        """
-        Create custom widget (placeholder for Qt integration).
+        """Create custom widget (placeholder for Qt integration).
 
         Args:
             widget_class: Widget class
@@ -439,6 +436,7 @@ class ExtensionAPI:
 
         Returns:
             Widget instance
+
         """
         # TODO: Implement safe widget creation
         logger.debug(f"Creating custom widget: {widget_class.__name__}")
@@ -446,8 +444,7 @@ class ExtensionAPI:
 
     # Utility API
     def interpolate_value(self, start: float, end: float, factor: float) -> float:
-        """
-        Interpolate between two values.
+        """Interpolate between two values.
 
         Args:
             start: Start value
@@ -456,12 +453,12 @@ class ExtensionAPI:
 
         Returns:
             Interpolated value
+
         """
         return start + (end - start) * max(0.0, min(1.0, factor))
 
     def clamp_value(self, value: float, min_val: float, max_val: float) -> float:
-        """
-        Clamp value to range.
+        """Clamp value to range.
 
         Args:
             value: Value to clamp
@@ -470,6 +467,7 @@ class ExtensionAPI:
 
         Returns:
             Clamped value
+
         """
         return max(min_val, min(max_val, value))
 

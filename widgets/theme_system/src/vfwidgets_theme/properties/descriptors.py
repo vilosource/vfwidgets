@@ -1,5 +1,4 @@
-"""
-Robust Property Descriptors with Type Safety and Validation
+"""Robust Property Descriptors with Type Safety and Validation
 
 This module implements Task 11: type-safe property descriptors with validation,
 caching, and inheritance support. These descriptors integrate seamlessly with
@@ -14,17 +13,24 @@ Key Features:
 - Integration with Qt signals/slots
 """
 
-import threading
-import weakref
 import re
+import threading
 import time
-from typing import (
-    Any, Dict, Type, Optional, Callable, Union, List, Pattern,
-    get_origin, get_args, TYPE_CHECKING
-)
-from functools import wraps
-from enum import Enum
 from dataclasses import dataclass, field
+from functools import wraps
+from re import Pattern
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Type,
+    Union,
+    get_args,
+    get_origin,
+)
 
 if TYPE_CHECKING:
     from ..widgets.base import ThemedWidget
@@ -58,7 +64,6 @@ except ImportError:
             elif callback in self._callbacks:
                 self._callbacks.remove(callback)
 
-from ..protocols import PropertyKey, PropertyValue
 from ..errors import ThemeError
 from ..logging import get_debug_logger
 
@@ -67,6 +72,7 @@ logger = get_debug_logger(__name__)
 
 class ValidationError(ThemeError):
     """Raised when property validation fails."""
+
     pass
 
 
@@ -287,8 +293,7 @@ class ComputedProperty:
 
 
 class PropertyDescriptor:
-    """
-    Type-safe property descriptor with validation and caching.
+    """Type-safe property descriptor with validation and caching.
 
     This is the core component of Task 11, providing:
     - Runtime type checking
@@ -312,8 +317,7 @@ class PropertyDescriptor:
                  cache_enabled: bool = True,
                  inherit_from: Optional[str] = None,
                  debug: bool = False):
-        """
-        Initialize property descriptor.
+        """Initialize property descriptor.
 
         Args:
             name: Property name/path
@@ -324,6 +328,7 @@ class PropertyDescriptor:
             cache_enabled: Whether to cache values
             inherit_from: Parent property to inherit from
             debug: Enable debug logging for this property
+
         """
         self.name = name
         self.type_hint = type_hint

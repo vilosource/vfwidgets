@@ -1,23 +1,22 @@
-"""
-Extension loader for importing and validating extensions.
+"""Extension loader for importing and validating extensions.
 
 Handles loading extension modules, parsing metadata, and validating
 extension structure and compatibility.
 """
 
+import ast
 import importlib
 import importlib.util
-import sys
 import inspect
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Callable
-import ast
 import json
 import re
+import sys
+from pathlib import Path
+from typing import Any, Callable, Dict, List
 
-from .system import Extension
 from ..errors import ExtensionError
 from ..logging import get_logger
+from .system import Extension
 
 logger = get_logger(__name__)
 
@@ -30,8 +29,7 @@ class ExtensionMetadata:
 
     @classmethod
     def parse_from_module(cls, module) -> Dict[str, Any]:
-        """
-        Parse extension metadata from module.
+        """Parse extension metadata from module.
 
         Args:
             module: Loaded extension module
@@ -41,6 +39,7 @@ class ExtensionMetadata:
 
         Raises:
             ExtensionError: If metadata is invalid
+
         """
         metadata = {}
 
@@ -81,17 +80,17 @@ class ExtensionMetadata:
 
     @classmethod
     def parse_from_file(cls, metadata_file: Path) -> Dict[str, Any]:
-        """
-        Parse extension metadata from JSON file.
+        """Parse extension metadata from JSON file.
 
         Args:
             metadata_file: Path to metadata file
 
         Returns:
             Extension metadata dictionary
+
         """
         try:
-            with open(metadata_file, 'r', encoding='utf-8') as f:
+            with open(metadata_file, encoding='utf-8') as f:
                 metadata = json.load(f)
 
             # Validate required fields
@@ -126,14 +125,14 @@ class ExtensionHookDiscovery:
 
     @classmethod
     def discover_hooks(cls, module) -> Dict[str, Callable]:
-        """
-        Discover hook functions in extension module.
+        """Discover hook functions in extension module.
 
         Args:
             module: Extension module
 
         Returns:
             Dictionary of hook names to functions
+
         """
         hooks = {}
 
@@ -151,8 +150,7 @@ class ExtensionHookDiscovery:
 
     @classmethod
     def validate_hook_signature(cls, hook_name: str, hook_func: Callable) -> None:
-        """
-        Validate hook function signature.
+        """Validate hook function signature.
 
         Args:
             hook_name: Name of hook
@@ -160,6 +158,7 @@ class ExtensionHookDiscovery:
 
         Raises:
             ExtensionError: If signature is invalid
+
         """
         try:
             signature = inspect.signature(hook_func)
@@ -208,8 +207,7 @@ class ExtensionHookDiscovery:
 
 
 class ExtensionLoader:
-    """
-    Loads and validates extensions from files.
+    """Loads and validates extensions from files.
 
     Handles Python module loading, metadata parsing, and hook discovery.
     """
@@ -220,8 +218,7 @@ class ExtensionLoader:
         self.hook_discovery = ExtensionHookDiscovery()
 
     def load_from_file(self, extension_path: Path) -> Extension:
-        """
-        Load extension from file.
+        """Load extension from file.
 
         Args:
             extension_path: Path to extension file
@@ -231,6 +228,7 @@ class ExtensionLoader:
 
         Raises:
             ExtensionError: If loading fails
+
         """
         logger.info(f"Loading extension from: {extension_path}")
 
@@ -335,14 +333,14 @@ class ExtensionLoader:
         return hooks
 
     def validate_extension_file(self, extension_path: Path) -> List[str]:
-        """
-        Validate extension file and return list of issues.
+        """Validate extension file and return list of issues.
 
         Args:
             extension_path: Path to extension file
 
         Returns:
             List of validation issues (empty if valid)
+
         """
         issues = []
 
@@ -353,7 +351,7 @@ class ExtensionLoader:
         try:
             # Try to parse as Python
             if extension_path.suffix == '.py':
-                with open(extension_path, 'r', encoding='utf-8') as f:
+                with open(extension_path, encoding='utf-8') as f:
                     source = f.read()
 
                 try:
@@ -381,12 +379,12 @@ class ExtensionLoader:
         return issues
 
     def create_extension_template(self, output_path: Path, extension_name: str) -> None:
-        """
-        Create extension template file.
+        """Create extension template file.
 
         Args:
             output_path: Where to create template
             extension_name: Name of extension
+
         """
         template = f'''"""
 {extension_name} Extension

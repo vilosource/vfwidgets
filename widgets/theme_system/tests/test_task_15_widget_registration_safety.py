@@ -22,19 +22,26 @@ Performance Requirements Verified:
 """
 
 import gc
-import pytest
 import threading
 import time
 import weakref
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import patch
+
+import pytest
 
 from src.vfwidgets_theme.lifecycle import (
-    WidgetRegistry, LifecycleManager, WidgetLifecycleState, WidgetLifecycleEvent,
-    RegistrationError, BulkOperationError, auto_register, lifecycle_tracked,
-    ThemeUpdateContext, WidgetCreationContext, PerformanceContext
+    BulkOperationError,
+    LifecycleManager,
+    PerformanceContext,
+    ThemeUpdateContext,
+    WidgetCreationContext,
+    WidgetLifecycleEvent,
+    WidgetLifecycleState,
+    WidgetRegistry,
+    auto_register,
+    lifecycle_tracked,
 )
-from src.vfwidgets_theme.protocols import ThemeableWidget
 
 
 class MockThemedWidget:

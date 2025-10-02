@@ -1,20 +1,17 @@
-"""
-Extension sandbox for secure execution.
+"""Extension sandbox for secure execution.
 
 Provides a secure environment for running extension code with restricted
 access to system resources and APIs.
 """
 
-import sys
-import traceback
+import ast
+import builtins
+import resource
 import threading
 import time
-import resource
-from contextlib import contextmanager
-from typing import Any, Callable, Dict, Optional, Set
-import ast
 import types
-import builtins
+from contextlib import contextmanager
+from typing import Any, Callable, Dict
 
 from ..errors import ExtensionError, SecurityError
 from ..logging import get_logger
@@ -113,14 +110,14 @@ class SandboxSecurityChecker:
     }
 
     def check_ast(self, code: str) -> None:
-        """
-        Check AST for security violations.
+        """Check AST for security violations.
 
         Args:
             code: Source code to check
 
         Raises:
             SecurityError: If code violates security policy
+
         """
         try:
             tree = ast.parse(code)
@@ -165,12 +162,12 @@ class ExecutionLimiter:
     """Limits execution time and resource usage."""
 
     def __init__(self, time_limit: float = 5.0, memory_limit: int = 50 * 1024 * 1024):
-        """
-        Initialize execution limiter.
+        """Initialize execution limiter.
 
         Args:
             time_limit: Maximum execution time in seconds
             memory_limit: Maximum memory usage in bytes
+
         """
         self.time_limit = time_limit
         self.memory_limit = memory_limit
@@ -207,8 +204,7 @@ class ExecutionLimiter:
 
 
 class ExtensionSandbox:
-    """
-    Secure sandbox environment for extension execution.
+    """Secure sandbox environment for extension execution.
 
     Provides isolated execution with restricted access to system resources.
     """
@@ -228,11 +224,11 @@ class ExtensionSandbox:
         logger.info("Extension sandbox initialized")
 
     def initialize_extension(self, extension) -> None:
-        """
-        Initialize sandbox environment for an extension.
+        """Initialize sandbox environment for an extension.
 
         Args:
             extension: Extension to initialize
+
         """
         logger.debug(f"Initializing sandbox for extension: {extension.name}")
 
@@ -250,11 +246,11 @@ class ExtensionSandbox:
         self._extension_namespaces[extension.id] = namespace
 
     def cleanup_extension(self, extension) -> None:
-        """
-        Cleanup sandbox for an extension.
+        """Cleanup sandbox for an extension.
 
         Args:
             extension: Extension to cleanup
+
         """
         logger.debug(f"Cleaning up sandbox for extension: {extension.name}")
 
@@ -262,8 +258,7 @@ class ExtensionSandbox:
             del self._extension_namespaces[extension.id]
 
     def execute_safely(self, extension, func: Callable, *args, **kwargs) -> Any:
-        """
-        Execute function in sandbox environment.
+        """Execute function in sandbox environment.
 
         Args:
             extension: Extension context
@@ -277,6 +272,7 @@ class ExtensionSandbox:
         Raises:
             SecurityError: If execution violates security policy
             ExtensionError: If execution fails
+
         """
         # Set current extension in thread-local storage
         self._local.current_extension = extension
@@ -319,26 +315,26 @@ class ExtensionSandbox:
                 delattr(self._local, 'current_extension')
 
     def validate_code(self, code: str) -> None:
-        """
-        Validate extension code for security.
+        """Validate extension code for security.
 
         Args:
             code: Source code to validate
 
         Raises:
             SecurityError: If code violates security policy
+
         """
         self.security_checker.check_ast(code)
 
     def create_safe_namespace(self, extension_name: str) -> Dict[str, Any]:
-        """
-        Create safe namespace for extension.
+        """Create safe namespace for extension.
 
         Args:
             extension_name: Name of extension
 
         Returns:
             Safe namespace dictionary
+
         """
         return {
             '__builtins__': self.restricted_builtins,
@@ -351,8 +347,7 @@ class ExtensionSandbox:
         return getattr(self._local, 'current_extension', None)
 
     def is_safe_attribute(self, obj: Any, attr_name: str) -> bool:
-        """
-        Check if attribute access is safe.
+        """Check if attribute access is safe.
 
         Args:
             obj: Object to check
@@ -360,6 +355,7 @@ class ExtensionSandbox:
 
         Returns:
             True if access is safe
+
         """
         if attr_name in self.security_checker.FORBIDDEN_ATTRIBUTES:
             return False
@@ -373,14 +369,14 @@ class ExtensionSandbox:
         return True
 
     def wrap_object(self, obj: Any):
-        """
-        Wrap object to provide safe access.
+        """Wrap object to provide safe access.
 
         Args:
             obj: Object to wrap
 
         Returns:
             Wrapped object with restricted access
+
         """
         if isinstance(obj, (str, int, float, bool, list, dict, tuple, set)):
             # Basic types are safe

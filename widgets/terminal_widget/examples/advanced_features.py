@@ -58,10 +58,6 @@ class AdvancedTerminalWindow(QMainWindow):
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
         left_layout.addWidget(self.tab_widget)
 
-        # Add initial terminals
-        self.add_terminal("Bash", command="bash")
-        self.add_terminal("Python", command="python", args=["-i"])
-
         splitter.addWidget(left_widget)
 
         # Right side: Output and controls
@@ -160,6 +156,10 @@ class AdvancedTerminalWindow(QMainWindow):
 
         add_terminal_layout.addStretch()
         layout.addLayout(add_terminal_layout)
+
+        # Add initial terminals (after UI is fully initialized)
+        self.add_terminal("Bash", command="bash")
+        self.add_terminal("Python", command="python", args=["-i"])
 
     def add_terminal(self, name: str, command: str, args: list = None):
         """Add a new terminal tab."""

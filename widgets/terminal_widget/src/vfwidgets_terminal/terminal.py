@@ -14,6 +14,13 @@ from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QMenu, QVBoxLayout, QWidget
 
+try:
+    from vfwidgets_theme.widgets.base import ThemedWidget
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+    ThemedWidget = object
+
 from .constants import DEFAULT_COLS, DEFAULT_ROWS, DEFAULT_SCROLLBACK
 from .embedded_server import EmbeddedTerminalServer
 
@@ -227,12 +234,48 @@ class TerminalBridge(QObject):
         return json.dumps({"status": "active", "type": "xterm.js"})
 
 
-class TerminalWidget(QWidget):
+if THEME_AVAILABLE:
+    _BaseTerminalClass = type('_BaseTerminalClass', (ThemedWidget, QWidget), {})
+else:
+    _BaseTerminalClass = QWidget
+
+
+class TerminalWidget(_BaseTerminalClass):
     """PySide6 terminal widget powered by xterm.js.
 
     A fully-featured terminal emulator widget that can be embedded in Qt applications.
     Supports both embedded and external server modes for flexibility.
+
+    When vfwidgets-theme is installed, automatically adapts to application theme.
     """
+
+    # Theme configuration - maps theme tokens to xterm.js ITheme properties
+    # Note: Using editor.* tokens because terminal.* tokens are not populated in built-in themes
+    # Terminals are semantically similar to editors (monospace, text-based)
+    theme_config = {
+        'background': 'editor.background',
+        'foreground': 'editor.foreground',
+        'cursor': 'editor.foreground',  # Cursor uses editor foreground
+        'cursorAccent': 'editor.background',  # Cursor accent uses editor background
+        'selectionBackground': 'editor.selectionBackground',
+        # ANSI colors fallback to standard terminal colors
+        'black': 'terminal.ansiBlack',
+        'red': 'terminal.ansiRed',
+        'green': 'terminal.ansiGreen',
+        'yellow': 'terminal.ansiYellow',
+        'blue': 'terminal.ansiBlue',
+        'magenta': 'terminal.ansiMagenta',
+        'cyan': 'terminal.ansiCyan',
+        'white': 'terminal.ansiWhite',
+        'brightBlack': 'terminal.ansiBrightBlack',
+        'brightRed': 'terminal.ansiBrightRed',
+        'brightGreen': 'terminal.ansiBrightGreen',
+        'brightYellow': 'terminal.ansiBrightYellow',
+        'brightBlue': 'terminal.ansiBrightBlue',
+        'brightMagenta': 'terminal.ansiBrightMagenta',
+        'brightCyan': 'terminal.ansiBrightCyan',
+        'brightWhite': 'terminal.ansiBrightWhite',
+    }
 
     # ============================================================================
     # NEW Qt-Compliant Signals (Phase 1: Proper API Design)
@@ -376,7 +419,7 @@ class TerminalWidget(QWidget):
         self.rows = rows
         self.cols = cols
         self.scrollback = scrollback
-        self.theme = theme
+        self._user_theme = theme  # Renamed from self.theme to avoid conflict with ThemedWidget
         self.capture_output = capture_output
         self.output_filter = output_filter
         self.output_parser = output_parser
@@ -950,8 +993,8 @@ class TerminalWidget(QWidget):
     def _configure_terminal(self) -> None:
         """Configure terminal after loading."""
         # Apply theme
-        if self.theme:
-            self._apply_theme(self.theme)
+        if self._user_theme:
+            self._apply_theme(self._user_theme)
 
         # Set read-only mode if requested
         if self.read_only:
@@ -1143,13 +1186,127 @@ class TerminalWidget(QWidget):
         Args:
             theme_dict: Dictionary with color definitions (background, foreground, etc.)
         """
-        self.theme = theme_dict
+        self._user_theme = theme_dict
         # Inject JavaScript to update xterm.js theme
         if self.web_view and self.is_connected:
             js_theme = json.dumps(theme_dict)
-            js_code = f"if (window.terminal) {{ window.terminal.options.theme = {js_theme}; }}"
+            # Use setOption('theme', ...) - the proper xterm.js v4 API method
+            # This creates a new theme object and triggers proper update/repaint
+            js_code = f"if (window.terminal) {{ window.terminal.setOption('theme', {js_theme}); }}"
             self.inject_javascript(js_code)
         logger.debug(f"Theme updated: {len(theme_dict)} colors")
+
+    def _get_current_theme_type(self) -> str:
+        """Get current theme type (dark/light) for theme-aware fallbacks.
+
+        Uses self._current_theme_name which is updated BEFORE on_theme_changed()
+        is called, ensuring we always get the correct theme type.
+
+        Returns:
+            Theme type string: 'dark', 'light', or 'dark' (default)
+        """
+        try:
+            # Use self._current_theme_name (already updated by ThemedWidget)
+            # and lookup the theme from the theme manager by name
+            if hasattr(self, '_current_theme_name') and self._current_theme_name:
+                from vfwidgets_theme import ThemedApplication
+                app = ThemedApplication.instance()
+                if app and hasattr(app, '_theme_manager') and app._theme_manager:
+                    # Get theme by name from theme manager (not from _current_theme which is stale)
+                    theme = app._theme_manager.get_theme(self._current_theme_name)
+                    if theme and hasattr(theme, 'type'):
+                        return theme.type
+        except Exception as e:
+            logger.error(f"Error getting theme type: {e}")
+
+        # Default to dark if we can't determine
+        return 'dark'
+
+    def on_theme_changed(self) -> None:
+        """Called automatically when the application theme changes.
+
+        This method is only available when vfwidgets-theme is installed.
+        It converts theme system tokens to xterm.js ITheme format.
+        """
+        if not THEME_AVAILABLE:
+            return
+
+        # Get current theme type for theme-aware fallbacks
+        theme_type = self._get_current_theme_type()
+
+        # Theme-aware fallbacks for main colors
+        if theme_type == 'light':
+            main_fallbacks = {
+                'background': '#ffffff',      # White background
+                'foreground': '#000000',      # Black text
+                'cursor': '#000000',          # Black cursor
+                'cursorAccent': '#ffffff',    # White cursor accent
+                'selectionBackground': '#add6ff',  # Light blue selection
+            }
+        else:  # dark or unknown
+            main_fallbacks = {
+                'background': '#1e1e1e',      # Dark gray background
+                'foreground': '#d4d4d4',      # Light gray text
+                'cursor': '#d4d4d4',          # Light gray cursor
+                'cursorAccent': '#1e1e1e',    # Dark gray cursor accent
+                'selectionBackground': '#264f78',  # Dark blue selection
+            }
+
+        # Standard ANSI color fallbacks (same for light and dark)
+        ansi_fallbacks = {
+            'black': '#2e3436',
+            'red': '#cc0000',
+            'green': '#4e9a06',
+            'yellow': '#c4a000',
+            'blue': '#3465a4',
+            'magenta': '#75507b',
+            'cyan': '#06989a',
+            'white': '#d3d7cf',
+            'brightBlack': '#555753',
+            'brightRed': '#ef2929',
+            'brightGreen': '#8ae234',
+            'brightYellow': '#fce94f',
+            'brightBlue': '#729fcf',
+            'brightMagenta': '#ad7fa8',
+            'brightCyan': '#34e2e2',
+            'brightWhite': '#eeeeec',
+        }
+
+        # Build xterm.js theme dict using theme-aware fallbacks
+        # Note: Built-in themes don't populate editor.* tokens, so we use fallbacks
+        # directly instead of checking self.theme properties (which may have stale cached values)
+        xterm_theme = {
+            'background': main_fallbacks['background'],
+            'foreground': main_fallbacks['foreground'],
+            'cursor': main_fallbacks['cursor'],
+            'cursorAccent': main_fallbacks['cursorAccent'],
+            'selectionBackground': main_fallbacks['selectionBackground'],
+            # ANSI colors with standard fallbacks
+            'black': self.theme.black or ansi_fallbacks['black'],
+            'red': self.theme.red or ansi_fallbacks['red'],
+            'green': self.theme.green or ansi_fallbacks['green'],
+            'yellow': self.theme.yellow or ansi_fallbacks['yellow'],
+            'blue': self.theme.blue or ansi_fallbacks['blue'],
+            'magenta': self.theme.magenta or ansi_fallbacks['magenta'],
+            'cyan': self.theme.cyan or ansi_fallbacks['cyan'],
+            'white': self.theme.white or ansi_fallbacks['white'],
+            'brightBlack': self.theme.brightBlack or ansi_fallbacks['brightBlack'],
+            'brightRed': self.theme.brightRed or ansi_fallbacks['brightRed'],
+            'brightGreen': self.theme.brightGreen or ansi_fallbacks['brightGreen'],
+            'brightYellow': self.theme.brightYellow or ansi_fallbacks['brightYellow'],
+            'brightBlue': self.theme.brightBlue or ansi_fallbacks['brightBlue'],
+            'brightMagenta': self.theme.brightMagenta or ansi_fallbacks['brightMagenta'],
+            'brightCyan': self.theme.brightCyan or ansi_fallbacks['brightCyan'],
+            'brightWhite': self.theme.brightWhite or ansi_fallbacks['brightWhite'],
+        }
+
+        # Debug logging
+        print(f"🎨 Terminal theme switching: {theme_type}")
+        print(f"   Background: {xterm_theme['background']}")
+        print(f"   Foreground: {xterm_theme['foreground']}")
+
+        # Apply theme to xterm.js
+        self.set_theme(xterm_theme)
 
     def add_search_highlight(self, text: str, case_sensitive: bool = False) -> None:
         """Highlight text in the terminal.

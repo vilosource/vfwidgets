@@ -10,28 +10,27 @@ Tests verify that protocols define the correct interfaces for:
 These tests validate interface contracts, not implementations.
 """
 
-import pytest
-from typing import Protocol, runtime_checkable
-from unittest.mock import Mock, MagicMock
+from typing import Protocol
+from unittest.mock import Mock
 
 from src.vfwidgets_theme.protocols import (
-    ThemeProvider,
-    ThemeableWidget,
     ColorProvider,
-    StyleGenerator,
-    ThemeError,
-    ThemeValidationError,
     ColorResolveError,
-    StyleGenerationError,
-    ThemePropertyError,
-    ThemeData,
     ColorValue,
-    StyleCallback,
     PropertyKey,
     PropertyValue,
     QSSStyle,
-    validate_performance_requirements,
+    StyleCallback,
+    StyleGenerationError,
+    StyleGenerator,
+    ThemeableWidget,
+    ThemeData,
+    ThemeError,
+    ThemePropertyError,
+    ThemeProvider,
+    ThemeValidationError,
     get_protocol_version,
+    validate_performance_requirements,
 )
 
 
@@ -42,7 +41,6 @@ class TestThemeProviderProtocol:
         """Test that ThemeProvider has required methods."""
         # Test that ThemeProvider is a runtime-checkable protocol
         # Protocols have __protocol__ in some Python versions or are identifiable by other means
-        from typing import get_type_hints, Protocol
         assert isinstance(ThemeProvider, type) and issubclass(ThemeProvider, Protocol)
 
         # Test that protocol has required abstract methods
@@ -114,7 +112,6 @@ class TestThemeableWidgetProtocol:
     def test_themeable_widget_protocol_structure(self):
         """Test that ThemeableWidget has required interface."""
         # Test that ThemeableWidget is a runtime-checkable protocol
-        from typing import Protocol
         assert isinstance(ThemeableWidget, type) and issubclass(ThemeableWidget, Protocol)
 
         # Test required abstract methods and properties
@@ -187,7 +184,6 @@ class TestColorProviderProtocol:
     def test_color_provider_protocol_structure(self):
         """Test ColorProvider has required methods."""
         # Test that ColorProvider is a runtime-checkable protocol
-        from typing import Protocol
         assert isinstance(ColorProvider, type) and issubclass(ColorProvider, Protocol)
 
         # Test required abstract methods
@@ -255,7 +251,6 @@ class TestStyleGeneratorProtocol:
     def test_style_generator_protocol_structure(self):
         """Test StyleGenerator has required methods."""
         # Test that StyleGenerator is a runtime-checkable protocol
-        from typing import Protocol
         assert isinstance(StyleGenerator, type) and issubclass(StyleGenerator, Protocol)
 
         # Test required abstract methods

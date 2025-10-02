@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Validation Framework Core
+"""VFWidgets Theme System - Validation Framework Core
 Task 24: Core validation framework implementation
 
 This module implements the central validation framework with configurable
 validation modes and comprehensive error handling.
 """
 
-import time
+import json
 import logging
 import threading
-import weakref
-from enum import Enum, auto
-from typing import Dict, List, Any, Optional, Callable, Union, Type, Protocol
-from dataclasses import dataclass, field
+import time
 from contextlib import contextmanager
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
-import json
-
+from typing import Any, Callable, Dict, List, Optional, Type
 
 logger = logging.getLogger(__name__)
 
 
 class ValidationMode(Enum):
     """Validation operating modes."""
+
     DEBUG = auto()      # Full validation, detailed logging
     PRODUCTION = auto() # Essential validation only
     STRICT = auto()     # Maximum validation, fail fast
@@ -32,6 +30,7 @@ class ValidationMode(Enum):
 
 class ValidationType(Enum):
     """Types of validation."""
+
     SCHEMA = auto()      # Data structure validation
     CONTRACT = auto()    # Protocol/interface validation
     RUNTIME = auto()     # Runtime state validation
@@ -57,6 +56,7 @@ class ValidationError(Exception):
 @dataclass
 class ValidationResult:
     """Result of a validation operation."""
+
     passed: bool
     validation_type: ValidationType
     message: str = ""
@@ -146,8 +146,7 @@ class ValidationContext:
 
 
 class ValidationFramework:
-    """
-    Runtime validation framework with configurable strictness.
+    """Runtime validation framework with configurable strictness.
 
     Provides comprehensive validation capabilities for the theme system
     with different operating modes for development vs production use.

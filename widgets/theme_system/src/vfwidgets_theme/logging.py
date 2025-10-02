@@ -1,5 +1,4 @@
-"""
-Logging infrastructure for VFWidgets Theme System.
+"""Logging infrastructure for VFWidgets Theme System.
 
 Provides structured logging with performance tracking, debug modes,
 and theme-specific formatting. All logging is designed to be
@@ -25,12 +24,12 @@ Architecture:
 """
 
 import logging
-import time
-import threading
 import sys
-from typing import Any, Dict, Optional, Callable, Union
-from datetime import datetime, timezone
+import threading
+import time
 from contextlib import contextmanager
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, Optional
 
 
 class ThemeLogger:
@@ -52,6 +51,7 @@ class ThemeLogger:
             "widget_count": 5,
             "duration_ms": 45.2
         })
+
     """
 
     def __init__(self, component_name: str, debug: bool = False):
@@ -90,6 +90,7 @@ class ThemeLogger:
         Args:
             message: Debug message.
             extra: Additional structured data.
+
         """
         if self.debug_enabled:
             self._log(logging.DEBUG, message, extra)
@@ -100,6 +101,7 @@ class ThemeLogger:
         Args:
             message: Info message.
             extra: Additional structured data.
+
         """
         self._log(logging.INFO, message, extra)
 
@@ -109,6 +111,7 @@ class ThemeLogger:
         Args:
             message: Warning message.
             extra: Additional structured data.
+
         """
         self._log(logging.WARNING, message, extra)
 
@@ -118,6 +121,7 @@ class ThemeLogger:
         Args:
             message: Error message.
             extra: Additional structured data.
+
         """
         self._log(logging.ERROR, message, extra)
 
@@ -128,6 +132,7 @@ class ThemeLogger:
             level: Logging level.
             message: Log message.
             extra: Additional structured data.
+
         """
         if self.logger.isEnabledFor(level):
             # Add theme context to extra data
@@ -155,6 +160,7 @@ class ThemeLogger:
         Example:
             with logger.performance_context("theme_switch"):
                 apply_theme_to_widgets()
+
         """
         start_time = time.perf_counter()
         try:
@@ -186,6 +192,7 @@ class ThemeLogger:
             @logger.measure_time("widget_creation")
             def create_themed_widget():
                 pass
+
         """
         def decorator(func):
             def wrapper(*args, **kwargs):
@@ -215,6 +222,7 @@ class ThemeLogFormatter(logging.Formatter):
 
         Returns:
             Formatted log string.
+
         """
         # Get base formatted message
         formatted = super().format(record)
@@ -262,6 +270,7 @@ def create_theme_logger(component_name: str, debug: bool = False) -> ThemeLogger
         ThemeLogger instance for the component.
 
     Performance: < 50μs for logger creation/retrieval.
+
     """
     with _registry_lock:
         logger_key = f"{component_name}:{debug}"
@@ -277,6 +286,7 @@ def get_performance_logger() -> ThemeLogger:
 
     Returns:
         ThemeLogger instance configured for performance monitoring.
+
     """
     return create_theme_logger("performance", debug=False)
 
@@ -289,6 +299,7 @@ def get_debug_logger(component_name: str) -> ThemeLogger:
 
     Returns:
         ThemeLogger instance with debug logging enabled.
+
     """
     return create_theme_logger(component_name, debug=True)
 
@@ -301,6 +312,7 @@ def log_theme_error(logger: ThemeLogger, error: Exception, context: Optional[Dic
         logger: Logger instance to use.
         error: Exception that occurred.
         context: Additional context about the error.
+
     """
     error_data = {
         "error_type": type(error).__name__,
@@ -328,6 +340,7 @@ def log_performance_warning(message: str, duration_ms: float, operation: Optiona
         message: Warning message.
         duration_ms: Operation duration in milliseconds.
         operation: Optional operation name.
+
     """
     perf_logger = get_performance_logger()
 
@@ -349,6 +362,7 @@ def log_theme_switch(theme_name: str, widget_count: int, duration_ms: float) -> 
         theme_name: Name of the theme being switched to.
         widget_count: Number of widgets affected.
         duration_ms: Switch duration in milliseconds.
+
     """
     logger = create_theme_logger("theme_switch")
 
@@ -367,6 +381,7 @@ def log_widget_themed(widget_type: str, theme_properties: int, duration_ms: floa
         widget_type: Type of widget themed.
         theme_properties: Number of theme properties applied.
         duration_ms: Theming duration in milliseconds.
+
     """
     logger = create_theme_logger("widget_theming")
 
@@ -390,6 +405,7 @@ class PerformanceTracker:
         with tracker.measure("theme_load"):
             load_theme_file()
         print(tracker.get_stats())
+
     """
 
     def __init__(self):
@@ -402,6 +418,7 @@ class PerformanceTracker:
 
         Args:
             operation: Name of the operation.
+
         """
         start_time = time.perf_counter()
         try:
@@ -420,6 +437,7 @@ class PerformanceTracker:
 
         Returns:
             Dictionary with performance stats for each operation.
+
         """
         with self._lock:
             stats = {}
@@ -450,6 +468,7 @@ def get_global_performance_tracker() -> PerformanceTracker:
 
     Returns:
         Global PerformanceTracker instance (thread-safe singleton).
+
     """
     global _global_performance_tracker
 
@@ -466,6 +485,7 @@ def reset_logging_system() -> None:
 
     Note:
         This clears all loggers and trackers. Use only for testing.
+
     """
     global _logger_registry, _global_performance_tracker
 
@@ -483,6 +503,7 @@ def configure_theme_logging(level: int = logging.INFO, format_string: Optional[s
     Args:
         level: Logging level for all theme loggers.
         format_string: Custom format string (optional).
+
     """
     root_logger = logging.getLogger("vftheme")
     root_logger.setLevel(level)

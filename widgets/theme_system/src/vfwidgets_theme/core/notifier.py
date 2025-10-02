@@ -1,5 +1,4 @@
-"""
-ThemeNotifier for handling change notifications.
+"""ThemeNotifier for handling change notifications.
 
 This module provides the ThemeNotifier class that handles theme change
 notifications across widgets and the application. It follows the Single
@@ -31,18 +30,17 @@ Performance Requirements:
 
 import threading
 import time
-import weakref
 import uuid
-from collections import deque, defaultdict
+import weakref
+from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple, Deque
-from queue import Queue, Empty
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
 # Import Qt components with fallback for headless testing
 try:
-    from PySide6.QtCore import QObject, Signal, QThread, QTimer, QMetaObject, Qt
-    from PySide6.QtWidgets import QWidget, QApplication
+    from PySide6.QtCore import QMetaObject, QObject, Qt, QThread, QTimer, Signal
+    from PySide6.QtWidgets import QApplication, QWidget
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -69,9 +67,8 @@ except ImportError:
                     pass
 
 # Import foundation modules
-from ..protocols import ThemeChangeCallback
-from ..errors import ThemeNotificationError
 from ..logging import get_debug_logger
+from ..protocols import ThemeChangeCallback
 
 logger = get_debug_logger(__name__)
 
@@ -79,6 +76,7 @@ logger = get_debug_logger(__name__)
 @dataclass
 class NotificationStats:
     """Statistics for notification operations."""
+
     notifications_sent: int = 0
     widgets_registered: int = 0
     callbacks_registered: int = 0
@@ -91,6 +89,7 @@ class NotificationStats:
 @dataclass
 class NotificationItem:
     """Individual notification item."""
+
     theme_name: str
     widget_id: str
     timestamp: float = field(default_factory=time.time)
@@ -98,8 +97,7 @@ class NotificationItem:
 
 
 class WidgetNotificationManager:
-    """
-    Manages widget-specific notifications.
+    """Manages widget-specific notifications.
 
     Handles registration and notification of individual widgets with:
     - Weak reference storage to prevent memory leaks
@@ -116,20 +114,20 @@ class WidgetNotificationManager:
         logger.debug("WidgetNotificationManager initialized")
 
     def register_widget(self, widget: QObject) -> bool:
-        """
-        Register widget for notifications.
+        """Register widget for notifications.
 
         Args:
             widget: Widget to register
 
         Returns:
             True if successfully registered
+
         """
         try:
             with self._lock:
                 widget_id = f"widget_{id(widget)}_{int(time.time() * 1000000)}"
 
-                def cleanup_callback():
+                def cleanup_callback(ref):
                     """Called when widget is garbage collected."""
                     logger.debug(f"Widget {widget_id} garbage collected, cleaning up")
                     self._remove_widget(widget_id)
@@ -152,14 +150,14 @@ class WidgetNotificationManager:
             return False
 
     def unregister_widget(self, widget: QObject) -> bool:
-        """
-        Unregister widget from notifications.
+        """Unregister widget from notifications.
 
         Args:
             widget: Widget to unregister
 
         Returns:
             True if successfully unregistered
+
         """
         try:
             with self._lock:
@@ -183,14 +181,14 @@ class WidgetNotificationManager:
             return False
 
     def is_registered(self, widget: QObject) -> bool:
-        """
-        Check if widget is registered.
+        """Check if widget is registered.
 
         Args:
             widget: Widget to check
 
         Returns:
             True if widget is registered
+
         """
         with self._lock:
             for widget_ref in self._widgets.values():
@@ -199,8 +197,7 @@ class WidgetNotificationManager:
             return False
 
     def notify_widget(self, widget: QObject, theme_name: str) -> bool:
-        """
-        Notify specific widget of theme change.
+        """Notify specific widget of theme change.
 
         Args:
             widget: Widget to notify
@@ -208,6 +205,7 @@ class WidgetNotificationManager:
 
         Returns:
             True if notification was sent
+
         """
         try:
             with self._lock:
@@ -228,14 +226,14 @@ class WidgetNotificationManager:
             return False
 
     def notify_all_widgets(self, theme_name: str) -> Dict[str, bool]:
-        """
-        Notify all registered widgets of theme change.
+        """Notify all registered widgets of theme change.
 
         Args:
             theme_name: Name of new theme
 
         Returns:
             Dictionary mapping widget ID to notification success
+
         """
         results = {}
 
@@ -294,8 +292,7 @@ class WidgetNotificationManager:
 
 
 class CallbackRegistry:
-    """
-    Manages notification callbacks.
+    """Manages notification callbacks.
 
     Provides registration and execution of theme change callbacks with:
     - Thread-safe callback registration
@@ -318,14 +315,14 @@ class CallbackRegistry:
         logger.debug("CallbackRegistry initialized")
 
     def register_callback(self, callback: ThemeChangeCallback) -> str:
-        """
-        Register theme change callback.
+        """Register theme change callback.
 
         Args:
             callback: Callback function
 
         Returns:
             Unique callback ID
+
         """
         callback_id = str(uuid.uuid4())
 
@@ -337,14 +334,14 @@ class CallbackRegistry:
         return callback_id
 
     def unregister_callback(self, callback_id: str) -> bool:
-        """
-        Unregister callback.
+        """Unregister callback.
 
         Args:
             callback_id: ID of callback to remove
 
         Returns:
             True if callback was removed
+
         """
         with self._lock:
             if callback_id in self._callbacks:
@@ -358,25 +355,25 @@ class CallbackRegistry:
         return False
 
     def has_callback(self, callback_id: str) -> bool:
-        """
-        Check if callback is registered.
+        """Check if callback is registered.
 
         Args:
             callback_id: Callback ID to check
 
         Returns:
             True if callback exists
+
         """
         with self._lock:
             return callback_id in self._callbacks
 
     def call_all_callbacks(self, theme_name: str, widget_id: str) -> None:
-        """
-        Call all registered callbacks.
+        """Call all registered callbacks.
 
         Args:
             theme_name: Theme name
             widget_id: Widget ID
+
         """
         with self._lock:
             callbacks_to_call = list(self._callbacks.items())
@@ -402,8 +399,7 @@ class CallbackRegistry:
             self._stats["total_calls"] += len(callbacks_to_call)
 
     def set_callback_filter(self, callback_id: str, filter_func: Callable[[str, str], bool]) -> bool:
-        """
-        Set filter for specific callback.
+        """Set filter for specific callback.
 
         Args:
             callback_id: Callback ID
@@ -411,6 +407,7 @@ class CallbackRegistry:
 
         Returns:
             True if filter was set
+
         """
         with self._lock:
             if callback_id in self._callbacks:
@@ -427,8 +424,7 @@ class CallbackRegistry:
 
 
 class NotificationQueue:
-    """
-    Queues and batches notifications for efficient processing.
+    """Queues and batches notifications for efficient processing.
 
     Provides notification queuing with:
     - Priority notification support
@@ -438,11 +434,11 @@ class NotificationQueue:
     """
 
     def __init__(self, max_size: int = 1000):
-        """
-        Initialize notification queue.
+        """Initialize notification queue.
 
         Args:
             max_size: Maximum queue size
+
         """
         self._queue: Deque[NotificationItem] = deque()
         self._priority_queue: Deque[NotificationItem] = deque()
@@ -456,8 +452,7 @@ class NotificationQueue:
         logger.debug(f"NotificationQueue initialized with max_size: {max_size}")
 
     def enqueue_notification(self, theme_name: str, widget_id: str) -> bool:
-        """
-        Enqueue normal priority notification.
+        """Enqueue normal priority notification.
 
         Args:
             theme_name: Theme name
@@ -465,12 +460,12 @@ class NotificationQueue:
 
         Returns:
             True if enqueued successfully
+
         """
         return self._enqueue(NotificationItem(theme_name, widget_id))
 
     def enqueue_priority_notification(self, theme_name: str, widget_id: str) -> bool:
-        """
-        Enqueue high priority notification.
+        """Enqueue high priority notification.
 
         Args:
             theme_name: Theme name
@@ -478,6 +473,7 @@ class NotificationQueue:
 
         Returns:
             True if enqueued successfully
+
         """
         return self._enqueue(NotificationItem(theme_name, widget_id, priority=1), priority=True)
 
@@ -595,8 +591,7 @@ class NotificationQueue:
 
 
 class EventFilter:
-    """
-    Filters notifications for performance optimization.
+    """Filters notifications for performance optimization.
 
     Provides event filtering with:
     - Theme name pattern filtering
@@ -618,30 +613,29 @@ class EventFilter:
         logger.debug("EventFilter initialized")
 
     def add_theme_filter(self, filter_func: Callable[[str], bool]) -> None:
-        """
-        Add theme name filter.
+        """Add theme name filter.
 
         Args:
             filter_func: Function that returns True if theme should be notified
+
         """
         with self._lock:
             self._theme_filters.append(filter_func)
             logger.debug("Added theme filter")
 
     def add_widget_filter(self, filter_func: Callable[[str], bool]) -> None:
-        """
-        Add widget ID filter.
+        """Add widget ID filter.
 
         Args:
             filter_func: Function that returns True if widget should be notified
+
         """
         with self._lock:
             self._widget_filters.append(filter_func)
             logger.debug("Added widget filter")
 
     def should_notify(self, theme_name: str, widget_id: str) -> bool:
-        """
-        Check if notification should be sent.
+        """Check if notification should be sent.
 
         Args:
             theme_name: Theme name
@@ -649,6 +643,7 @@ class EventFilter:
 
         Returns:
             True if notification should be sent
+
         """
         with self._lock:
             self._stats["total_checks"] += 1
@@ -682,8 +677,7 @@ class EventFilter:
 
 
 class CrossThreadNotifier:
-    """
-    Handles cross-thread notifications safely.
+    """Handles cross-thread notifications safely.
 
     Provides thread-safe notification delivery with:
     - Qt signal/slot integration for thread safety
@@ -700,25 +694,25 @@ class CrossThreadNotifier:
         logger.debug("CrossThreadNotifier initialized")
 
     def register_handler(self, handler: Callable[[str, str], None]) -> None:
-        """
-        Register notification handler.
+        """Register notification handler.
 
         Args:
             handler: Handler function for notifications
+
         """
         with self._lock:
             self._handlers.append(handler)
             logger.debug("Registered cross-thread notification handler")
 
     def unregister_handler(self, handler: Callable[[str, str], None]) -> bool:
-        """
-        Unregister notification handler.
+        """Unregister notification handler.
 
         Args:
             handler: Handler to remove
 
         Returns:
             True if handler was removed
+
         """
         with self._lock:
             try:
@@ -729,12 +723,12 @@ class CrossThreadNotifier:
                 return False
 
     def notify_async(self, theme_name: str, widget_id: str) -> None:
-        """
-        Send notification asynchronously.
+        """Send notification asynchronously.
 
         Args:
             theme_name: Theme name
             widget_id: Widget ID
+
         """
         def notify_worker():
             """Worker function for async notification."""
@@ -756,8 +750,7 @@ class CrossThreadNotifier:
 
 
 class NotificationBatcher:
-    """
-    Batches notifications for efficient processing.
+    """Batches notifications for efficient processing.
 
     Provides notification batching with:
     - Configurable batch sizes
@@ -767,12 +760,12 @@ class NotificationBatcher:
     """
 
     def __init__(self, batch_size: int = 10, flush_interval: float = 0.1):
-        """
-        Initialize notification batcher.
+        """Initialize notification batcher.
 
         Args:
             batch_size: Maximum batch size
             flush_interval: Time interval for automatic flushing (seconds)
+
         """
         self._batch_size = batch_size
         self._flush_interval = flush_interval
@@ -788,12 +781,12 @@ class NotificationBatcher:
         self._batch_processor = processor
 
     def add_notification(self, theme_name: str, widget_id: str) -> None:
-        """
-        Add notification to current batch.
+        """Add notification to current batch.
 
         Args:
             theme_name: Theme name
             widget_id: Widget ID
+
         """
         with self._lock:
             self._current_batch.append((theme_name, widget_id))
@@ -847,8 +840,7 @@ class NotificationBatcher:
 
 
 class ThemeNotifier:
-    """
-    Main coordinator for theme change notifications.
+    """Main coordinator for theme change notifications.
 
     Coordinates notification operations across:
     - Widget notifications via WidgetNotificationManager
@@ -871,8 +863,7 @@ class ThemeNotifier:
         cross_thread_notifier: Optional[CrossThreadNotifier] = None,
         batcher: Optional[NotificationBatcher] = None
     ):
-        """
-        Initialize theme notifier with dependency injection.
+        """Initialize theme notifier with dependency injection.
 
         Args:
             widget_manager: Widget notification manager
@@ -881,6 +872,7 @@ class ThemeNotifier:
             event_filter: Event filter for performance
             cross_thread_notifier: Cross-thread notifier
             batcher: Notification batcher
+
         """
         self._widget_manager = widget_manager or WidgetNotificationManager()
         self._callback_registry = callback_registry or CallbackRegistry()
@@ -901,14 +893,14 @@ class ThemeNotifier:
         logger.debug("ThemeNotifier initialized with all components")
 
     def register_widget(self, widget: QObject) -> bool:
-        """
-        Register widget for theme notifications.
+        """Register widget for theme notifications.
 
         Args:
             widget: Widget to register
 
         Returns:
             True if successfully registered
+
         """
         success = self._widget_manager.register_widget(widget)
 
@@ -919,14 +911,14 @@ class ThemeNotifier:
         return success
 
     def unregister_widget(self, widget: QObject) -> bool:
-        """
-        Unregister widget from notifications.
+        """Unregister widget from notifications.
 
         Args:
             widget: Widget to unregister
 
         Returns:
             True if successfully unregistered
+
         """
         success = self._widget_manager.unregister_widget(widget)
 
@@ -937,26 +929,26 @@ class ThemeNotifier:
         return success
 
     def is_widget_registered(self, widget: QObject) -> bool:
-        """
-        Check if widget is registered.
+        """Check if widget is registered.
 
         Args:
             widget: Widget to check
 
         Returns:
             True if widget is registered
+
         """
         return self._widget_manager.is_registered(widget)
 
     def register_callback(self, callback: ThemeChangeCallback) -> str:
-        """
-        Register theme change callback.
+        """Register theme change callback.
 
         Args:
             callback: Callback function
 
         Returns:
             Unique callback ID
+
         """
         callback_id = self._callback_registry.register_callback(callback)
 
@@ -966,14 +958,14 @@ class ThemeNotifier:
         return callback_id
 
     def unregister_callback(self, callback_id: str) -> bool:
-        """
-        Unregister callback.
+        """Unregister callback.
 
         Args:
             callback_id: Callback ID to remove
 
         Returns:
             True if callback was removed
+
         """
         success = self._callback_registry.unregister_callback(callback_id)
 
@@ -984,23 +976,23 @@ class ThemeNotifier:
         return success
 
     def has_callback(self, callback_id: str) -> bool:
-        """
-        Check if callback is registered.
+        """Check if callback is registered.
 
         Args:
             callback_id: Callback ID to check
 
         Returns:
             True if callback exists
+
         """
         return self._callback_registry.has_callback(callback_id)
 
     def notify_theme_changed(self, theme_name: str) -> None:
-        """
-        Notify all registered widgets and callbacks of theme change.
+        """Notify all registered widgets and callbacks of theme change.
 
         Args:
             theme_name: Name of new theme
+
         """
         start_time = time.time()
 
@@ -1029,8 +1021,7 @@ class ThemeNotifier:
                 self._stats.errors += 1
 
     def notify_widget(self, widget: QObject, theme_name: str) -> bool:
-        """
-        Notify specific widget of theme change.
+        """Notify specific widget of theme change.
 
         Args:
             widget: Widget to notify
@@ -1038,6 +1029,7 @@ class ThemeNotifier:
 
         Returns:
             True if notification was sent
+
         """
         try:
             widget_id = f"widget_{id(widget)}"
@@ -1067,8 +1059,7 @@ class ThemeNotifier:
             return False
 
     def batch_notify_widgets(self, widgets: List[QObject], theme_name: str) -> Dict[QObject, bool]:
-        """
-        Batch notify multiple widgets efficiently.
+        """Batch notify multiple widgets efficiently.
 
         Args:
             widgets: List of widgets to notify
@@ -1076,6 +1067,7 @@ class ThemeNotifier:
 
         Returns:
             Dictionary mapping widget to notification success
+
         """
         results = {}
 
@@ -1088,20 +1080,20 @@ class ThemeNotifier:
         return results
 
     def set_notification_filter(self, filter_func: Callable[[str], bool]) -> None:
-        """
-        Set theme name filter for notifications.
+        """Set theme name filter for notifications.
 
         Args:
             filter_func: Function that returns True if theme should be notified
+
         """
         self._event_filter.add_theme_filter(filter_func)
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get notification statistics.
+        """Get notification statistics.
 
         Returns:
             Dictionary with notification statistics
+
         """
         with self._lock:
             base_stats = {
@@ -1161,8 +1153,7 @@ def create_theme_notifier(
     batch_size: int = 10,
     flush_interval: float = 0.1
 ) -> ThemeNotifier:
-    """
-    Factory function for creating theme notifier with defaults.
+    """Factory function for creating theme notifier with defaults.
 
     Args:
         max_queue_size: Maximum notification queue size
@@ -1171,6 +1162,7 @@ def create_theme_notifier(
 
     Returns:
         Configured theme notifier
+
     """
     # Create all specialized components
     widget_manager = WidgetNotificationManager()

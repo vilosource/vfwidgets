@@ -1,28 +1,22 @@
-"""
-Extension system core implementation.
+"""Extension system core implementation.
 
 Provides secure plugin system for theme extensions with sandboxed execution,
 dependency management, and hot reload support.
 """
 
-import importlib
-import importlib.util
-import sys
+import hashlib
 import threading
-import weakref
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable, Set
-import inspect
-import hashlib
-import time
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .sandbox import ExtensionSandbox
-from .api import ExtensionAPI
-from .loader import ExtensionLoader
-from ..errors import ThemeSystemError, ExtensionError
+from ..errors import ExtensionError
 from ..logging import get_logger
 from ..utils.file_utils import ensure_directory
+from .api import ExtensionAPI
+from .loader import ExtensionLoader
+from .sandbox import ExtensionSandbox
 
 logger = get_logger(__name__)
 
@@ -71,8 +65,7 @@ class Extension:
 
 
 class ExtensionSystem:
-    """
-    Secure plugin system for theme extensions.
+    """Secure plugin system for theme extensions.
 
     Provides extension discovery, loading, sandboxed execution,
     dependency management, and hot reload capabilities.
@@ -93,11 +86,11 @@ class ExtensionSystem:
     }
 
     def __init__(self, extensions_dir: Optional[Path] = None):
-        """
-        Initialize extension system.
+        """Initialize extension system.
 
         Args:
             extensions_dir: Directory containing extensions
+
         """
         self.extensions_dir = extensions_dir or Path.home() / ".vfwidgets" / "extensions"
         self.extensions: Dict[str, Extension] = {}
@@ -124,11 +117,11 @@ class ExtensionSystem:
         logger.info(f"Extension system initialized with directory: {self.extensions_dir}")
 
     def discover_extensions(self) -> List[Path]:
-        """
-        Discover extension files in extensions directory.
+        """Discover extension files in extensions directory.
 
         Returns:
             List of extension file paths
+
         """
         logger.info("Discovering extensions...")
 
@@ -149,8 +142,7 @@ class ExtensionSystem:
         return extension_paths
 
     def load_extension(self, path: Path) -> Extension:
-        """
-        Load and validate an extension.
+        """Load and validate an extension.
 
         Args:
             path: Path to extension file
@@ -160,6 +152,7 @@ class ExtensionSystem:
 
         Raises:
             ExtensionError: If extension cannot be loaded
+
         """
         logger.info(f"Loading extension: {path}")
 
@@ -207,11 +200,11 @@ class ExtensionSystem:
             raise ExtensionError(f"Extension loading failed: {e}")
 
     def unload_extension(self, extension_id: str) -> None:
-        """
-        Unload an extension.
+        """Unload an extension.
 
         Args:
             extension_id: Extension identifier
+
         """
         if extension_id not in self.extensions:
             logger.warning(f"Extension not found for unloading: {extension_id}")
@@ -251,14 +244,14 @@ class ExtensionSystem:
             logger.error(f"Error unloading extension {extension.name}: {e}")
 
     def reload_extension(self, extension_id: str) -> Extension:
-        """
-        Reload an extension (hot reload).
+        """Reload an extension (hot reload).
 
         Args:
             extension_id: Extension identifier
 
         Returns:
             Reloaded extension
+
         """
         if extension_id not in self.extensions:
             raise ExtensionError(f"Extension not found: {extension_id}")
@@ -299,8 +292,7 @@ class ExtensionSystem:
             logger.info(f"Disabled extension: {extension_id}")
 
     def call_hook(self, hook_name: str, *args, **kwargs) -> List[Any]:
-        """
-        Call a hook on all extensions that provide it.
+        """Call a hook on all extensions that provide it.
 
         Args:
             hook_name: Name of hook to call
@@ -309,6 +301,7 @@ class ExtensionSystem:
 
         Returns:
             List of results from extensions
+
         """
         results = []
 
@@ -331,12 +324,12 @@ class ExtensionSystem:
         return results
 
     def register_api(self, api_name: str, api_object: Any) -> None:
-        """
-        Register API for extensions to use.
+        """Register API for extensions to use.
 
         Args:
             api_name: Name of API
             api_object: API object
+
         """
         self.api.register_api(api_name, api_object)
         logger.info(f"Registered API: {api_name}")

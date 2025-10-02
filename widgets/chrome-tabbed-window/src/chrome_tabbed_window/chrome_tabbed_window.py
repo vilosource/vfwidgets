@@ -13,6 +13,13 @@ from PySide6.QtCore import Property, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPainter, QPaintEvent
 from PySide6.QtWidgets import QHBoxLayout, QTabBar, QTabWidget, QVBoxLayout, QWidget
 
+try:
+    from vfwidgets_theme.widgets.base import ThemedWidget
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+    ThemedWidget = object
+
 from .components import WindowControls
 from .core import (
     DEFAULT_DOCUMENT_MODE,
@@ -26,11 +33,18 @@ from .core import (
     WindowMode,
 )
 from .model import TabModel
-from .platform import PlatformFactory
+from .platform_support import PlatformFactory
 from .view import ChromeTabBar, TabContentArea
 
 
-class ChromeTabbedWindow(QWidget):
+if THEME_AVAILABLE:
+    # CRITICAL: ThemedWidget MUST come first for theming to work!
+    _BaseClass = type('_BaseClass', (ThemedWidget, QWidget), {})
+else:
+    _BaseClass = QWidget
+
+
+class ChromeTabbedWindow(_BaseClass):
     """
     ChromeTabbedWindow - 100% QTabWidget-compatible widget with Chrome styling.
 
@@ -44,6 +58,7 @@ class ChromeTabbedWindow(QWidget):
     - Automatic mode detection (embedded vs window)
     - Platform-specific optimizations
     - Identical signal timing and behavior
+    - Automatic theme integration (when vfwidgets-theme is installed)
 
     Usage:
         # Direct replacement for QTabWidget
@@ -51,6 +66,18 @@ class ChromeTabbedWindow(QWidget):
         tabs.addTab(widget, "Tab Title")
         tabs.setCurrentIndex(0)
     """
+
+    # Theme configuration - maps theme tokens to Chrome tab colors
+    theme_config = {
+        'tab_background': 'tab.activeBackground',
+        'tab_inactive_background': 'tab.inactiveBackground',
+        'tab_hover_background': 'tab.hoverBackground',
+        'tab_border': 'tab.border',
+        'tab_active_foreground': 'tab.activeForeground',
+        'tab_inactive_foreground': 'tab.inactiveForeground',
+        'background': 'editorGroupHeader.tabsBackground',
+        'border': 'editorGroupHeader.tabsBorder',
+    }
 
     # ==================== QTabWidget Signals (EXACT MATCH) ====================
 
@@ -161,6 +188,45 @@ class ChromeTabbedWindow(QWidget):
 
         # Set layout
         self.setLayout(main_layout)
+
+    def _on_theme_changed(self) -> None:
+        """Called automatically when the application theme changes.
+
+        This method is automatically called by ThemedWidget when theme changes.
+        Updates the tab bar and window controls with new theme colors.
+        """
+        if not THEME_AVAILABLE:
+            return
+
+        # Trigger tab bar repaint with new theme colors
+        if hasattr(self, '_tab_bar') and self._tab_bar:
+            self._tab_bar.update()
+
+        # Update window controls if in frameless mode
+        if hasattr(self, '_window_controls') and self._window_controls:
+            self._window_controls.update()
+
+        # Force full repaint
+        self.update()
+
+    def get_current_theme(self):
+        """Get the current theme object.
+
+        Returns the actual Theme object from the theme manager, or None if:
+        - Theme system is not available
+        - No theme is currently set
+
+        Returns:
+            Theme object with .colors dict, or None
+        """
+        if not THEME_AVAILABLE:
+            return None
+
+        # Access theme from ThemedWidget's _theme_manager
+        if hasattr(self, '_theme_manager') and self._theme_manager:
+            return self._theme_manager.current_theme
+
+        return None
 
     def _connect_signals(self) -> None:
         """Connect all internal signals."""

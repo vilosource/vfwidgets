@@ -14,17 +14,22 @@ Run this file to see the Theme data model in action.
 
 import sys
 import time
-import json
 from pathlib import Path
 
 # Add the src directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from vfwidgets_theme.core.theme import (
-    Theme, ThemeBuilder, ThemeValidator, ThemeComposer, PropertyResolver,
-    create_theme_from_dict, validate_theme_data, save_theme_to_file, load_theme_from_file
+    PropertyResolver,
+    Theme,
+    ThemeBuilder,
+    ThemeComposer,
+    ThemeValidator,
+    create_theme_from_dict,
+    load_theme_from_file,
+    save_theme_to_file,
 )
-from vfwidgets_theme.errors import InvalidThemeFormatError, PropertyNotFoundError
+from vfwidgets_theme.errors import InvalidThemeFormatError
 
 
 def demonstrate_theme_creation():
@@ -95,7 +100,7 @@ def demonstrate_theme_creation():
         print(f"✓ Theme is immutable: {type(e).__name__}")
 
     # Test property access
-    print(f"\nProperty access:")
+    print("\nProperty access:")
     print(f"Primary color: {theme.get_color('primary')}")
     print(f"Font family: {theme.get_property('font-family')}")
     print(f"Background (VSCode style): {theme.get_color('editor.background')}")
@@ -123,7 +128,7 @@ def demonstrate_theme_builder():
 
     # Create builder from theme
     builder = ThemeBuilder.from_theme(base_theme)
-    print(f"\nCreated builder from base theme")
+    print("\nCreated builder from base theme")
 
     # Make modifications
     print("Making modifications...")
@@ -319,22 +324,22 @@ def demonstrate_property_resolution():
     print(f"Created resolver for theme: {theme.name}")
 
     # Test direct property access
-    print(f"\nDirect access:")
+    print("\nDirect access:")
     print(f"Primary color: {resolver.get_color('primary')}")
     print(f"Base font: {resolver.get_style('base-font')}")
 
     # Test reference resolution
-    print(f"\nReference resolution:")
+    print("\nReference resolution:")
     print(f"Accent (@primary): {resolver.get_color('accent')}")
     print(f"Derived (@colors.secondary): {resolver.get_color('derived')}")
     print(f"Header font (@base-font): {resolver.get_style('header-font')}")
 
     # Test computed properties
-    print(f"\nComputed properties:")
+    print("\nComputed properties:")
     print(f"Computed size: {resolver.get_style('computed-size')}")
 
     # Test performance - cached vs uncached
-    print(f"\nPerformance test:")
+    print("\nPerformance test:")
 
     # First access (uncached)
     start_time = time.perf_counter()
@@ -353,7 +358,7 @@ def demonstrate_property_resolution():
     print(f"Cache speedup: {uncached_time/cached_time:.1f}x faster")
 
     # Test circular reference detection
-    print(f"\nCircular reference detection:")
+    print("\nCircular reference detection:")
     circular_theme = Theme(
         name="Circular",
         colors={
@@ -412,7 +417,7 @@ def demonstrate_file_operations():
     # Show file contents
     with open(temp_file) as f:
         content = f.read()
-    print(f"\nFile contents preview:")
+    print("\nFile contents preview:")
     print(content[:200] + "..." if len(content) > 200 else content)
 
     # Clean up
@@ -442,7 +447,7 @@ def demonstrate_performance_requirements():
     loading_time = time.perf_counter() - start_time
 
     print(f"Theme loading time: {loading_time*1000:.1f}ms (requirement: < 50ms)")
-    print(f"✓ PASS" if loading_time < 0.05 else f"✗ FAIL")
+    print("✓ PASS" if loading_time < 0.05 else "✗ FAIL")
 
     # Test property access performance (< 1μs cached requirement)
     print("\nTesting cached property access performance...")
@@ -459,7 +464,7 @@ def demonstrate_performance_requirements():
     average_time = cached_time / 10000
 
     print(f"Average cached access time: {average_time*1000000:.3f}μs (requirement: < 1μs)")
-    print(f"✓ PASS" if average_time < 0.000001 else f"✗ FAIL")
+    print("✓ PASS" if average_time < 0.000001 else "✗ FAIL")
 
     # Test validation performance (< 100ms requirement)
     print("\nTesting validation performance...")
@@ -469,7 +474,7 @@ def demonstrate_performance_requirements():
     validation_time = time.perf_counter() - start_time
 
     print(f"Validation time: {validation_time*1000:.1f}ms (requirement: < 100ms)")
-    print(f"✓ PASS" if validation_time < 0.1 else f"✗ FAIL")
+    print("✓ PASS" if validation_time < 0.1 else "✗ FAIL")
 
     # Test memory overhead (< 500KB requirement)
     print("\nTesting memory overhead...")
@@ -477,7 +482,7 @@ def demonstrate_performance_requirements():
     size_kb = theme_size / 1024
 
     print(f"Theme memory usage: {size_kb:.1f}KB (requirement: < 500KB)")
-    print(f"✓ PASS" if size_kb < 500 else f"✗ FAIL")
+    print("✓ PASS" if size_kb < 500 else "✗ FAIL")
 
     # Test composition performance (< 10ms requirement)
     print("\nTesting composition performance...")
@@ -498,7 +503,7 @@ def demonstrate_performance_requirements():
     composition_time = time.perf_counter() - start_time
 
     print(f"Composition time: {composition_time*1000:.1f}ms (requirement: < 10ms)")
-    print(f"✓ PASS" if composition_time < 0.01 else f"✗ FAIL")
+    print("✓ PASS" if composition_time < 0.01 else "✗ FAIL")
 
 
 def main():

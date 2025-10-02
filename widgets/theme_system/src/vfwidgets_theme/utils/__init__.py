@@ -1,5 +1,4 @@
-"""
-Utility components.
+"""Utility components.
 
 This module contains utilities and helper functions:
 - Color utilities: Color manipulation, validation, conversion

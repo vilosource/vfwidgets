@@ -1,25 +1,23 @@
-"""
-Icon theme implementation for VSCode-compatible icon themes.
+"""Icon theme implementation for VSCode-compatible icon themes.
 
 Supports file type icons, folder icons, and custom icon sets with
 both SVG and font-based icons.
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Optional, List, Union, Any
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QFont, QFontDatabase
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtGui import QIcon, QPixmap
 
-from .font_loader import IconFontLoader
-from .svg_handler import SVGIconHandler
-from .file_associations import FileAssociationManager
 from ..errors import ThemeSystemError
 from ..logging import get_logger
+from .file_associations import FileAssociationManager
+from .font_loader import IconFontLoader
+from .svg_handler import SVGIconHandler
 
 logger = get_logger(__name__)
 
@@ -61,11 +59,11 @@ class SVGIconProvider(IconProvider):
     """Icon provider for SVG icons."""
 
     def __init__(self, base_path: Path):
-        """
-        Initialize SVG icon provider.
+        """Initialize SVG icon provider.
 
         Args:
             base_path: Base directory containing SVG files
+
         """
         self.base_path = base_path
         self.svg_handler = SVGIconHandler()
@@ -117,12 +115,12 @@ class FontIconProvider(IconProvider):
     """Icon provider for font-based icons."""
 
     def __init__(self, font_path: Path, character_map: Dict[str, str]):
-        """
-        Initialize font icon provider.
+        """Initialize font icon provider.
 
         Args:
             font_path: Path to icon font file
             character_map: Mapping of icon names to font characters
+
         """
         self.font_path = font_path
         self.character_map = character_map
@@ -165,19 +163,18 @@ class FontIconProvider(IconProvider):
 
 
 class IconTheme:
-    """
-    VSCode-compatible icon theme support.
+    """VSCode-compatible icon theme support.
 
     Manages file type icons, folder icons, and custom icon sets.
     Supports both SVG icons and icon fonts.
     """
 
     def __init__(self, theme_path: Optional[Path] = None):
-        """
-        Initialize icon theme.
+        """Initialize icon theme.
 
         Args:
             theme_path: Path to icon theme directory or JSON file
+
         """
         self.theme_path = theme_path
         self.name = "Default"
@@ -205,14 +202,14 @@ class IconTheme:
             self.load_theme(theme_path)
 
     def load_theme(self, theme_path: Path) -> None:
-        """
-        Load icon theme from path.
+        """Load icon theme from path.
 
         Args:
             theme_path: Path to theme directory or JSON file
 
         Raises:
             ThemeSystemError: If theme loading fails
+
         """
         logger.info(f"Loading icon theme from: {theme_path}")
 
@@ -235,7 +232,7 @@ class IconTheme:
 
     def _load_from_json(self, json_path: Path) -> None:
         """Load icon theme from JSON file."""
-        with open(json_path, 'r', encoding='utf-8') as f:
+        with open(json_path, encoding='utf-8') as f:
             theme_data = json.load(f)
 
         self._parse_theme_data(theme_data, json_path.parent)
@@ -350,7 +347,7 @@ class IconTheme:
             char_map_file = font_file.with_suffix('.json')
             if char_map_file.exists():
                 try:
-                    with open(char_map_file, 'r') as f:
+                    with open(char_map_file) as f:
                         char_map = json.load(f)
 
                     provider = FontIconProvider(font_file, char_map)
@@ -360,8 +357,7 @@ class IconTheme:
                     logger.warning(f"Failed to load font character map {char_map_file}: {e}")
 
     def get_icon(self, file_path: Path, size: QSize = None) -> QIcon:
-        """
-        Get icon for file path.
+        """Get icon for file path.
 
         Args:
             file_path: Path to file
@@ -369,6 +365,7 @@ class IconTheme:
 
         Returns:
             QIcon for the file
+
         """
         if size is None:
             size = QSize(16, 16)

@@ -75,7 +75,7 @@ app = ThemedApplication(sys.argv)
 
 - Replaces `QApplication`
 - Loads and manages themes
-- Default theme: **vscode** (VS Code Dark+)
+- Default theme: **default** (light theme)
 - Coordinates theme changes across all widgets
 
 ### 2. ThemedMainWindow
@@ -88,6 +88,8 @@ window = ThemedMainWindow()
 - Automatically applies theme stylesheet
 - All child widgets (buttons, inputs, etc.) get themed
 - Updates when theme changes
+
+> **IMPORTANT:** Your main window MUST inherit from `ThemedMainWindow` (not `QMainWindow`) for visual theme updates to work. Similarly, use `ThemedQWidget` instead of `QWidget` for container widgets. Regular Qt widgets will not receive theme updates!
 
 ### 3. Automatic Child Widget Theming
 
@@ -319,16 +321,23 @@ python 05_vscode_editor.py        # Production-quality app
 python 06_role_markers.py         # Role marker demo
 ```
 
-### 2. Read the Documentation
+### 2. Build Custom Widgets
+
+**Need a QTextEdit subclass? QFrame? Complex custom widgets?**
+
+→ **[Widget Development Guide](widget-development-GUIDE.md)** - Learn the advanced API for custom widgets
+
+### 3. Read the Documentation
 
 - **[API Reference](api-REFERENCE.md)** - Complete API documentation
 - **[Theme Customization](theme-customization-GUIDE.md)** - Create custom themes
+- **[API Strategy](API-STRATEGY.md)** - Understanding the progressive API design
 - **[Architecture](ARCHITECTURE.md)** - System internals for contributors
 - **[Roadmap](ROADMAP.md)** - Design rationale and future plans
 
-### 3. Explore Advanced Features
+### 4. Explore Advanced Features
 
-**Custom Themed Widgets:**
+**Simple Custom Container Widgets:**
 ```python
 from vfwidgets_theme import ThemedQWidget
 
@@ -339,34 +348,11 @@ class MyCustomWidget(ThemedQWidget):
         self.button = QPushButton("Themed!", self)
 ```
 
-**Access Theme Values:**
-```python
-window = ThemedMainWindow()
+**For widgets with other base classes (QTextEdit, QFrame, etc.):**
+See the [Widget Development Guide](widget-development-GUIDE.md)
 
-# Get current theme
-theme = window.theme
-
-# Access color tokens
-bg_color = theme.get("colors.background")
-btn_color = theme.get("button.background")
-
-# Use in custom code
-custom_color = theme.get("button.hoverBackground", "#default")
-```
-
-**Custom Styling (when needed):**
-```python
-class MyWidget(ThemedQWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        # Widget already has base theme applied
-        # Add custom styling on top
-        self.custom_label = QLabel("Custom", self)
-        self.custom_label.setStyleSheet(
-            f"color: {self.theme.get('colors.primary')};"
-        )
-```
+**For advanced theming patterns (custom painting, complex widgets):**
+See the [Official Theming Guide](THEMING-GUIDE-OFFICIAL.md) - comprehensive guide covering both simple (80%) and complex (20%) use cases
 
 ---
 

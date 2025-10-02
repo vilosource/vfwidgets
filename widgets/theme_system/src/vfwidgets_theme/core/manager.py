@@ -1,5 +1,4 @@
-"""
-ThemeManager as facade coordinating theme system components.
+"""ThemeManager as facade coordinating theme system components.
 
 This module provides the ThemeManager class that handles theme lifecycle
 management, loading, and coordination. It follows the Single Responsibility
@@ -27,14 +26,14 @@ Performance Requirements:
 
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Callable
+from typing import Any, Dict, List, Optional, Union
 
 # Import Qt components with fallback for headless testing
 try:
-    from PySide6.QtWidgets import QWidget, QApplication
     from PySide6.QtCore import QObject
+    from PySide6.QtWidgets import QApplication, QWidget
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -44,19 +43,19 @@ except ImportError:
     class QWidget(QObject): pass
 
 # Import foundation modules
-from ..protocols import ThemeChangeCallback
-from ..errors import ThemeNotFoundError, ThemeLoadError, ThemeApplicationError
+from ..errors import ThemeApplicationError, ThemeLoadError, ThemeNotFoundError
+from ..lifecycle import LifecycleManager
 from ..logging import get_debug_logger
-from ..lifecycle import WidgetRegistry, LifecycleManager
+from ..protocols import ThemeChangeCallback
 from ..threading import ThreadSafeThemeManager
-
-# Import core components
-from .theme import Theme
-from .repository import ThemeRepository, create_theme_repository
 from .applicator import ThemeApplicator, create_theme_applicator
 from .notifier import ThemeNotifier, create_theme_notifier
 from .provider import DefaultThemeProvider, create_default_provider
 from .registry import ThemeWidgetRegistry, create_widget_registry
+from .repository import ThemeRepository, create_theme_repository
+
+# Import core components
+from .theme import Theme
 
 logger = get_debug_logger(__name__)
 
@@ -64,6 +63,7 @@ logger = get_debug_logger(__name__)
 @dataclass
 class ThemeManagerStats:
     """Statistics for theme manager operations."""
+
     theme_switches: int = 0
     themes_loaded: int = 0
     themes_saved: int = 0
@@ -74,8 +74,7 @@ class ThemeManagerStats:
 
 
 class ThemeManager:
-    """
-    Main facade coordinating all theme system components.
+    """Main facade coordinating all theme system components.
 
     The ThemeManager acts as the primary interface for theme operations,
     coordinating between specialized components:
@@ -103,8 +102,7 @@ class ThemeManager:
         lifecycle_manager: Optional[LifecycleManager] = None,
         thread_manager: Optional[ThreadSafeThemeManager] = None,
     ):
-        """
-        Initialize theme manager with dependency injection.
+        """Initialize theme manager with dependency injection.
 
         Args:
             repository: Theme storage and retrieval
@@ -114,6 +112,7 @@ class ThemeManager:
             widget_registry: Widget registration and tracking
             lifecycle_manager: Widget lifecycle management
             thread_manager: Thread-safe operations
+
         """
         # Initialize core components with dependency injection
         self._widget_registry = widget_registry or create_widget_registry()
@@ -138,14 +137,14 @@ class ThemeManager:
 
     @classmethod
     def get_instance(cls) -> 'ThemeManager':
-        """
-        Get singleton instance of ThemeManager.
+        """Get singleton instance of ThemeManager.
 
         This method ensures thread-safe singleton access for ThemedApplication.
         Creates the manager on first call with default components.
 
         Returns:
             ThemeManager singleton instance
+
         """
         if cls._instance is None:
             with cls._instance_lock:
@@ -179,11 +178,11 @@ class ThemeManager:
             return self._current_theme
 
     def add_theme(self, theme: Theme) -> None:
-        """
-        Add theme to manager.
+        """Add theme to manager.
 
         Args:
             theme: Theme to add
+
         """
         try:
             with self._lock:
@@ -199,8 +198,7 @@ class ThemeManager:
             raise ThemeLoadError(f"Failed to add theme: {e}")
 
     def get_theme(self, name: str) -> Theme:
-        """
-        Get theme by name.
+        """Get theme by name.
 
         Args:
             name: Theme name
@@ -210,6 +208,7 @@ class ThemeManager:
 
         Raises:
             ThemeNotFoundError: If theme not found
+
         """
         try:
             theme = self._repository.get_theme(name)
@@ -224,32 +223,32 @@ class ThemeManager:
             raise ThemeNotFoundError(f"Error accessing theme '{name}': {e}")
 
     def has_theme(self, name: str) -> bool:
-        """
-        Check if theme exists.
+        """Check if theme exists.
 
         Args:
             name: Theme name
 
         Returns:
             True if theme exists
+
         """
         return self._repository.has_theme(name)
 
     def list_themes(self) -> List[str]:
-        """
-        List all available themes.
+        """List all available themes.
 
         Returns:
             List of theme names
+
         """
         return self._repository.list_themes()
 
     def get_builtin_themes(self) -> List[str]:
-        """
-        Get list of built-in theme names.
+        """Get list of built-in theme names.
 
         Returns:
             List of built-in theme names
+
         """
         all_themes = self._repository.list_themes()
         # Built-in themes are those loaded at initialization
@@ -257,8 +256,7 @@ class ThemeManager:
         return [name for name in builtin_themes if name in all_themes]
 
     def set_theme(self, theme_name: str) -> None:
-        """
-        Set active theme system-wide.
+        """Set active theme system-wide.
 
         This method coordinates theme switching across all components:
         1. Validates the theme exists
@@ -273,6 +271,7 @@ class ThemeManager:
         Raises:
             ThemeNotFoundError: If theme doesn't exist
             ThemeApplicationError: If theme application fails
+
         """
         start_time = time.time()
 
@@ -321,14 +320,14 @@ class ThemeManager:
             logger.warning("Default theme not available for reset")
 
     def register_widget(self, widget: QObject) -> str:
-        """
-        Register widget for theme management.
+        """Register widget for theme management.
 
         Args:
             widget: Widget to register
 
         Returns:
             Unique widget ID
+
         """
         try:
             # Register with notifier for change notifications
@@ -354,14 +353,14 @@ class ThemeManager:
             raise ThemeApplicationError(f"Failed to register widget: {e}")
 
     def unregister_widget(self, widget: QObject) -> bool:
-        """
-        Unregister widget from theme management.
+        """Unregister widget from theme management.
 
         Args:
             widget: Widget to unregister
 
         Returns:
             True if successfully unregistered
+
         """
         try:
             success = self._notifier.unregister_widget(widget)
@@ -377,20 +376,19 @@ class ThemeManager:
             return False
 
     def is_widget_registered(self, widget: QObject) -> bool:
-        """
-        Check if widget is registered.
+        """Check if widget is registered.
 
         Args:
             widget: Widget to check
 
         Returns:
             True if widget is registered
+
         """
         return self._notifier.is_widget_registered(widget)
 
     def load_theme_from_file(self, file_path: Union[str, Path]) -> Theme:
-        """
-        Load theme from file and add to manager.
+        """Load theme from file and add to manager.
 
         Args:
             file_path: Path to theme file
@@ -400,6 +398,7 @@ class ThemeManager:
 
         Raises:
             ThemeLoadError: If file cannot be loaded
+
         """
         start_time = time.time()
 
@@ -421,8 +420,7 @@ class ThemeManager:
             raise ThemeLoadError(f"Failed to load theme from {file_path}: {e}")
 
     def save_theme_to_file(self, theme_name: str, file_path: Union[str, Path]) -> None:
-        """
-        Save theme to file.
+        """Save theme to file.
 
         Args:
             theme_name: Name of theme to save
@@ -431,6 +429,7 @@ class ThemeManager:
         Raises:
             ThemeNotFoundError: If theme doesn't exist
             ThemeLoadError: If file cannot be saved
+
         """
         start_time = time.time()
 
@@ -453,8 +452,7 @@ class ThemeManager:
             raise ThemeLoadError(f"Failed to save theme to {file_path}: {e}")
 
     def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
-        """
-        Discover and load themes from directory.
+        """Discover and load themes from directory.
 
         Args:
             directory: Directory to scan
@@ -462,6 +460,7 @@ class ThemeManager:
 
         Returns:
             List of discovered themes
+
         """
         try:
             discovered_themes = self._repository.discover_themes(directory, recursive)
@@ -483,14 +482,14 @@ class ThemeManager:
             raise ThemeLoadError(f"Failed to discover themes in {directory}: {e}")
 
     def register_theme_change_callback(self, callback: ThemeChangeCallback) -> str:
-        """
-        Register callback for theme change notifications.
+        """Register callback for theme change notifications.
 
         Args:
             callback: Callback function
 
         Returns:
             Unique callback ID
+
         """
         try:
             callback_id = self._notifier.register_callback(callback)
@@ -508,14 +507,14 @@ class ThemeManager:
             raise ThemeApplicationError(f"Failed to register callback: {e}")
 
     def unregister_theme_change_callback(self, callback_id: str) -> bool:
-        """
-        Unregister theme change callback.
+        """Unregister theme change callback.
 
         Args:
             callback_id: Callback ID to remove
 
         Returns:
             True if successfully removed
+
         """
         try:
             success = self._notifier.unregister_callback(callback_id)
@@ -554,11 +553,11 @@ class ThemeManager:
                 self._stats.errors += 1
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get theme manager statistics.
+        """Get theme manager statistics.
 
         Returns:
             Dictionary with manager statistics
+
         """
         with self._lock:
             base_stats = {
@@ -611,8 +610,7 @@ def create_theme_manager(
     lifecycle_manager: Optional[LifecycleManager] = None,
     thread_manager: Optional[ThreadSafeThemeManager] = None,
 ) -> ThemeManager:
-    """
-    Factory function for creating ThemeManager with dependency injection.
+    """Factory function for creating ThemeManager with dependency injection.
 
     This factory function sets up a fully configured ThemeManager
     with all necessary dependencies, using defaults where not provided.
@@ -627,6 +625,7 @@ def create_theme_manager(
 
     Returns:
         Configured ThemeManager instance
+
     """
     logger.debug("Creating theme manager with factory function")
 

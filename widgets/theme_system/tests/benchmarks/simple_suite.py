@@ -4,18 +4,17 @@ Simplified Benchmark Suite for VFWidgets Theme System
 Task 23: Core performance benchmarking functionality
 """
 
-import time
-import statistics
 import json
-import sqlite3
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+import statistics
+import time
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication
 
-from vfwidgets_theme import ThemedWidget, ThemedApplication
+from vfwidgets_theme import ThemedApplication, ThemedWidget
 from vfwidgets_theme.core.theme import Theme
 
 
@@ -252,7 +251,6 @@ class SimpleBenchmarkSuite:
 
 if __name__ == "__main__":
     # Example usage
-    import sys
 
     # Ensure QApplication exists
     if not QApplication.instance():
@@ -264,7 +262,7 @@ if __name__ == "__main__":
 
     # Generate and display report
     report = suite.generate_report()
-    print(f"\nPerformance Report:")
+    print("\nPerformance Report:")
     print(f"Total benchmarks: {report['total_benchmarks']}")
 
     validation = report['validation']

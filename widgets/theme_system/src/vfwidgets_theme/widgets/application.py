@@ -1,5 +1,4 @@
-"""
-ThemedApplication - Application-level theme management.
+"""ThemedApplication - Application-level theme management.
 
 This module provides ThemedApplication, the simple application-level interface
 for managing themes across the entire application. This is THE way developers
@@ -29,19 +28,20 @@ Task 9 Implementation Features:
 - Performance optimization for bulk widget updates
 """
 
-import os
 import json
-import yaml
+import os
 import threading
 import time
 import weakref
-from typing import Dict, List, Optional, Union, Callable, Any, Set
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Union
+
+import yaml
 
 try:
+    from PySide6.QtCore import QObject, QTimer, Signal
     from PySide6.QtWidgets import QApplication
-    from PySide6.QtCore import QObject, Signal, QTimer
     pyqtSignal = Signal  # PySide6 uses Signal, not pyqtSignal
     QT_AVAILABLE = True
 except ImportError:
@@ -92,18 +92,13 @@ except ImportError:
             pass
 
 # Import foundation modules
-from ..protocols import ThemeData
-from ..errors import (
-    ThemeError, ThemeNotFoundError, ThemeLoadError,
-    get_global_error_recovery_manager
-)
-from ..fallbacks import MINIMAL_THEME
-from ..logging import get_debug_logger
-from ..lifecycle import WidgetRegistry, LifecycleManager
-from ..threading import ThreadSafeThemeManager
 from ..core.manager import ThemeManager
-from ..core.theme import Theme, ThemeBuilder
-from ..development.hot_reload import HotReloader, DevModeManager
+from ..core.theme import Theme
+from ..development.hot_reload import DevModeManager, HotReloader
+from ..errors import ThemeError, ThemeNotFoundError, get_global_error_recovery_manager
+from ..lifecycle import LifecycleManager
+from ..logging import get_debug_logger
+from ..threading import ThreadSafeThemeManager
 
 logger = get_debug_logger(__name__)
 
@@ -298,7 +293,7 @@ def load_theme_preference() -> Optional[str]:
     try:
         config_file = Path.home() / ".vfwidgets" / "theme_preference.json"
         if config_file.exists():
-            with open(config_file, 'r') as f:
+            with open(config_file) as f:
                 data = json.load(f)
                 return data.get("preferred_theme")
     except Exception as e:
@@ -308,8 +303,7 @@ def load_theme_preference() -> Optional[str]:
 
 
 class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
-    """
-    Simple application-level theme management.
+    """Simple application-level theme management.
 
     ThemedApplication provides a clean, simple interface for managing themes
     across an entire application:
@@ -335,18 +329,21 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         theme_loaded = pyqtSignal(str)           # Emitted when new theme is loaded
         theme_import_completed = pyqtSignal(str)  # Emitted when theme import completes
         system_theme_detected = pyqtSignal(str)   # Emitted when system theme detected
+        theme_preview_started = pyqtSignal(str)   # Emitted when theme preview starts
+        theme_preview_ended = pyqtSignal(bool)    # Emitted when preview ends (True=committed, False=cancelled)
     else:
         theme_changed = Signal(str)
         theme_loaded = Signal()
         theme_import_completed = Signal(str)
         system_theme_detected = Signal(str)
+        theme_preview_started = Signal(str)
+        theme_preview_ended = Signal(bool)
 
     _instance = None
     _instance_lock = threading.Lock()
 
     def __init__(self, args=None, theme_config: Optional[Dict[str, Any]] = None):
-        """
-        Initialize themed application with automatic setup.
+        """Initialize themed application with automatic setup.
 
         All complexity is hidden here:
         - Theme system initialization
@@ -358,6 +355,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         Args:
             args: Command line arguments for QApplication
             theme_config: Optional configuration dictionary
+
         """
         if QT_AVAILABLE:
             super().__init__(args or [])
@@ -383,10 +381,16 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         # Application state
         self._current_theme: Optional[Theme] = None
-        self._available_themes: Dict[str, Theme] = {}
         self._theme_directories: Set[Path] = set()
         self._system_theme_monitoring = False
         self._is_initialized = False
+
+        # Metadata system
+        from .metadata import ThemeMetadataProvider
+        self._metadata_provider = ThemeMetadataProvider()
+
+        # Preview system state
+        self._preview_original_theme: Optional[Theme] = None
 
         # Task 18: Hot reload state
         self._hot_reloader: Optional[HotReloader] = None
@@ -408,8 +412,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return cls._instance
 
     def _initialize_theme_system(self) -> None:
-        """
-        Initialize the complete theme system.
+        """Initialize the complete theme system.
 
         This method sets up all theme system components with dependency
         injection and proper error handling. All complexity is hidden
@@ -422,8 +425,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             self._lifecycle_manager = None  # Will be created if needed
             self._thread_manager = None  # Will be created if needed
 
-            # Initialize built-in themes
-            self._initialize_builtin_themes()
+            # Built-in themes are already loaded by ThemeManager/ThemeRepository
+            # No need to duplicate theme initialization
 
             # Load theme directories from config
             for theme_dir in self._config.theme_directories:
@@ -438,16 +441,16 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Restore saved theme if persistence enabled
             elif self._config.persist_theme:
                 saved_theme = load_theme_preference()
-                if saved_theme and saved_theme in self._available_themes:
+                if saved_theme and self._theme_manager.has_theme(saved_theme):
                     self.set_theme(saved_theme)
 
             # Set default theme if none set
             if not self._current_theme:
-                if self._config.default_theme in self._available_themes:
+                if self._theme_manager.has_theme(self._config.default_theme):
                     self.set_theme(self._config.default_theme)
                 else:
                     # Fallback to first available theme
-                    available = list(self._available_themes.keys())
+                    available = self._theme_manager.list_themes()
                     if available:
                         self.set_theme(available[0])
 
@@ -473,84 +476,22 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 context={"application": True, "config": self._config.__dict__}
             )
 
-    def _initialize_builtin_themes(self) -> None:
-        """Initialize built-in themes."""
-        try:
-            # Create built-in themes using ThemeBuilder
-            # Default theme
-            default_theme = (ThemeBuilder("default")
-                .add_color("primary", "#007ACC")
-                .add_color("background", "#FFFFFF")
-                .add_color("foreground", "#000000")
-                .add_color("accent", "#0078D4")
-                .add_style("window", {
-                    "background-color": "@colors.background",
-                    "color": "@colors.foreground"
-                })
-                .build())
-
-            # Dark theme
-            dark_theme = (ThemeBuilder("dark")
-                .add_color("primary", "#0E639C")
-                .add_color("background", "#1E1E1E")
-                .add_color("foreground", "#FFFFFF")
-                .add_color("accent", "#007ACC")
-                .add_style("window", {
-                    "background-color": "@colors.background",
-                    "color": "@colors.foreground"
-                })
-                .build())
-
-            # Light theme
-            light_theme = (ThemeBuilder("light")
-                .add_color("primary", "#0078D4")
-                .add_color("background", "#F8F8F8")
-                .add_color("foreground", "#323130")
-                .add_color("accent", "#106EBE")
-                .add_style("window", {
-                    "background-color": "@colors.background",
-                    "color": "@colors.foreground"
-                })
-                .build())
-
-            # Minimal theme (fallback)
-            minimal_theme = (ThemeBuilder("minimal")
-                .add_color("primary", "#000000")
-                .add_color("background", "#FFFFFF")
-                .add_color("foreground", "#000000")
-                .add_color("accent", "#000000")
-                .add_style("window", {
-                    "background-color": "@colors.background",
-                    "color": "@colors.foreground"
-                })
-                .build())
-
-            # Add to available themes
-            for theme in [default_theme, dark_theme, light_theme, minimal_theme]:
-                self._available_themes[theme.name] = theme
-
-            logger.debug(f"Initialized {len(self._available_themes)} built-in themes")
-
-        except Exception as e:
-            logger.error(f"Error initializing built-in themes: {e}")
-            # Ensure minimal theme is always available
-            self._available_themes["minimal"] = Theme(
-                name="minimal",
-                colors={"background": "#FFFFFF", "foreground": "#000000"},
-                styles={"window": {"background-color": "#FFFFFF", "color": "#000000"}}
-            )
 
     @property
     def available_themes(self) -> List[str]:
         """Get list of available theme names."""
         if self._theme_manager:
             return self._theme_manager.list_themes()
-        return self._available_themes
+        return []
 
     @property
     def current_theme_name(self) -> Optional[str]:
         """Get current theme name."""
-        return self._current_theme
+        if self._current_theme and hasattr(self._current_theme, 'name'):
+            return self._current_theme.name
+        elif isinstance(self._current_theme, str):
+            return self._current_theme
+        return None
 
     @property
     def theme_type(self) -> str:
@@ -560,8 +501,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         return "light"  # Default
 
     def set_theme(self, theme: Union[str, Theme], persist: bool = None) -> bool:
-        """
-        Set active theme for entire application.
+        """Set active theme for entire application.
 
         This method instantly switches the theme for all ThemedWidget
         instances in the application. The operation is:
@@ -576,6 +516,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             True if theme was set successfully, False otherwise
+
         """
         try:
             if not self._is_initialized:
@@ -584,16 +525,16 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
             # Resolve theme object
             if isinstance(theme, str):
-                if theme not in self._available_themes:
+                if not self._theme_manager.has_theme(theme):
                     raise ThemeNotFoundError(f"Theme '{theme}' not found")
-                theme_obj = self._available_themes[theme]
+                theme_obj = self._theme_manager.get_theme(theme)
                 theme_name = theme
             else:
                 theme_obj = theme
                 theme_name = theme.name
-                # Add to available themes if not present
-                if theme_name not in self._available_themes:
-                    self._available_themes[theme_name] = theme_obj
+                # Add to ThemeManager if not present
+                if not self._theme_manager.has_theme(theme_name):
+                    self._theme_manager.add_theme(theme_obj)
 
             logger.debug(f"Setting application theme to: {theme_name}")
 
@@ -625,8 +566,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 self._current_theme and
                 self._current_theme.name != "minimal"):
                 try:
-                    minimal_theme = self._available_themes.get("minimal")
-                    if minimal_theme:
+                    if self._theme_manager.has_theme("minimal"):
+                        minimal_theme = self._theme_manager.get_theme("minimal")
                         self._app_theme_manager.coordinate_theme_switch(minimal_theme)
                         self._current_theme = minimal_theme
                         self.theme_changed.emit("minimal")
@@ -640,29 +581,29 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         return self._current_theme
 
     def get_available_themes(self) -> List[Union[str, Theme]]:
-        """
-        Get list of all available themes.
+        """Get list of all available themes.
 
         Returns a list of theme names that can be used with set_theme().
         This includes built-in themes, loaded themes, and imported themes.
 
         Returns:
             List of available theme names or Theme objects
+
         """
         try:
-            if not self._is_initialized:
+            if not self._is_initialized or not self._theme_manager:
                 return ["minimal"]  # Always available
 
             # Return theme objects for richer information
-            return list(self._available_themes.values())
+            theme_names = self._theme_manager.list_themes()
+            return [self._theme_manager.get_theme(name) for name in theme_names]
 
         except Exception as e:
             logger.error(f"Error getting available themes: {e}")
             return ["minimal"]  # Safe fallback
 
     def load_theme_file(self, file_path: Union[str, Path]) -> bool:
-        """
-        Load theme from file.
+        """Load theme from file.
 
         Supports JSON and YAML theme files with validation and error recovery.
 
@@ -671,6 +612,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             True if theme was loaded successfully, False otherwise
+
         """
         try:
             path = Path(file_path)
@@ -681,7 +623,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.debug(f"Loading theme from file: {path}")
 
             # Load file content
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 if path.suffix.lower() == '.yaml' or path.suffix.lower() == '.yml':
                     theme_data = yaml.safe_load(f)
                 else:
@@ -690,8 +632,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Create theme from data
             theme = Theme.from_dict(theme_data)
 
-            # Add to available themes
-            self._available_themes[theme.name] = theme
+            # Add to ThemeManager
+            self._theme_manager.add_theme(theme)
 
             # Task 18: Register file path for hot reload
             self._theme_file_paths[theme.name] = path
@@ -709,14 +651,14 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def save_current_theme(self, file_path: Union[str, Path]) -> bool:
-        """
-        Save current theme to file.
+        """Save current theme to file.
 
         Args:
             file_path: Path where to save theme file
 
         Returns:
             True if theme was saved successfully, False otherwise
+
         """
         try:
             if not self._current_theme:
@@ -744,8 +686,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def discover_themes_from_directory(self, directory_path: Union[str, Path]) -> int:
-        """
-        Discover and load all themes from a directory.
+        """Discover and load all themes from a directory.
 
         Scans the directory for theme files and loads all valid themes.
         Supports multiple theme formats and provides error tolerance.
@@ -755,6 +696,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             Number of themes successfully loaded
+
         """
         try:
             path = Path(directory_path)
@@ -780,8 +722,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return 0
 
     def import_vscode_theme(self, theme_file: Union[str, Path]) -> bool:
-        """
-        Import a VSCode theme file safely.
+        """Import a VSCode theme file safely.
 
         Parses and imports a VSCode theme file, converting it to the
         VFWidgets theme format. Includes security validation and
@@ -792,6 +733,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             True if import was successful, False otherwise
+
         """
         try:
             path = Path(theme_file)
@@ -802,7 +744,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.debug(f"Importing VSCode theme: {path}")
 
             # Load VSCode theme
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 vscode_data = json.load(f)
 
             # Convert VSCode theme to VFWidgets format
@@ -856,8 +798,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 }
             )
 
-            # Add to available themes
-            self._available_themes[theme.name] = theme
+            # Add to ThemeManager
+            self._theme_manager.add_theme(theme)
 
             # Task 18: Register file path for hot reload
             self._theme_file_paths[theme.name] = path
@@ -875,11 +817,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def auto_discover_vscode_themes(self) -> int:
-        """
-        Auto-discover and import VSCode themes.
+        """Auto-discover and import VSCode themes.
 
         Returns:
             Number of themes imported
+
         """
         try:
             if not self._config.vscode_integration:
@@ -900,16 +842,16 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return 0
 
     def auto_detect_system_theme(self) -> Optional[str]:
-        """
-        Auto-detect system theme preference.
+        """Auto-detect system theme preference.
 
         Returns:
             Detected theme name, or None if detection failed
+
         """
         try:
             detected_theme = detect_system_theme()
 
-            if detected_theme and detected_theme in self._available_themes:
+            if detected_theme and self._theme_manager.has_theme(detected_theme):
                 self.system_theme_detected.emit(detected_theme)
                 logger.debug(f"Detected system theme: {detected_theme}")
                 return detected_theme
@@ -923,11 +865,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return None
 
     def enable_system_theme_monitoring(self) -> bool:
-        """
-        Enable monitoring of system theme changes.
+        """Enable monitoring of system theme changes.
 
         Returns:
             True if monitoring was enabled successfully, False otherwise
+
         """
         try:
             if self._system_theme_monitoring:
@@ -948,11 +890,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def disable_system_theme_monitoring(self) -> bool:
-        """
-        Disable monitoring of system theme changes.
+        """Disable monitoring of system theme changes.
 
         Returns:
             True if monitoring was disabled successfully, False otherwise
+
         """
         try:
             if not self._system_theme_monitoring:
@@ -975,7 +917,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         try:
             detected_theme = detect_system_theme()
             if (detected_theme and
-                detected_theme in self._available_themes and
+                self._theme_manager.has_theme(detected_theme) and
                 (not self._current_theme or detected_theme != self._current_theme.name)):
 
                 logger.debug(f"System theme changed to: {detected_theme}")
@@ -985,11 +927,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error checking system theme: {e}")
 
     def reload_current_theme(self) -> bool:
-        """
-        Reload current theme from its source.
+        """Reload current theme from its source.
 
         Returns:
             True if reload was successful, False otherwise
+
         """
         try:
             if not self._current_theme:
@@ -1019,11 +961,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def get_performance_statistics(self) -> Dict[str, Any]:
-        """
-        Get application-level performance statistics.
+        """Get application-level performance statistics.
 
         Returns:
             Dictionary containing performance metrics
+
         """
         try:
             stats = self._app_theme_manager.get_performance_stats()
@@ -1032,7 +974,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             theme_manager = ThemeManager.get_instance()
             registry = theme_manager._widget_registry if theme_manager else None
             stats.update({
-                'total_themes': len(self._available_themes),
+                'total_themes': len(self._theme_manager.list_themes()),
                 'theme_directories': len(self._theme_directories),
                 'system_monitoring': self._system_theme_monitoring,
                 'total_widgets': registry.count() if registry else 0,
@@ -1047,6 +989,298 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         except Exception as e:
             logger.error(f"Error getting performance statistics: {e}")
             return {}
+
+    # ================================================================
+    # Theme Metadata Methods
+    # ================================================================
+
+    def get_theme_info(self, theme_name: Optional[str] = None) -> Optional['ThemeInfo']:
+        """Get metadata information for a theme.
+
+        Args:
+            theme_name: Name of theme to get info for. If None, uses current theme.
+
+        Returns:
+            ThemeInfo object if found, None otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> info = app.get_theme_info("dark")
+            >>> if info:
+            ...     print(f"{info.display_name}: {info.description}")
+
+        """
+        try:
+
+            # If no theme name provided, use current theme
+            if theme_name is None:
+                if self._current_theme:
+                    theme_name = self._current_theme.name
+                else:
+                    return None
+
+            # Try to get from metadata provider
+            info = self._metadata_provider.get_metadata(theme_name)
+
+            # If not found, try to create from theme object
+            if info is None and self._theme_manager.has_theme(theme_name):
+                theme = self._theme_manager.get_theme(theme_name)
+                info = self._metadata_provider.create_from_theme(theme)
+                # Register for future use
+                self._metadata_provider.register_metadata(theme_name, info)
+
+            return info
+
+        except Exception as e:
+            logger.error(f"Error getting theme info for '{theme_name}': {e}")
+            return None
+
+    def get_all_theme_info(self) -> Dict[str, 'ThemeInfo']:
+        """Get metadata for all available themes.
+
+        Returns:
+            Dictionary mapping theme names to ThemeInfo objects
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> all_info = app.get_all_theme_info()
+            >>> for name, info in all_info.items():
+            ...     print(f"{info.display_name} ({info.type})")
+
+        """
+        try:
+            # Ensure all themes have metadata
+            for theme_name in self._theme_manager.list_themes():
+                if not self._metadata_provider.has_metadata(theme_name):
+                    theme = self._theme_manager.get_theme(theme_name)
+                    info = self._metadata_provider.create_from_theme(theme)
+                    self._metadata_provider.register_metadata(theme_name, info)
+
+            return self._metadata_provider.get_all_metadata()
+
+        except Exception as e:
+            logger.error(f"Error getting all theme info: {e}")
+            return {}
+
+    # ================================================================
+    # Theme Switching Enhancement Methods
+    # ================================================================
+
+    def toggle_theme(self, theme1: Optional[str] = None, theme2: Optional[str] = None) -> bool:
+        """Toggle between two themes.
+
+        If current theme is theme1, switches to theme2 and vice versa.
+        If current theme is neither, switches to theme1 (or theme2 if theme1 not provided).
+
+        Args:
+            theme1: First theme name (defaults to "dark")
+            theme2: Second theme name (defaults to "light")
+
+        Returns:
+            True if toggle was successful, False otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> app.set_theme("dark")
+            >>> app.toggle_theme("dark", "light")  # Switches to light
+            >>> app.toggle_theme("dark", "light")  # Switches back to dark
+
+        """
+        try:
+            # Default themes
+            theme1 = theme1 or "dark"
+            theme2 = theme2 or "light"
+
+            # Determine which theme to switch to
+            if self._current_theme:
+                current_name = self._current_theme.name
+                if current_name == theme1:
+                    target_theme = theme2
+                elif current_name == theme2:
+                    target_theme = theme1
+                else:
+                    # Current theme is neither, switch to first
+                    target_theme = theme1
+            else:
+                # No current theme, switch to first
+                target_theme = theme1
+
+            # Switch to target theme
+            return self.set_theme(target_theme)
+
+        except Exception as e:
+            logger.error(f"Error toggling theme: {e}")
+            return False
+
+    def cycle_theme(self, theme_list: Optional[List[str]] = None, reverse: bool = False) -> bool:
+        """Cycle to the next theme in a list.
+
+        If no list provided, cycles through all available themes.
+        If current theme is not in list, starts from beginning (or end if reverse).
+
+        Args:
+            theme_list: Optional list of theme names to cycle through.
+                       If None, uses all available themes.
+            reverse: If True, cycles in reverse order
+
+        Returns:
+            True if cycle was successful, False otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> app.cycle_theme(["dark", "light", "default"])  # Cycles through list
+            >>> app.cycle_theme(reverse=True)  # Cycles backwards through all themes
+
+        """
+        try:
+            # Get theme list
+            if theme_list is None:
+                theme_list = self._theme_manager.list_themes()
+
+            if not theme_list:
+                logger.warning("No themes available to cycle through")
+                return False
+
+            # Get current theme name
+            current_name = self._current_theme.name if self._current_theme else None
+
+            # Find current index
+            try:
+                current_index = theme_list.index(current_name) if current_name else -1
+            except ValueError:
+                # Current theme not in list, start from beginning
+                current_index = -1
+
+            # Calculate next index
+            if reverse:
+                next_index = (current_index - 1) % len(theme_list)
+            else:
+                next_index = (current_index + 1) % len(theme_list)
+
+            # Switch to next theme
+            next_theme = theme_list[next_index]
+            return self.set_theme(next_theme)
+
+        except Exception as e:
+            logger.error(f"Error cycling theme: {e}")
+            return False
+
+    # ================================================================
+    # Theme Preview System Methods
+    # ================================================================
+
+    @property
+    def is_previewing(self) -> bool:
+        """Check if currently previewing a theme."""
+        return self._preview_original_theme is not None
+
+    def preview_theme(self, theme_name: str) -> bool:
+        """Preview a theme without persisting the change.
+
+        The theme is applied immediately but can be cancelled with cancel_preview()
+        or committed with commit_preview().
+
+        Args:
+            theme_name: Name of theme to preview
+
+        Returns:
+            True if preview started successfully, False otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> app.set_theme("dark")
+            >>> app.preview_theme("light")  # Preview light theme
+            >>> app.cancel_preview()        # Revert to dark
+
+        """
+        try:
+            # Store original theme if not already previewing
+            if self._preview_original_theme is None:
+                self._preview_original_theme = self._current_theme
+
+            # Apply preview theme without persistence
+            success = self.set_theme(theme_name, persist=False)
+
+            if success:
+                # Emit preview started signal
+                self.theme_preview_started.emit(theme_name)
+                logger.debug(f"Preview started for theme: {theme_name}")
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Error previewing theme '{theme_name}': {e}")
+            return False
+
+    def commit_preview(self) -> bool:
+        """Commit the current preview as the permanent theme.
+
+        Returns:
+            True if commit was successful, False otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> app.preview_theme("light")
+            >>> app.commit_preview()  # Keep light theme
+
+        """
+        try:
+            if self._preview_original_theme is None:
+                # Not previewing, nothing to commit
+                return True
+
+            # Current theme becomes permanent
+            if self._current_theme:
+                # Persist the current theme
+                if self._config.persist_theme:
+                    save_theme_preference(self._current_theme.name)
+
+            # Clear preview state
+            self._preview_original_theme = None
+
+            # Emit preview ended signal (committed=True)
+            self.theme_preview_ended.emit(True)
+            logger.debug("Preview committed")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Error committing preview: {e}")
+            return False
+
+    def cancel_preview(self) -> bool:
+        """Cancel the current preview and revert to original theme.
+
+        Returns:
+            True if cancel was successful, False otherwise
+
+        Example:
+            >>> app = ThemedApplication([])
+            >>> app.preview_theme("light")
+            >>> app.cancel_preview()  # Revert to original theme
+
+        """
+        try:
+            if self._preview_original_theme is None:
+                # Not previewing, nothing to cancel
+                return True
+
+            # Revert to original theme
+            original_theme = self._preview_original_theme
+            self._preview_original_theme = None  # Clear before switching to avoid recursion
+
+            # Restore original theme without persistence
+            success = self.set_theme(original_theme, persist=False)
+
+            # Emit preview ended signal (committed=False)
+            self.theme_preview_ended.emit(False)
+            logger.debug("Preview cancelled, reverted to original theme")
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Error cancelling preview: {e}")
+            return False
 
     # ================================================================
     # Task 18: Hot Reload System Methods
@@ -1072,8 +1306,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error initializing hot reload: {e}")
 
     def enable_hot_reload(self, watch_directories: Optional[List[Union[str, Path]]] = None) -> bool:
-        """
-        Enable theme hot reloading.
+        """Enable theme hot reloading.
 
         Args:
             watch_directories: Optional list of directories to watch. If None,
@@ -1081,6 +1314,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             True if hot reload was enabled successfully
+
         """
         try:
             if self._hot_reload_enabled:
@@ -1125,11 +1359,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def disable_hot_reload(self) -> bool:
-        """
-        Disable theme hot reloading.
+        """Disable theme hot reloading.
 
         Returns:
             True if hot reload was disabled successfully
+
         """
         try:
             if not self._hot_reload_enabled:
@@ -1167,14 +1401,14 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         }
 
     def _hot_reload_theme_file(self, file_path: Path) -> bool:
-        """
-        Hot reload callback for theme files.
+        """Hot reload callback for theme files.
 
         Args:
             file_path: Path to the changed theme file
 
         Returns:
             True if reload was successful
+
         """
         try:
             logger.debug(f"Hot reloading theme file: {file_path}")
@@ -1192,7 +1426,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 success = self.load_theme_file(file_path)
                 if success:
                     # Find the newly loaded theme
-                    for name, theme in self._available_themes.items():
+                    for name in self._theme_manager.list_themes():
+                        theme = self._theme_manager.get_theme(name)
                         metadata = getattr(theme, 'metadata', {})
                         if metadata.get('original_path') == str(file_path):
                             theme_name = name
@@ -1202,7 +1437,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Reload existing theme
             if theme_name:
                 # Check if this is a VSCode theme
-                current_theme = self._available_themes.get(theme_name)
+                current_theme = self._theme_manager.get_theme(theme_name) if self._theme_manager.has_theme(theme_name) else None
                 if current_theme and hasattr(current_theme, 'metadata'):
                     metadata = current_theme.metadata
                     if metadata.get('source') == 'vscode':
@@ -1253,8 +1488,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error handling reload error signal: {e}")
 
     def watch_theme_file(self, file_path: Union[str, Path], theme_name: Optional[str] = None) -> bool:
-        """
-        Add a theme file to hot reload watching.
+        """Add a theme file to hot reload watching.
 
         Args:
             file_path: Path to theme file to watch
@@ -1262,6 +1496,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         Returns:
             True if file was added to watching successfully
+
         """
         try:
             if not self._hot_reload_enabled or not self._hot_reloader:
@@ -1289,14 +1524,14 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def unwatch_theme_file(self, file_path: Union[str, Path]) -> bool:
-        """
-        Remove a theme file from hot reload watching.
+        """Remove a theme file from hot reload watching.
 
         Args:
             file_path: Path to theme file to stop watching
 
         Returns:
             True if file was removed from watching successfully
+
         """
         try:
             if not self._hot_reload_enabled or not self._hot_reloader:
@@ -1327,8 +1562,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             return False
 
     def cleanup(self) -> None:
-        """
-        Clean up theme system resources.
+        """Clean up theme system resources.
 
         This method is called automatically when the application shuts down,
         but can be called manually if needed.

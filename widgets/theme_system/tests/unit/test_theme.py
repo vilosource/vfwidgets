@@ -13,26 +13,25 @@ These tests validate the core theme data structures and operations
 that power ThemedWidget with immutable, validated theme data.
 """
 
-import pytest
 import json
 import time
-from typing import Dict, Any, Optional
-from dataclasses import FrozenInstanceError
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import FrozenInstanceError
+
+import pytest
 
 # Import the components we're testing
 from vfwidgets_theme.core.theme import (
-    Theme, ThemeBuilder, ThemeValidator, ThemeComposer, PropertyResolver,
-    ColorPalette, StyleProperties, ThemeMetadata, TokenColors,
-    validate_theme_data, create_theme_from_dict
+    PropertyResolver,
+    Theme,
+    ThemeBuilder,
+    ThemeComposer,
+    ThemeValidator,
+    create_theme_from_dict,
+    validate_theme_data,
 )
-from vfwidgets_theme.errors import (
-    ThemeLoadError, InvalidThemeFormatError, PropertyNotFoundError
-)
-from vfwidgets_theme.protocols import ColorValue, PropertyKey, PropertyValue
-from vfwidgets_theme.testing import ThemedTestCase, ThemeBenchmark
+from vfwidgets_theme.errors import InvalidThemeFormatError, PropertyNotFoundError
+from vfwidgets_theme.testing import ThemedTestCase
 
 
 class TestThemeImmutability(ThemedTestCase):

@@ -34,8 +34,8 @@ pip install -e .
 ```python
 #!/usr/bin/env python3
 import sys
-from PySide6.QtWidgets import QPushButton
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
+from PySide6.QtWidgets import QPushButton, QVBoxLayout
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
 
 # 1. Use ThemedApplication
 app = ThemedApplication(sys.argv)
@@ -44,9 +44,13 @@ app = ThemedApplication(sys.argv)
 window = ThemedMainWindow()
 window.setWindowTitle("My Themed App")
 
-# 3. Add widgets - automatically themed!
-central = window.create_central_widget()
-button = QPushButton("Click Me!", central)
+# 3. Create central widget and add widgets - automatically themed!
+central = ThemedQWidget()
+window.setCentralWidget(central)
+layout = QVBoxLayout(central)
+
+button = QPushButton("Click Me!")
+layout.addWidget(button)
 
 window.show()
 sys.exit(app.exec())

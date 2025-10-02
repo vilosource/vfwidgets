@@ -1,5 +1,4 @@
-"""
-Pattern Recognition with Caching - Task 14
+"""Pattern Recognition with Caching - Task 14
 
 This module implements high-performance pattern matching that complements
 the CSS selector system from Task 13. It provides:
@@ -19,25 +18,28 @@ Key Features:
 - Comprehensive performance monitoring
 """
 
-import re
-import glob
 import fnmatch
-import weakref
+import re
 import threading
 import time
-from typing import (
-    Any, Dict, List, Optional, Union, Set, Tuple, Callable,
-    Pattern, NamedTuple, TYPE_CHECKING, Protocol
-)
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
-from functools import lru_cache
-from collections import OrderedDict, defaultdict
+from re import Pattern
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Protocol,
+    Tuple,
+)
 
 if TYPE_CHECKING:
     from ..widgets.base import ThemedWidget
 
-from ..protocols import PropertyKey, PropertyValue, ThemeData
 from ..errors import ThemeError
 from ..logging import get_debug_logger
 
@@ -46,11 +48,13 @@ logger = get_debug_logger(__name__)
 
 class PatternError(ThemeError):
     """Raised when pattern operations fail."""
+
     pass
 
 
 class PatternType(Enum):
     """Types of patterns supported by the matcher."""
+
     GLOB = "glob"           # shell-style wildcards: *.txt, test_*
     REGEX = "regex"         # regular expressions: test_\d+
     CUSTOM = "custom"       # custom function patterns
@@ -59,6 +63,7 @@ class PatternType(Enum):
 
 class PatternPriority(IntEnum):
     """Priority levels for pattern resolution."""
+
     LOWEST = 0
     LOW = 100
     NORMAL = 500
@@ -69,6 +74,7 @@ class PatternPriority(IntEnum):
 
 class MatchResult(NamedTuple):
     """Result of a pattern match operation."""
+
     matched: bool
     score: float           # 0.0 to 1.0, higher is better match
     metadata: Dict[str, Any] = {}
@@ -78,8 +84,7 @@ class PatternFunction(Protocol):
     """Protocol for custom pattern functions."""
 
     def __call__(self, target: str, widget: 'ThemedWidget') -> MatchResult:
-        """
-        Check if target matches the pattern.
+        """Check if target matches the pattern.
 
         Args:
             target: String to match against
@@ -87,6 +92,7 @@ class PatternFunction(Protocol):
 
         Returns:
             MatchResult indicating match status and quality
+
         """
         ...
 
@@ -94,6 +100,7 @@ class PatternFunction(Protocol):
 @dataclass
 class Pattern:
     """Represents a pattern with metadata."""
+
     pattern: str
     pattern_type: PatternType
     priority: PatternPriority = PatternPriority.NORMAL
@@ -113,8 +120,7 @@ class Pattern:
 
 
 class LRUCache:
-    """
-    High-performance LRU cache optimized for pattern matching.
+    """High-performance LRU cache optimized for pattern matching.
 
     Features:
     - Thread-safe operations
@@ -185,8 +191,7 @@ class LRUCache:
 
 
 class PatternMatcher:
-    """
-    High-performance pattern matching engine with caching.
+    """High-performance pattern matching engine with caching.
 
     This class complements the CSS selector system from Task 13 by providing
     additional pattern matching capabilities including glob patterns, regex,
@@ -202,12 +207,12 @@ class PatternMatcher:
     """
 
     def __init__(self, cache_size: int = 1000, debug: bool = False):
-        """
-        Initialize pattern matcher.
+        """Initialize pattern matcher.
 
         Args:
             cache_size: Maximum number of cached match results
             debug: Enable debug logging
+
         """
         self.debug = debug
 
@@ -220,7 +225,7 @@ class PatternMatcher:
         self._pattern_cache = LRUCache(cache_size // 2)  # Compiled patterns
 
         # Plugin system
-        self._plugins: Dict[str, 'PatternPlugin'] = {}
+        self._plugins: Dict[str, PatternPlugin] = {}
 
         # Performance tracking
         self._stats = {
@@ -247,8 +252,7 @@ class PatternMatcher:
                    description: Optional[str] = None,
                    custom_function: Optional[PatternFunction] = None,
                    plugin_name: Optional[str] = None) -> int:
-        """
-        Add a pattern to the matcher.
+        """Add a pattern to the matcher.
 
         Args:
             pattern: Pattern string
@@ -264,6 +268,7 @@ class PatternMatcher:
 
         Raises:
             PatternError: If pattern is invalid
+
         """
         try:
             # Validate pattern
@@ -322,8 +327,7 @@ class PatternMatcher:
 
     def match_patterns(self, target: str, widget: 'ThemedWidget',
                       context: Optional[Dict[str, Any]] = None) -> List[Tuple[int, Pattern, MatchResult]]:
-        """
-        Find all patterns that match the target string.
+        """Find all patterns that match the target string.
 
         Args:
             target: String to match against
@@ -332,6 +336,7 @@ class PatternMatcher:
 
         Returns:
             List of (pattern_index, pattern, match_result) tuples
+
         """
         start_time = time.perf_counter()
 
@@ -378,8 +383,7 @@ class PatternMatcher:
 
     def get_best_match(self, target: str, widget: 'ThemedWidget',
                       context: Optional[Dict[str, Any]] = None) -> Optional[Tuple[int, Pattern, MatchResult]]:
-        """
-        Get the best matching pattern based on priority and match score.
+        """Get the best matching pattern based on priority and match score.
 
         Args:
             target: String to match against
@@ -388,6 +392,7 @@ class PatternMatcher:
 
         Returns:
             Best matching (pattern_index, pattern, match_result) or None
+
         """
         matches = self.match_patterns(target, widget, context)
 
@@ -443,14 +448,14 @@ class PatternMatcher:
         self._clear_caches()
 
     def benchmark_performance(self, iterations: int = 1000) -> Dict[str, float]:
-        """
-        Benchmark pattern matching performance.
+        """Benchmark pattern matching performance.
 
         Args:
             iterations: Number of test iterations
 
         Returns:
             Performance metrics in milliseconds
+
         """
         # Create test widget
         test_widget = MockWidget("benchmark_widget")

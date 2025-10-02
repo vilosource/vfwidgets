@@ -161,31 +161,44 @@ class ChromeTabBar(QTabBar):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+        # Get theme from parent ChromeTabbedWindow
+        theme = self._get_theme_from_parent()
+
         # Use ChromeTabRenderer for background
-        ChromeTabRenderer.draw_tab_bar_background(painter, self.rect())
+        ChromeTabRenderer.draw_tab_bar_background(painter, self.rect(), theme)
 
         # No need to calculate here - tabSizeHint handles it
 
         # Paint tabs from back to front (inactive first, active last)
         for i in range(self.count()):
             if i != self.currentIndex():
-                self._paint_chrome_tab_with_renderer(painter, i, False)
+                self._paint_chrome_tab_with_renderer(painter, i, False, theme)
 
         # Paint active tab on top
         if self.currentIndex() >= 0:
-            self._paint_chrome_tab_with_renderer(painter, self.currentIndex(), True)
+            self._paint_chrome_tab_with_renderer(painter, self.currentIndex(), True, theme)
 
 
         # Paint new tab button
         self.new_tab_button_rect = self._calculate_new_tab_button_position()
         state = TabState.HOVER if self.new_tab_button_hovered else TabState.NORMAL
-        ChromeTabRenderer.draw_new_tab_button(painter, self.new_tab_button_rect, state)
+        ChromeTabRenderer.draw_new_tab_button(painter, self.new_tab_button_rect, state, theme)
 
         # Paint drag indicator if dragging
         if self._is_dragging and self._drag_indicator_position >= 0:
             self._paint_drag_indicator(painter)
 
-    def _paint_chrome_tab_with_renderer(self, painter: QPainter, index: int, is_active: bool) -> None:
+    def _get_theme_from_parent(self):
+        """Get theme from parent ChromeTabbedWindow if available."""
+        parent_window = self.parent()
+        while parent_window:
+            # Check if parent has get_current_theme method (is a ThemedWidget)
+            if hasattr(parent_window, 'get_current_theme'):
+                return parent_window.get_current_theme()
+            parent_window = parent_window.parent()
+        return None
+
+    def _paint_chrome_tab_with_renderer(self, painter: QPainter, index: int, is_active: bool, theme=None) -> None:
         """Paint a single Chrome-style tab using ChromeTabRenderer."""
         rect = self.tabRect(index)
         text = self.tabText(index)
@@ -203,7 +216,7 @@ class ChromeTabBar(QTabBar):
         if index == self._close_button_hovered and hasattr(self, '_model') and self._model.tabs_closable():
             close_button_state = TabState.HOVER
 
-        # Use ChromeTabRenderer to draw the tab
+        # Use ChromeTabRenderer to draw the tab with theme
         ChromeTabRenderer.draw_tab(
             painter,
             rect,
@@ -211,7 +224,8 @@ class ChromeTabBar(QTabBar):
             state,
             has_close_button=True,
             is_closable=hasattr(self, '_model') and self._model.tabs_closable(),
-            close_button_state=close_button_state
+            close_button_state=close_button_state,
+            theme=theme
         )
 
     def _paint_chrome_tab(self, painter: QPainter, index: int, is_active: bool) -> None:

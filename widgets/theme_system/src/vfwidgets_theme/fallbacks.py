@@ -1,5 +1,4 @@
-"""
-Fallback theme mechanism for VFWidgets Theme System.
+"""Fallback theme mechanism for VFWidgets Theme System.
 
 This module provides the MINIMAL_THEME that ALWAYS works and graceful
 degradation strategies. Ensures applications remain functional even
@@ -22,46 +21,45 @@ Performance Requirements:
 """
 
 import threading
-from typing import Any, Dict, Optional, Union
 from copy import deepcopy
-
+from typing import Any, Dict, Optional
 
 # MINIMAL_THEME - The theme that ALWAYS works
 # This is hardcoded and never depends on external resources
 MINIMAL_THEME: Dict[str, Any] = {
+    "name": "minimal",
+    "version": "1.0.0",
     "metadata": {
-        "name": "minimal-fallback",
-        "version": "1.0.0",
         "description": "Hardcoded minimal theme for error recovery",
         "author": "VFWidgets Theme System"
     },
 
     "colors": {
-        # Primary colors - safe, accessible defaults
-        "primary": "#007acc",      # Blue - widely recognizable as primary
-        "secondary": "#6c757d",    # Gray - neutral secondary
-        "background": "#ffffff",   # White - maximum contrast
-        "surface": "#f8f9fa",      # Light gray - subtle surface
-        "text": "#212529",         # Dark gray - high contrast text
-        "text_secondary": "#6c757d",  # Medium gray - secondary text
+        # Primary colors - safe, accessible defaults (NAMESPACED keys)
+        "colors.primary": "#007acc",      # Blue - widely recognizable as primary
+        "colors.secondary": "#6c757d",    # Gray - neutral secondary
+        "colors.background": "#ffffff",   # White - maximum contrast
+        "colors.surface": "#f8f9fa",      # Light gray - subtle surface
+        "colors.text": "#212529",         # Dark gray - high contrast text
+        "colors.text_secondary": "#6c757d",  # Medium gray - secondary text
 
         # Status colors - standard, accessible
-        "success": "#28a745",      # Green - universally understood
-        "warning": "#ffc107",      # Yellow - attention without alarm
-        "error": "#dc3545",        # Red - clear error indication
-        "info": "#17a2b8",         # Teal - informational
+        "colors.success": "#28a745",      # Green - universally understood
+        "colors.warning": "#ffc107",      # Yellow - attention without alarm
+        "colors.error": "#dc3545",        # Red - clear error indication
+        "colors.info": "#17a2b8",         # Teal - informational
 
         # UI element colors
-        "border": "#dee2e6",       # Light gray - subtle borders
-        "divider": "#e9ecef",      # Very light gray - content separation
-        "shadow": "#00000010",     # Transparent black - subtle shadows
-        "focus": "#007acc40",      # Semi-transparent primary - focus rings
+        "colors.border": "#dee2e6",       # Light gray - subtle borders
+        "colors.divider": "#e9ecef",      # Very light gray - content separation
+        "colors.shadow": "#00000010",     # Transparent black - subtle shadows
+        "colors.focus": "#007acc40",      # Semi-transparent primary - focus rings
 
         # Interactive states
-        "hover": "#0056b3",        # Darker blue - clear hover state
-        "active": "#004085",       # Even darker blue - active state
-        "disabled": "#6c757d",     # Gray - clearly disabled
-        "disabled_bg": "#e9ecef",  # Light gray - disabled background
+        "colors.hover": "#0056b3",        # Darker blue - clear hover state
+        "colors.active": "#004085",       # Even darker blue - active state
+        "colors.disabled": "#6c757d",     # Gray - clearly disabled
+        "colors.disabled_bg": "#e9ecef",  # Light gray - disabled background
     },
 
     "fonts": {
@@ -169,6 +167,7 @@ class FallbackColorSystem:
         color_system = FallbackColorSystem()
         primary = color_system.get_color("primary")  # "#007acc"
         unknown = color_system.get_color("unknown")  # fallback color
+
     """
 
     def __init__(self):
@@ -176,13 +175,32 @@ class FallbackColorSystem:
         self._fallback_color = "#000000"  # Black - safest fallback
         self._color_aliases = {
             # Common color aliases for flexibility
-            "primary_color": "primary",
-            "background_color": "background",
-            "text_color": "text",
-            "border_color": "border",
-            "accent": "primary",
-            "fg": "text",
-            "bg": "background",
+            "primary_color": "colors.primary",
+            "background_color": "colors.background",
+            "text_color": "colors.text",
+            "border_color": "colors.border",
+            "accent": "colors.primary",
+            "fg": "colors.text",
+            "bg": "colors.background",
+            # Legacy simple key mappings for backward compatibility
+            "primary": "colors.primary",
+            "secondary": "colors.secondary",
+            "background": "colors.background",
+            "surface": "colors.surface",
+            "text": "colors.text",
+            "text_secondary": "colors.text_secondary",
+            "success": "colors.success",
+            "warning": "colors.warning",
+            "error": "colors.error",
+            "info": "colors.info",
+            "border": "colors.border",
+            "divider": "colors.divider",
+            "shadow": "colors.shadow",
+            "focus": "colors.focus",
+            "hover": "colors.hover",
+            "active": "colors.active",
+            "disabled": "colors.disabled",
+            "disabled_bg": "colors.disabled_bg",
         }
 
     def get_color(self, color_key: str) -> str:
@@ -195,6 +213,7 @@ class FallbackColorSystem:
             Valid color value. Never None.
 
         Performance: < 100μs for any lookup.
+
         """
         # Check color aliases first
         actual_key = self._color_aliases.get(color_key, color_key)
@@ -219,6 +238,7 @@ class FallbackColorSystem:
             True if color is valid.
 
         Performance: < 50μs for validation.
+
         """
         if not isinstance(color, str):
             return False
@@ -251,6 +271,7 @@ class FallbackColorSystem:
             Safe fallback color that always works.
 
         Performance: < 10μs (immediate return).
+
         """
         return self._fallback_color
 
@@ -262,6 +283,7 @@ class FallbackColorSystem:
 
         Note:
             Only use this for testing or special cases.
+
         """
         if self._is_valid_color(color):
             with self._lock:
@@ -278,6 +300,7 @@ def create_fallback_color_system() -> FallbackColorSystem:
 
     Returns:
         New FallbackColorSystem instance.
+
     """
     return FallbackColorSystem()
 
@@ -287,6 +310,7 @@ def get_global_fallback_color_system() -> FallbackColorSystem:
 
     Returns:
         Global FallbackColorSystem instance (thread-safe singleton).
+
     """
     global _global_fallback_system
 
@@ -307,6 +331,7 @@ def get_fallback_theme() -> Dict[str, Any]:
 
     Performance: < 100μs through optimized copying.
     Memory: Creates new copy each time to prevent mutation.
+
     """
     return deepcopy(MINIMAL_THEME)
 
@@ -321,6 +346,7 @@ def get_fallback_color(color_key: str) -> str:
         Valid color value from minimal theme or ultimate fallback.
 
     Performance: < 100μs for any color lookup.
+
     """
     color_system = get_global_fallback_color_system()
     return color_system.get_color(color_key)
@@ -341,6 +367,7 @@ def get_fallback_property(property_path: str) -> Any:
         primary_color = get_fallback_property("colors.primary")
         font_size = get_fallback_property("fonts.size")
         spacing = get_fallback_property("spacing.default")
+
     """
     try:
         # Split path and navigate through theme
@@ -374,6 +401,7 @@ def validate_theme_completeness(theme_data: Dict[str, Any]) -> Dict[str, Any]:
         incomplete_theme = {"colors": {"primary": "#007acc"}}
         complete_theme = validate_theme_completeness(incomplete_theme)
         # complete_theme now has all required properties
+
     """
     if not isinstance(theme_data, dict):
         return get_fallback_theme()
@@ -396,6 +424,7 @@ def _deep_merge(target: Dict[str, Any], source: Dict[str, Any]) -> None:
 
     Note:
         Modifies target dictionary in place.
+
     """
     for key, value in source.items():
         if (
@@ -412,26 +441,27 @@ def get_safe_color_palette() -> Dict[str, str]:
     """Get a safe color palette for emergency fallbacks.
 
     Returns:
-        Dictionary of safe, accessible colors.
+        Dictionary of safe, accessible colors with namespaced keys.
 
     Performance: < 50μs (immediate return of pre-defined palette).
 
     Example:
         palette = get_safe_color_palette()
-        safe_red = palette["error"]  # "#dc3545"
+        safe_red = palette["colors.error"]  # "#dc3545"
+
     """
     return {
-        "primary": "#007acc",
-        "secondary": "#6c757d",
-        "background": "#ffffff",
-        "text": "#212529",
-        "success": "#28a745",
-        "warning": "#ffc107",
-        "error": "#dc3545",
-        "info": "#17a2b8",
-        "border": "#dee2e6",
-        "black": "#000000",
-        "white": "#ffffff",
+        "colors.primary": "#007acc",
+        "colors.secondary": "#6c757d",
+        "colors.background": "#ffffff",
+        "colors.text": "#212529",
+        "colors.success": "#28a745",
+        "colors.warning": "#ffc107",
+        "colors.error": "#dc3545",
+        "colors.info": "#17a2b8",
+        "colors.border": "#dee2e6",
+        "colors.black": "#000000",
+        "colors.white": "#ffffff",
     }
 
 
@@ -440,6 +470,7 @@ def reset_fallback_system() -> None:
 
     Note:
         This is primarily for testing purposes.
+
     """
     global _global_fallback_system
     with _fallback_lock:
@@ -448,6 +479,7 @@ def reset_fallback_system() -> None:
 
 # Performance optimization: pre-compile color validation regex
 import re
+
 _hex_color_pattern = re.compile(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
 
 
@@ -461,6 +493,7 @@ def is_valid_hex_color(color: str) -> bool:
         True if valid hex color.
 
     Performance: < 10μs using compiled regex.
+
     """
     return bool(_hex_color_pattern.match(color))
 

@@ -1,23 +1,21 @@
-"""
-Icon font loader for font-based icon themes.
+"""Icon font loader for font-based icon themes.
 
 Handles loading icon fonts and creating QIcon objects from font characters.
 """
 
 from pathlib import Path
-from typing import Optional, Dict
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QFont, QFontDatabase, QColor, QPen
-from PyQt6.QtCore import QSize, Qt
+from typing import Dict, Optional
 
-from ..errors import ThemeSystemError
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QColor, QFont, QFontDatabase, QIcon, QPainter, QPen, QPixmap
+
 from ..logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class IconFontLoader:
-    """
-    Loads and manages icon fonts for creating icons from font characters.
+    """Loads and manages icon fonts for creating icons from font characters.
 
     Supports TTF, OTF, WOFF, and WOFF2 font formats.
     """
@@ -28,14 +26,14 @@ class IconFontLoader:
         self._font_database = QFontDatabase()
 
     def load_font(self, font_path: Path) -> Optional[str]:
-        """
-        Load icon font from file.
+        """Load icon font from file.
 
         Args:
             font_path: Path to font file
 
         Returns:
             Font family name if successful, None otherwise
+
         """
         logger.info(f"Loading icon font: {font_path}")
 
@@ -78,8 +76,7 @@ class IconFontLoader:
                              character: str,
                              size: QSize,
                              color: Optional[str] = None) -> Optional[QIcon]:
-        """
-        Create QIcon from font character.
+        """Create QIcon from font character.
 
         Args:
             font_family: Font family name
@@ -89,6 +86,7 @@ class IconFontLoader:
 
         Returns:
             QIcon object or None if creation fails
+
         """
         try:
             # Parse character
@@ -173,14 +171,14 @@ class IconFontLoader:
         return self._loaded_fonts.get(str(font_path))
 
     def unload_font(self, font_path: Path) -> bool:
-        """
-        Unload font from application.
+        """Unload font from application.
 
         Args:
             font_path: Path to font file
 
         Returns:
             True if successfully unloaded
+
         """
         font_path_str = str(font_path)
         if font_path_str not in self._loaded_fonts:
@@ -198,8 +196,7 @@ class IconFontLoader:
             return False
 
     def create_preview_icon(self, font_family: str, sample_chars: str = "Aa", size: QSize = None) -> Optional[QIcon]:
-        """
-        Create preview icon showing font sample.
+        """Create preview icon showing font sample.
 
         Args:
             font_family: Font family name
@@ -208,6 +205,7 @@ class IconFontLoader:
 
         Returns:
             Preview icon
+
         """
         if size is None:
             size = QSize(32, 32)
@@ -249,14 +247,14 @@ class IconFontLoader:
             return None
 
     def get_font_info(self, font_family: str) -> Dict[str, any]:
-        """
-        Get information about loaded font.
+        """Get information about loaded font.
 
         Args:
             font_family: Font family name
 
         Returns:
             Dictionary with font information
+
         """
         try:
             font = QFont(font_family)
@@ -279,8 +277,7 @@ class IconFontLoader:
             return {}
 
     def test_character_support(self, font_family: str, character: str) -> bool:
-        """
-        Test if font supports a specific character.
+        """Test if font supports a specific character.
 
         Args:
             font_family: Font family name
@@ -288,6 +285,7 @@ class IconFontLoader:
 
         Returns:
             True if character is supported
+
         """
         try:
             font = QFont(font_family)

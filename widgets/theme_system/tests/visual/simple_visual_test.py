@@ -6,13 +6,14 @@ Simple Visual Test to verify framework works
 import sys
 import tempfile
 from pathlib import Path
+
 from PySide6.QtWidgets import QApplication, QLabel
 
 # Ensure QApplication exists before importing our modules
 if not QApplication.instance():
     app = QApplication(sys.argv)
 
-from framework import VisualTestFramework, ComparisonResult
+from framework import VisualTestFramework
 
 
 def test_simple_visual():
@@ -59,7 +60,7 @@ def test_simple_visual():
 
         # Generate report
         report = framework.generate_test_report()
-        print(f"\nTest Report:")
+        print("\nTest Report:")
         print(f"Total tests: {report['total']}")
         print(f"Success rate: {report['success_rate']:.1%}")
 

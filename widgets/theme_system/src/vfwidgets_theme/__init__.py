@@ -1,5 +1,4 @@
-"""
-VFWidgets Theme System
+"""VFWidgets Theme System
 
 A comprehensive, performance-first theme system for PySide6/Qt applications
 built on clean architecture principles.
@@ -36,109 +35,103 @@ correct implementation, no compromises."
 All complexity is hidden behind ThemedWidget while maintaining
 bulletproof architecture underneath through dependency injection,
 protocols, and clean separation of concerns.
+
 """
 
 # Import core protocols for advanced usage
-from .protocols import (
-    # Type aliases for better IDE support
-    ThemeData,
-    ColorValue,
-    StyleCallback,
-    PropertyKey,
-    PropertyValue,
-    QSSStyle,
-
-    # Exception hierarchy for error handling
-    ThemeError,
-    ThemeValidationError,
-    ColorResolveError,
-    StyleGenerationError,
-    ThemePropertyError,
-
-    # Core protocols for dependency injection
-    ThemeProvider,
-    ThemeableWidget,
-    ColorProvider,
-    StyleGenerator,
-
-    # Utility functions
-    validate_performance_requirements,
-    get_protocol_version,
-)
-
 # Import error handling and fallback system
 from .errors import (
-    # Extended exception hierarchy
-    ThemeNotFoundError,
-    ThemeLoadError,
-    PropertyNotFoundError,
-    InvalidThemeFormatError,
-    ThemeSystemNotInitializedError,
-
     # Error recovery system
     ErrorRecoveryManager,
+    InvalidThemeFormatError,
+    PropertyNotFoundError,
+    ThemeLoadError,
+    # Extended exception hierarchy
+    ThemeNotFoundError,
+    ThemeSystemNotInitializedError,
     create_error_recovery_manager,
     get_global_error_recovery_manager,
     notify_user,
 )
-
 from .fallbacks import (
     # Core fallback data
     MINIMAL_THEME,
-
     # Fallback color system
     FallbackColorSystem,
     create_fallback_color_system,
-    get_global_fallback_color_system,
-
-    # Convenience functions
-    get_fallback_theme,
     get_fallback_color,
     get_fallback_property,
-    validate_theme_completeness,
+    # Convenience functions
+    get_fallback_theme,
+    get_global_fallback_color_system,
     get_safe_color_palette,
     is_valid_hex_color,
+    validate_theme_completeness,
 )
-
 from .logging import (
-    # Core logging classes
-    ThemeLogger,
-    create_theme_logger,
-    get_performance_logger,
-    get_debug_logger,
-
-    # Convenience logging functions
-    log_theme_error,
-    log_performance_warning,
-    log_theme_switch,
-    log_widget_themed,
-
     # Performance tracking
     PerformanceTracker,
-    get_global_performance_tracker,
-
+    # Core logging classes
+    ThemeLogger,
     # Configuration
     configure_theme_logging,
+    create_theme_logger,
+    get_debug_logger,
+    get_global_performance_tracker,
+    get_performance_logger,
+    log_performance_warning,
+    # Convenience logging functions
+    log_theme_error,
+    log_theme_switch,
+    log_widget_themed,
+)
+from .protocols import (
+    ColorProvider,
+    ColorResolveError,
+    ColorValue,
+    PropertyKey,
+    PropertyValue,
+    QSSStyle,
+    StyleCallback,
+    StyleGenerationError,
+    StyleGenerator,
+    ThemeableWidget,
+    # Type aliases for better IDE support
+    ThemeData,
+    # Exception hierarchy for error handling
+    ThemeError,
+    ThemePropertyError,
+    # Core protocols for dependency injection
+    ThemeProvider,
+    ThemeValidationError,
+    get_protocol_version,
+    # Utility functions
+    validate_performance_requirements,
 )
 
 # Version information
-__version__ = "1.0.0-dev"
+__version__ = "2.0.0-rc4"
 __author__ = "VFWidgets Team"
 __description__ = "Performance-first theme system for PySide6/Qt applications"
 
 # Primary user-facing imports - THE API
+# Token constants for IDE autocomplete (API Consolidation Phase 2)
+from .core.token_constants import Tokens
 from .widgets import (
-    ThemedWidget,
-    ThemedQWidget,
-    ThemedMainWindow,
-    ThemedDialog,
     ThemedApplication,
+    ThemedDialog,
+    ThemedMainWindow,
+    ThemedQWidget,
+    ThemedWidget,
     create_themed_widget,
+    get_global_available_themes,
+    get_global_theme,
     get_themed_application,
     set_global_theme,
-    get_global_theme,
-    get_global_available_themes,
 )
+
+# Widget role enum for type-safe semantic styling (API Consolidation Phase 4)
+from .widgets.roles import WidgetRole, get_widget_role, set_widget_role
 
 __all__ = [
     # ======================================
@@ -155,6 +148,10 @@ __all__ = [
     "set_global_theme",       # Convenience function for global theming
     "get_global_theme",       # Get current global theme
     "get_global_available_themes",  # List available themes
+    "Tokens",                 # Token constants for IDE autocomplete (NEW in 2.0.0-rc4)
+    "WidgetRole",             # Type-safe widget roles enum (NEW in 2.0.0-rc4)
+    "set_widget_role",        # Helper to set widget role with style refresh (NEW in 2.0.0-rc4)
+    "get_widget_role",        # Helper to get widget role (NEW in 2.0.0-rc4)
 
     # ======================================
     # Version and metadata

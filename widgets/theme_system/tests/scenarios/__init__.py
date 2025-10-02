@@ -8,12 +8,12 @@ the theme system under real-world conditions with complex applications.
 """
 
 from .complex_application import ComplexApplicationScenario
-from .theme_switching import ThemeSwitchingScenario
 from .error_recovery import ErrorRecoveryScenario
 from .migration import MigrationScenario
-from .plugin_integration import PluginIntegrationScenario
 from .performance_stress import PerformanceStressScenario
+from .plugin_integration import PluginIntegrationScenario
 from .runner import IntegrationTestRunner
+from .theme_switching import ThemeSwitchingScenario
 
 __all__ = [
     'ComplexApplicationScenario',

@@ -1,19 +1,18 @@
-"""
-Theme Event System with Qt Integration
+"""Theme Event System with Qt Integration
 
 Provides Qt signals/slots based event system for efficient theme change notifications
 with debouncing, performance optimization, and testing support.
 """
 
+import logging
+import time
 import weakref
-from typing import Any, Dict, List, Optional, Set, Callable, Union
 from dataclasses import dataclass, field
 from threading import RLock
-import time
-import logging
+from typing import Any, Dict, List, Optional, Set
 
 try:
-    from PySide6.QtCore import QObject, Signal, QTimer, Slot
+    from PySide6.QtCore import QObject, QTimer, Signal, Slot
     from PySide6.QtWidgets import QWidget
     QT_AVAILABLE = True
 except ImportError:
@@ -76,6 +75,7 @@ except ImportError:
 @dataclass
 class EventRecord:
     """Records an event for replay and debugging."""
+
     timestamp: float
     event_type: str
     data: Dict[str, Any] = field(default_factory=dict)
@@ -86,8 +86,7 @@ class EventRecord:
 
 
 class ThemeEventSystem(QObject):
-    """
-    Qt-integrated event system with debouncing and performance optimization.
+    """Qt-integrated event system with debouncing and performance optimization.
 
     This system provides:
     - Qt signals/slots for theme change notifications
@@ -163,14 +162,14 @@ class ThemeEventSystem(QObject):
         return self._event_history.copy()
 
     def replay_events(self, target_widget_id: Optional[str] = None) -> int:
-        """
-        Replay recorded events.
+        """Replay recorded events.
 
         Args:
             target_widget_id: If specified, only replay events for this widget
 
         Returns:
             Number of events replayed
+
         """
         replayed = 0
         for event in self._event_history:

@@ -5,29 +5,27 @@ These tests validate the internal behavior of PropertyDescriptor and related cla
 They test type safety, validation rules, caching, and performance characteristics.
 """
 
-import pytest
 import threading
 import time
-from typing import Optional, Union
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
 
 from vfwidgets_theme.properties.descriptors import (
-    PropertyDescriptor,
-    ValidationError,
-    ValidationRule,
-    MinMaxRule,
-    RegexRule,
-    EnumRule,
     CallableRule,
-    PropertyCache,
     ComputedProperty,
+    EnumRule,
+    MinMaxRule,
+    PropertyCache,
+    PropertyDescriptor,
+    RegexRule,
+    ValidationError,
+    color_validator,
+    computed_property,
+    enum_validator,
     min_max_validator,
     regex_validator,
-    enum_validator,
-    color_validator,
-    computed_property
 )
-from vfwidgets_theme.widgets.base import ThemedWidget
 
 
 class TestValidationRules:

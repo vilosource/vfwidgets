@@ -11,27 +11,22 @@ import time
 import tracemalloc
 import weakref
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import psutil
 import pytest
-from hypothesis import given, strategies as st, settings, HealthCheck
-from PySide6.QtCore import QObject, QTimer
-from PySide6.QtWidgets import QApplication, QWidget
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
+from PySide6.QtWidgets import QWidget
 
 # Import theme system components
 from vfwidgets_theme import (
-    ThemedWidget,
     ThemedApplication,
+    ThemedWidget,
     ThemeError,
     ThemeValidationError,
-    get_themed_application
 )
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.core.manager import ThemeManager
-from vfwidgets_theme.core.registry import ThemeWidgetRegistry
-
 
 # Global test state management
 test_app: Optional[ThemedApplication] = None
@@ -45,6 +40,7 @@ def setup_test_environment():
 
     # Import Qt classes at function level to avoid issues
     import sys
+
     from PySide6.QtWidgets import QApplication as QtApp
 
     # Ensure clean state

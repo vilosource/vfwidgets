@@ -1,5 +1,4 @@
-"""
-VSCode Theme Importer
+"""VSCode Theme Importer
 
 This module provides VSCode theme import capabilities including:
 - VSCode theme JSON format parsing
@@ -10,12 +9,12 @@ This module provides VSCode theme import capabilities including:
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Union, Set
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 from ..core.theme import Theme
-from ..errors import ThemeError, InvalidThemeFormatError
+from ..errors import ThemeError
 from ..logging import get_debug_logger
 
 logger = get_debug_logger(__name__)
@@ -23,12 +22,14 @@ logger = get_debug_logger(__name__)
 
 class VSCodeImportError(ThemeError):
     """Error during VSCode theme import."""
+
     pass
 
 
 @dataclass
 class VSCodeThemeInfo:
     """Information about a VSCode theme."""
+
     name: str
     type: str  # light, dark, or hc (high contrast)
     description: str
@@ -201,24 +202,24 @@ class VSCodeColorMapper:
     }
 
     def __init__(self, include_unmapped: bool = False):
-        """
-        Initialize color mapper.
+        """Initialize color mapper.
 
         Args:
             include_unmapped: Whether to include unmapped colors with original keys
+
         """
         self.include_unmapped = include_unmapped
         self._unmapped_colors: Set[str] = set()
 
     def map_colors(self, vscode_colors: Dict[str, str]) -> Dict[str, str]:
-        """
-        Map VSCode colors to Qt theme colors.
+        """Map VSCode colors to Qt theme colors.
 
         Args:
             vscode_colors: Dictionary of VSCode color keys and values
 
         Returns:
             Dictionary of mapped Qt theme colors
+
         """
         mapped_colors = {}
 
@@ -276,14 +277,14 @@ class TokenColorMapper:
         pass
 
     def map_token_colors(self, token_colors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Map VSCode tokenColors to theme format.
+        """Map VSCode tokenColors to theme format.
 
         Args:
             token_colors: List of VSCode token color objects
 
         Returns:
             List of theme token color objects
+
         """
         mapped_tokens = []
 
@@ -335,20 +336,19 @@ class VSCodeImporter:
     """Import VSCode themes with intelligent mapping."""
 
     def __init__(self, include_unmapped_colors: bool = False, validate_imported: bool = True):
-        """
-        Initialize VSCode importer.
+        """Initialize VSCode importer.
 
         Args:
             include_unmapped_colors: Whether to include colors that can't be mapped
             validate_imported: Whether to validate imported themes
+
         """
         self.color_mapper = VSCodeColorMapper(include_unmapped=include_unmapped_colors)
         self.token_mapper = TokenColorMapper()
         self.validate_imported = validate_imported
 
     def import_theme(self, vscode_path: Path) -> Theme:
-        """
-        Import VSCode theme from file.
+        """Import VSCode theme from file.
 
         Args:
             vscode_path: Path to VSCode theme JSON file
@@ -358,6 +358,7 @@ class VSCodeImporter:
 
         Raises:
             VSCodeImportError: If import fails
+
         """
         try:
             # Load VSCode theme data
@@ -373,8 +374,7 @@ class VSCodeImporter:
             raise VSCodeImportError(f"Failed to import VSCode theme from {vscode_path}: {e}") from e
 
     def import_from_data(self, vscode_data: Dict[str, Any], theme_name: Optional[str] = None) -> Theme:
-        """
-        Import VSCode theme from data dictionary.
+        """Import VSCode theme from data dictionary.
 
         Args:
             vscode_data: VSCode theme data dictionary
@@ -382,6 +382,7 @@ class VSCodeImporter:
 
         Returns:
             Imported Theme object
+
         """
         try:
             # Extract theme info
@@ -402,7 +403,7 @@ class VSCodeImporter:
             raise VSCodeImportError(f"VSCode theme file not found: {file_path}")
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             raise VSCodeImportError(f"Invalid JSON in VSCode theme file: {e}") from e

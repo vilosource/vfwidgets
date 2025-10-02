@@ -1,5 +1,4 @@
-"""
-Thread Safety Infrastructure for VFWidgets Theme System.
+"""Thread Safety Infrastructure for VFWidgets Theme System.
 
 This module provides comprehensive thread safety for the theme system,
 ensuring correct operation in multi-threaded Qt applications.
@@ -22,18 +21,18 @@ Performance Requirements:
 """
 
 import asyncio
+import logging
 import threading
 import time
 import weakref
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Callable, Set, Tuple, Union
-from collections import defaultdict
-import logging
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 try:
-    from PySide6.QtCore import QObject, Signal, QThread, QTimer, QMutex, QMutexLocker
+    from PySide6.QtCore import QMutex, QMutexLocker, QObject, QThread, QTimer, Signal
     from PySide6.QtWidgets import QApplication
     QT_AVAILABLE = True
 except ImportError:
@@ -44,17 +43,15 @@ except ImportError:
     def Signal(*args):
         return lambda: None
 
-from .protocols import ThemeProvider, ThemeableWidget
-from .errors import ThemeError, ThemeLoadError
-
+from .errors import ThemeError
+from .protocols import ThemeProvider
 
 logger = logging.getLogger(__name__)
 
 
 # Thread-Safe Singleton Pattern
 class ThreadSafeThemeManager:
-    """
-    Thread-safe singleton theme manager with double-checked locking.
+    """Thread-safe singleton theme manager with double-checked locking.
 
     Provides centralized theme management that works correctly across
     multiple threads without performance degradation.
@@ -124,8 +121,7 @@ class ThreadSafeThemeManager:
 
 # Threading Locks and Synchronization
 class ThemeLock:
-    """
-    Reentrant lock for theme operations with timeout support.
+    """Reentrant lock for theme operations with timeout support.
 
     Provides fine-grained locking for theme-related operations
     with deadlock prevention and performance monitoring.
@@ -194,8 +190,7 @@ class ThemeLock:
 
 
 class PropertyLock:
-    """
-    Fine-grained locking for property access.
+    """Fine-grained locking for property access.
 
     Provides separate locks for different properties to minimize
     contention and maximize performance.
@@ -236,8 +231,7 @@ class PropertyLock:
 
 
 class RegistryLock:
-    """
-    Lock for widget registry operations with reader-writer semantics.
+    """Lock for widget registry operations with reader-writer semantics.
 
     Optimizes for many readers and few writers, typical in theme systems.
     """
@@ -278,8 +272,7 @@ class RegistryLock:
 
 
 class NotificationLock:
-    """
-    Lock for callback notification systems with deadlock prevention.
+    """Lock for callback notification systems with deadlock prevention.
 
     Uses lock ordering to prevent deadlocks in notification chains.
     """
@@ -313,8 +306,7 @@ class NotificationLock:
 
 # Thread-Local Storage
 class ThemeCache:
-    """
-    Thread-local theme property cache for performance.
+    """Thread-local theme property cache for performance.
 
     Each thread maintains its own cache to avoid locking overhead
     while accessing frequently used theme data.
@@ -356,8 +348,7 @@ class ThemeCache:
 
 
 class StyleCache:
-    """
-    Thread-local stylesheet cache for Qt integration.
+    """Thread-local stylesheet cache for Qt integration.
 
     Caches compiled stylesheets per thread to avoid recompilation
     and improve theme switching performance.
@@ -395,8 +386,7 @@ class StyleCache:
 
 
 class PropertyCache:
-    """
-    Thread-local property resolution cache with invalidation support.
+    """Thread-local property resolution cache with invalidation support.
 
     Caches resolved property values per thread with cross-thread
     invalidation support for consistency.
@@ -452,8 +442,7 @@ class PropertyCache:
 # Async Theme Loading Support
 @dataclass
 class LoadProgress:
-    """
-    Progress tracking for async theme loading operations.
+    """Progress tracking for async theme loading operations.
 
     Provides progress callbacks and status tracking for long-running
     theme loading operations.
@@ -506,8 +495,7 @@ class LoadProgress:
 
 
 class ThemeLoadQueue:
-    """
-    Queue for background theme loading operations.
+    """Queue for background theme loading operations.
 
     Manages queued theme loading requests with proper ordering
     and callback handling.
@@ -563,8 +551,7 @@ class ThemeLoadQueue:
 
 
 class AsyncThemeLoader:
-    """
-    Asynchronous theme loading system for non-blocking operations.
+    """Asynchronous theme loading system for non-blocking operations.
 
     Loads themes in background without blocking the UI thread,
     with progress tracking and error handling.
@@ -639,8 +626,7 @@ class AsyncThemeLoader:
 # Qt Signal/Slot Integration
 if QT_AVAILABLE:
     class ThemeSignalManager(QObject):
-        """
-        Thread-safe Qt signal management for theme changes.
+        """Thread-safe Qt signal management for theme changes.
 
         Provides Qt signal/slot integration with proper thread safety
         and automatic connection type detection.
@@ -708,8 +694,7 @@ else:
 
 
 class CrossThreadNotifier:
-    """
-    Safe notifications across threads using queue-based system.
+    """Safe notifications across threads using queue-based system.
 
     Provides thread-safe notification delivery with proper queuing
     and error handling for cross-thread communication.
@@ -765,8 +750,7 @@ class CrossThreadNotifier:
 
 
 class WidgetNotificationProxy:
-    """
-    Qt signal/slot based widget notification system.
+    """Qt signal/slot based widget notification system.
 
     Provides safe widget property updates through Qt's signal/slot
     system with automatic thread detection and queued connections.
@@ -830,8 +814,7 @@ class WidgetNotificationProxy:
 
 # Concurrent Access Protection
 class ReadWriteLock:
-    """
-    Reader-writer lock for performance optimization.
+    """Reader-writer lock for performance optimization.
 
     Allows multiple concurrent readers or single exclusive writer,
     optimizing for theme systems with many reads and few writes.
@@ -869,8 +852,7 @@ class ReadWriteLock:
 
 
 class AtomicOperations:
-    """
-    Lock-free atomic operations for performance-critical paths.
+    """Lock-free atomic operations for performance-critical paths.
 
     Provides atomic counters and operations without locking overhead
     where thread safety is still required.
@@ -919,8 +901,7 @@ class AtomicOperations:
 
 
 class ConcurrentRegistry:
-    """
-    Thread-safe widget registry with concurrent access support.
+    """Thread-safe widget registry with concurrent access support.
 
     Provides concurrent access to widget registry with proper
     locking and performance optimization for high-load scenarios.
@@ -997,8 +978,7 @@ class ConcurrentRegistry:
 
 
 class DeadlockDetection:
-    """
-    Deadlock detection and prevention system.
+    """Deadlock detection and prevention system.
 
     Monitors lock acquisition patterns and detects potential
     deadlock situations with early warning and prevention.

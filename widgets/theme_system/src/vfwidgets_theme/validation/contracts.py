@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Contract Validation
+"""VFWidgets Theme System - Contract Validation
 Task 24: Contract validation for protocols and interfaces
 
 This module provides contract validation capabilities to ensure
@@ -8,7 +7,7 @@ objects implement required protocols correctly.
 """
 
 from typing import Any, Dict, List, Optional, Protocol, Type, runtime_checkable
-from abc import ABC, abstractmethod
+
 from .framework import ValidationResult, ValidationType
 
 
@@ -101,8 +100,7 @@ class ContractValidator:
         self._protocol_validators[protocol].append(validator)
 
     def validate_protocol_implementation(self, obj: Any, protocol: Type) -> ValidationResult:
-        """
-        Validate that an object implements a protocol correctly.
+        """Validate that an object implements a protocol correctly.
 
         Args:
             obj: Object to validate
@@ -110,6 +108,7 @@ class ContractValidator:
 
         Returns:
             ValidationResult: Result of validation
+
         """
         result = ValidationResult(
             passed=True,
@@ -312,8 +311,7 @@ _contract_validator = ContractValidator()
 
 
 def validate_protocol_implementation(obj: Any, protocol: Type) -> ValidationResult:
-    """
-    Validate that an object implements a protocol correctly.
+    """Validate that an object implements a protocol correctly.
 
     Args:
         obj: Object to validate
@@ -321,17 +319,18 @@ def validate_protocol_implementation(obj: Any, protocol: Type) -> ValidationResu
 
     Returns:
         ValidationResult: Result of validation
+
     """
     return _contract_validator.validate_protocol_implementation(obj, protocol)
 
 
 def register_protocol_validator(protocol: Type, validator: callable):
-    """
-    Register a custom validator for a protocol.
+    """Register a custom validator for a protocol.
 
     Args:
         protocol: Protocol to register validator for
         validator: Validator function that takes (obj, result) and modifies result
+
     """
     _contract_validator.register_protocol_validator(protocol, validator)
 
@@ -381,6 +380,7 @@ class ContractEnforcer:
 
 class ContractViolationError(Exception):
     """Exception raised when contract validation fails."""
+
     pass
 
 

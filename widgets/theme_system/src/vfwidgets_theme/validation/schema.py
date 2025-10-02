@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Schema Validation
+"""VFWidgets Theme System - Schema Validation
 Task 24: Schema validation for themes and widgets
 
 This module provides comprehensive schema validation capabilities
@@ -8,14 +7,16 @@ for theme system data structures.
 """
 
 import re
-from typing import Any, Dict, List, Optional, Type, Union, Callable
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Optional, Union
+
 from .framework import ValidationResult, ValidationType
 
 
 class SchemaType(Enum):
     """Schema validation types."""
+
     STRING = auto()
     INTEGER = auto()
     FLOAT = auto()
@@ -31,6 +32,7 @@ class SchemaType(Enum):
 @dataclass
 class SchemaField:
     """Schema field definition."""
+
     name: str
     schema_type: SchemaType
     required: bool = True
@@ -345,8 +347,7 @@ class StyleSchema(Schema):
 
 
 def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
-    """
-    Validate data against a schema.
+    """Validate data against a schema.
 
     Args:
         data: Data to validate
@@ -354,6 +355,7 @@ def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
 
     Returns:
         ValidationResult: Result of validation
+
     """
     return schema.validate(data)
 

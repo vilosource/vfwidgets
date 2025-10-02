@@ -1,5 +1,4 @@
-"""
-Widget layer components.
+"""Widget layer components.
 
 This module contains the user-facing widget classes and theming mixins:
 - ThemedWidget: The primary API - simple inheritance provides complete theming
@@ -13,6 +12,15 @@ engine, and utils is hidden behind clean, simple APIs here.
 """
 
 # Widget components (placeholders for Tasks 7-9)
+from .application import (
+    ApplicationConfig,
+    ApplicationThemeManager,
+    ThemedApplication,
+    get_global_available_themes,
+    get_global_theme,
+    get_themed_application,
+    set_global_theme,
+)
 from .base import (
     ThemedWidget,
     create_themed_widget,
@@ -20,37 +28,47 @@ from .base import (
 
 # Convenience themed widgets
 from .convenience import (
-    ThemedQWidget,
-    ThemedMainWindow,
     ThemedDialog,
+    ThemedMainWindow,
+    ThemedQWidget,
 )
-
-from .application import (
-    ThemedApplication,
-    ApplicationThemeManager,
-    ApplicationConfig,
-    get_themed_application,
-    set_global_theme,
-    get_global_theme,
-    get_global_available_themes,
+from .dialogs import (
+    ThemePickerDialog,
+    ThemeSettingsWidget,
 )
-
-from .properties import (
-    ThemeProperty,
-    ColorProperty,
-    FontProperty,
+from .helpers import (
+    ThemePreview,
+    ThemeSettings,
+    add_theme_menu,
+    add_theme_toolbar,
 )
-
+from .metadata import (
+    ThemeInfo,
+    ThemeMetadataProvider,
+)
 from .mixins import (
-    ThemeableMixin,
-    PropertyMixin,
-    NotificationMixin,
     CacheMixin,
-    LifecycleMixin,
     CompositeMixin,
+    LifecycleMixin,
+    NotificationMixin,
+    PropertyMixin,
+    ThemeableMixin,
     add_theming_to_widget,
     remove_theming_from_widget,
     themeable,
+)
+from .primitives import (
+    ThemeButtonGroup,
+    ThemeComboBox,
+    ThemeListWidget,
+)
+from .properties import (
+    ColorProperty,
+    FontProperty,
+    ThemeProperty,
+)
+from .shortcuts import (
+    ThemeShortcuts,
 )
 
 __all__ = [
@@ -74,4 +92,24 @@ __all__ = [
     # Composable behavior
     "ThemeMixin",
     "ColorMixin",
+
+    # Metadata system
+    "ThemeInfo",
+    "ThemeMetadataProvider",
+
+    # Theme switching primitives
+    "ThemeComboBox",
+    "ThemeListWidget",
+    "ThemeButtonGroup",
+
+    # Theme switching helpers
+    "add_theme_menu",
+    "add_theme_toolbar",
+    "ThemePreview",
+    "ThemeSettings",
+    "ThemeShortcuts",
+
+    # Theme switching dialogs
+    "ThemePickerDialog",
+    "ThemeSettingsWidget",
 ]

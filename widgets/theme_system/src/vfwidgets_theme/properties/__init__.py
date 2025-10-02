@@ -1,5 +1,4 @@
-"""
-Property system for theme management.
+"""Property system for theme management.
 
 This module provides the enhanced property system for Phase 2,
 including type-safe descriptors, validation, and caching.

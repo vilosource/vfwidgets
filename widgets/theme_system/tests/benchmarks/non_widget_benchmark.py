@@ -3,10 +3,8 @@
 Non-Widget Benchmark Test - focuses on theme operations without Qt widgets
 """
 
-import time
 import statistics
-import sys
-from pathlib import Path
+import time
 
 # Import only what we need
 from vfwidgets_theme.core.theme import Theme
@@ -204,7 +202,7 @@ def run_stress_test():
                 _ = theme.styles.get("font_size")
                 property_accesses += 1
 
-        except Exception as e:
+        except Exception:
             errors += 1
             if errors > 100:
                 print("Too many errors, stopping stress test")
@@ -214,7 +212,7 @@ def run_stress_test():
     themes_per_second = theme_count / duration
     accesses_per_second = property_accesses / duration
 
-    print(f"Stress test completed:")
+    print("Stress test completed:")
     print(f"  Duration: {duration:.1f} seconds")
     print(f"  Themes created: {theme_count}")
     print(f"  Property accesses: {property_accesses}")

@@ -3,17 +3,15 @@
 Image Comparison Utilities for Visual Testing
 """
 
-from typing import Tuple, Optional, Dict, Any
 from enum import Enum
-import math
+from typing import Dict, Tuple
 
 try:
-    from PIL import Image, ImageStat, ImageChops
+    from PIL import Image, ImageChops, ImageStat
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
-from PySide6.QtGui import QImage
 
 
 class ComparisonMetric(Enum):

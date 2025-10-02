@@ -2,15 +2,14 @@
 Tests for VSCode marketplace integration.
 """
 
-import pytest
 import json
 import tempfile
-import asyncio
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
 
-from vfwidgets_theme.vscode.marketplace import MarketplaceClient, ThemeExtension
+import pytest
+
 from vfwidgets_theme.errors import ThemeSystemError
+from vfwidgets_theme.vscode.marketplace import MarketplaceClient, ThemeExtension
 
 
 class TestMarketplaceClient:

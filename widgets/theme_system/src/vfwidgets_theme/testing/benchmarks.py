@@ -1,5 +1,4 @@
-"""
-Performance benchmarking framework for VFWidgets Theme System.
+"""Performance benchmarking framework for VFWidgets Theme System.
 
 This module provides comprehensive performance testing and validation tools
 to ensure all components meet the strict performance requirements defined
@@ -20,14 +19,13 @@ experience we promise to developers.
 """
 
 import gc
-import time
 import statistics
+import time
 import tracemalloc
-from typing import Dict, List, Any, Callable, Optional, Tuple, Union
-from dataclasses import dataclass, field
-from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional
 
 
 @dataclass
@@ -37,6 +35,7 @@ class BenchmarkResult:
     Contains comprehensive timing and performance statistics
     for analysis and validation against requirements.
     """
+
     operation_name: str
     total_time: float
     iterations: int
@@ -70,6 +69,7 @@ class BenchmarkResult:
 
         Returns:
             True if all applicable requirements are met.
+
         """
         operation_type = self.operation_name.lower().replace(' ', '_')
 
@@ -151,6 +151,7 @@ class ThemeBenchmark:
         provider = MockThemeProvider()
         result = benchmark.benchmark_property_access(provider, iterations=1000)
         assert result.average_time < 0.000001  # < 1μs
+
     """
 
     def __init__(self, enable_memory_tracking: bool = True):
@@ -158,6 +159,7 @@ class ThemeBenchmark:
 
         Args:
             enable_memory_tracking: Whether to track memory usage during benchmarks.
+
         """
         self.enable_memory_tracking = enable_memory_tracking
         self._results: List[BenchmarkResult] = []
@@ -179,6 +181,7 @@ class ThemeBenchmark:
 
         Yields:
             Dictionary to store measurement data.
+
         """
         measurement_data = {
             'times': [],
@@ -221,6 +224,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with comprehensive timing statistics.
+
         """
         themes = themes or ['default', 'dark', 'light']
         operation_name = f"Theme Switch ({len(widgets)} widgets)"
@@ -269,6 +273,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with property access timing statistics.
+
         """
         properties = properties or [
             'primary_color', 'background', 'foreground', 'font_size', 'border_radius'
@@ -311,6 +316,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with memory usage statistics.
+
         """
         operation_name = f"Memory Usage ({widget_count} widgets, {theme_switches} switches)"
 
@@ -372,6 +378,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with callback registration timing statistics.
+
         """
         operation_name = f"Callback Registration ({callback_count} callbacks)"
 
@@ -427,6 +434,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with style generation timing statistics.
+
         """
         widget_types = widget_types or ['button', 'label', 'edit', 'text', 'combo']
         operation_name = f"Style Generation ({len(widget_types)} widget types)"
@@ -469,6 +477,7 @@ class ThemeBenchmark:
 
         Returns:
             BenchmarkResult with concurrent access timing statistics.
+
         """
         operation_name = f"Concurrent Access ({thread_count} threads)"
 
@@ -533,6 +542,7 @@ class ThemeBenchmark:
 
         Returns:
             Formatted BenchmarkResult instance.
+
         """
         times = measurement_data['times']
 
@@ -590,6 +600,7 @@ class ThemeBenchmark:
 
         Returns:
             True if all results meet requirements.
+
         """
         return all(result.meets_requirements(self._performance_requirements) for result in self._results)
 
@@ -598,6 +609,7 @@ class ThemeBenchmark:
 
         Returns:
             Formatted string report of all benchmark results.
+
         """
         if not self._results:
             return "No benchmark results available."
@@ -663,6 +675,7 @@ def benchmark_theme_switch(widgets: List[Any], iterations: int = 50) -> Benchmar
 
     Returns:
         BenchmarkResult with timing statistics.
+
     """
     benchmark = ThemeBenchmark()
     return benchmark.benchmark_theme_switch(widgets, iterations)
@@ -677,6 +690,7 @@ def benchmark_property_access(provider: Any, iterations: int = 1000) -> Benchmar
 
     Returns:
         BenchmarkResult with timing statistics.
+
     """
     benchmark = ThemeBenchmark()
     return benchmark.benchmark_property_access(provider, iterations=iterations)
@@ -691,6 +705,7 @@ def benchmark_memory_usage(widget_factory: Callable[[], Any], widget_count: int 
 
     Returns:
         BenchmarkResult with memory statistics.
+
     """
     benchmark = ThemeBenchmark()
     return benchmark.benchmark_memory_usage(widget_factory, widget_count)
@@ -704,6 +719,7 @@ def validate_performance_requirements(results: List[BenchmarkResult]) -> Dict[st
 
     Returns:
         Dictionary mapping requirement names to pass/fail status.
+
     """
     requirements = {
         'theme_switch_time': 0.1,
@@ -738,6 +754,7 @@ def performance_test(max_time: float):
         def test_fast_operation():
             # Test code here
             pass
+
     """
     def decorator(test_func):
         def wrapper(*args, **kwargs):
@@ -767,6 +784,7 @@ def memory_test(max_memory_mb: float):
         def test_memory_efficient_operation():
             # Test code here
             pass
+
     """
     def decorator(test_func):
         def wrapper(*args, **kwargs):

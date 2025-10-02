@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""
-Test script to validate Phase 5 examples work correctly.
+"""Test script to validate Phase 5 examples work correctly.
 """
 
+import json
 import sys
 import tempfile
-import json
 from pathlib import Path
+
 
 def test_basic_imports():
     """Test that basic imports work."""
     print("Testing basic imports...")
     try:
-        from src.vfwidgets_theme import ThemedWidget, ThemedApplication
+        from src.vfwidgets_theme import ThemedApplication, ThemedWidget
         print("✓ Core imports successful")
         return True
     except ImportError as e:
@@ -23,8 +23,9 @@ def test_widget_creation():
     """Test ThemedWidget creation."""
     print("Testing widget creation...")
     try:
-        from src.vfwidgets_theme import ThemedWidget, ThemedApplication
         from PySide6.QtWidgets import QLabel
+
+        from src.vfwidgets_theme import ThemedApplication, ThemedWidget
 
         # Create application
         app = ThemedApplication([])
@@ -54,7 +55,7 @@ def test_theme_switching():
     """Test theme switching with built-in themes."""
     print("Testing theme switching...")
     try:
-        from src.vfwidgets_theme import ThemedWidget, ThemedApplication
+        from src.vfwidgets_theme import ThemedApplication
 
         app = ThemedApplication([])
 

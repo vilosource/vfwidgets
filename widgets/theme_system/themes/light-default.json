@@ -65,6 +65,18 @@
     "tabs.border": "#cccccc",
     "tabs.activeBorder": "#0066cc",
 
+    "tab.activeBackground": "#ffffff",
+    "tab.inactiveBackground": "#f3f3f3",
+    "tab.activeForeground": "#333333",
+    "tab.inactiveForeground": "#666666",
+    "tab.border": "#cccccc",
+    "tab.activeBorder": "#0066cc",
+    "tab.hoverBackground": "#e8e8e8",
+    "tab.hoverForeground": "#333333",
+
+    "editorGroupHeader.tabsBackground": "#f3f3f3",
+    "editorGroupHeader.tabsBorder": "#cccccc",
+
     "scrollbar.background": "rgba(100, 100, 100, 0.2)",
     "scrollbar.hoverBackground": "rgba(100, 100, 100, 0.4)",
     "scrollbar.activeBackground": "rgba(0, 0, 0, 0.3)",

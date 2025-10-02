@@ -10,16 +10,16 @@ Tests change notification system including:
 - Error handling in notification paths
 """
 
-import pytest
 import threading
 import time
-from unittest.mock import Mock, patch, MagicMock, call
-from typing import List, Dict, Any, Callable
+from typing import List
+
+import pytest
 
 # Import Qt components with fallback for headless testing
 try:
-    from PySide6.QtCore import QObject, Signal, QThread, QTimer
-    from PySide6.QtWidgets import QWidget, QApplication
+    from PySide6.QtCore import QObject, QThread, QTimer, Signal
+    from PySide6.QtWidgets import QApplication, QWidget
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -47,14 +47,17 @@ except ImportError:
 
 # Import the modules under test
 from vfwidgets_theme.core.notifier import (
-    ThemeNotifier, WidgetNotificationManager, CallbackRegistry,
-    NotificationQueue, EventFilter, CrossThreadNotifier,
-    NotificationBatcher, create_theme_notifier
+    CallbackRegistry,
+    CrossThreadNotifier,
+    EventFilter,
+    NotificationBatcher,
+    NotificationQueue,
+    ThemeNotifier,
+    WidgetNotificationManager,
+    create_theme_notifier,
 )
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.errors import ThemeNotificationError
 from vfwidgets_theme.testing import ThemedTestCase
-from vfwidgets_theme.protocols import ThemeChangeCallback
 
 
 class MockWidget(QObject):

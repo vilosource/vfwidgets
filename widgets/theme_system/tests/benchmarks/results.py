@@ -3,14 +3,11 @@
 Benchmark Results Analysis and Visualization
 """
 
-import json
 import sqlite3
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime, timedelta
 import statistics
-
-from .suite import BenchmarkResult
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List
 
 
 class BenchmarkResults:

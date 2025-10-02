@@ -16,27 +16,24 @@ Philosophy: Make it impossible to write tests incorrectly by providing
 fixtures that automatically handle common testing scenarios.
 """
 
-import os
 import gc
 import time
-import pytest
 import weakref
-from typing import Dict, Any, List, Callable, Generator, Optional
-from unittest.mock import Mock, patch
+from typing import Any, Dict, List, Optional
+
+import pytest
 
 # Import our testing infrastructure
 from src.vfwidgets_theme.testing.mocks import (
-    MockThemeProvider,
-    MockThemeableWidget,
-    MockColorProvider,
-    MockStyleGenerator,
-    MockWidget,
     MockApplication,
+    MockColorProvider,
     MockPainter,
-    create_mock_theme_provider,
+    MockStyleGenerator,
+    MockThemeableWidget,
+    MockThemeProvider,
+    MockWidget,
     create_mock_widget_hierarchy,
 )
-
 
 # Theme Data Fixtures
 

@@ -11,23 +11,27 @@ Tests theme storage and retrieval operations including:
 - Error handling and recovery
 """
 
-import pytest
 import json
 import tempfile
 import threading
 import time
 from pathlib import Path
-from typing import Dict, Any
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import mock_open, patch
+
+import pytest
 
 # Import the modules under test
 from vfwidgets_theme.core.repository import (
-    ThemeRepository, FileThemeLoader, BuiltinThemeManager,
-    ThemeCache, ThemeDiscovery, create_theme_repository
+    BuiltinThemeManager,
+    FileThemeLoader,
+    ThemeCache,
+    ThemeDiscovery,
+    ThemeRepository,
+    create_theme_repository,
 )
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.errors import ThemeNotFoundError, ThemeLoadError, ThemeValidationError
-from vfwidgets_theme.testing import ThemedTestCase, MockTheme
+from vfwidgets_theme.errors import ThemeLoadError, ThemeNotFoundError
+from vfwidgets_theme.testing import ThemedTestCase
 
 
 class TestThemeRepository(ThemedTestCase):

@@ -9,21 +9,23 @@ Tests theme provider implementation including:
 - Performance monitoring and optimization
 """
 
-import pytest
 import threading
 import time
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
+
+import pytest
 
 # Import the modules under test
 from vfwidgets_theme.core.provider import (
-    DefaultThemeProvider, CachedThemeProvider, CompositeThemeProvider,
-    create_default_provider, create_cached_provider, create_composite_provider
+    CachedThemeProvider,
+    CompositeThemeProvider,
+    DefaultThemeProvider,
+    create_cached_provider,
+    create_composite_provider,
+    create_default_provider,
 )
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.errors import ThemeNotFoundError, PropertyNotFoundError
+from vfwidgets_theme.errors import PropertyNotFoundError, ThemeNotFoundError
 from vfwidgets_theme.testing import ThemedTestCase
-from vfwidgets_theme.protocols import ThemeProvider, ColorValue, PropertyKey, PropertyValue
 
 
 class TestDefaultThemeProvider(ThemedTestCase):
@@ -608,7 +610,6 @@ class TestProviderPerformance(ThemedTestCase):
     def test_memory_efficiency(self):
         """Test provider memory efficiency."""
         import gc
-        import sys
 
         # Measure baseline memory
         gc.collect()

@@ -1,5 +1,4 @@
-"""
-ThemeApplicator for applying themes to widgets and applications.
+"""ThemeApplicator for applying themes to widgets and applications.
 
 This module provides the ThemeApplicator class that handles theme application
 to individual widgets and the entire application. It follows the Single
@@ -32,16 +31,15 @@ import platform
 import threading
 import time
 import weakref
-from concurrent.futures import ThreadPoolExecutor, Future
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Callable, Set
-from dataclasses import dataclass, field
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
 
 # Import Qt components with fallback for headless testing
 try:
-    from PySide6.QtWidgets import QApplication, QWidget
     from PySide6.QtCore import QObject, QThread, QTimer, Signal
     from PySide6.QtGui import QPalette
+    from PySide6.QtWidgets import QApplication, QWidget
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -60,12 +58,9 @@ except ImportError:
         def instance(): return None
 
 # Import foundation modules
-from ..protocols import ThemeableWidget
-from ..errors import ThemeApplicationError, ThemeNotFoundError
 from ..logging import get_debug_logger
-from ..fallbacks import get_fallback_property
-from .theme import Theme, PropertyResolver
 from .registry import ThemeWidgetRegistry
+from .theme import PropertyResolver, Theme
 
 logger = get_debug_logger(__name__)
 
@@ -73,6 +68,7 @@ logger = get_debug_logger(__name__)
 @dataclass
 class ApplicationStats:
     """Statistics for theme application operations."""
+
     widgets_themed: int = 0
     global_updates: int = 0
     batch_updates: int = 0
@@ -83,8 +79,7 @@ class ApplicationStats:
 
 
 class WidgetThemeApplicator:
-    """
-    Applies themes to individual widgets.
+    """Applies themes to individual widgets.
 
     Handles widget-specific theme application including:
     - Style sheet generation from theme data
@@ -94,11 +89,11 @@ class WidgetThemeApplicator:
     """
 
     def __init__(self, registry: Optional[ThemeWidgetRegistry] = None):
-        """
-        Initialize widget theme applicator.
+        """Initialize widget theme applicator.
 
         Args:
             registry: Widget registry for tracking themed widgets
+
         """
         self._registry = registry
         self._property_resolver: Optional[PropertyResolver] = None
@@ -107,8 +102,7 @@ class WidgetThemeApplicator:
         logger.debug("WidgetThemeApplicator initialized")
 
     def apply_theme(self, widget: QWidget, theme: Theme) -> bool:
-        """
-        Apply theme to individual widget.
+        """Apply theme to individual widget.
 
         Args:
             widget: Widget to theme
@@ -116,6 +110,7 @@ class WidgetThemeApplicator:
 
         Returns:
             True if successfully applied
+
         """
         try:
             # Generate stylesheet for widget
@@ -132,8 +127,7 @@ class WidgetThemeApplicator:
             return False
 
     def apply_theme_by_id(self, widget_id: str, theme: Theme) -> bool:
-        """
-        Apply theme to widget by registry ID.
+        """Apply theme to widget by registry ID.
 
         Args:
             widget_id: Widget ID in registry
@@ -141,6 +135,7 @@ class WidgetThemeApplicator:
 
         Returns:
             True if successfully applied
+
         """
         if not self._registry:
             logger.error("No registry available for widget ID lookup")
@@ -166,8 +161,7 @@ class WidgetThemeApplicator:
             return False
 
     def apply_theme_batch(self, widget_ids: List[str], theme: Theme) -> Dict[str, bool]:
-        """
-        Apply theme to batch of widgets efficiently.
+        """Apply theme to batch of widgets efficiently.
 
         Args:
             widget_ids: List of widget IDs
@@ -175,12 +169,13 @@ class WidgetThemeApplicator:
 
         Returns:
             Dictionary mapping widget ID to success status
+
         """
         results = {}
 
         if not self._registry:
             logger.error("No registry available for batch widget application")
-            return {wid: False for wid in widget_ids}
+            return dict.fromkeys(widget_ids, False)
 
         # Pre-generate common stylesheet components
         with self._lock:
@@ -292,8 +287,7 @@ class WidgetThemeApplicator:
 
 
 class ApplicationThemeApplicator:
-    """
-    Applies themes at application level.
+    """Applies themes at application level.
 
     Handles application-wide theme application including:
     - Global stylesheet application
@@ -308,14 +302,14 @@ class ApplicationThemeApplicator:
         logger.debug("ApplicationThemeApplicator initialized")
 
     def apply_theme(self, theme: Theme) -> bool:
-        """
-        Apply theme to entire application.
+        """Apply theme to entire application.
 
         Args:
             theme: Theme to apply globally
 
         Returns:
             True if successfully applied
+
         """
         try:
             # Create property resolver for this theme if needed
@@ -342,11 +336,11 @@ class ApplicationThemeApplicator:
             return False
 
     def clear_theme(self) -> bool:
-        """
-        Clear application theme.
+        """Clear application theme.
 
         Returns:
             True if successfully cleared
+
         """
         try:
             app = QApplication.instance()
@@ -362,11 +356,11 @@ class ApplicationThemeApplicator:
             return False
 
     def get_current_stylesheet(self) -> str:
-        """
-        Get current application stylesheet.
+        """Get current application stylesheet.
 
         Returns:
             Current stylesheet string
+
         """
         try:
             app = QApplication.instance()
@@ -409,8 +403,7 @@ class ApplicationThemeApplicator:
 
 
 class BatchThemeUpdater:
-    """
-    Efficient bulk theme updates.
+    """Efficient bulk theme updates.
 
     Optimizes theme application for large numbers of widgets by:
     - Batching style generation
@@ -419,19 +412,18 @@ class BatchThemeUpdater:
     """
 
     def __init__(self, registry: ThemeWidgetRegistry):
-        """
-        Initialize batch theme updater.
+        """Initialize batch theme updater.
 
         Args:
             registry: Widget registry for batch operations
+
         """
         self._registry = registry
         self._widget_applicator = WidgetThemeApplicator(registry)
         logger.debug("BatchThemeUpdater initialized")
 
     def update_widgets(self, widget_ids: List[str], theme: Theme) -> Dict[str, bool]:
-        """
-        Update multiple widgets with theme efficiently.
+        """Update multiple widgets with theme efficiently.
 
         Args:
             widget_ids: List of widget IDs to update
@@ -439,6 +431,7 @@ class BatchThemeUpdater:
 
         Returns:
             Dictionary mapping widget ID to success status
+
         """
         start_time = time.time()
         results = {}
@@ -457,27 +450,26 @@ class BatchThemeUpdater:
 
         except Exception as e:
             logger.error(f"Error in batch theme update: {e}")
-            results = {wid: False for wid in widget_ids}
+            results = dict.fromkeys(widget_ids, False)
 
         return results
 
     def update_all_widgets(self, theme: Theme) -> Dict[str, bool]:
-        """
-        Update all registered widgets with theme.
+        """Update all registered widgets with theme.
 
         Args:
             theme: Theme to apply
 
         Returns:
             Dictionary mapping widget ID to success status
+
         """
         widget_ids = self._registry.list_widgets(include_dead=False)
         return self.update_widgets(widget_ids, theme)
 
 
 class StyleInvalidator:
-    """
-    Manages style cache invalidation.
+    """Manages style cache invalidation.
 
     Handles cache management for theme changes by:
     - Invalidating widget-specific caches
@@ -492,11 +484,11 @@ class StyleInvalidator:
         logger.debug("StyleInvalidator initialized")
 
     def invalidate_widget(self, widget: QWidget) -> None:
-        """
-        Invalidate style cache for specific widget.
+        """Invalidate style cache for specific widget.
 
         Args:
             widget: Widget to invalidate
+
         """
         try:
             # Force widget to repaint/reapply styles
@@ -516,14 +508,14 @@ class StyleInvalidator:
             logger.debug("Invalidated all style caches")
 
     def invalidate_theme(self, theme_name: str) -> int:
-        """
-        Invalidate caches for specific theme.
+        """Invalidate caches for specific theme.
 
         Args:
             theme_name: Theme to invalidate
 
         Returns:
             Number of widgets invalidated
+
         """
         invalidated_count = 0
 
@@ -545,12 +537,12 @@ class StyleInvalidator:
         return invalidated_count
 
     def associate_widget_theme(self, widget: QWidget, theme_name: str) -> None:
-        """
-        Associate widget with theme for selective invalidation.
+        """Associate widget with theme for selective invalidation.
 
         Args:
             widget: Widget to associate
             theme_name: Theme name
+
         """
         with self._lock:
             widget_ref = weakref.ref(widget)
@@ -558,8 +550,7 @@ class StyleInvalidator:
 
 
 class AsyncThemeApplicator:
-    """
-    Non-blocking theme application.
+    """Non-blocking theme application.
 
     Provides asynchronous theme application using:
     - Thread pool for parallel processing
@@ -568,12 +559,12 @@ class AsyncThemeApplicator:
     """
 
     def __init__(self, registry: ThemeWidgetRegistry, max_workers: int = 4):
-        """
-        Initialize async theme applicator.
+        """Initialize async theme applicator.
 
         Args:
             registry: Widget registry
             max_workers: Maximum number of worker threads
+
         """
         self._registry = registry
         self._widget_applicator = WidgetThemeApplicator(registry)
@@ -586,8 +577,7 @@ class AsyncThemeApplicator:
         theme: Theme,
         callback: Optional[Callable[[bool, str], None]] = None
     ) -> Future[bool]:
-        """
-        Apply theme to widget asynchronously.
+        """Apply theme to widget asynchronously.
 
         Args:
             widget_id: Widget ID to theme
@@ -596,6 +586,7 @@ class AsyncThemeApplicator:
 
         Returns:
             Future object for async operation
+
         """
         def apply_worker():
             """Worker function for async theme application."""
@@ -623,8 +614,7 @@ class AsyncThemeApplicator:
         theme: Theme,
         callback: Optional[Callable[[Dict[str, bool]], None]] = None
     ) -> Future[Dict[str, bool]]:
-        """
-        Apply theme to batch of widgets asynchronously.
+        """Apply theme to batch of widgets asynchronously.
 
         Args:
             widget_ids: List of widget IDs
@@ -633,6 +623,7 @@ class AsyncThemeApplicator:
 
         Returns:
             Future object for async batch operation
+
         """
         def batch_worker():
             """Worker function for async batch theme application."""
@@ -646,7 +637,7 @@ class AsyncThemeApplicator:
 
             except Exception as e:
                 logger.error(f"Error in async batch theme application: {e}")
-                error_results = {wid: False for wid in widget_ids}
+                error_results = dict.fromkeys(widget_ids, False)
                 if callback:
                     callback(error_results)
                 return error_results
@@ -656,19 +647,18 @@ class AsyncThemeApplicator:
         return future
 
     def shutdown(self, wait: bool = True) -> None:
-        """
-        Shutdown async executor.
+        """Shutdown async executor.
 
         Args:
             wait: Whether to wait for pending operations
+
         """
         self._executor.shutdown(wait=wait)
         logger.debug("Async theme applicator shutdown")
 
 
 class PlatformThemeAdapter:
-    """
-    Platform-specific theme adaptations.
+    """Platform-specific theme adaptations.
 
     Adapts themes for different platforms by:
     - Platform-specific color adjustments
@@ -682,14 +672,14 @@ class PlatformThemeAdapter:
         logger.debug(f"PlatformThemeAdapter initialized for {self._current_platform}")
 
     def adapt_theme_for_platform(self, theme: Theme) -> Theme:
-        """
-        Adapt theme for current platform.
+        """Adapt theme for current platform.
 
         Args:
             theme: Base theme to adapt
 
         Returns:
             Platform-adapted theme
+
         """
         if self._current_platform == "Windows":
             return self._adapt_for_windows(theme)
@@ -741,8 +731,7 @@ class PlatformThemeAdapter:
 
 
 class ThemeApplicator:
-    """
-    Main coordinator for theme application operations.
+    """Main coordinator for theme application operations.
 
     Coordinates theme application across:
     - Individual widgets via WidgetThemeApplicator
@@ -766,8 +755,7 @@ class ThemeApplicator:
         async_applicator: Optional[AsyncThemeApplicator] = None,
         platform_adapter: Optional[PlatformThemeAdapter] = None
     ):
-        """
-        Initialize theme applicator with dependency injection.
+        """Initialize theme applicator with dependency injection.
 
         Args:
             registry: Widget registry for theme tracking
@@ -777,6 +765,7 @@ class ThemeApplicator:
             invalidator: Style cache invalidator
             async_applicator: Async theme applicator
             platform_adapter: Platform theme adapter
+
         """
         self._registry = registry or ThemeWidgetRegistry()
         self._widget_applicator = widget_applicator or WidgetThemeApplicator(self._registry)
@@ -792,8 +781,7 @@ class ThemeApplicator:
         logger.debug("ThemeApplicator initialized with all components")
 
     def apply_theme_to_widget(self, widget_id: str, theme: Theme) -> bool:
-        """
-        Apply theme to specific widget.
+        """Apply theme to specific widget.
 
         Args:
             widget_id: Widget ID in registry
@@ -801,6 +789,7 @@ class ThemeApplicator:
 
         Returns:
             True if successfully applied
+
         """
         start_time = time.time()
 
@@ -828,14 +817,14 @@ class ThemeApplicator:
             return False
 
     def apply_theme_globally(self, theme: Theme) -> Dict[str, bool]:
-        """
-        Apply theme to all registered widgets and application.
+        """Apply theme to all registered widgets and application.
 
         Args:
             theme: Theme to apply globally
 
         Returns:
             Dictionary mapping widget ID to success status
+
         """
         start_time = time.time()
 
@@ -872,14 +861,14 @@ class ThemeApplicator:
             return {}
 
     def apply_theme_to_application(self, theme: Theme) -> bool:
-        """
-        Apply theme at application level only.
+        """Apply theme at application level only.
 
         Args:
             theme: Theme to apply
 
         Returns:
             True if successfully applied
+
         """
         try:
             adapted_theme = self._platform_adapter.adapt_theme_for_platform(theme)
@@ -890,8 +879,7 @@ class ThemeApplicator:
             return False
 
     def batch_update_theme(self, theme: Theme, widget_ids: Optional[List[str]] = None) -> Dict[str, bool]:
-        """
-        Batch update theme for specified widgets.
+        """Batch update theme for specified widgets.
 
         Args:
             theme: Theme to apply
@@ -899,6 +887,7 @@ class ThemeApplicator:
 
         Returns:
             Dictionary mapping widget ID to success status
+
         """
         start_time = time.time()
 
@@ -926,11 +915,11 @@ class ThemeApplicator:
             return {}
 
     def invalidate_theme_cache(self, theme_name: Optional[str] = None) -> None:
-        """
-        Invalidate theme cache.
+        """Invalidate theme cache.
 
         Args:
             theme_name: Specific theme to invalidate (None for all)
+
         """
         try:
             if theme_name:
@@ -947,11 +936,11 @@ class ThemeApplicator:
             logger.error(f"Error invalidating theme cache: {e}")
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get theme application statistics.
+        """Get theme application statistics.
 
         Returns:
             Dictionary with application statistics
+
         """
         with self._lock:
             return {
@@ -982,8 +971,7 @@ def create_theme_applicator(
     registry: Optional[ThemeWidgetRegistry] = None,
     max_workers: int = 4
 ) -> ThemeApplicator:
-    """
-    Factory function for creating theme applicator with defaults.
+    """Factory function for creating theme applicator with defaults.
 
     Args:
         registry: Widget registry (creates default if None)
@@ -991,6 +979,7 @@ def create_theme_applicator(
 
     Returns:
         Configured theme applicator
+
     """
     registry = registry or ThemeWidgetRegistry()
 

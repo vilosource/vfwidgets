@@ -8,6 +8,13 @@ from typing import Dict, Optional, Protocol
 from PySide6.QtCore import QEvent, Qt, Signal
 from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
 
+try:
+    from vfwidgets_theme.widgets.base import ThemedWidget
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+    ThemedWidget = object
+
 from ..core.logger import log_widget_creation, logger
 from ..core.model import PaneModel
 from ..core.nodes import LeafNode, PaneNode, SplitNode
@@ -15,78 +22,85 @@ from ..core.types import Direction, NodeId, PaneId, WidgetId
 from ..view.tree_reconciler import ReconcilerOperations, TreeReconciler
 
 
-class StyledSplitter(QSplitter):
-    """Splitter with hover states and improved visuals."""
+if THEME_AVAILABLE:
+    class StyledSplitter(ThemedWidget, QSplitter):
+        """Splitter with hover states and theme-aware visuals."""
 
-    def __init__(self, orientation, parent=None):
-        """Initialize styled splitter."""
-        super().__init__(orientation, parent)
-        self.setChildrenCollapsible(False)
-        self.setHandleWidth(6)  # Wider for easier grabbing
+        # Theme configuration - maps theme tokens to splitter properties
+        theme_config = {
+            'handle_bg': 'widget.background',
+            'handle_hover_bg': 'list.hoverBackground',
+            'handle_border': 'widget.border',
+        }
 
-        # Apply base style
-        self.setStyleSheet("""
-            QSplitter::handle {
-                background-color: #e0e0e0;
-                border: 1px solid transparent;
-            }
-            QSplitter::handle:horizontal {
-                width: 6px;
-                margin: 2px 0px;
-            }
-            QSplitter::handle:vertical {
-                height: 6px;
-                margin: 0px 2px;
-            }
-        """)
+        def __init__(self, orientation, parent=None):
+            """Initialize styled splitter."""
+            super().__init__(orientation=orientation, parent=parent)
+            self.setChildrenCollapsible(False)
+            self.setHandleWidth(6)  # Wider for easier grabbing
 
-    def createHandle(self):
-        """Create custom handle with hover support."""
-        handle = super().createHandle()
-        handle.installEventFilter(self)
-        return handle
+            self._is_hovered = False
+            self.on_theme_changed()  # Apply initial theme
 
-    def eventFilter(self, obj, event):
-        """Handle hover events on splitter handles."""
-        if event.type() == QEvent.Type.Enter:
-            # Mouse entered handle
-            self.setStyleSheet("""
-                QSplitter::handle {
-                    background-color: #b0b0b0;
-                    border: 1px solid #808080;
-                }
-                QSplitter::handle:horizontal {
+        def createHandle(self):
+            """Create custom handle with hover support."""
+            handle = super().createHandle()
+            handle.installEventFilter(self)
+            return handle
+
+        def on_theme_changed(self) -> None:
+            """Called automatically when the theme changes."""
+            self._update_style()
+
+        def _update_style(self, hovered: bool = False):
+            """Update splitter style based on theme and hover state."""
+            bg = self.theme.handle_hover_bg if hovered else self.theme.handle_bg
+            border = self.theme.handle_border if hovered else "transparent"
+
+            self.setStyleSheet(f"""
+                QSplitter::handle {{
+                    background-color: {bg};
+                    border: 1px solid {border};
+                }}
+                QSplitter::handle:horizontal {{
                     width: 6px;
                     margin: 2px 0px;
-                }
-                QSplitter::handle:vertical {
+                }}
+                QSplitter::handle:vertical {{
                     height: 6px;
                     margin: 0px 2px;
-                }
+                }}
             """)
-            # Change cursor
-            obj.setCursor(Qt.CursorShape.SplitHCursor if self.orientation() == Qt.Orientation.Horizontal
-                        else Qt.CursorShape.SplitVCursor)
 
-        elif event.type() == QEvent.Type.Leave:
-            # Mouse left handle
-            self.setStyleSheet("""
-                QSplitter::handle {
-                    background-color: #e0e0e0;
-                    border: 1px solid transparent;
-                }
-                QSplitter::handle:horizontal {
-                    width: 6px;
-                    margin: 2px 0px;
-                }
-                QSplitter::handle:vertical {
-                    height: 6px;
-                    margin: 0px 2px;
-                }
-            """)
-            obj.unsetCursor()
+        def eventFilter(self, obj, event):
+            """Handle hover events on splitter handles."""
+            if event.type() == QEvent.Type.Enter:
+                # Mouse entered handle
+                self._is_hovered = True
+                self._update_style(hovered=True)
+                # Change cursor
+                obj.setCursor(Qt.CursorShape.SplitHCursor if self.orientation() == Qt.Orientation.Horizontal
+                            else Qt.CursorShape.SplitVCursor)
 
-        return super().eventFilter(obj, event)
+            elif event.type() == QEvent.Type.Leave:
+                # Mouse left handle
+                self._is_hovered = False
+                self._update_style(hovered=False)
+                obj.unsetCursor()
+
+            return super().eventFilter(obj, event)
+
+else:
+    # Fallback when theme system is not available
+    class StyledSplitter(QSplitter):
+        """Splitter without theme support (theme system not installed)."""
+
+        def __init__(self, orientation, parent=None):
+            super().__init__(orientation, parent)
+            raise ImportError(
+                "vfwidgets-theme is required for StyledSplitter. "
+                "Install with: pip install vfwidgets-theme"
+            )
 
 
 class WidgetProvider(Protocol):

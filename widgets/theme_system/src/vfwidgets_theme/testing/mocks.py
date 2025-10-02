@@ -1,5 +1,4 @@
-"""
-Mock objects implementing core protocols for testing without GUI dependencies.
+"""Mock objects implementing core protocols for testing without GUI dependencies.
 
 These mocks enable testing ThemedWidget and the entire theme system without
 requiring a QApplication or real Qt widgets. All mocks implement the protocols
@@ -18,26 +17,17 @@ maximum flexibility for different test scenarios.
 
 import time
 import weakref
-from typing import Any, Dict, List, Optional, Callable, Set
-from unittest.mock import Mock, MagicMock
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from ..protocols import (
-    ThemeProvider,
-    ThemeableWidget,
-    ColorProvider,
-    StyleGenerator,
-    ThemeData,
     ColorValue,
-    StyleCallback,
     PropertyKey,
     PropertyValue,
     QSSStyle,
-    ThemeError,
-    ThemeValidationError,
-    ColorResolveError,
-    StyleGenerationError,
+    StyleCallback,
+    ThemeData,
     ThemePropertyError,
+    ThemeProvider,
 )
 
 
@@ -63,6 +53,7 @@ class MockThemeProvider:
             provider.get_property("primary_color")
         except ThemePropertyError:
             pass  # Expected
+
     """
 
     def __init__(self, theme_data: Optional[ThemeData] = None) -> None:
@@ -70,6 +61,7 @@ class MockThemeProvider:
 
         Args:
             theme_data: Initial theme data. Uses default if None.
+
         """
         self._theme_data = theme_data or self._get_default_theme()
         self._callbacks: Set[StyleCallback] = set()
@@ -207,6 +199,7 @@ class MockThemeableWidget:
         # Test theme change notification
         widget.on_theme_changed()
         assert widget.theme_change_count == 1
+
     """
 
     def __init__(self, theme_provider: Optional[ThemeProvider] = None) -> None:
@@ -214,6 +207,7 @@ class MockThemeableWidget:
 
         Args:
             theme_provider: Theme provider to use. Creates mock if None.
+
         """
         self._theme_provider = theme_provider or MockThemeProvider()
         self._theme_config: ThemeData = {}
@@ -318,6 +312,7 @@ class MockColorProvider:
         # Test fallback
         fallback = provider.get_fallback_color()
         assert fallback == "#000000"
+
     """
 
     def __init__(self, color_map: Optional[Dict[str, str]] = None) -> None:
@@ -325,6 +320,7 @@ class MockColorProvider:
 
         Args:
             color_map: Mapping of color keys to values. Uses default if None.
+
         """
         self._color_map = color_map or self._get_default_colors()
         self._fallback_color = "#000000"
@@ -430,6 +426,7 @@ class MockStyleGenerator:
 
         selector = generator.get_selector("button")
         assert selector == "QPushButton"
+
     """
 
     def __init__(self) -> None:
@@ -542,6 +539,7 @@ class MockWidget:
 
         widget.set_property("theme_color", "#007acc")
         assert widget.get_property("theme_color") == "#007acc"
+
     """
 
     def __init__(self, widget_type: str = "generic") -> None:
@@ -549,12 +547,13 @@ class MockWidget:
 
         Args:
             widget_type: Type of widget for selector generation.
+
         """
         self.widget_type = widget_type
         self._stylesheet = ""
         self._properties: Dict[str, Any] = {}
         self._parent = None
-        self._children: List['MockWidget'] = []
+        self._children: List[MockWidget] = []
         self._visible = True
         self._enabled = True
 
@@ -621,6 +620,7 @@ class MockApplication:
         widget = MockWidget()
         app.register_widget(widget)
         assert len(app.get_registered_widgets()) == 1
+
     """
 
     def __init__(self) -> None:
@@ -699,6 +699,7 @@ class MockPainter:
         assert painter.pen_color == "#007acc"
         assert painter.brush_color == "#ffffff"
         assert len(painter.draw_operations) == 1
+
     """
 
     def __init__(self) -> None:
@@ -775,6 +776,7 @@ def create_mock_theme_provider(theme_name: str = "default") -> MockThemeProvider
 
     Returns:
         Configured MockThemeProvider instance.
+
     """
     themes = {
         "default": {
@@ -808,6 +810,7 @@ def create_mock_widget_hierarchy() -> MockWidget:
 
     Returns:
         Root widget with child widgets attached.
+
     """
     root = MockWidget("container")
 

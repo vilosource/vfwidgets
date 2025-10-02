@@ -19,24 +19,18 @@ get automatic memory management without any effort.
 import gc
 import threading
 import time
-import weakref
-from contextlib import contextmanager
-from typing import List, Optional, Set
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
+from src.vfwidgets_theme.lifecycle import CleanupProtocol
 from src.vfwidgets_theme.testing import (
-    ThemedTestCase,
-    MockWidget,
     MockThemeProvider,
-    MemoryProfiler,
+    MockWidget,
+    ThemedTestCase,
     memory_leak_test,
     performance_test,
 )
-from src.vfwidgets_theme.protocols import ThemeableWidget
-from src.vfwidgets_theme.lifecycle import CleanupProtocol
-from src.vfwidgets_theme.errors import ThemeError
 
 
 class TestWidgetRegistrySystem(ThemedTestCase):
@@ -337,7 +331,7 @@ class TestContextManagers(ThemedTestCase):
 
     def test_theme_update_context(self):
         """Test ThemeUpdateContext for batch theme updates."""
-        from src.vfwidgets_theme.lifecycle import ThemeUpdateContext, LifecycleManager
+        from src.vfwidgets_theme.lifecycle import LifecycleManager, ThemeUpdateContext
 
         manager = LifecycleManager()
         widgets = [MockWidget() for _ in range(5)]
@@ -357,7 +351,7 @@ class TestContextManagers(ThemedTestCase):
 
     def test_widget_creation_context(self):
         """Test WidgetCreationContext for managing widget creation batches."""
-        from src.vfwidgets_theme.lifecycle import WidgetCreationContext, LifecycleManager
+        from src.vfwidgets_theme.lifecycle import LifecycleManager, WidgetCreationContext
 
         manager = LifecycleManager()
 
@@ -387,7 +381,7 @@ class TestContextManagers(ThemedTestCase):
 
     def test_context_manager_error_handling(self):
         """Test context managers handle errors gracefully."""
-        from src.vfwidgets_theme.lifecycle import ThemeUpdateContext, LifecycleManager
+        from src.vfwidgets_theme.lifecycle import LifecycleManager, ThemeUpdateContext
 
         manager = LifecycleManager()
 
@@ -404,7 +398,7 @@ class TestContextManagers(ThemedTestCase):
     @memory_leak_test(iterations=50, max_leaks=0)
     def test_context_manager_memory_safety(self):
         """Test context managers don't cause memory leaks."""
-        from src.vfwidgets_theme.lifecycle import ThemeUpdateContext, LifecycleManager
+        from src.vfwidgets_theme.lifecycle import LifecycleManager, ThemeUpdateContext
 
         manager = LifecycleManager()
 
@@ -424,7 +418,6 @@ class TestCleanupProtocols(ThemedTestCase):
 
     def test_cleanup_protocol_interface(self):
         """Test CleanupProtocol interface definition."""
-        from src.vfwidgets_theme.lifecycle import CleanupProtocol
 
         # Should be able to implement the protocol
         class TestCleanupObject:
@@ -613,7 +606,7 @@ class TestMemoryDiagnostics(ThemedTestCase):
     @memory_leak_test(iterations=50, max_leaks=0)
     def test_memory_diagnostics_no_leaks(self):
         """Test that memory diagnostics themselves don't leak memory."""
-        from src.vfwidgets_theme.lifecycle import MemoryTracker, LeakDetector
+        from src.vfwidgets_theme.lifecycle import LeakDetector, MemoryTracker
 
         # Use diagnostics repeatedly
         for cycle in range(50):
@@ -640,7 +633,10 @@ class TestIntegrationScenarios(ThemedTestCase):
     def test_complete_widget_lifecycle(self):
         """Test complete widget lifecycle with all memory management components."""
         from src.vfwidgets_theme.lifecycle import (
-            LifecycleManager, WidgetRegistry, MemoryTracker, CleanupScheduler
+            CleanupScheduler,
+            LifecycleManager,
+            MemoryTracker,
+            WidgetRegistry,
         )
 
         # Set up all components

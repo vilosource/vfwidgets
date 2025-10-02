@@ -4,24 +4,23 @@ Visual Testing Framework for VFWidgets Theme System
 Task 22: Screenshot-based visual regression testing
 """
 
-import os
 import time
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 try:
-    from PIL import Image, ImageDraw, ImageChops, ImageStat
+    from PIL import Image, ImageChops, ImageDraw, ImageStat
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
-from PySide6.QtCore import QRect, QSize, QTimer
-from PySide6.QtGui import QImage, QPainter, QPixmap
-from PySide6.QtWidgets import QWidget, QApplication
+from PySide6.QtCore import QSize, QTimer
+from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtWidgets import QApplication, QWidget
 
-from vfwidgets_theme import ThemedWidget, ThemedApplication
+from vfwidgets_theme import ThemedApplication, ThemedWidget
 
 
 class ComparisonResult(Enum):
@@ -548,8 +547,8 @@ class VisualTestFramework:
 
 if __name__ == "__main__":
     # Example usage
-    import sys
     from PySide6.QtWidgets import QApplication
+
     from vfwidgets_theme import ThemedApplication, ThemedWidget
 
     app = ThemedApplication()

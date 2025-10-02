@@ -26,9 +26,8 @@ src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QAction, QFont
 from PySide6.QtWidgets import (
-    QAction,
     QApplication,
     QLabel,
     QMainWindow,

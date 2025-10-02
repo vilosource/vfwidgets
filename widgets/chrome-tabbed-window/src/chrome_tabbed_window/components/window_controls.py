@@ -6,7 +6,7 @@ Provides minimize, maximize/restore, and close buttons for frameless windows.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Any
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent, QPen
@@ -21,7 +21,7 @@ class WindowControlButton(QPushButton):
         self.setFixedSize(46, 32)  # Chrome button dimensions
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
-        # Chrome colors
+        # Chrome colors (fallback)
         self.normal_color = QColor(0, 0, 0, 0)  # Transparent
         self.hover_color = QColor(0, 0, 0, 26)  # 10% black
         self.pressed_color = QColor(0, 0, 0, 51)  # 20% black
@@ -29,6 +29,31 @@ class WindowControlButton(QPushButton):
 
         self._is_hovered = False
         self._is_pressed = False
+
+    def _get_theme_colors(self):
+        """Get colors from theme or fallback to defaults."""
+        # Try to get theme from parent chain
+        parent_widget = self.parent()
+        while parent_widget:
+            if hasattr(parent_widget, 'get_current_theme'):
+                theme = parent_widget.get_current_theme()
+                if theme and hasattr(theme, 'colors'):
+                    colors = theme.colors
+                    return {
+                        'normal': QColor(0, 0, 0, 0),
+                        'hover': QColor(colors.get('toolbar.hoverBackground', 'rgba(0, 0, 0, 0.1)')),
+                        'pressed': QColor(colors.get('toolbar.activeBackground', 'rgba(0, 0, 0, 0.2)')),
+                        'icon': QColor(colors.get('icon.foreground', colors.get('foreground', '#000000'))),
+                    }
+            parent_widget = parent_widget.parent()
+
+        # Fallback to defaults
+        return {
+            'normal': self.normal_color,
+            'hover': self.hover_color,
+            'pressed': self.pressed_color,
+            'icon': self.icon_color,
+        }
 
     def enterEvent(self, event) -> None:
         """Handle mouse enter."""
@@ -60,13 +85,16 @@ class WindowControlButton(QPushButton):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+        # Get theme colors
+        colors = self._get_theme_colors()
+
         # Draw background
         if self._is_pressed:
-            painter.fillRect(self.rect(), self.pressed_color)
+            painter.fillRect(self.rect(), colors['pressed'])
         elif self._is_hovered:
-            painter.fillRect(self.rect(), self.hover_color)
+            painter.fillRect(self.rect(), colors['hover'])
         else:
-            painter.fillRect(self.rect(), self.normal_color)
+            painter.fillRect(self.rect(), colors['normal'])
 
         # Draw icon (implemented in subclasses)
         self.draw_icon(painter)
@@ -81,7 +109,8 @@ class MinimizeButton(WindowControlButton):
 
     def draw_icon(self, painter: QPainter) -> None:
         """Draw minimize icon (horizontal line)."""
-        painter.setPen(QPen(self.icon_color, 1))
+        colors = self._get_theme_colors()
+        painter.setPen(QPen(colors['icon'], 1))
         y = self.height() // 2
         painter.drawLine(18, y, 28, y)
 
@@ -100,7 +129,8 @@ class MaximizeButton(WindowControlButton):
 
     def draw_icon(self, painter: QPainter) -> None:
         """Draw maximize or restore icon."""
-        painter.setPen(QPen(self.icon_color, 1))
+        colors = self._get_theme_colors()
+        painter.setPen(QPen(colors['icon'], 1))
 
         if self.is_maximized:
             # Draw restore icon (two overlapping squares)
@@ -125,11 +155,12 @@ class CloseButton(WindowControlButton):
 
     def draw_icon(self, painter: QPainter) -> None:
         """Draw close icon (X)."""
+        colors = self._get_theme_colors()
         # Use white icon on red background when hovered
         if self._is_hovered or self._is_pressed:
             painter.setPen(QPen(QColor(255, 255, 255), 1))
         else:
-            painter.setPen(QPen(self.icon_color, 1))
+            painter.setPen(QPen(colors['icon'], 1))
 
         # Draw X
         painter.drawLine(19, 13, 27, 21)

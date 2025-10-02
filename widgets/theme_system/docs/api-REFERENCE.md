@@ -272,6 +272,22 @@ The core mixin for creating themed custom widgets.
 
 **When to use:** Building custom widgets that inherit from QTextEdit, QFrame, QPushButton, or any Qt widget besides QWidget/QMainWindow/QDialog.
 
+**Understanding the 80/20 Use Cases:**
+
+ThemedWidget supports two primary use cases:
+
+1. **80% Case (Simple):** Access theme properties for custom painting/styling
+   - Use `self.theme.property` to get themed colors
+   - Automatic Qt stylesheet styling
+   - Perfect for widgets with custom `paintEvent()` or styling
+
+2. **20% Case (Complex):** Pass theme to children or external components
+   - Use `get_current_theme()` to get Theme object
+   - Pass theme to child widgets or renderers
+   - For multi-component widgets
+
+**See:** [Official Theming Guide](THEMING-GUIDE-OFFICIAL.md) for complete patterns and examples.
+
 **Pattern:**
 ```python
 from vfwidgets_theme import ThemedWidget
@@ -354,9 +370,33 @@ Override to respond to theme changes.
 class MyWidget(ThemedWidget, QWidget):
     def on_theme_changed(self):
         """Called automatically when theme changes."""
-        self.update()  # Trigger repaint
+        # Note: self.update() is already called by the framework
+        # Use this for additional logic only
         self.recalculate_layout()  # Custom logic
+        self.update_children()     # Update child widgets
 ```
+
+#### `get_current_theme() -> Theme`
+
+Get the actual Theme object (for 20% case - passing theme to children/renderers).
+
+```python
+class ComplexWidget(ThemedWidget, QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Get Theme object to pass to children or renderers
+        theme = self.get_current_theme()
+
+        # Pass to child component
+        self.renderer = CustomRenderer(theme=theme)
+
+        # Pass to non-ThemedWidget child
+        self.child = PlainQWidget(self)
+        self.child.theme = theme
+```
+
+**See:** [Official Theming Guide](THEMING-GUIDE-OFFICIAL.md) for complete 80/20 use case patterns
 
 #### `before_theme_change(old_theme: Theme, new_theme: Theme) -> bool`
 

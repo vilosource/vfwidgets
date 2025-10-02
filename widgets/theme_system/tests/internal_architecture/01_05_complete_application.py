@@ -20,28 +20,46 @@ Run this example:
     python complete_application.py
 """
 
-import sys
 import json
-import time
-import threading
+import sys
 import tempfile
-from pathlib import Path
-from typing import Dict, List, Optional, Any
+import time
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict
 
 # Add the source directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
+    from PySide6.QtCore import Qt, QThread, QTimer, pyqtSignal
+    from PySide6.QtGui import QAction, QColor, QFont, QPainter
     from PySide6.QtWidgets import (
-        QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-        QPushButton, QLabel, QTextEdit, QSlider, QProgressBar,
-        QMenuBar, QMenu, QStatusBar, QTabWidget, QGroupBox,
-        QCheckBox, QComboBox, QSpinBox, QLineEdit, QTableWidget,
-        QTableWidgetItem, QSplitter, QFrame, QScrollArea
+        QCheckBox,
+        QComboBox,
+        QFrame,
+        QGridLayout,
+        QGroupBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QMainWindow,
+        QMenu,
+        QMenuBar,
+        QProgressBar,
+        QPushButton,
+        QScrollArea,
+        QSlider,
+        QSpinBox,
+        QSplitter,
+        QStatusBar,
+        QTableWidget,
+        QTableWidgetItem,
+        QTabWidget,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
     )
-    from PySide6.QtCore import QTimer, QThread, pyqtSignal, Qt
-    from PySide6.QtGui import QAction, QPainter, QColor, QFont
     QT_AVAILABLE = True
 except ImportError:
     print("PySide6 not available. This example will demonstrate the architecture without full Qt functionality.")
@@ -83,11 +101,11 @@ except ImportError:
     def pyqtSignal(*args): pass
     class Qt: pass
 
-from vfwidgets_theme.widgets.base import ThemedWidget
+from vfwidgets_theme.core.theme import ThemeBuilder
+from vfwidgets_theme.testing import MemoryProfiler
 from vfwidgets_theme.widgets.application import ThemedApplication
-from vfwidgets_theme.widgets.mixins import ThemeableMixin, CompositeMixin
-from vfwidgets_theme.core.theme import Theme, ThemeBuilder
-from vfwidgets_theme.testing import ThemeBenchmark, MemoryProfiler
+from vfwidgets_theme.widgets.base import ThemedWidget
+from vfwidgets_theme.widgets.mixins import ThemeableMixin
 
 
 @dataclass
@@ -724,7 +742,7 @@ class CompleteApplication:
     def run(self):
         """Run the complete application."""
         try:
-            print(f"\n🎯 Running complete application...")
+            print("\n🎯 Running complete application...")
 
             if QT_AVAILABLE:
                 # Show main window

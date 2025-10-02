@@ -22,22 +22,29 @@ Run this example:
 """
 
 import sys
-import time
 import threading
+import time
 import weakref
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 # Add the source directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
+    from PySide6.QtCore import QThread, QTimer, pyqtSignal
+    from PySide6.QtGui import QColor, QPainter, QPaintEvent
     from PySide6.QtWidgets import (
-        QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-        QMainWindow, QWidget, QTextEdit, QSlider, QProgressBar
+        QHBoxLayout,
+        QLabel,
+        QMainWindow,
+        QProgressBar,
+        QPushButton,
+        QSlider,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
     )
-    from PySide6.QtCore import QTimer, QThread, pyqtSignal
-    from PySide6.QtGui import QPainter, QColor, QPaintEvent
     QT_AVAILABLE = True
 except ImportError:
     print("PySide6 not available. This example will run with fallback implementations.")
@@ -62,14 +69,11 @@ except ImportError:
     class QPaintEvent: pass
     def pyqtSignal(*args): pass
 
-from vfwidgets_theme.widgets.base import ThemedWidget, ThemePropertyDescriptor
+from vfwidgets_theme.core.theme import ThemeBuilder
+from vfwidgets_theme.testing import MemoryProfiler, ThemeBenchmark
 from vfwidgets_theme.widgets.application import ThemedApplication
-from vfwidgets_theme.widgets.mixins import (
-    ThemeableMixin, PropertyMixin, NotificationMixin,
-    CacheMixin, CompositeMixin, themeable
-)
-from vfwidgets_theme.core.theme import Theme, ThemeBuilder
-from vfwidgets_theme.testing import ThemeBenchmark, MemoryProfiler
+from vfwidgets_theme.widgets.base import ThemedWidget
+from vfwidgets_theme.widgets.mixins import CompositeMixin, ThemeableMixin, themeable
 
 
 class AdvancedThemedButton(ThemedWidget):
@@ -297,7 +301,7 @@ class ExistingWidgetWithTheming(QPushButton, ThemeableMixin):
 
     def on_theme_changed(self):
         """Handle theme changes through mixin."""
-        print(f"🎨 Mixin widget theme changed")
+        print("🎨 Mixin widget theme changed")
         if hasattr(self, 'setText'):
             # Update button text to show theme info
             bg = self.theme.get('bg', '#ffffff')
@@ -527,7 +531,7 @@ class AdvancedExample:
         creation_time = self.benchmark.measure_time(create_widgets)
         temp_widgets = create_widgets()
 
-        print(f"🏗️ Widget Creation Performance:")
+        print("🏗️ Widget Creation Performance:")
         print(f"   - 50 widgets created in: {creation_time:.3f}s")
         print(f"   - Average per widget: {(creation_time / 50) * 1000:.1f}ms")
 
@@ -540,7 +544,7 @@ class AdvancedExample:
         switch_time = self.benchmark.measure_time(switch_themes)
         widget_count = len(self.widgets) + len(temp_widgets)
 
-        print(f"🎨 Theme Switching Performance:")
+        print("🎨 Theme Switching Performance:")
         print(f"   - 3 theme switches: {switch_time:.3f}s")
         print(f"   - {widget_count} widgets updated")
         print(f"   - Average per switch: {(switch_time / 3) * 1000:.1f}ms")
@@ -555,7 +559,7 @@ class AdvancedExample:
         access_time = self.benchmark.measure_time(access_properties)
         total_accesses = 1000 * 3
 
-        print(f"🔍 Property Access Performance:")
+        print("🔍 Property Access Performance:")
         print(f"   - {total_accesses} property accesses: {access_time:.3f}s")
         print(f"   - Average per access: {(access_time / total_accesses) * 1000000:.1f}μs")
 
@@ -601,7 +605,7 @@ class AdvancedExample:
         peak_memory = self.profiler.get_memory_usage()
         memory_per_widget = (peak_memory - baseline_memory) / 100
 
-        print(f"📊 Memory Usage Analysis:")
+        print("📊 Memory Usage Analysis:")
         print(f"   - Baseline: {baseline_memory / 1024:.1f} KB")
         print(f"   - Peak (100 widgets): {peak_memory / 1024:.1f} KB")
         print(f"   - Memory per widget: {memory_per_widget:.0f} bytes")
@@ -618,7 +622,7 @@ class AdvancedExample:
         final_memory = self.profiler.get_memory_usage()
         memory_recovered = peak_memory - final_memory
 
-        print(f"🧹 After Cleanup:")
+        print("🧹 After Cleanup:")
         print(f"   - Final memory: {final_memory / 1024:.1f} KB")
         print(f"   - Memory recovered: {memory_recovered / 1024:.1f} KB")
         print(f"   - Recovery rate: {(memory_recovered / (peak_memory - baseline_memory)) * 100:.1f}%")
@@ -690,7 +694,7 @@ class AdvancedExample:
                     print(f"   Widget {i+1}: stats error - {e}")
 
         # Memory profiler statistics
-        print(f"\n🧠 Memory Statistics:")
+        print("\n🧠 Memory Statistics:")
         print(f"   - Current usage: {self.profiler.get_memory_usage() / 1024:.1f} KB")
 
     def cleanup(self):

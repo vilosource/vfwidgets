@@ -1,5 +1,4 @@
-"""
-Core protocols and interfaces for the VFWidgets Theme System.
+"""Core protocols and interfaces for the VFWidgets Theme System.
 
 This module defines the fundamental protocols that enable clean architecture
 through dependency injection, ensuring ThemedWidget remains simple while
@@ -22,12 +21,8 @@ ThemedWidget is THE way - these protocols enable its clean API while
 hiding all architectural complexity behind simple inheritance.
 """
 
-from typing import (
-    Any, Dict, List, Optional, Callable, Protocol, runtime_checkable,
-    TypeAlias, Union
-)
 from abc import abstractmethod
-
+from typing import Any, Callable, Dict, List, Protocol, TypeAlias, runtime_checkable
 
 # Type Aliases for better IDE support and cleaner interfaces
 ThemeData: TypeAlias = Dict[str, Any]
@@ -59,6 +54,7 @@ class ThemeError(Exception):
     Philosophy: Theme errors should never crash the application.
     All components must provide graceful fallbacks and error recovery.
     """
+
     pass
 
 
@@ -67,6 +63,7 @@ class ThemeValidationError(ThemeError):
 
     Recovery Strategy: Fall back to default theme or minimal theme subset.
     """
+
     pass
 
 
@@ -75,6 +72,7 @@ class ColorResolveError(ThemeError):
 
     Recovery Strategy: Return fallback color (typically black or white).
     """
+
     pass
 
 
@@ -83,6 +81,7 @@ class StyleGenerationError(ThemeError):
 
     Recovery Strategy: Return empty stylesheet or minimal safe styles.
     """
+
     pass
 
 
@@ -91,6 +90,7 @@ class ThemePropertyError(ThemeError):
 
     Recovery Strategy: Return provided default value or safe fallback.
     """
+
     pass
 
 
@@ -120,6 +120,7 @@ class ThemeProvider(Protocol):
             print(f"Theme changed to: {theme_name}")
 
         provider.subscribe(on_change)
+
     """
 
     @abstractmethod
@@ -134,6 +135,7 @@ class ThemeProvider(Protocol):
             ThemeError: If theme loading fails completely.
 
         Performance: < 1μs for cached themes.
+
         """
         ...
 
@@ -151,6 +153,7 @@ class ThemeProvider(Protocol):
             ThemePropertyError: If property access fails.
 
         Performance: < 1μs for property access.
+
         """
         ...
 
@@ -167,6 +170,7 @@ class ThemeProvider(Protocol):
             Multiple subscriptions of same callback are ignored.
 
         Performance: < 10μs for callback registration.
+
         """
         ...
 
@@ -181,6 +185,7 @@ class ThemeProvider(Protocol):
             Unsubscribing non-existent callback is safe (no-op).
 
         Performance: < 10μs for callback removal.
+
         """
         ...
 
@@ -212,6 +217,7 @@ class ThemeableWidget(Protocol):
                 # Theming automatically available
                 color = self.get_theme_color("button_color")
                 font = self.get_theme_property("button_font")
+
     """
 
     @property
@@ -222,6 +228,7 @@ class ThemeableWidget(Protocol):
         Returns:
             Dictionary of widget-specific theme overrides.
             Can be empty if using default theme entirely.
+
         """
         ...
 
@@ -233,6 +240,7 @@ class ThemeableWidget(Protocol):
         Returns:
             ThemeProvider instance injected during widget creation.
             Enables dependency injection and testing with mocks.
+
         """
         ...
 
@@ -263,6 +271,7 @@ class ThemeableWidget(Protocol):
 
         Performance: < 1μs through caching.
         Error Recovery: Returns default on any error.
+
         """
         ...
 
@@ -279,6 +288,7 @@ class ThemeableWidget(Protocol):
 
         Performance: < 1μs through caching.
         Error Recovery: Returns default on any error.
+
         """
         ...
 
@@ -306,6 +316,7 @@ class ColorProvider(Protocol):
         color = provider.resolve_color("primary")  # Returns "#007acc"
         is_valid = provider.validate_color("#ff0000")  # Returns True
         fallback = provider.get_fallback_color()  # Returns "#000000"
+
     """
 
     @abstractmethod
@@ -321,6 +332,7 @@ class ColorProvider(Protocol):
 
         Performance: < 1μs for cached colors.
         Error Recovery: Never fails - returns fallback on any error.
+
         """
         ...
 
@@ -334,6 +346,7 @@ class ColorProvider(Protocol):
 
         Performance: < 1μs (immediate return).
         Guaranteed: Never fails or raises exceptions.
+
         """
         ...
 
@@ -349,6 +362,7 @@ class ColorProvider(Protocol):
 
         Performance: < 1μs for color validation.
         Thread Safety: Must be thread-safe for concurrent validation.
+
         """
         ...
 
@@ -383,6 +397,7 @@ class StyleGenerator(Protocol):
 
         merged = generator.merge_styles([style1, style2, style3])
         # Returns combined stylesheet
+
     """
 
     @abstractmethod
@@ -400,6 +415,7 @@ class StyleGenerator(Protocol):
         Performance: < 10ms for complex widgets with many properties.
         Error Recovery: Never fails - returns safe fallback styles.
         Validation: Output is always valid QSS syntax.
+
         """
         ...
 
@@ -415,6 +431,7 @@ class StyleGenerator(Protocol):
 
         Performance: < 1μs through lookup table.
         Error Recovery: Returns generic selector if type not found.
+
         """
         ...
 
@@ -432,6 +449,7 @@ class StyleGenerator(Protocol):
         Performance: < 5ms for reasonable number of styles.
         Error Recovery: Skips invalid styles, continues with valid ones.
         Validation: Output is always valid QSS syntax.
+
         """
         ...
 
@@ -452,6 +470,7 @@ def validate_performance_requirements() -> bool:
     - Widget theme update: < 10ms
     - Style generation: < 10ms
     - Memory overhead: < 1KB per widget
+
     """
     # Implementation will be added in performance testing task
     return True
@@ -465,6 +484,7 @@ def get_protocol_version() -> str:
 
     Used to ensure compatibility between different components
     of the theme system across versions.
+
     """
     return "1.0.0"
 

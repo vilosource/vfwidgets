@@ -3,15 +3,17 @@
 Tests for Visual Testing Framework
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QApplication, QLabel, QPushButton
 
-from vfwidgets_theme import ThemedWidget, ThemedApplication
-from .framework import VisualTestFramework, ComparisonResult
-from .comparison import ImageComparator, ComparisonMetric
+from vfwidgets_theme import ThemedApplication, ThemedWidget
+
+from .comparison import ImageComparator
+from .framework import ComparisonResult, VisualTestFramework
 
 
 class TestVisualFramework:
@@ -42,7 +44,6 @@ class TestVisualFramework:
         if existing_app:
             yield existing_app
         else:
-            import sys
             app = ThemedApplication()
             yield app
 
@@ -235,7 +236,6 @@ def test_visual_framework_integration():
         # Create test widget
         app = QApplication.instance()
         if not app:
-            import sys
             app = ThemedApplication()
 
         widget = QPushButton("Integration Test")

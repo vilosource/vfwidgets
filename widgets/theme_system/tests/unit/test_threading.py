@@ -8,16 +8,12 @@ async operations, and Qt signal/slot integration.
 import asyncio
 import threading
 import time
-import weakref
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
+from typing import Any, Dict
+from unittest.mock import patch
 
 import pytest
 
-from src.vfwidgets_theme.testing import ThemedTestCase, MemoryProfiler
-from src.vfwidgets_theme.protocols import ThemeProvider, ThemeableWidget
-from src.vfwidgets_theme.errors import ThemeError
+from src.vfwidgets_theme.testing import ThemedTestCase
 
 
 class TestThreadSafeThemeManager(ThemedTestCase):
@@ -343,10 +339,11 @@ class TestThreadLocalStorage(ThemedTestCase):
 
     def test_cache_memory_efficiency(self):
         """Test thread-local cache memory efficiency."""
-        from src.vfwidgets_theme.threading import ThemeCache, StyleCache, PropertyCache
+        import os
 
         import psutil
-        import os
+
+        from src.vfwidgets_theme.threading import PropertyCache, StyleCache, ThemeCache
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
@@ -548,8 +545,8 @@ class TestQtSignalSlotIntegration(ThemedTestCase):
 
     def test_widget_notification_proxy(self):
         """Test widget notification proxy system."""
-        from src.vfwidgets_theme.threading import WidgetNotificationProxy
         from src.vfwidgets_theme.testing.mocks import MockWidget
+        from src.vfwidgets_theme.threading import WidgetNotificationProxy
 
         proxy = WidgetNotificationProxy()
         mock_widget = MockWidget()
@@ -685,8 +682,8 @@ class TestConcurrentAccessProtection(ThemedTestCase):
 
     def test_concurrent_registry_access(self):
         """Test concurrent registry access patterns."""
-        from src.vfwidgets_theme.threading import ConcurrentRegistry
         from src.vfwidgets_theme.testing.mocks import MockWidget
+        from src.vfwidgets_theme.threading import ConcurrentRegistry
 
         registry = ConcurrentRegistry()
         operation_results = []
@@ -847,7 +844,7 @@ class TestPerformanceUnderLoad(ThemedTestCase):
 
     def test_high_concurrency_support(self):
         """Test support for 8+ concurrent threads without contention."""
-        from src.vfwidgets_theme.threading import ThreadSafeThemeManager, ThemeCache
+        from src.vfwidgets_theme.threading import ThemeCache, ThreadSafeThemeManager
 
         manager = ThreadSafeThemeManager.get_instance()
         thread_results = []

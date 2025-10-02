@@ -9,9 +9,9 @@ This module provides comprehensive performance benchmarking with:
 - Report generation
 """
 
-from .suite import BenchmarkSuite
-from .runner import BenchmarkRunner
 from .results import BenchmarkResults
+from .runner import BenchmarkRunner
+from .suite import BenchmarkSuite
 
 __all__ = [
     "BenchmarkSuite",

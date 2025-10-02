@@ -1,5 +1,4 @@
-"""
-Theming mixins for composable behavior.
+"""Theming mixins for composable behavior.
 
 This module provides mixins that can be combined with any widget class
 to add theming capabilities. This provides an alternative to inheritance
@@ -20,15 +19,14 @@ Task 9 Implementation Features:
 - Performance optimization through caching
 """
 
+import threading
 import uuid
 import weakref
-import threading
-from typing import Dict, Any, Optional, Callable, Union, Set, TYPE_CHECKING
-from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set
 
 try:
-    from PySide6.QtWidgets import QWidget
     from PySide6.QtCore import QObject, Signal, pyqtSignal
+    from PySide6.QtWidgets import QWidget
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
@@ -64,23 +62,20 @@ except ImportError:
     pyqtSignal = Signal
 
 # Import foundation modules
-from ..protocols import ThemeableWidget, ThemeProvider
-from ..errors import ThemeError, PropertyNotFoundError, get_global_error_recovery_manager
-from ..logging import get_debug_logger
-from ..lifecycle import WidgetRegistry, LifecycleManager
-from ..threading import ThreadSafeThemeManager
 from ..core.manager import ThemeManager
 from ..core.theme import Theme
+from ..errors import ThemeError, get_global_error_recovery_manager
+from ..lifecycle import LifecycleManager, WidgetRegistry
+from ..logging import get_debug_logger
 
 if TYPE_CHECKING:
-    from .base import ThemePropertiesManager, ThemeAccess
+    from .base import ThemeAccess, ThemePropertiesManager
 
 logger = get_debug_logger(__name__)
 
 
 class ThemeableMixin:
-    """
-    Mixin for adding theming capabilities to any widget.
+    """Mixin for adding theming capabilities to any widget.
 
     This mixin can be combined with any widget class to add
     theming support without requiring inheritance from ThemedWidget.
@@ -105,17 +100,17 @@ class ThemeableMixin:
         # Themeable mixin state
         self._themeable_widget_id: Optional[str] = None
         self._themeable_manager: Optional[ThemeManager] = None
-        self._themeable_properties: Optional['ThemePropertiesManager'] = None
-        self._themeable_access: Optional['ThemeAccess'] = None
+        self._themeable_properties: Optional[ThemePropertiesManager] = None
+        self._themeable_access: Optional[ThemeAccess] = None
         self._is_themeable_registered = False
         self._is_themeable_ready = False
 
     def setup_theming(self, theme_config: Optional[Dict[str, str]] = None) -> None:
-        """
-        Set up theming for this widget.
+        """Set up theming for this widget.
 
         Args:
             theme_config: Optional theme property mapping
+
         """
         try:
             # Generate unique widget ID
@@ -125,7 +120,7 @@ class ThemeableMixin:
             self._themeable_manager = ThemeManager.get_instance()
 
             # Import here to avoid circular imports
-            from .base import ThemePropertiesManager, ThemeAccess
+            from .base import ThemeAccess, ThemePropertiesManager
 
             # Set up properties manager
             self._themeable_properties = ThemePropertiesManager(self)
@@ -269,8 +264,7 @@ class ThemeableMixin:
 
 
 class PropertyMixin:
-    """
-    Mixin for standalone property access capabilities.
+    """Mixin for standalone property access capabilities.
 
     Provides property-based theme access without full theming setup.
     Useful for widgets that only need property access.
@@ -279,14 +273,14 @@ class PropertyMixin:
     def __init__(self, *args, **kwargs):
         """Initialize property mixin."""
         super().__init__(*args, **kwargs)
-        self._property_manager: Optional['ThemePropertiesManager'] = None
-        self._property_access: Optional['ThemeAccess'] = None
+        self._property_manager: Optional[ThemePropertiesManager] = None
+        self._property_access: Optional[ThemeAccess] = None
 
     def setup_properties(self) -> None:
         """Set up property access."""
         try:
             # Import here to avoid circular imports
-            from .base import ThemePropertiesManager, ThemeAccess
+            from .base import ThemeAccess, ThemePropertiesManager
 
             self._property_manager = ThemePropertiesManager(self)
             self._property_access = ThemeAccess(self)
@@ -314,8 +308,7 @@ class PropertyMixin:
 
 
 class NotificationMixin:
-    """
-    Mixin for theme change notification handling.
+    """Mixin for theme change notification handling.
 
     Provides theme change notification capabilities without full theming.
     """
@@ -391,8 +384,7 @@ class NotificationMixin:
 
 
 class CacheMixin:
-    """
-    Mixin for property caching capabilities.
+    """Mixin for property caching capabilities.
 
     Provides efficient property caching for performance optimization.
     """
@@ -447,8 +439,7 @@ class CacheMixin:
 
 
 class LifecycleMixin:
-    """
-    Mixin for cleanup and registration management.
+    """Mixin for cleanup and registration management.
 
     Provides automatic lifecycle management for mixed-in widgets.
     """
@@ -501,8 +492,7 @@ class LifecycleMixin:
 
 
 class CompositeMixin(ThemeableMixin, PropertyMixin, NotificationMixin, CacheMixin, LifecycleMixin):
-    """
-    Composite mixin providing all theming capabilities.
+    """Composite mixin providing all theming capabilities.
 
     Combines all theming mixins into a single convenient mixin.
     This provides the most complete theming support for widgets
@@ -548,8 +538,7 @@ class CompositeMixin(ThemeableMixin, PropertyMixin, NotificationMixin, CacheMixi
 
 # Utility functions for mixin usage
 def add_theming_to_widget(widget: QWidget, theme_config: Optional[Dict[str, str]] = None) -> bool:
-    """
-    Add theming capabilities to an existing widget instance.
+    """Add theming capabilities to an existing widget instance.
 
     This function dynamically adds theming to a widget that wasn't
     originally designed with theming support.
@@ -560,6 +549,7 @@ def add_theming_to_widget(widget: QWidget, theme_config: Optional[Dict[str, str]
 
     Returns:
         True if theming was added successfully, False otherwise
+
     """
     try:
         # Check if widget already has theming
@@ -587,14 +577,14 @@ def add_theming_to_widget(widget: QWidget, theme_config: Optional[Dict[str, str]
 
 
 def remove_theming_from_widget(widget: QWidget) -> bool:
-    """
-    Remove theming capabilities from a widget.
+    """Remove theming capabilities from a widget.
 
     Args:
         widget: Widget to remove theming from
 
     Returns:
         True if theming was removed successfully, False otherwise
+
     """
     try:
         # Clean up theming if present
@@ -621,8 +611,7 @@ def remove_theming_from_widget(widget: QWidget) -> bool:
 
 # Decorators for automatic theming setup
 def themeable(theme_config: Optional[Dict[str, str]] = None):
-    """
-    Decorator to automatically set up theming for widget classes.
+    """Decorator to automatically set up theming for widget classes.
 
     Usage:
         @themeable({'bg': 'window.background', 'fg': 'window.foreground'})

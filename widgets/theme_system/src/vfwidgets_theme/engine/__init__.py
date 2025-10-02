@@ -1,5 +1,4 @@
-"""
-Theme engine components.
+"""Theme engine components.
 
 This module contains the theme application and processing engine:
 - Theme applicator: Applies themes to widgets efficiently

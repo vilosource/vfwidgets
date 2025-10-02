@@ -4,21 +4,17 @@ Unit tests for ThemedApplication.
 Tests the application-level theme management wrapper providing
 simple API for global theming operations.
 """
-import unittest
-import tempfile
 import json
 import os
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, Any, Optional, List
+import tempfile
+import unittest
+from unittest.mock import patch
 
-import pytest
-
-from vfwidgets_theme.widgets.application import ThemedApplication, ApplicationThemeManager
-from vfwidgets_theme.widgets.base import ThemedWidget
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.errors import ThemeError, ThemeNotFoundError
-from vfwidgets_theme.testing import ThemedTestCase, ThemeBenchmark
-from vfwidgets_theme.fallbacks import MINIMAL_THEME
+from vfwidgets_theme.errors import ThemeError
+from vfwidgets_theme.testing import ThemeBenchmark, ThemedTestCase
+from vfwidgets_theme.widgets.application import ThemedApplication
+from vfwidgets_theme.widgets.base import ThemedWidget
 
 
 class TestThemedApplicationCreation(ThemedTestCase):

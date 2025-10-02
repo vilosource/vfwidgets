@@ -15,25 +15,23 @@ Key Demonstrations:
 Run this example to see protocols in action.
 """
 
-import sys
-from typing import Any, Dict, List, Callable
-from unittest.mock import Mock
-
 # Add the source path for imports
 import os
+import sys
+from typing import Any, List
+from unittest.mock import Mock
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from vfwidgets_theme.protocols import (
-    ThemeProvider,
-    ThemeableWidget,
     ColorProvider,
-    StyleGenerator,
-    ThemeData,
     ColorValue,
-    StyleCallback,
     PropertyKey,
     PropertyValue,
     QSSStyle,
+    StyleCallback,
+    ThemeData,
+    ThemeProvider,
 )
 
 

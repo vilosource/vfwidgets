@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Theme Package Manager - Task 20
+"""Theme Package Manager - Task 20
 
 This module provides theme packaging and distribution management with:
 - .vftheme format for packaging themes and metadata
@@ -17,17 +16,17 @@ Features:
 - Performance optimized for <500ms installation time
 """
 
-import os
 import json
-import zipfile
-import tempfile
-import time
 import logging
 import shutil
-from pathlib import Path
-from typing import Dict, List, Optional, Union, Any, Set, Tuple
+import tempfile
+import time
+import zipfile
 from dataclasses import dataclass, field
-from packaging.version import Version, parse as parse_version
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+from packaging.version import parse as parse_version
 
 # Import core theme system
 from ..core.theme import Theme
@@ -40,6 +39,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PackageDependency:
     """Represents a package dependency."""
+
     name: str
     version_spec: str  # e.g., ">=1.0.0,<2.0.0"
     optional: bool = False
@@ -63,8 +63,7 @@ class PackageDependency:
 
 @dataclass
 class ThemePackage:
-    """
-    Represents a theme package with metadata and dependencies.
+    """Represents a theme package with metadata and dependencies.
 
     The .vftheme format contains:
     - package.json: Package metadata and dependencies
@@ -150,8 +149,7 @@ class ThemePackage:
 
 
 class ThemePackageManager:
-    """
-    Main theme package manager for .vftheme packages.
+    """Main theme package manager for .vftheme packages.
 
     Provides complete package lifecycle management including installation,
     dependency resolution, and validation.
@@ -167,15 +165,16 @@ class ThemePackageManager:
 
         # Uninstall package
         manager.uninstall_package("material-themes")
+
     """
 
     def __init__(self, install_directory: Union[str, Path] = None):
-        """
-        Initialize package manager.
+        """Initialize package manager.
 
         Args:
             install_directory: Directory for package installations.
                                Defaults to ~/.vfwidgets/packages
+
         """
         if install_directory:
             self.install_directory = Path(install_directory)
@@ -198,8 +197,7 @@ class ThemePackageManager:
 
     def create_package(self, package_info: Dict[str, Any], themes: Dict[str, Theme],
                       output_path: Union[str, Path], assets: Dict[str, bytes] = None) -> Path:
-        """
-        Create a .vftheme package file.
+        """Create a .vftheme package file.
 
         Args:
             package_info: Package metadata
@@ -209,6 +207,7 @@ class ThemePackageManager:
 
         Returns:
             Path to created package file
+
         """
         start_time = time.perf_counter()
 
@@ -281,8 +280,7 @@ Install this package using the VFWidgets Theme Package Manager.
         return output_path
 
     def install_package(self, package_path: Union[str, Path], force: bool = False) -> ThemePackage:
-        """
-        Install a .vftheme package.
+        """Install a .vftheme package.
 
         Args:
             package_path: Path to .vftheme package file
@@ -293,6 +291,7 @@ Install this package using the VFWidgets Theme Package Manager.
 
         Raises:
             ThemeError: If installation fails
+
         """
         start_time = time.perf_counter()
         package_path = Path(package_path)
@@ -301,7 +300,7 @@ Install this package using the VFWidgets Theme Package Manager.
             raise ThemeError(f"Package file not found: {package_path}")
 
         if not package_path.suffix == ".vftheme":
-            raise ThemeError(f"Invalid package format. Expected .vftheme file")
+            raise ThemeError("Invalid package format. Expected .vftheme file")
 
         try:
             # Extract and validate package
@@ -348,14 +347,14 @@ Install this package using the VFWidgets Theme Package Manager.
             raise ThemeError(f"Package installation failed: {e}") from e
 
     def uninstall_package(self, package_name: str) -> bool:
-        """
-        Uninstall a theme package.
+        """Uninstall a theme package.
 
         Args:
             package_name: Name of package to uninstall
 
         Returns:
             True if uninstalled successfully
+
         """
         if package_name not in self._installed_packages:
             logger.warning(f"Package '{package_name}' not installed")
@@ -390,14 +389,14 @@ Install this package using the VFWidgets Theme Package Manager.
         return self._installed_packages.get(package_name)
 
     def list_themes(self, package_name: str = None) -> Dict[str, str]:
-        """
-        List themes from packages.
+        """List themes from packages.
 
         Args:
             package_name: Optional package name to filter by
 
         Returns:
             Dictionary of theme_name -> package_name
+
         """
         themes = {}
 
@@ -413,8 +412,7 @@ Install this package using the VFWidgets Theme Package Manager.
         return themes
 
     def get_theme_from_package(self, theme_name: str, package_name: str = None) -> Optional[Theme]:
-        """
-        Get a theme from an installed package.
+        """Get a theme from an installed package.
 
         Args:
             theme_name: Name of theme to retrieve
@@ -422,6 +420,7 @@ Install this package using the VFWidgets Theme Package Manager.
 
         Returns:
             Theme object if found
+
         """
         packages_to_search = [self._installed_packages[package_name]] if package_name else self._installed_packages.values()
 
@@ -470,7 +469,7 @@ Install this package using the VFWidgets Theme Package Manager.
             if not package_json_path.exists():
                 raise ThemeError("Invalid package: missing package.json")
 
-            with open(package_json_path, "r") as f:
+            with open(package_json_path) as f:
                 package_data = json.load(f)
 
             # Validate required fields
@@ -487,7 +486,7 @@ Install this package using the VFWidgets Theme Package Manager.
             if themes_dir.exists():
                 for theme_file in themes_dir.glob("*.json"):
                     try:
-                        with open(theme_file, "r") as f:
+                        with open(theme_file) as f:
                             theme_data = json.load(f)
 
                         theme = Theme.from_dict(theme_data)
@@ -499,7 +498,7 @@ Install this package using the VFWidgets Theme Package Manager.
             # Load README
             readme_path = temp_path / "readme.md"
             if readme_path.exists():
-                with open(readme_path, "r") as f:
+                with open(readme_path) as f:
                     package.readme = f.read()
 
             # Load assets
@@ -537,7 +536,7 @@ Install this package using the VFWidgets Theme Package Manager.
             return
 
         try:
-            with open(registry_path, "r") as f:
+            with open(registry_path) as f:
                 registry_data = json.load(f)
 
             for package_name, package_data in registry_data.get("packages", {}).items():
@@ -553,7 +552,7 @@ Install this package using the VFWidgets Theme Package Manager.
                     if themes_dir.exists():
                         for theme_file in themes_dir.glob("*.json"):
                             try:
-                                with open(theme_file, "r") as f:
+                                with open(theme_file) as f:
                                     theme_data = json.load(f)
                                 theme = Theme.from_dict(theme_data)
                                 package.themes[theme.name] = theme

@@ -11,12 +11,10 @@ These tests verify the ThemeEventSystem implementation including:
 - Performance requirements
 """
 
-import sys
 import os
+import sys
 import time
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from typing import List, Any
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
@@ -29,10 +27,10 @@ except ImportError:
     QT_AVAILABLE = False
 
 from vfwidgets_theme.events.system import (
-    ThemeEventSystem,
     EventRecord,
+    ThemeEventSystem,
     get_global_event_system,
-    set_global_event_system
+    set_global_event_system,
 )
 
 

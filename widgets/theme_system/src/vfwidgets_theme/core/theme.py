@@ -1,5 +1,4 @@
-"""
-Core theme data model.
+"""Core theme data model.
 
 This module defines the immutable, validated theme data structures that represent
 themes in the VFWidgets theme system. All themes are immutable once created to
@@ -26,21 +25,17 @@ Implemented in Task 7.
 
 import json
 import re
-import time
-import hashlib
 import threading
-from typing import Dict, Any, Optional, Union, List, Tuple, Set, FrozenSet
-from dataclasses import dataclass, field, asdict
-from abc import ABC, abstractmethod
-from copy import deepcopy
-from pathlib import Path
+from dataclasses import dataclass, field
 from functools import lru_cache
-from weakref import WeakSet
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Union
+
+from ..errors import InvalidThemeFormatError, PropertyNotFoundError, ThemeLoadError
+from ..logging import get_debug_logger
 
 # Import foundation modules
-from ..protocols import ThemeData, ColorValue, PropertyKey, PropertyValue
-from ..errors import ThemeLoadError, InvalidThemeFormatError, PropertyNotFoundError
-from ..logging import get_debug_logger
+from ..protocols import ColorValue, PropertyKey, PropertyValue
 
 # Type aliases for clarity
 ColorPalette = Dict[str, ColorValue]
@@ -67,8 +62,7 @@ logger = get_debug_logger(__name__)
 
 @dataclass(frozen=True)
 class Theme:
-    """
-    Immutable theme data model.
+    """Immutable theme data model.
 
     Represents a complete theme with colors, styles, and metadata.
     All validation occurs during creation, and the theme cannot be
@@ -235,8 +229,7 @@ class Theme:
 
 
 class ThemeBuilder:
-    """
-    Copy-on-write theme builder for efficient theme modification.
+    """Copy-on-write theme builder for efficient theme modification.
 
     Allows modification of themes without mutating the original,
     supporting rollback and validation during construction.
@@ -260,6 +253,9 @@ class ThemeBuilder:
 
         # Checkpoint support
         self._checkpoints: List[Dict[str, Any]] = []
+
+        # Parent tracking for inheritance
+        self._parent: Optional[Theme] = None
 
         logger.debug(f"Created ThemeBuilder for: {name}")
 
@@ -338,6 +334,79 @@ class ThemeBuilder:
         self.token_colors.append(token)
         return self
 
+    def extend(self, parent_theme: Union[str, Theme]) -> 'ThemeBuilder':
+        """Inherit from parent theme.
+
+        Copies all colors, styles, and metadata from parent theme.
+        Child theme can override specific properties by setting them
+        before or after calling extend().
+
+        Args:
+            parent_theme: Parent theme name (str) or Theme instance
+
+        Returns:
+            Self for method chaining
+
+        Raises:
+            ThemeLoadError: If parent theme name not found
+
+        Example:
+            >>> custom = (ThemeBuilder("my-variant")
+            ...     .extend("dark")
+            ...     .add_color("button.background", "#ff0000")
+            ...     .build())
+
+        """
+        # Resolve parent theme
+        if isinstance(parent_theme, str):
+            # Import here to avoid circular dependency
+            from .repository import BuiltinThemeManager
+            mgr = BuiltinThemeManager()
+            parent = mgr.get_theme(parent_theme)
+            if not parent:
+                raise ThemeLoadError(f"Parent theme '{parent_theme}' not found")
+        else:
+            parent = parent_theme
+
+        # Copy parent properties (child values take precedence)
+        self.type = parent.type
+        self.version = parent.version
+
+        # Copy parent colors (don't override existing)
+        for key, value in parent.colors.items():
+            if key not in self.colors:
+                self.colors[key] = value
+
+        # Copy parent styles (don't override existing)
+        for key, value in parent.styles.items():
+            if key not in self.styles:
+                self.styles[key] = value
+
+        # Copy parent metadata (don't override existing)
+        if parent.metadata:
+            for key, value in parent.metadata.items():
+                if key not in self.metadata:
+                    self.metadata[key] = value
+
+        # Copy parent token colors (append to existing)
+        if parent.token_colors:
+            self.token_colors.extend(parent.token_colors)
+
+        # Track parent reference
+        self._parent = parent
+
+        logger.info(f"Theme '{self.name}' extends '{parent.name}'")
+        return self
+
+    def get_parent(self) -> Optional[Theme]:
+        """Get parent theme if this theme was created via extend().
+
+        Returns:
+            Parent Theme instance, or None if no parent
+
+        """
+        return self._parent
+
     def checkpoint(self) -> 'ThemeBuilder':
         """Create checkpoint for rollback."""
         checkpoint = {
@@ -373,13 +442,18 @@ class ThemeBuilder:
     def build(self) -> Theme:
         """Build immutable theme with validation."""
         try:
+            # Add parent reference to metadata if exists
+            metadata = dict(self.metadata)
+            if self._parent is not None:
+                metadata['parent_theme'] = self._parent.name
+
             theme = Theme(
                 name=self.name,
                 version=self.version,
                 type=self.type,
                 colors=dict(self.colors),
                 styles=dict(self.styles),
-                metadata=dict(self.metadata),
+                metadata=metadata,
                 token_colors=list(self.token_colors)
             )
             logger.debug(f"Built theme: {theme.name}")
@@ -389,9 +463,18 @@ class ThemeBuilder:
             raise
 
 
+@dataclass
+class ValidationResult:
+    """Result of theme validation."""
+
+    is_valid: bool
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    suggestions: List[str] = field(default_factory=list)
+
+
 class ThemeValidator:
-    """
-    JSON schema validator for theme data.
+    """JSON schema validator for theme data.
 
     Provides comprehensive validation of theme data structures,
     including VSCode theme format compatibility.
@@ -615,10 +698,369 @@ class ThemeValidator:
         """Get suggestions for common mistakes."""
         return list(self._suggestions)
 
+    def validate_semantic(self, theme: 'Theme') -> List[str]:
+        """Check semantic consistency of theme.
+
+        Validates:
+        - Name vs type consistency (dark theme should have type='dark')
+        - Presence of common required tokens
+        - Detection of legacy simple-key format
+        - Proper namespaced key usage
+
+        Args:
+            theme: Theme to validate
+
+        Returns:
+            List of semantic validation issues (empty if valid)
+
+        """
+        issues = []
+
+        # Check name vs type consistency
+        if theme.name == "dark" and theme.type != "dark":
+            issues.append(
+                f"Theme named 'dark' should have type='dark', got type='{theme.type}'"
+            )
+
+        if theme.name == "light" and theme.type != "light":
+            issues.append(
+                f"Theme named 'light' should have type='light', got type='{theme.type}'"
+            )
+
+        # Check for missing common tokens (using namespaced keys)
+        common_tokens = [
+            'colors.background',
+            'colors.foreground',
+            'colors.primary'
+        ]
+        for token in common_tokens:
+            if token not in theme.colors:
+                issues.append(f"Missing common token: {token}")
+
+        # Check for old simple-key format (legacy detection)
+        simple_keys = ['background', 'foreground', 'primary', 'secondary', 'border']
+        found_simple = [k for k in simple_keys if k in theme.colors]
+        if found_simple:
+            issues.append(
+                f"Found legacy simple keys: {found_simple}. "
+                f"Use namespaced keys like 'colors.background' instead."
+            )
+
+        return issues
+
+    def suggest_correction(self, wrong_key: str) -> Optional[str]:
+        """Suggest correct token name for typo.
+
+        Uses fuzzy matching to find the closest valid token name
+        from ColorTokenRegistry.
+
+        Args:
+            wrong_key: Potentially misspelled key
+
+        Returns:
+            Suggested correct key, or None if no good match
+
+        """
+        try:
+            from difflib import get_close_matches
+
+            from ..core.tokens import ColorTokenRegistry
+
+            all_tokens = [t.name for t in ColorTokenRegistry.ALL_TOKENS]
+            matches = get_close_matches(wrong_key, all_tokens, n=1, cutoff=0.6)
+            return matches[0] if matches else None
+        except ImportError:
+            return None
+
+    def validate_theme_data(self, data: Dict[str, Any]) -> 'ValidationResult':
+        """Validate theme data and return comprehensive results.
+
+        Args:
+            data: Theme data dictionary to validate
+
+        Returns:
+            ValidationResult with errors, warnings, and suggestions
+
+        """
+        is_valid = self.validate(data)
+        errors = self.get_errors()
+        suggestions = self.get_suggestions()
+
+        return ValidationResult(
+            is_valid=is_valid,
+            errors=[e['message'] for e in errors],
+            warnings=[],
+            suggestions=suggestions
+        )
+
+    def validate_accessibility(self, theme: Theme) -> ValidationResult:
+        """Validate theme accessibility (WCAG compliance).
+
+        Checks:
+        - Contrast ratios between text and backgrounds
+        - Minimum contrast requirements (4.5:1 for normal text, 3:1 for large text)
+        - Focus indicator visibility
+        - State color contrast (error, warning, success)
+
+        Args:
+            theme: Theme to validate
+
+        Returns:
+            ValidationResult with warnings and suggestions
+
+        Example:
+            >>> validator = ThemeValidator()
+            >>> result = validator.validate_accessibility(theme)
+            >>> if not result.is_valid:
+            ...     for warning in result.warnings:
+            ...         print(warning)
+
+        """
+        errors = []
+        warnings = []
+        suggestions = []
+
+        # Check text/background contrast ratios
+        bg = theme.colors.get('colors.background')
+        fg = theme.colors.get('colors.foreground')
+
+        if bg and fg:
+            ratio = self._calculate_contrast_ratio(bg, fg)
+
+            if ratio < 3.0:
+                errors.append(
+                    f"Critical: Text contrast ratio {ratio:.2f}:1 is below WCAG minimum (3:1). "
+                    f"Text may be unreadable."
+                )
+                suggestions.append(
+                    f"Increase contrast between foreground ({fg}) and background ({bg})"
+                )
+            elif ratio < 4.5:
+                warnings.append(
+                    f"Warning: Text contrast ratio {ratio:.2f}:1 is below WCAG AA (4.5:1). "
+                    f"May not meet accessibility standards."
+                )
+                suggestions.append(
+                    "Aim for 4.5:1 contrast ratio for normal text, 3:1 for large text"
+                )
+
+        # Check button contrast
+        btn_bg = theme.colors.get('button.background')
+        btn_fg = theme.colors.get('button.foreground')
+
+        if btn_bg and btn_fg:
+            btn_ratio = self._calculate_contrast_ratio(btn_bg, btn_fg)
+
+            if btn_ratio < 3.0:
+                warnings.append(
+                    f"Button contrast ratio {btn_ratio:.2f}:1 is below minimum (3:1)"
+                )
+                suggestions.append(
+                    f"Increase contrast between button foreground ({btn_fg}) and background ({btn_bg})"
+                )
+
+        # Check focus indicator contrast
+        focus_border = theme.colors.get('colors.focusBorder') or theme.colors.get('colors.focus')
+        if bg and focus_border:
+            focus_ratio = self._calculate_contrast_ratio(focus_border, bg)
+
+            if focus_ratio < 3.0:
+                warnings.append(
+                    f"Focus indicator contrast {focus_ratio:.2f}:1 is below minimum (3:1). "
+                    f"Focus may not be visible."
+                )
+                suggestions.append(
+                    "Increase contrast for focus border against background"
+                )
+
+        # Check error/warning/success color contrast
+        for state in ['error', 'warning', 'success']:
+            state_color = theme.colors.get(f'colors.{state}')
+            if bg and state_color:
+                state_ratio = self._calculate_contrast_ratio(state_color, bg)
+                if state_ratio < 3.0:
+                    warnings.append(
+                        f"{state.capitalize()} color contrast {state_ratio:.2f}:1 is below minimum (3:1)"
+                    )
+                    suggestions.append(
+                        f"Increase contrast for {state} color against background"
+                    )
+
+        is_valid = len(errors) == 0
+
+        return ValidationResult(
+            is_valid=is_valid,
+            errors=errors,
+            warnings=warnings,
+            suggestions=suggestions
+        )
+
+    def _calculate_contrast_ratio(self, color1: str, color2: str) -> float:
+        """Calculate WCAG contrast ratio between two colors.
+
+        Args:
+            color1: First color (hex format)
+            color2: Second color (hex format)
+
+        Returns:
+            Contrast ratio (1.0 to 21.0)
+
+        Reference:
+            https://www.w3.org/TR/WCAG21/#contrast-minimum
+
+        """
+        l1 = self._get_relative_luminance(color1)
+        l2 = self._get_relative_luminance(color2)
+
+        # Ensure l1 is lighter
+        if l2 > l1:
+            l1, l2 = l2, l1
+
+        # Calculate contrast ratio: (L1 + 0.05) / (L2 + 0.05)
+        ratio = (l1 + 0.05) / (l2 + 0.05)
+
+        return ratio
+
+    def _get_relative_luminance(self, color: str) -> float:
+        """Calculate relative luminance of a color.
+
+        Args:
+            color: Hex color string (e.g., "#ff0000")
+
+        Returns:
+            Relative luminance (0.0 to 1.0)
+
+        Reference:
+            https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
+
+        """
+        # Parse hex color
+        if not color or not isinstance(color, str):
+            return 0.5  # Default for invalid colors
+
+        color = color.strip()
+        if not color.startswith('#'):
+            return 0.5  # Default for invalid colors
+
+        hex_color = color.lstrip('#')
+
+        if len(hex_color) == 3:
+            # Expand shorthand: #abc -> #aabbcc
+            hex_color = ''.join(c*2 for c in hex_color)
+
+        if len(hex_color) not in (6, 8):  # Allow 8 for rgba
+            return 0.5  # Default for invalid colors
+
+        try:
+            r = int(hex_color[0:2], 16) / 255.0
+            g = int(hex_color[2:4], 16) / 255.0
+            b = int(hex_color[4:6], 16) / 255.0
+        except (ValueError, IndexError):
+            return 0.5
+
+        # Apply gamma correction
+        def gamma_correct(c):
+            if c <= 0.03928:
+                return c / 12.92
+            else:
+                return ((c + 0.055) / 1.055) ** 2.4
+
+        r = gamma_correct(r)
+        g = gamma_correct(g)
+        b = gamma_correct(b)
+
+        # Calculate luminance
+        luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+        return luminance
+
+    def get_available_properties(self, prefix: str) -> List[str]:
+        """Get list of available properties with given prefix.
+
+        Args:
+            prefix: Property prefix (e.g., "button", "colors", "editor")
+
+        Returns:
+            List of matching property names
+
+        Example:
+            >>> validator.get_available_properties("button")
+            ['button.background', 'button.foreground', 'button.hoverBackground', ...]
+
+        """
+        try:
+            from ..core.tokens import ColorTokenRegistry
+
+            all_tokens = [t.name for t in ColorTokenRegistry.ALL_TOKENS]
+
+            if prefix:
+                matching = [t for t in all_tokens if t.startswith(prefix + '.')]
+            else:
+                matching = all_tokens
+
+            return sorted(matching)
+        except (ImportError, AttributeError):
+            # Fallback if ColorTokenRegistry not available
+            return []
+
+    def format_error(self, property_name: str, error_type: str = "not_found") -> str:
+        """Format enhanced error message with suggestions and docs link.
+
+        Args:
+            property_name: Property that caused the error
+            error_type: Type of error ("not_found", "invalid_value", etc.)
+
+        Returns:
+            Formatted error message with context
+
+        Example:
+            >>> validator.format_error("button.backgroud")
+            Property 'button.backgroud' not found
+              Did you mean: 'button.background'?
+              Available button properties:
+                - button.background
+                - button.foreground
+                - button.hoverBackground
+              See: https://vfwidgets.readthedocs.io/themes/tokens#button
+
+        """
+        lines = []
+
+        if error_type == "not_found":
+            lines.append(f"Property '{property_name}' not found")
+
+            # Suggest correction
+            correction = self.suggest_correction(property_name)
+            if correction:
+                lines.append(f"  Did you mean: '{correction}'?")
+
+            # List available properties in same category
+            if '.' in property_name:
+                prefix = property_name.split('.')[0]
+                available = self.get_available_properties(prefix)
+
+                if available:
+                    lines.append(f"  Available {prefix} properties:")
+                    for prop in available[:10]:  # Limit to 10
+                        lines.append(f"    - {prop}")
+
+                    if len(available) > 10:
+                        lines.append(f"    ... and {len(available) - 10} more")
+
+            # Add documentation link
+            if '.' in property_name:
+                category = property_name.split('.')[0]
+                lines.append(f"  See: https://vfwidgets.readthedocs.io/themes/tokens#{category}")
+
+        elif error_type == "invalid_value":
+            lines.append(f"Invalid value for property '{property_name}'")
+            lines.append("  See: https://vfwidgets.readthedocs.io/themes/tokens")
+
+        return '\n'.join(lines)
+
 
 class ThemeComposer:
-    """
-    Intelligent theme merging and composition.
+    """Intelligent theme merging and composition.
 
     Handles theme inheritance, overrides, and composition
     with conflict resolution strategies.
@@ -635,47 +1077,139 @@ class ThemeComposer:
         self._composition_cache: Dict[str, Theme] = {}
         self._cache_lock = threading.RLock()
 
-    def compose(self, base_theme: Theme, override_theme: Theme) -> Theme:
-        """Compose two themes with override taking precedence."""
-        cache_key = f"{base_theme.name}:{base_theme._hash}+{override_theme.name}:{override_theme._hash}"
+    def compose(self, *themes: Theme, name: Optional[str] = None) -> Theme:
+        """Merge multiple themes with priority.
 
+        Later themes override properties from earlier themes.
+        Preserves theme type from first theme unless overridden.
+
+        Args:
+            *themes: Themes to merge (2 or more required)
+            name: Name for composed theme (default: auto-generated)
+
+        Returns:
+            New composed theme
+
+        Raises:
+            ValueError: If less than 2 themes provided
+
+        Example:
+            >>> base = get_theme("vscode")
+            >>> buttons = get_theme("custom-buttons")
+            >>> inputs = get_theme("custom-inputs")
+            >>> app_theme = composer.compose(base, buttons, inputs)
+
+        """
+        if len(themes) < 2:
+            raise ValueError("compose() requires at least 2 themes")
+
+        # Generate name if not provided
+        if name is None:
+            theme_names = [t.name for t in themes]
+            name = f"composed_{'_'.join(theme_names)}"
+
+        # Check cache
+        cache_key = f"{name}_{'_'.join(str(t._hash) for t in themes)}"
         with self._cache_lock:
             if cache_key in self._composition_cache:
+                logger.debug(f"Returning cached composition: {cache_key}")
                 return self._composition_cache[cache_key]
 
-        # Merge colors
-        merged_colors = dict(base_theme.colors)
-        merged_colors.update(override_theme.colors)
+        # Start with first theme as base
+        base_theme = themes[0]
+        builder = ThemeBuilder(name)
+        builder.set_type(base_theme.type)
+        builder.set_version(base_theme.version)
 
-        # Merge styles
-        merged_styles = dict(base_theme.styles)
-        merged_styles.update(override_theme.styles)
+        # Merge themes in order (later overrides earlier)
+        for theme in themes:
+            # Merge colors
+            for key, value in theme.colors.items():
+                builder.add_color(key, value)  # Later values override
 
-        # Merge metadata
-        merged_metadata = dict(base_theme.metadata)
-        merged_metadata.update(override_theme.metadata)
+            # Merge styles
+            for key, value in theme.styles.items():
+                builder.add_style(key, value)
 
-        # Merge token colors (append)
-        merged_tokens = list(base_theme.token_colors)
-        merged_tokens.extend(override_theme.token_colors)
+            # Merge metadata
+            if theme.metadata:
+                for key, value in theme.metadata.items():
+                    builder.add_metadata(key, value)
 
-        # Create composed theme
-        composed_name = f"{base_theme.name}+{override_theme.name}"
-        composed = Theme(
-            name=composed_name,
-            version=override_theme.version,  # Use override version
-            type=override_theme.type,  # Use override type
-            colors=merged_colors,
-            styles=merged_styles,
-            metadata=merged_metadata,
-            token_colors=merged_tokens
-        )
+            # Merge token colors (append all)
+            if theme.token_colors:
+                for token in theme.token_colors:
+                    builder.token_colors.append(token)
 
+        # Add composition metadata
+        builder.add_metadata("composed_from", [t.name for t in themes])
+        builder.add_metadata("composition_order", [t.name for t in themes])
+
+        # Build composed theme
+        composed = builder.build()
+
+        # Cache result
         with self._cache_lock:
             self._composition_cache[cache_key] = composed
 
-        logger.debug(f"Composed theme: {composed_name}")
+        logger.info(f"Composed theme '{name}' from: {[t.name for t in themes]}")
         return composed
+
+    def compose_partial(self, base: Theme, overrides: Dict[str, str], name: Optional[str] = None) -> Theme:
+        """Create variant by applying partial overrides to base theme.
+
+        Convenient for small customizations without creating full theme.
+
+        Args:
+            base: Base theme to start from
+            overrides: Dict of properties to override
+            name: Name for variant (default: base.name + "_variant")
+
+        Returns:
+            New theme with overrides applied
+
+        Example:
+            >>> dark = get_theme("dark")
+            >>> variant = composer.compose_partial(dark, {
+            ...     "button.background": "#ff0000",
+            ...     "button.hoverBackground": "#cc0000"
+            ... })
+
+        """
+        if name is None:
+            name = f"{base.name}_variant"
+
+        builder = ThemeBuilder(name)
+        builder.set_type(base.type)
+        builder.set_version(base.version)
+
+        # Copy base colors
+        for key, value in base.colors.items():
+            builder.add_color(key, value)
+
+        # Copy base styles
+        for key, value in base.styles.items():
+            builder.add_style(key, value)
+
+        # Copy base metadata
+        if base.metadata:
+            for key, value in base.metadata.items():
+                builder.add_metadata(key, value)
+
+        # Copy base token colors
+        if base.token_colors:
+            for token in base.token_colors:
+                builder.token_colors.append(token)
+
+        # Apply overrides
+        for key, value in overrides.items():
+            builder.add_color(key, value)
+
+        # Add metadata about partial composition
+        builder.add_metadata("base_theme", base.name)
+        builder.add_metadata("overrides", list(overrides.keys()))
+
+        return builder.build()
 
     def compose_chain(self, themes: List[Theme]) -> Theme:
         """Compose a chain of themes with later themes overriding earlier ones."""
@@ -717,8 +1251,7 @@ class ThemeComposer:
 
 
 class PropertyResolver:
-    """
-    Fast property lookup with caching and reference resolution.
+    """Fast property lookup with caching and reference resolution.
 
     Handles property references (@property, @colors.primary),
     computed properties, and inheritance chains with
@@ -911,8 +1444,7 @@ class PropertyResolver:
         raise PropertyNotFoundError(f"Property '{key}' not found")
 
     def resolve_reference(self, value: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Public method to resolve property references in a value.
+        """Public method to resolve property references in a value.
 
         Args:
             value: The value that may contain references (@property syntax)
@@ -920,6 +1452,7 @@ class PropertyResolver:
 
         Returns:
             Resolved value with all references expanded
+
         """
         return self._resolve_references(value)
 
@@ -933,8 +1466,7 @@ class PropertyResolver:
 
 
 class ThemeCollection:
-    """
-    Collection of related themes.
+    """Collection of related themes.
 
     Manages a collection of themes with features like:
     - Theme discovery and loading
@@ -1012,7 +1544,7 @@ def load_theme_from_file(file_path: Union[str, Path]) -> Theme:
         raise ThemeLoadError(f"Theme file not found: {path}")
 
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             data = json.load(f)
         return create_theme_from_dict(data)
     except json.JSONDecodeError as e:

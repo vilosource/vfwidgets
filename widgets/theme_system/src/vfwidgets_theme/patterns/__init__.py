@@ -1,12 +1,11 @@
-"""
-VFWidgets Theme System - Pattern Recognition
+"""VFWidgets Theme System - Pattern Recognition
 
 This module provides pattern recognition capabilities for theme matching,
 complementing the CSS selector system with additional pattern types.
 """
 
-from .matcher import PatternMatcher, PatternType, PatternPriority
-from .plugins import PluginManager, PatternPlugin
+from .matcher import PatternMatcher, PatternPriority, PatternType
+from .plugins import PatternPlugin, PluginManager
 
 __all__ = [
     "PatternMatcher",

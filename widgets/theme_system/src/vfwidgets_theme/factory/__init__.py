@@ -1,5 +1,4 @@
-"""
-Theme Factory System - Task 19
+"""Theme Factory System - Task 19
 
 This module provides flexible theme construction and composition tools:
 - ThemeFactory: Main factory for creating themes with builders
@@ -8,7 +7,7 @@ This module provides flexible theme construction and composition tools:
 - Template theme system
 """
 
-from .builder import ThemeFactory, ThemeBuilder, ThemeComposer, ThemeVariantGenerator
+from .builder import ThemeBuilder, ThemeComposer, ThemeFactory, ThemeVariantGenerator
 
 __all__ = [
     'ThemeFactory',

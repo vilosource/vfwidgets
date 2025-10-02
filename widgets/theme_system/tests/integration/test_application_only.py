@@ -7,7 +7,6 @@ which we know works correctly based on the debug output.
 """
 
 import sys
-import os
 import unittest
 from pathlib import Path
 
@@ -82,7 +81,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
                 if current:
                     print(f"   ✅ Successfully switched to: {current.name}")
                 else:
-                    print(f"   ⚠️ Switch reported success but no current theme")
+                    print("   ⚠️ Switch reported success but no current theme")
             else:
                 print(f"   ❌ Failed to switch to: {theme_name}")
 

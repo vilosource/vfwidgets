@@ -1,5 +1,4 @@
-"""
-Memory profiling utilities for VFWidgets Theme System leak detection.
+"""Memory profiling utilities for VFWidgets Theme System leak detection.
 
 This module provides comprehensive memory profiling tools to ensure the theme system
 has zero memory leaks and maintains optimal memory usage. All utilities are designed
@@ -20,14 +19,14 @@ when using ThemedWidget.
 
 import gc
 import sys
-import tracemalloc
-import weakref
-from typing import Dict, List, Any, Set, Optional, Tuple, Callable, Union
-from dataclasses import dataclass, field
-from contextlib import contextmanager
-from collections import defaultdict
 import threading
 import time
+import tracemalloc
+import weakref
+from collections import defaultdict
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Set
 
 
 @dataclass
@@ -37,6 +36,7 @@ class MemorySnapshot:
     Contains comprehensive memory statistics for analysis and comparison.
     Used to detect memory leaks and validate memory requirements.
     """
+
     timestamp: float
     total_memory: int
     peak_memory: int
@@ -54,6 +54,7 @@ class MemorySnapshot:
 
         Returns:
             MemoryDelta showing changes between snapshots.
+
         """
         return MemoryDelta(
             time_delta=self.timestamp - other.timestamp,
@@ -75,6 +76,7 @@ class MemoryDelta:
     Shows how memory usage changed between two points in time,
     useful for detecting leaks and validating cleanup.
     """
+
     time_delta: float
     memory_delta: int
     peak_delta: int
@@ -91,6 +93,7 @@ class MemoryDelta:
 
         Returns:
             True if potential leak detected.
+
         """
         # Check memory growth
         if self.memory_delta > threshold_memory:
@@ -108,6 +111,7 @@ class MemoryDelta:
 
         Returns:
             List of human-readable leak indicators.
+
         """
         indicators = []
 
@@ -146,6 +150,7 @@ class MemoryProfiler:
 
         # Validate memory requirements
         assert profiler.validate_memory_requirements()
+
     """
 
     def __init__(self, track_weakrefs: bool = True):
@@ -153,6 +158,7 @@ class MemoryProfiler:
 
         Args:
             track_weakrefs: Whether to track WeakRef usage.
+
         """
         self.track_weakrefs = track_weakrefs
         self._snapshots: List[MemorySnapshot] = []
@@ -174,6 +180,7 @@ class MemoryProfiler:
 
         Returns:
             MemorySnapshot with current memory state.
+
         """
         with self._lock:
             gc.collect()  # Force garbage collection for accurate measurement
@@ -225,6 +232,7 @@ class MemoryProfiler:
 
         Yields:
             The memory profiler instance for additional tracking.
+
         """
         before_snapshot = self.take_snapshot(f"{operation_name}_before")
 
@@ -240,6 +248,7 @@ class MemoryProfiler:
 
         Args:
             obj: Object to track for lifecycle and reference counting.
+
         """
         with self._lock:
             self._tracked_objects.add(id(obj))
@@ -261,6 +270,7 @@ class MemoryProfiler:
 
         Returns:
             Dictionary with lifecycle statistics.
+
         """
         with self.profile_operation("widget_lifecycle"):
             # Create widgets and track them
@@ -310,6 +320,7 @@ class MemoryProfiler:
 
         Returns:
             List of potential leak descriptions.
+
         """
         leaks = []
 
@@ -360,6 +371,7 @@ class MemoryProfiler:
 
         Returns:
             True if all memory requirements are met.
+
         """
         requirements = {
             'max_memory_per_widget': 1024,  # 1KB per widget
@@ -397,6 +409,7 @@ class MemoryProfiler:
 
         Returns:
             Baseline snapshot.
+
         """
         self._baseline_snapshot = self.take_snapshot("baseline")
         return self._baseline_snapshot
@@ -406,6 +419,7 @@ class MemoryProfiler:
 
         Returns:
             Formatted string report of memory analysis.
+
         """
         if not self._snapshots:
             return "No memory snapshots available."
@@ -522,6 +536,7 @@ def detect_memory_leaks(operation: Callable[[], None], iterations: int = 100) ->
 
     Returns:
         List of potential leak descriptions.
+
     """
     profiler = MemoryProfiler()
 
@@ -547,6 +562,7 @@ def track_widget_lifecycle(widget_factory: Callable[[], Any], count: int = 100) 
 
     Returns:
         Dictionary with lifecycle statistics.
+
     """
     profiler = MemoryProfiler()
 
@@ -564,6 +580,7 @@ def validate_memory_requirements(test_function: Callable[[], None]) -> bool:
 
     Returns:
         True if memory requirements are met.
+
     """
     profiler = MemoryProfiler()
 
@@ -591,6 +608,7 @@ def memory_leak_test(iterations: int = 100, max_leaks: int = 0):
         def test_no_memory_leaks():
             widget = create_themed_widget()
             widget.on_theme_changed()
+
     """
     def decorator(test_func):
         def wrapper(*args, **kwargs):
@@ -617,6 +635,7 @@ def widget_lifecycle_test(widget_count: int = 100, max_alive_percent: float = 10
         @widget_lifecycle_test(widget_count=1000, max_alive_percent=5.0)
         def test_widget_cleanup():
             return MockWidget()  # Return widget factory
+
     """
     def decorator(test_func):
         def wrapper(*args, **kwargs):

@@ -5,25 +5,25 @@ Test Suite for Task 17: VSCode Theme Import
 Tests for VSCode theme import with color mapping, tokenColors handling, and validation.
 """
 
-import pytest
 import json
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
+import os
 
 # Import the code under test
 import sys
-import os
+import tempfile
+from pathlib import Path
+
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from vfwidgets_theme.importers.vscode import (
+    TokenColorMapper,
+    VSCodeColorMapper,
     VSCodeImporter,
     VSCodeImportError,
     VSCodeThemeInfo,
-    VSCodeColorMapper,
-    TokenColorMapper,
 )
-from vfwidgets_theme.core.theme import Theme
 
 
 class TestVSCodeColorMapper:

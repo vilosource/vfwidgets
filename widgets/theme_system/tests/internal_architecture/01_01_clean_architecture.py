@@ -33,7 +33,7 @@ def demo_primary_api():
         # THE way developers should import and use theming
         print("🎯 Importing primary API...")
         start = time.time()
-        from vfwidgets_theme import ThemedWidget, ThemedApplication
+        from vfwidgets_theme import ThemedApplication, ThemedWidget
         import_time = time.time() - start
 
         print(f"✓ Primary imports successful in {import_time*1000:.2f}ms")
@@ -69,11 +69,10 @@ def demo_advanced_api():
         print("🔧 Importing advanced components...")
         start = time.time()
         from vfwidgets_theme import (
-            ThemeProvider,
-            ErrorRecoveryManager,
             MINIMAL_THEME,
+            ErrorRecoveryManager,
+            ThemeProvider,
             get_global_error_recovery_manager,
-            ThemeLogger,
         )
         import_time = time.time() - start
 
@@ -103,7 +102,7 @@ def demo_clean_architecture():
         print("🏗️ Testing architecture module access...")
 
         # Test that each architecture layer can be imported independently
-        from vfwidgets_theme import core, widgets, engine, utils, importers, testing
+        from vfwidgets_theme import core, engine, importers, testing, utils, widgets
 
         print("✓ Architecture layers:")
         print(f"  - Core (business logic): {core}")
@@ -117,15 +116,12 @@ def demo_clean_architecture():
         print("\n🔍 Testing layer-specific imports...")
 
         # Foundation layer
-        from vfwidgets_theme import protocols, errors, fallbacks, logging
         print("✓ Foundation modules accessible")
 
         # Core layer (placeholder components)
-        from vfwidgets_theme.core import Theme, ThemeManager, DefaultThemeProvider
         print("✓ Core components accessible (placeholders ready for implementation)")
 
         # Widgets layer (placeholder components)
-        from vfwidgets_theme.widgets import ThemedWidget, ThemedApplication
         print("✓ Widget components accessible (placeholders ready for implementation)")
 
         print("\n📦 Module organization validates clean architecture principles:")
@@ -162,7 +158,6 @@ def demo_performance_validation():
                 del sys.modules[mod]
 
             start = time.time()
-            from vfwidgets_theme import ThemedWidget, ThemedApplication
             import_time = time.time() - start
             times.append(import_time * 1000)
 
@@ -191,7 +186,7 @@ def demo_api_simplicity():
         print("🎯 Validating API simplicity...")
 
         # Show that developers only need 2 imports for complete functionality
-        from vfwidgets_theme import ThemedWidget, ThemedApplication
+        from vfwidgets_theme import ThemedWidget
 
         print("✓ Only 2 imports needed for complete theming:")
         print("  - ThemedWidget: For creating themed widgets")

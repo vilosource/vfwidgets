@@ -22,7 +22,7 @@ Both approaches work identically and provide full theming capabilities.
 from typing import Optional
 
 try:
-    from PySide6.QtWidgets import QWidget, QMainWindow, QDialog
+    from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
@@ -30,16 +30,19 @@ except ImportError:
 
     class QWidget:
         """Fallback QWidget for testing."""
+
         def __init__(self, parent=None):
             pass
 
     class QMainWindow:
         """Fallback QMainWindow for testing."""
+
         def __init__(self, parent=None):
             pass
 
     class QDialog:
         """Fallback QDialog for testing."""
+
         def __init__(self, parent=None):
             pass
 

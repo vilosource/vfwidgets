@@ -1,5 +1,4 @@
-"""
-Theme Persistence Module
+"""Theme Persistence Module
 
 This module provides theme persistence capabilities including:
 - JSON serialization and deserialization
@@ -10,11 +9,11 @@ This module provides theme persistence capabilities including:
 """
 
 from .storage import (
-    ThemePersistence,
-    ThemeValidationResult,
+    BackupManager,
     PersistenceError,
     ThemeFormatError,
-    BackupManager,
+    ThemePersistence,
+    ThemeValidationResult,
 )
 
 __all__ = [

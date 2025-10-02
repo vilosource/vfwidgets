@@ -9,27 +9,25 @@ Tests theme management coordination including:
 - Public API that ThemedWidget and ThemedApplication use
 """
 
-import pytest
 import tempfile
 import threading
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from typing import Dict, List, Any
+
+import pytest
+
+from vfwidgets_theme.core.applicator import ThemeApplicator
 
 # Import the modules under test
-from vfwidgets_theme.core.manager import (
-    ThemeManager, create_theme_manager
-)
-from vfwidgets_theme.core.repository import ThemeRepository
-from vfwidgets_theme.core.applicator import ThemeApplicator
+from vfwidgets_theme.core.manager import ThemeManager, create_theme_manager
 from vfwidgets_theme.core.notifier import ThemeNotifier
 from vfwidgets_theme.core.provider import DefaultThemeProvider
 from vfwidgets_theme.core.registry import ThemeWidgetRegistry
+from vfwidgets_theme.core.repository import ThemeRepository
 from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.errors import ThemeNotFoundError, ThemeLoadError, ThemeApplicationError
-from vfwidgets_theme.testing import ThemedTestCase
+from vfwidgets_theme.errors import ThemeLoadError, ThemeNotFoundError
 from vfwidgets_theme.lifecycle import LifecycleManager
+from vfwidgets_theme.testing import ThemedTestCase
 from vfwidgets_theme.threading import ThreadSafeThemeManager
 
 
@@ -242,7 +240,7 @@ class TestThemeManager(ThemedTestCase):
 
             # Load and verify content
             import json
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 saved_data = json.load(f)
 
             self.assertEqual(saved_data["name"], "manager-test-theme")

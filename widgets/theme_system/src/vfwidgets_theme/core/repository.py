@@ -1,5 +1,4 @@
-"""
-ThemeRepository for theme storage and retrieval operations.
+"""ThemeRepository for theme storage and retrieval operations.
 
 This module provides the ThemeRepository class that handles theme lifecycle
 storage, loading from various sources, theme discovery, and caching.
@@ -27,20 +26,20 @@ Performance Requirements:
 """
 
 import json
-import yaml
 import threading
 import time
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Set
 from collections import OrderedDict
 from dataclasses import dataclass
-import weakref
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+import yaml
+
+from ..errors import ThemeLoadError, ThemeNotFoundError, ThemeValidationError
+from ..fallbacks import MINIMAL_THEME
+from ..logging import get_debug_logger
 
 # Import foundation modules
-from ..protocols import ThemeData
-from ..errors import ThemeNotFoundError, ThemeLoadError, ThemeValidationError
-from ..logging import get_debug_logger
-from ..fallbacks import MINIMAL_THEME
 from .theme import Theme, ThemeValidator
 
 logger = get_debug_logger(__name__)
@@ -49,6 +48,7 @@ logger = get_debug_logger(__name__)
 @dataclass
 class ThemeMetadata:
     """Metadata for themes in repository."""
+
     name: str
     version: str
     file_path: Optional[Path]
@@ -58,19 +58,18 @@ class ThemeMetadata:
 
 
 class ThemeCache:
-    """
-    LRU cache for theme performance optimization.
+    """LRU cache for theme performance optimization.
 
     Provides fast access to frequently used themes with automatic
     eviction based on size limits and access patterns.
     """
 
     def __init__(self, max_size: int = 100):
-        """
-        Initialize theme cache.
+        """Initialize theme cache.
 
         Args:
             max_size: Maximum number of themes to cache
+
         """
         self.max_size = max_size
         self._cache: OrderedDict[str, Theme] = OrderedDict()
@@ -89,14 +88,14 @@ class ThemeCache:
             return len(self._cache)
 
     def get(self, key: str) -> Optional[Theme]:
-        """
-        Get theme from cache.
+        """Get theme from cache.
 
         Args:
             key: Theme name
 
         Returns:
             Cached theme or None if not found
+
         """
         with self._lock:
             if key in self._cache:
@@ -112,12 +111,12 @@ class ThemeCache:
             return None
 
     def put(self, key: str, theme: Theme) -> None:
-        """
-        Put theme in cache.
+        """Put theme in cache.
 
         Args:
             key: Theme name
             theme: Theme object to cache
+
         """
         with self._lock:
             if key in self._cache:
@@ -134,14 +133,14 @@ class ThemeCache:
             logger.debug(f"Cached theme: {key}")
 
     def invalidate(self, key: str) -> bool:
-        """
-        Invalidate specific cache entry.
+        """Invalidate specific cache entry.
 
         Args:
             key: Theme name to invalidate
 
         Returns:
             True if entry was removed, False if not found
+
         """
         with self._lock:
             if key in self._cache:
@@ -173,8 +172,7 @@ class ThemeCache:
 
 
 class FileThemeLoader:
-    """
-    Loader for file-based themes.
+    """Loader for file-based themes.
 
     Supports multiple file formats:
     - JSON (.json)
@@ -190,14 +188,14 @@ class FileThemeLoader:
         logger.debug("FileThemeLoader initialized")
 
     def can_load(self, source: Any) -> bool:
-        """
-        Check if loader can handle the source.
+        """Check if loader can handle the source.
 
         Args:
             source: File path or Path object
 
         Returns:
             True if loader can handle the source
+
         """
         if isinstance(source, (str, Path)):
             path = Path(source)
@@ -205,8 +203,7 @@ class FileThemeLoader:
         return False
 
     def load_theme(self, file_path: Union[str, Path]) -> Theme:
-        """
-        Load theme from file.
+        """Load theme from file.
 
         Args:
             file_path: Path to theme file
@@ -217,6 +214,7 @@ class FileThemeLoader:
         Raises:
             ThemeLoadError: If file cannot be loaded or parsed
             ThemeValidationError: If theme data is invalid
+
         """
         path = Path(file_path)
         logger.debug(f"Loading theme from file: {path}")
@@ -228,7 +226,7 @@ class FileThemeLoader:
             raise ThemeLoadError(f"Path is not a file: {path}")
 
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 if path.suffix.lower() == '.json':
                     data = json.load(f)
                 elif path.suffix.lower() in {'.yaml', '.yml'}:
@@ -254,8 +252,7 @@ class FileThemeLoader:
 
 
 class BuiltinThemeManager:
-    """
-    Manager for built-in themes.
+    """Manager for built-in themes.
 
     Provides access to default themes that are shipped with the system:
     - default: Standard light theme
@@ -271,24 +268,24 @@ class BuiltinThemeManager:
         logger.debug(f"BuiltinThemeManager initialized with {len(self._themes)} themes")
 
     def _load_builtin_themes(self) -> None:
-        """Load all built-in themes."""
-        # Default theme
+        """Load all built-in themes with namespaced keys."""
+        # Default theme - using NAMESPACED keys (colors.*)
         default_theme_data = {
             "name": "default",
             "version": "1.0.0",
             "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff",
-                "background": "#ffffff",
-                "foreground": "#333333",
-                "border": "#cccccc",
-                "hover": "#e6f2ff",
-                "active": "#0066a3",
-                "disabled": "#999999",
-                "error": "#d32f2f",
-                "warning": "#f57c00",
-                "success": "#2e7d32",
-                "info": "#1976d2"
+                "colors.primary": "#007acc",
+                "colors.secondary": "#ffffff",
+                "colors.background": "#ffffff",
+                "colors.foreground": "#333333",
+                "colors.border": "#cccccc",
+                "colors.hover": "#e6f2ff",
+                "colors.active": "#0066a3",
+                "colors.disabled": "#999999",
+                "colors.error": "#d32f2f",
+                "colors.warning": "#f57c00",
+                "colors.success": "#2e7d32",
+                "colors.info": "#1976d2"
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
@@ -304,23 +301,35 @@ class BuiltinThemeManager:
             }
         }
 
-        # Dark theme
+        # Dark theme - using NAMESPACED keys (colors.*)
         dark_theme_data = {
             "name": "dark",
             "version": "1.0.0",
+            "type": "dark",
             "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff",
-                "background": "#2d2d2d",
-                "foreground": "#cccccc",
-                "border": "#555555",
-                "hover": "#404040",
-                "active": "#0066a3",
-                "disabled": "#666666",
-                "error": "#f44336",
-                "warning": "#ff9800",
-                "success": "#4caf50",
-                "info": "#2196f3"
+                "colors.primary": "#007acc",
+                "colors.secondary": "#ffffff",
+                "colors.background": "#2d2d2d",
+                "colors.foreground": "#cccccc",
+                "colors.border": "#555555",
+                "colors.hover": "#404040",
+                "colors.active": "#0066a3",
+                "colors.disabled": "#666666",
+                "colors.error": "#f44336",
+                "colors.warning": "#ff9800",
+                "colors.success": "#4caf50",
+                "colors.info": "#2196f3",
+                # VS Code semantic tokens for tab widgets
+                "tab.activeBackground": "#1e1e1e",
+                "tab.inactiveBackground": "#2d2d30",
+                "tab.activeForeground": "#ffffff",
+                "tab.inactiveForeground": "#969696",
+                "tab.border": "#252526",
+                "tab.activeBorder": "#0066cc",
+                "tab.hoverBackground": "#2e2e32",
+                "tab.hoverForeground": "#ffffff",
+                "editorGroupHeader.tabsBackground": "#2d2d30",
+                "editorGroupHeader.tabsBorder": "#252526"
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
@@ -336,23 +345,34 @@ class BuiltinThemeManager:
             }
         }
 
-        # Light theme (high contrast)
+        # Light theme (high contrast) - using NAMESPACED keys (colors.*)
         light_theme_data = {
             "name": "light",
             "version": "1.0.0",
             "colors": {
-                "primary": "#0056b3",
-                "secondary": "#ffffff",
-                "background": "#ffffff",
-                "foreground": "#000000",
-                "border": "#808080",
-                "hover": "#e0e7ff",
-                "active": "#003d82",
-                "disabled": "#808080",
-                "error": "#b71c1c",
-                "warning": "#e65100",
-                "success": "#1b5e20",
-                "info": "#0d47a1"
+                "colors.primary": "#0056b3",
+                "colors.secondary": "#ffffff",
+                "colors.background": "#ffffff",
+                "colors.foreground": "#000000",
+                "colors.border": "#808080",
+                "colors.hover": "#e0e7ff",
+                "colors.active": "#003d82",
+                "colors.disabled": "#808080",
+                "colors.error": "#b71c1c",
+                "colors.warning": "#e65100",
+                "colors.success": "#1b5e20",
+                "colors.info": "#0d47a1",
+                # VS Code semantic tokens for tab widgets
+                "tab.activeBackground": "#ffffff",
+                "tab.inactiveBackground": "#f3f3f3",
+                "tab.activeForeground": "#333333",
+                "tab.inactiveForeground": "#666666",
+                "tab.border": "#cccccc",
+                "tab.activeBorder": "#0066cc",
+                "tab.hoverBackground": "#e8e8e8",
+                "tab.hoverForeground": "#333333",
+                "editorGroupHeader.tabsBackground": "#f3f3f3",
+                "editorGroupHeader.tabsBorder": "#cccccc"
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",
@@ -387,8 +407,7 @@ class BuiltinThemeManager:
         return list(self._themes.keys())
 
     def get_theme(self, name: str) -> Theme:
-        """
-        Get built-in theme by name.
+        """Get built-in theme by name.
 
         Args:
             name: Theme name
@@ -398,6 +417,7 @@ class BuiltinThemeManager:
 
         Raises:
             ThemeNotFoundError: If theme not found
+
         """
         if name not in self._themes:
             raise ThemeNotFoundError(f"Built-in theme '{name}' not found")
@@ -410,26 +430,24 @@ class BuiltinThemeManager:
 
 
 class ThemeDiscovery:
-    """
-    Theme discovery service for finding themes in directories.
+    """Theme discovery service for finding themes in directories.
 
     Scans directories for theme files and loads them automatically.
     Supports recursive scanning and multiple file formats.
     """
 
     def __init__(self, loader: Optional[FileThemeLoader] = None):
-        """
-        Initialize theme discovery.
+        """Initialize theme discovery.
 
         Args:
             loader: File loader to use (creates default if None)
+
         """
         self._loader = loader or FileThemeLoader()
         logger.debug("ThemeDiscovery initialized")
 
     def discover_in_directory(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
-        """
-        Discover themes in directory.
+        """Discover themes in directory.
 
         Args:
             directory: Directory to scan
@@ -437,6 +455,7 @@ class ThemeDiscovery:
 
         Returns:
             List of discovered themes
+
         """
         dir_path = Path(directory)
         themes = []
@@ -470,8 +489,7 @@ class ThemeDiscovery:
 
 
 class ThemeRepository:
-    """
-    Main repository for theme storage and retrieval.
+    """Main repository for theme storage and retrieval.
 
     Coordinates theme operations including:
     - Theme storage and retrieval
@@ -491,13 +509,13 @@ class ThemeRepository:
         discovery: Optional[ThemeDiscovery] = None,
         builtin_manager: Optional[BuiltinThemeManager] = None
     ):
-        """
-        Initialize theme repository.
+        """Initialize theme repository.
 
         Args:
             cache: Cache for theme performance optimization
             discovery: Theme discovery service
             builtin_manager: Built-in theme manager
+
         """
         self._themes: Dict[str, Theme] = {}
         self._metadata: Dict[str, ThemeMetadata] = {}
@@ -531,11 +549,11 @@ class ThemeRepository:
             logger.error(f"Error loading built-in themes: {e}")
 
     def add_theme(self, theme: Theme) -> None:
-        """
-        Add theme to repository.
+        """Add theme to repository.
 
         Args:
             theme: Theme to add
+
         """
         with self._lock:
             self._themes[theme.name] = theme
@@ -554,8 +572,7 @@ class ThemeRepository:
             logger.debug(f"Added theme to repository: {theme.name}")
 
     def get_theme(self, name: str) -> Theme:
-        """
-        Get theme by name.
+        """Get theme by name.
 
         Args:
             name: Theme name
@@ -565,6 +582,7 @@ class ThemeRepository:
 
         Raises:
             ThemeNotFoundError: If theme not found
+
         """
         with self._lock:
             # Try cache first
@@ -583,27 +601,27 @@ class ThemeRepository:
             raise ThemeNotFoundError(f"Theme '{name}' not found in repository")
 
     def has_theme(self, name: str) -> bool:
-        """
-        Check if theme exists in repository.
+        """Check if theme exists in repository.
 
         Args:
             name: Theme name
 
         Returns:
             True if theme exists
+
         """
         with self._lock:
             return name in self._themes
 
     def remove_theme(self, name: str) -> bool:
-        """
-        Remove theme from repository.
+        """Remove theme from repository.
 
         Args:
             name: Theme name to remove
 
         Returns:
             True if theme was removed, False if not found
+
         """
         with self._lock:
             if name in self._themes:
@@ -616,11 +634,11 @@ class ThemeRepository:
             return False
 
     def list_themes(self) -> List[str]:
-        """
-        List all theme names in repository.
+        """List all theme names in repository.
 
         Returns:
             List of theme names
+
         """
         with self._lock:
             return list(self._themes.keys())
@@ -645,8 +663,7 @@ class ThemeRepository:
             logger.debug("Cleared all non-builtin themes from repository")
 
     def load_from_file(self, file_path: Union[str, Path]) -> Theme:
-        """
-        Load theme from file and add to repository.
+        """Load theme from file and add to repository.
 
         Args:
             file_path: Path to theme file
@@ -656,6 +673,7 @@ class ThemeRepository:
 
         Raises:
             ThemeLoadError: If file cannot be loaded
+
         """
         theme = self._file_loader.load_theme(file_path)
 
@@ -675,8 +693,7 @@ class ThemeRepository:
         return theme
 
     def save_to_file(self, theme: Theme, file_path: Union[str, Path]) -> None:
-        """
-        Save theme to file.
+        """Save theme to file.
 
         Args:
             theme: Theme to save
@@ -684,6 +701,7 @@ class ThemeRepository:
 
         Raises:
             ThemeLoadError: If file cannot be saved
+
         """
         path = Path(file_path)
 
@@ -709,8 +727,7 @@ class ThemeRepository:
             raise ThemeLoadError(f"Failed to save theme to {path}: {e}")
 
     def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
-        """
-        Discover and load themes from directory.
+        """Discover and load themes from directory.
 
         Args:
             directory: Directory to scan
@@ -718,6 +735,7 @@ class ThemeRepository:
 
         Returns:
             List of discovered themes
+
         """
         themes = self._discovery.discover_in_directory(directory, recursive)
 
@@ -740,11 +758,11 @@ class ThemeRepository:
         return themes
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get repository statistics.
+        """Get repository statistics.
 
         Returns:
             Dictionary with repository statistics
+
         """
         with self._lock:
             cache_stats = self._cache.get_statistics()
@@ -773,8 +791,7 @@ def create_theme_repository(
     discovery: Optional[ThemeDiscovery] = None,
     builtin_manager: Optional[BuiltinThemeManager] = None
 ) -> ThemeRepository:
-    """
-    Factory function for creating theme repository with defaults.
+    """Factory function for creating theme repository with defaults.
 
     Args:
         cache_size: Maximum cache size
@@ -783,6 +800,7 @@ def create_theme_repository(
 
     Returns:
         Configured theme repository
+
     """
     cache = ThemeCache(max_size=cache_size)
     discovery = discovery or ThemeDiscovery()

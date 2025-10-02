@@ -6,6 +6,7 @@ Simple Benchmark Test to verify framework works
 import sys
 import time
 from pathlib import Path
+
 from PySide6.QtWidgets import QApplication
 
 # Ensure QApplication exists before importing our modules
@@ -13,8 +14,6 @@ if not QApplication.instance():
     app = QApplication(sys.argv)
 
 from suite import BenchmarkSuite
-from vfwidgets_theme import ThemedWidget
-from vfwidgets_theme.core.theme import Theme
 
 
 def test_simple_benchmarks():
@@ -44,7 +43,7 @@ def test_simple_benchmarks():
 
     # Generate report
     report = suite.generate_report()
-    print(f"\nBenchmark Report:")
+    print("\nBenchmark Report:")
     print(f"Total benchmarks: {report['total_benchmarks']}")
     print(f"Total time: {report['total_time']:.3f}s")
 

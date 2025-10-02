@@ -9,8 +9,8 @@ This is the critical integration test that ensures the public API is working
 as intended for end users.
 """
 
-import sys
 import os
+import sys
 import unittest
 from pathlib import Path
 
@@ -23,6 +23,7 @@ os.environ.pop('WAYLAND_DISPLAY', None)
 
 # Force Qt fallback by mocking PySide6 import
 import sys
+
 if 'PySide6' in sys.modules:
     del sys.modules['PySide6']
 if 'PySide6.QtWidgets' in sys.modules:

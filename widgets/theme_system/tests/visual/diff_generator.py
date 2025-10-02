@@ -3,12 +3,12 @@
 Visual Diff Generator for Theme Testing
 """
 
-from typing import Tuple, Optional, List, Dict, Any
-from enum import Enum
 import colorsys
+from enum import Enum
+from typing import Tuple
 
 try:
-    from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+    from PIL import Image, ImageDraw, ImageEnhance, ImageFont
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False

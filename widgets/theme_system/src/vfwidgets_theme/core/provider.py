@@ -1,5 +1,4 @@
-"""
-ThemeProvider implementation with caching and error recovery.
+"""ThemeProvider implementation with caching and error recovery.
 
 This module provides concrete implementations of the ThemeProvider protocol,
 handling theme data access, caching, and coordination with the broader
@@ -28,17 +27,18 @@ Performance Requirements:
 import threading
 import time
 from collections import OrderedDict
-from typing import Dict, List, Optional, Any, Union, Set
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set
+
+from ..errors import PropertyNotFoundError, ThemeNotFoundError
+from ..fallbacks import get_fallback_color, get_fallback_property
+from ..logging import get_debug_logger
 
 # Import foundation modules
-from ..protocols import ThemeProvider, ThemeData, ColorValue, PropertyKey, PropertyValue
-from ..errors import ThemeNotFoundError, PropertyNotFoundError
-from ..logging import get_debug_logger
-from ..fallbacks import get_fallback_color, get_fallback_property
+from ..protocols import ColorValue, PropertyKey, PropertyValue, ThemeData, ThemeProvider
 
 # Import core components
-from .theme import Theme, PropertyResolver
+from .theme import PropertyResolver, Theme
 
 logger = get_debug_logger(__name__)
 
@@ -46,6 +46,7 @@ logger = get_debug_logger(__name__)
 @dataclass
 class ProviderStats:
     """Statistics for provider operations."""
+
     theme_access_count: int = 0
     color_access_count: int = 0
     property_access_count: int = 0
@@ -56,8 +57,7 @@ class ProviderStats:
 
 
 class DefaultThemeProvider:
-    """
-    Standard implementation of ThemeProvider protocol.
+    """Standard implementation of ThemeProvider protocol.
 
     Provides theme data access with fallback support, validation,
     and performance optimization. This is the default provider
@@ -71,11 +71,11 @@ class DefaultThemeProvider:
     """
 
     def __init__(self, themes: Optional[Dict[str, Theme]] = None):
-        """
-        Initialize provider with optional theme collection.
+        """Initialize provider with optional theme collection.
 
         Args:
             themes: Dictionary of themes keyed by name
+
         """
         self._themes: Dict[str, Theme] = themes or {}
         self._current_theme: Optional[Theme] = None
@@ -85,8 +85,7 @@ class DefaultThemeProvider:
         logger.debug("DefaultThemeProvider initialized")
 
     def get_theme_data(self, theme_name: str) -> ThemeData:
-        """
-        Get complete theme data for specified theme.
+        """Get complete theme data for specified theme.
 
         Args:
             theme_name: Name of theme to get
@@ -96,6 +95,7 @@ class DefaultThemeProvider:
 
         Raises:
             ThemeNotFoundError: If theme not found
+
         """
         start_time = time.time()
 
@@ -123,8 +123,7 @@ class DefaultThemeProvider:
                 raise ThemeNotFoundError(f"Error accessing theme '{theme_name}': {e}")
 
     def get_color(self, color_key: str, theme_name: Optional[str] = None) -> ColorValue:
-        """
-        Get color value with fallback support.
+        """Get color value with fallback support.
 
         Args:
             color_key: Key of color to retrieve
@@ -135,6 +134,7 @@ class DefaultThemeProvider:
 
         Raises:
             ThemeNotFoundError: If theme not found (property errors use fallbacks)
+
         """
         start_time = time.time()
 
@@ -183,8 +183,7 @@ class DefaultThemeProvider:
             return get_fallback_color(color_key)
 
     def get_property(self, property_key: PropertyKey, theme_name: Optional[str] = None) -> PropertyValue:
-        """
-        Get theme property with fallback support.
+        """Get theme property with fallback support.
 
         Args:
             property_key: Key of property to retrieve (supports dot notation)
@@ -195,6 +194,7 @@ class DefaultThemeProvider:
 
         Raises:
             ThemeNotFoundError: If theme not found (property errors use fallbacks)
+
         """
         start_time = time.time()
 
@@ -266,37 +266,37 @@ class DefaultThemeProvider:
         return current
 
     def list_themes(self) -> List[str]:
-        """
-        List all available themes.
+        """List all available themes.
 
         Returns:
             List of theme names
+
         """
         with self._lock:
             return list(self._themes.keys())
 
     def has_theme(self, theme_name: str) -> bool:
-        """
-        Check if theme exists.
+        """Check if theme exists.
 
         Args:
             theme_name: Theme name to check
 
         Returns:
             True if theme exists
+
         """
         with self._lock:
             return theme_name in self._themes
 
     def set_current_theme(self, theme_name: str) -> None:
-        """
-        Set the current active theme.
+        """Set the current active theme.
 
         Args:
             theme_name: Name of theme to set as current
 
         Raises:
             ThemeNotFoundError: If theme doesn't exist
+
         """
         with self._lock:
             if theme_name not in self._themes:
@@ -306,25 +306,25 @@ class DefaultThemeProvider:
             logger.debug(f"Set current theme to: {theme_name}")
 
     def add_theme(self, theme: Theme) -> None:
-        """
-        Add a theme to the provider.
+        """Add a theme to the provider.
 
         Args:
             theme: Theme to add
+
         """
         with self._lock:
             self._themes[theme.name] = theme
             logger.debug(f"Added theme: {theme.name}")
 
     def remove_theme(self, theme_name: str) -> bool:
-        """
-        Remove a theme from the provider.
+        """Remove a theme from the provider.
 
         Args:
             theme_name: Name of theme to remove
 
         Returns:
             True if theme was removed, False if not found
+
         """
         with self._lock:
             if theme_name in self._themes:
@@ -367,8 +367,7 @@ class DefaultThemeProvider:
 
 
 class CachedThemeProvider:
-    """
-    Theme provider with intelligent LRU caching.
+    """Theme provider with intelligent LRU caching.
 
     Wraps another provider and adds caching for performance optimization.
     Includes cache invalidation, memory management, and statistics.
@@ -382,12 +381,12 @@ class CachedThemeProvider:
     """
 
     def __init__(self, base_provider: ThemeProvider, cache_size: int = 1000):
-        """
-        Initialize cached provider.
+        """Initialize cached provider.
 
         Args:
             base_provider: Provider to wrap with caching
             cache_size: Maximum cache entries
+
         """
         self._base_provider = base_provider
         self._cache_size = cache_size
@@ -494,11 +493,11 @@ class CachedThemeProvider:
             logger.debug(f"Evicted cache entry: {oldest_key}")
 
     def invalidate_cache(self, theme_name: Optional[str] = None) -> None:
-        """
-        Invalidate cache for theme or all themes.
+        """Invalidate cache for theme or all themes.
 
         Args:
             theme_name: Theme to invalidate (None for all)
+
         """
         with self._lock:
             if theme_name:
@@ -565,8 +564,7 @@ class CachedThemeProvider:
 
 
 class CompositeThemeProvider:
-    """
-    Provider that combines multiple theme sources.
+    """Provider that combines multiple theme sources.
 
     Allows themes from multiple providers to be accessed through
     a single interface with priority ordering. The first provider
@@ -580,23 +578,23 @@ class CompositeThemeProvider:
     """
 
     def __init__(self, providers: Optional[List[ThemeProvider]] = None):
-        """
-        Initialize composite provider.
+        """Initialize composite provider.
 
         Args:
             providers: List of providers in priority order (first = highest priority)
+
         """
         self._providers: List[ThemeProvider] = providers or []
         self._lock = threading.RLock()
         logger.debug(f"CompositeThemeProvider initialized with {len(self._providers)} providers")
 
     def add_provider(self, provider: ThemeProvider, priority: int = -1) -> None:
-        """
-        Add provider at specified priority.
+        """Add provider at specified priority.
 
         Args:
             provider: Provider to add
             priority: Priority index (0 = highest priority, -1 = lowest)
+
         """
         with self._lock:
             if priority == -1 or priority >= len(self._providers):
@@ -698,14 +696,14 @@ class CompositeThemeProvider:
 
 # Factory functions for creating providers
 def create_default_provider(themes: Optional[Dict[str, Theme]] = None) -> DefaultThemeProvider:
-    """
-    Create default theme provider.
+    """Create default theme provider.
 
     Args:
         themes: Optional initial themes
 
     Returns:
         Configured DefaultThemeProvider
+
     """
     return DefaultThemeProvider(themes)
 
@@ -714,8 +712,7 @@ def create_cached_provider(
     base_provider: ThemeProvider,
     cache_size: int = 1000
 ) -> CachedThemeProvider:
-    """
-    Create cached theme provider wrapping another provider.
+    """Create cached theme provider wrapping another provider.
 
     Args:
         base_provider: Provider to wrap with caching
@@ -723,19 +720,20 @@ def create_cached_provider(
 
     Returns:
         Configured CachedThemeProvider
+
     """
     return CachedThemeProvider(base_provider, cache_size)
 
 
 def create_composite_provider(providers: Optional[List[ThemeProvider]] = None) -> CompositeThemeProvider:
-    """
-    Create composite provider combining multiple sources.
+    """Create composite provider combining multiple sources.
 
     Args:
         providers: List of providers in priority order
 
     Returns:
         Configured CompositeThemeProvider
+
     """
     return CompositeThemeProvider(providers)
 

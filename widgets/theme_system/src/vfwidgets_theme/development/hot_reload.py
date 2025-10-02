@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Hot Reload System - Task 18
+"""Hot Reload System - Task 18
 
 This module provides hot reloading functionality for theme files during development.
 It watches theme files for changes and automatically reloads them with debouncing
@@ -14,15 +13,15 @@ Features:
 - Integration with ThemedApplication
 """
 
+import logging
 import os
 import time
-from pathlib import Path
-from typing import Optional, Dict, Set, Callable, Any
 from dataclasses import dataclass
-import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Set
 
 try:
-    from PySide6.QtCore import QObject, QTimer, QFileSystemWatcher, Signal
+    from PySide6.QtCore import QFileSystemWatcher, QObject, QTimer, Signal
     QT_AVAILABLE = True
 except ImportError:
     # Mock classes for testing without Qt
@@ -81,6 +80,7 @@ except ImportError:
 @dataclass
 class ReloadEvent:
     """Information about a theme reload event."""
+
     file_path: Path
     timestamp: float
     success: bool
@@ -89,8 +89,7 @@ class ReloadEvent:
 
 
 class HotReloader(QObject):
-    """
-    Watch and reload themes during development.
+    """Watch and reload themes during development.
 
     Features:
     - File system watching with QFileSystemWatcher
@@ -105,11 +104,11 @@ class HotReloader(QObject):
     reload_error = Signal(str, str)     # (file_path, error_message)
 
     def __init__(self, debounce_ms: int = 100):
-        """
-        Initialize hot reloader.
+        """Initialize hot reloader.
 
         Args:
             debounce_ms: Debounce time in milliseconds (default: 100ms)
+
         """
         super().__init__()
 
@@ -154,24 +153,24 @@ class HotReloader(QObject):
         return self.enabled
 
     def set_reload_callback(self, callback: Callable[[Path], bool]):
-        """
-        Set callback function for theme reloading.
+        """Set callback function for theme reloading.
 
         Args:
             callback: Function that takes a Path and returns bool (success)
+
         """
         self.reload_callback = callback
         self.logger.debug("Reload callback set")
 
     def watch_file(self, file_path: Path) -> bool:
-        """
-        Watch a specific theme file for changes.
+        """Watch a specific theme file for changes.
 
         Args:
             file_path: Path to theme file to watch
 
         Returns:
             bool: True if watching started successfully
+
         """
         if not self.enabled:
             self.logger.warning("Cannot watch file - hot reloading disabled")
@@ -197,8 +196,7 @@ class HotReloader(QObject):
         return success
 
     def watch_directory(self, directory_path: Path, recursive: bool = False) -> bool:
-        """
-        Watch a directory for theme file changes.
+        """Watch a directory for theme file changes.
 
         Args:
             directory_path: Path to directory to watch
@@ -206,6 +204,7 @@ class HotReloader(QObject):
 
         Returns:
             bool: True if watching started successfully
+
         """
         if not self.enabled:
             self.logger.warning("Cannot watch directory - hot reloading disabled")
@@ -239,14 +238,14 @@ class HotReloader(QObject):
         return success
 
     def unwatch_file(self, file_path: Path) -> bool:
-        """
-        Stop watching a specific file.
+        """Stop watching a specific file.
 
         Args:
             file_path: Path to file to stop watching
 
         Returns:
             bool: True if unwatching succeeded
+
         """
         file_str = str(file_path.absolute())
 
@@ -264,14 +263,14 @@ class HotReloader(QObject):
         return success
 
     def unwatch_directory(self, directory_path: Path) -> bool:
-        """
-        Stop watching a directory.
+        """Stop watching a directory.
 
         Args:
             directory_path: Path to directory to stop watching
 
         Returns:
             bool: True if unwatching succeeded
+
         """
         if directory_path not in self.watched_directories:
             self.logger.debug(f"Directory not being watched: {directory_path}")
@@ -347,11 +346,11 @@ class HotReloader(QObject):
                 self._queue_reload(theme_file)
 
     def _queue_reload(self, file_path: Path):
-        """
-        Queue a file for reloading with debouncing.
+        """Queue a file for reloading with debouncing.
 
         Args:
             file_path: Path to file to reload
+
         """
         # Add to pending reloads
         self.pending_reloads.add(file_path)
@@ -376,11 +375,11 @@ class HotReloader(QObject):
             self._reload_single_file(file_path)
 
     def _reload_single_file(self, file_path: Path):
-        """
-        Reload a single theme file.
+        """Reload a single theme file.
 
         Args:
             file_path: Path to theme file to reload
+
         """
         start_time = time.perf_counter()
         success = False
@@ -468,11 +467,11 @@ class HotReloader(QObject):
 
 
 def debounced(wait_ms: int):
-    """
-    Decorator to debounce function calls.
+    """Decorator to debounce function calls.
 
     Args:
         wait_ms: Wait time in milliseconds
+
     """
     def decorator(func):
         last_called = [0.0]

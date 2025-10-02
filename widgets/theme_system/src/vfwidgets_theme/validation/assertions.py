@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Runtime Assertions
+"""VFWidgets Theme System - Runtime Assertions
 Task 24: Runtime assertion system for theme validation
 
 This module provides runtime assertion capabilities for validating
@@ -11,9 +10,14 @@ import functools
 import threading
 import time
 import traceback
-from typing import Any, Callable, Dict, List, Optional, Union
 from contextlib import contextmanager
-from .framework import ValidationFramework, ValidationMode, ValidationError, ValidationResult, ValidationType
+from typing import Any, Callable, Dict, List, Optional
+
+from .framework import (
+    ValidationFramework,
+    ValidationMode,
+    ValidationType,
+)
 
 
 class AssertionError(Exception):
@@ -39,8 +43,7 @@ class RuntimeAssertion:
         self.failure_count = 0
 
     def check(self, obj: Any, raise_on_failure: bool = True) -> bool:
-        """
-        Check the assertion against an object.
+        """Check the assertion against an object.
 
         Args:
             obj: Object to validate
@@ -48,6 +51,7 @@ class RuntimeAssertion:
 
         Returns:
             bool: True if assertion passes, False otherwise
+
         """
         self.call_count += 1
 
@@ -118,8 +122,7 @@ class AssertionContext:
         return exc_type is None  # Suppress non-assertion exceptions in non-strict mode
 
     def check_all(self, obj: Any, stop_on_first_failure: bool = False) -> bool:
-        """
-        Check all assertions in this context.
+        """Check all assertions in this context.
 
         Args:
             obj: Object to validate
@@ -127,6 +130,7 @@ class AssertionContext:
 
         Returns:
             bool: True if all assertions pass
+
         """
         all_passed = True
         self.errors.clear()
@@ -214,8 +218,7 @@ _assertion_registry = AssertionRegistry()
 
 def register_assertion(name: str, assertion_func: Callable[[Any], bool],
                       message: str = "", context: Dict[str, Any] = None) -> RuntimeAssertion:
-    """
-    Register a runtime assertion.
+    """Register a runtime assertion.
 
     Args:
         name: Unique name for the assertion
@@ -225,6 +228,7 @@ def register_assertion(name: str, assertion_func: Callable[[Any], bool],
 
     Returns:
         RuntimeAssertion: The registered assertion
+
     """
     assertion = RuntimeAssertion(name, assertion_func, message, context)
     _assertion_registry.register(assertion)
@@ -232,8 +236,7 @@ def register_assertion(name: str, assertion_func: Callable[[Any], bool],
 
 
 def assert_runtime(name: str, obj: Any) -> bool:
-    """
-    Check a registered runtime assertion.
+    """Check a registered runtime assertion.
 
     Args:
         name: Name of the assertion to check
@@ -244,6 +247,7 @@ def assert_runtime(name: str, obj: Any) -> bool:
 
     Raises:
         AssertionError: If assertion fails in strict mode
+
     """
     assertion = _assertion_registry.get(name)
     if assertion:
@@ -260,11 +264,11 @@ def assertion_context(name: str):
 
 
 def assertion_decorator(assertion_name: str):
-    """
-    Decorator to check assertions before/after function execution.
+    """Decorator to check assertions before/after function execution.
 
     Args:
         assertion_name: Name of the assertion to check
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)

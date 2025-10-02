@@ -776,8 +776,8 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             logger.error(f"Error generating stylesheet: {e}")
             # Fallback to minimal styling
             try:
-                bg = self.theme.get("colors.background", "#ffffff")
-                fg = self.theme.get("colors.foreground", "#000000")
+                bg = self.theme.get_color("colors.background", "#ffffff")
+                fg = self.theme.get_color("colors.foreground", "#000000")
                 return f"{self.__class__.__name__} {{ background-color: {bg}; color: {fg}; }}"
             except Exception:
                 return ""
@@ -814,6 +814,33 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
     def theme_name(self) -> Optional[str]:
         """Get current theme name."""
         return self._current_theme_name
+
+    def get_current_theme(self):
+        """Get the current theme object.
+
+        Returns the actual Theme object from the theme manager, or None if:
+        - Theme system is not initialized
+        - No theme is currently set
+
+        Use this method to:
+        - Pass theme to child components
+        - Access theme in custom renderers/painters
+        - Get theme data for non-ThemedWidget children
+
+        Returns:
+            Theme object with .colors dict and .name, or None
+
+        Example:
+            def paintEvent(self, event):
+                theme = self.get_current_theme()
+                if theme:
+                    color = theme.colors.get('myColor', '#default')
+                    self.renderer.draw(painter, theme)
+
+        """
+        if hasattr(self, '_theme_manager') and self._theme_manager:
+            return self._theme_manager.current_theme
+        return None
 
     @property
     def is_theme_ready(self) -> bool:

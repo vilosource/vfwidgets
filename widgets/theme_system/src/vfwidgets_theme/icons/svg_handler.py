@@ -1,25 +1,23 @@
-"""
-SVG icon handler for rendering SVG icons to QIcon objects.
+"""SVG icon handler for rendering SVG icons to QIcon objects.
 
 Provides SVG loading, color customization, and caching capabilities.
 """
 
-from pathlib import Path
-from typing import Optional, Dict
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QColor
-from PyQt6.QtCore import QSize, Qt, QByteArray
-from PyQt6.QtSvg import QSvgRenderer
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Dict, Optional
 
-from ..errors import ThemeSystemError
+from PyQt6.QtCore import QByteArray, QSize, Qt
+from PyQt6.QtGui import QIcon, QPainter, QPixmap
+from PyQt6.QtSvg import QSvgRenderer
+
 from ..logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class SVGIconHandler:
-    """
-    Handles loading and rendering SVG icons.
+    """Handles loading and rendering SVG icons.
 
     Provides SVG icon loading with color customization and caching.
     """
@@ -33,8 +31,7 @@ class SVGIconHandler:
                      svg_path: Path,
                      size: Optional[QSize] = None,
                      color: Optional[str] = None) -> Optional[QIcon]:
-        """
-        Load SVG icon from file.
+        """Load SVG icon from file.
 
         Args:
             svg_path: Path to SVG file
@@ -43,6 +40,7 @@ class SVGIconHandler:
 
         Returns:
             QIcon object or None if loading fails
+
         """
         if not svg_path.exists():
             logger.error(f"SVG file not found: {svg_path}")
@@ -101,8 +99,7 @@ class SVGIconHandler:
             return None
 
     def _modify_svg_color(self, svg_content: QByteArray, color: str) -> QByteArray:
-        """
-        Modify SVG content to apply color.
+        """Modify SVG content to apply color.
 
         Args:
             svg_content: Original SVG content
@@ -110,6 +107,7 @@ class SVGIconHandler:
 
         Returns:
             Modified SVG content
+
         """
         try:
             # Convert to string for manipulation
@@ -203,8 +201,7 @@ class SVGIconHandler:
         return pixmap
 
     def create_multi_size_icon(self, svg_path: Path, sizes: list, color: Optional[str] = None) -> Optional[QIcon]:
-        """
-        Create icon with multiple sizes from SVG.
+        """Create icon with multiple sizes from SVG.
 
         Args:
             svg_path: Path to SVG file
@@ -213,6 +210,7 @@ class SVGIconHandler:
 
         Returns:
             QIcon with multiple sizes
+
         """
         if not sizes:
             return self.load_svg_icon(svg_path, QSize(16, 16), color)
@@ -247,14 +245,14 @@ class SVGIconHandler:
         return self._render_to_pixmap(renderer, size)
 
     def get_svg_size(self, svg_path: Path) -> Optional[QSize]:
-        """
-        Get default size of SVG file.
+        """Get default size of SVG file.
 
         Args:
             svg_path: Path to SVG file
 
         Returns:
             Default SVG size or None
+
         """
         try:
             svg_content = self._load_svg_content(svg_path)
@@ -271,14 +269,14 @@ class SVGIconHandler:
         return None
 
     def is_valid_svg(self, svg_path: Path) -> bool:
-        """
-        Check if SVG file is valid.
+        """Check if SVG file is valid.
 
         Args:
             svg_path: Path to SVG file
 
         Returns:
             True if SVG is valid
+
         """
         try:
             svg_content = self._load_svg_content(svg_path)
@@ -305,14 +303,14 @@ class SVGIconHandler:
         }
 
     def preload_svg(self, svg_path: Path) -> bool:
-        """
-        Preload SVG into cache.
+        """Preload SVG into cache.
 
         Args:
             svg_path: Path to SVG file
 
         Returns:
             True if successfully preloaded
+
         """
         try:
             svg_content = self._load_svg_content(svg_path)
@@ -323,19 +321,19 @@ class SVGIconHandler:
             return False
 
     def extract_colors_from_svg(self, svg_path: Path) -> list:
-        """
-        Extract colors used in SVG file.
+        """Extract colors used in SVG file.
 
         Args:
             svg_path: Path to SVG file
 
         Returns:
             List of color strings found in SVG
+
         """
         colors = set()
 
         try:
-            with open(svg_path, 'r', encoding='utf-8') as f:
+            with open(svg_path, encoding='utf-8') as f:
                 svg_content = f.read()
 
             # Parse XML

@@ -1,5 +1,4 @@
-"""
-Memory Management Foundation for VFWidgets Theme System.
+"""Memory Management Foundation for VFWidgets Theme System.
 
 This module provides comprehensive memory management that ensures zero memory leaks
 and automatic cleanup for themed widgets. The system is completely transparent to
@@ -29,18 +28,24 @@ import time
 import weakref
 from abc import abstractmethod
 from collections import defaultdict
+from collections.abc import Iterator
 from contextlib import contextmanager
 from enum import Enum, auto
 from functools import wraps
 from typing import (
-    Any, Callable, Dict, Iterator, List, Optional, Protocol, Set,
-    TypeVar, Union, runtime_checkable, NamedTuple
+    Any,
+    Callable,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Protocol,
+    Set,
+    TypeVar,
+    runtime_checkable,
 )
 
-from .protocols import (
-    ThemeableWidget, ThemeProvider, ThemeError, PropertyKey, PropertyValue
-)
-from .errors import ThemeError as ThemeBaseError
+from .protocols import ThemeableWidget, ThemeProvider
 
 # Type variables for generic implementations
 T = TypeVar('T')
@@ -49,6 +54,7 @@ WidgetType = TypeVar('WidgetType', bound=ThemeableWidget)
 
 class WidgetLifecycleState(Enum):
     """Widget lifecycle states for tracking."""
+
     CREATED = auto()
     REGISTERED = auto()
     UPDATED = auto()
@@ -58,6 +64,7 @@ class WidgetLifecycleState(Enum):
 
 class WidgetLifecycleEvent(NamedTuple):
     """Widget lifecycle event information."""
+
     widget_id: int
     state: WidgetLifecycleState
     timestamp: float
@@ -66,11 +73,13 @@ class WidgetLifecycleEvent(NamedTuple):
 
 class RegistrationError(Exception):
     """Error during widget registration operations."""
+
     pass
 
 
 class BulkOperationError(Exception):
     """Error during bulk registration operations."""
+
     def __init__(self, message: str, successful_count: int, failed_widgets: List[Any]):
         super().__init__(message)
         self.successful_count = successful_count
@@ -103,6 +112,7 @@ class CleanupProtocol(Protocol):
 
         Returns:
             True if cleanup is needed, False if already cleaned up.
+
         """
         ...
 
@@ -170,6 +180,7 @@ class WidgetRegistry:
 
         Performance: < 10μs per widget
         Thread Safety: Safe for concurrent calls
+
         """
         start_time = time.perf_counter()
 
@@ -236,6 +247,7 @@ class WidgetRegistry:
 
         Returns:
             True if widget was registered and removed, False otherwise.
+
         """
         with self._lock:
             widget_id = id(widget)
@@ -266,6 +278,7 @@ class WidgetRegistry:
 
         Returns:
             True if widget is registered and still alive.
+
         """
         with self._lock:
             widget_id = id(widget)
@@ -285,6 +298,7 @@ class WidgetRegistry:
 
         Returns:
             Metadata dictionary or None if widget not registered.
+
         """
         with self._lock:
             widget_id = id(widget)
@@ -295,6 +309,7 @@ class WidgetRegistry:
 
         Returns:
             Number of currently registered widgets.
+
         """
         with self._lock:
             # Clean up dead references first
@@ -306,6 +321,7 @@ class WidgetRegistry:
 
         Returns:
             True if no widgets are registered.
+
         """
         return self.count() == 0
 
@@ -317,6 +333,7 @@ class WidgetRegistry:
 
         Note:
             Dead references are automatically skipped.
+
         """
         with self._lock:
             # Get snapshot of current widgets
@@ -336,6 +353,7 @@ class WidgetRegistry:
 
         Yields:
             Widgets whose metadata matches the predicate.
+
         """
         with self._lock:
             # Get snapshot of widgets and metadata
@@ -356,6 +374,7 @@ class WidgetRegistry:
 
         Args:
             callback: Function called with widget ID when widget is destroyed.
+
         """
         with self._lock:
             self._cleanup_callbacks.append(callback)
@@ -365,6 +384,7 @@ class WidgetRegistry:
 
         Args:
             callback: Function called with lifecycle event information.
+
         """
         with self._lock:
             self._lifecycle_callbacks.append(callback)
@@ -383,6 +403,7 @@ class WidgetRegistry:
         Raises:
             BulkOperationError: If some registrations fail.
             ValueError: If input validation fails.
+
         """
         start_time = time.perf_counter()
 
@@ -473,6 +494,7 @@ class WidgetRegistry:
 
         Returns:
             Dictionary with operation statistics.
+
         """
         start_time = time.perf_counter()
 
@@ -505,6 +527,7 @@ class WidgetRegistry:
 
         Returns:
             List of lifecycle events in chronological order.
+
         """
         if not self._enable_lifecycle_tracking:
             return []
@@ -521,6 +544,7 @@ class WidgetRegistry:
 
         Returns:
             Current lifecycle state or None if not tracked.
+
         """
         if not self._enable_lifecycle_tracking:
             return None
@@ -534,6 +558,7 @@ class WidgetRegistry:
 
         Returns:
             Dictionary containing registry statistics.
+
         """
         with self._lock:
             # Clean up dead references to get accurate count
@@ -554,6 +579,7 @@ class WidgetRegistry:
 
         Returns:
             Dictionary with validation results.
+
         """
         with self._lock:
             issues = []
@@ -597,6 +623,7 @@ class WidgetRegistry:
 
         Returns:
             True if widget is valid for registration.
+
         """
         try:
             # Basic validation
@@ -621,6 +648,7 @@ class WidgetRegistry:
             widget_id: ID of the widget.
             state: New lifecycle state.
             metadata: Optional event metadata.
+
         """
         if not self._enable_lifecycle_tracking:
             return
@@ -658,6 +686,7 @@ class WidgetRegistry:
 
         Returns:
             Estimated memory overhead in bytes.
+
         """
         try:
             import sys
@@ -689,6 +718,7 @@ class WidgetRegistry:
 
         Returns:
             Number of dead references cleaned up.
+
         """
         dead_ids = []
 
@@ -707,6 +737,7 @@ class WidgetRegistry:
 
         Args:
             widget_id: ID of the destroyed widget.
+
         """
         with self._lock:
             # Update lifecycle state if tracking enabled
@@ -748,6 +779,7 @@ class LifecycleManager:
 
         Args:
             registry: Widget registry to use. Creates new one if None.
+
         """
         self._registry = registry or WidgetRegistry()
         self._theme_provider: Optional[ThemeProvider] = None
@@ -762,6 +794,7 @@ class LifecycleManager:
 
         Args:
             provider: Theme provider to inject into new widgets.
+
         """
         with self._lock:
             self._theme_provider = provider
@@ -776,6 +809,7 @@ class LifecycleManager:
         - Registers widget in the registry
         - Injects theme provider if available
         - Calls registration callbacks
+
         """
         with self._lock:
             # Register in registry
@@ -796,6 +830,7 @@ class LifecycleManager:
 
         Returns:
             True if widget was registered and removed.
+
         """
         with self._lock:
             was_registered = self._registry.unregister(widget)
@@ -814,6 +849,7 @@ class LifecycleManager:
 
         Returns:
             True if widget is registered.
+
         """
         return self._registry.is_registered(widget)
 
@@ -822,6 +858,7 @@ class LifecycleManager:
 
         Returns:
             Number of currently registered widgets.
+
         """
         return self._registry.count()
 
@@ -831,6 +868,7 @@ class LifecycleManager:
         Args:
             event: Event name ('register' or 'unregister').
             callback: Function to call when event occurs.
+
         """
         with self._lock:
             self._lifecycle_callbacks[event].append(callback)
@@ -842,6 +880,7 @@ class LifecycleManager:
             widgets: List of widgets to register.
 
         Performance: Optimized for bulk operations.
+
         """
         start_time = time.perf_counter()
 
@@ -863,6 +902,7 @@ class LifecycleManager:
 
         Returns:
             Number of widgets actually unregistered.
+
         """
         count = 0
         with self._lock:
@@ -902,6 +942,7 @@ class LifecycleManager:
 
         Returns:
             The widget registry instance.
+
         """
         return self._registry
 
@@ -911,6 +952,7 @@ class LifecycleManager:
         Args:
             event: Event name.
             widget: Widget the event occurred for.
+
         """
         for callback in self._lifecycle_callbacks[event]:
             try:
@@ -923,6 +965,7 @@ class LifecycleManager:
 
         Args:
             widget_id: ID of the destroyed widget.
+
         """
         # Widget is already removed from registry by this point
         # This callback allows for additional cleanup logic if needed
@@ -944,6 +987,7 @@ class ThemeUpdateContext:
 
         Args:
             lifecycle_manager: The lifecycle manager to use.
+
         """
         self._manager = lifecycle_manager
         self._start_time: Optional[float] = None
@@ -975,6 +1019,7 @@ class ThemeUpdateContext:
 
         Args:
             theme_name: Name of the theme to apply.
+
         """
         # Get all widgets from registry
         widgets = list(self._manager.get_registry().iter_widgets())
@@ -994,6 +1039,7 @@ class ThemeUpdateContext:
 
         Returns:
             Number of widgets that were successfully updated.
+
         """
         return len(self._widgets_updated)
 
@@ -1010,6 +1056,7 @@ class WidgetCreationContext:
 
         Args:
             lifecycle_manager: The lifecycle manager to use.
+
         """
         self._manager = lifecycle_manager
         self._widgets_created: List[ThemeableWidget] = []
@@ -1045,6 +1092,7 @@ class WidgetCreationContext:
 
         Args:
             widget: Widget to register.
+
         """
         self._manager.register_widget(widget)
         self._widgets_created.append(widget)
@@ -1054,6 +1102,7 @@ class WidgetCreationContext:
 
         Returns:
             Number of widgets created.
+
         """
         return len(self._widgets_created)
 
@@ -1100,6 +1149,7 @@ class PerformanceContext:
 
         Returns:
             Dictionary of performance metrics.
+
         """
         # Update peak memory if still running
         if self._start_memory:
@@ -1113,8 +1163,10 @@ class PerformanceContext:
 
         Returns:
             Current memory usage.
+
         """
         import os
+
         import psutil
 
         try:
@@ -1142,6 +1194,7 @@ class CleanupScheduler:
 
         Args:
             obj: Object to schedule for cleanup.
+
         """
         with self._lock:
             # Use weak reference to avoid keeping object alive
@@ -1153,6 +1206,7 @@ class CleanupScheduler:
 
         Returns:
             Number of objects successfully cleaned up.
+
         """
         start_time = time.perf_counter()
 
@@ -1218,6 +1272,7 @@ class CleanupScheduler:
 
         Returns:
             Number of objects currently scheduled.
+
         """
         with self._lock:
             # Clean up dead references
@@ -1249,6 +1304,7 @@ class CleanupValidator:
 
         Returns:
             True if cleanup was successful.
+
         """
         try:
             return not obj.is_cleanup_required()
@@ -1263,6 +1319,7 @@ class CleanupValidator:
 
         Returns:
             Dictionary with cleanup statistics.
+
         """
         stats = {
             'total': len(objects),
@@ -1301,6 +1358,7 @@ class MemoryTracker:
 
         Args:
             obj: Object to start tracking.
+
         """
         with self._lock:
             obj_id = id(obj)
@@ -1324,6 +1382,7 @@ class MemoryTracker:
 
         Returns:
             Memory usage statistics or None if not tracked.
+
         """
         with self._lock:
             obj_id = id(obj)
@@ -1359,6 +1418,7 @@ class MemoryTracker:
 
         Returns:
             Memory usage in bytes, or 0 if not tracked.
+
         """
         with self._lock:
             obj_id = id(obj)
@@ -1376,6 +1436,7 @@ class MemoryTracker:
 
         Returns:
             True if object is being tracked.
+
         """
         with self._lock:
             return id(obj) in self._tracked_objects
@@ -1385,6 +1446,7 @@ class MemoryTracker:
 
         Returns:
             Number of tracked objects.
+
         """
         with self._lock:
             # Clean up dead references
@@ -1404,6 +1466,7 @@ class MemoryTracker:
 
         Returns:
             List of memory usage statistics.
+
         """
         stats = []
 
@@ -1439,6 +1502,7 @@ class MemoryTracker:
 
         Returns:
             Estimated memory usage in bytes.
+
         """
         try:
             import sys
@@ -1451,6 +1515,7 @@ class MemoryTracker:
 
         Args:
             obj_id: ID of the destroyed object.
+
         """
         with self._lock:
             self._tracked_objects.pop(obj_id, None)
@@ -1475,6 +1540,7 @@ class LeakDetector:
 
         Args:
             obj: Object to track.
+
         """
         with self._lock:
             obj_id = id(obj)
@@ -1490,6 +1556,7 @@ class LeakDetector:
 
         Returns:
             List of potential leak information.
+
         """
         current_time = time.time()
         potential_leaks = []
@@ -1516,6 +1583,7 @@ class LeakDetector:
 
         Returns:
             Statistics about objects before and after GC.
+
         """
         # Count objects before GC
         before_count = 0
@@ -1554,6 +1622,7 @@ class LeakDetector:
 
         Args:
             obj_id: ID of the destroyed object.
+
         """
         with self._lock:
             self._tracked_objects.pop(obj_id, None)
@@ -1578,6 +1647,7 @@ class ResourceReporter:
 
         Args:
             widget: Widget to track.
+
         """
         with self._lock:
             weak_ref = weakref.ref(widget)
@@ -1588,6 +1658,7 @@ class ResourceReporter:
 
         Returns:
             Dictionary containing resource usage statistics.
+
         """
         with self._lock:
             # Count active widgets
@@ -1625,6 +1696,7 @@ class ResourceReporter:
 
         Returns:
             Estimated memory usage in bytes.
+
         """
         total_memory = 0
 
@@ -1645,6 +1717,7 @@ class ResourceReporter:
 
         Returns:
             Dictionary mapping widget types to counts.
+
         """
         type_counts = defaultdict(int)
 
@@ -1659,9 +1732,11 @@ class ResourceReporter:
 
         Returns:
             Dictionary of performance metrics.
+
         """
         try:
             import os
+
             import psutil
 
             process = psutil.Process(os.getpid())
@@ -1693,6 +1768,7 @@ class PerformanceMonitor:
 
         Args:
             operation_name: Name of the operation being measured.
+
         """
         start_time = time.perf_counter()
         start_memory = self._get_current_memory()
@@ -1717,6 +1793,7 @@ class PerformanceMonitor:
 
         Returns:
             Dictionary mapping operation names to their metrics.
+
         """
         with self._lock:
             metrics = {}
@@ -1753,9 +1830,11 @@ class PerformanceMonitor:
 
         Returns:
             Memory usage in bytes.
+
         """
         try:
             import os
+
             import psutil
             process = psutil.Process(os.getpid())
             return process.memory_info().rss
@@ -1772,6 +1851,7 @@ def auto_register(registry: Optional[WidgetRegistry] = None):
 
     Returns:
         Decorator function.
+
     """
     def decorator(cls):
         original_init = cls.__init__
@@ -1803,6 +1883,7 @@ def lifecycle_tracked(registry: WidgetRegistry):
 
     Returns:
         Decorator function.
+
     """
     def decorator(cls):
         # Add lifecycle callback to class

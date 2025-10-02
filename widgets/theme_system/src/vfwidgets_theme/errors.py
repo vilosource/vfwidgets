@@ -1,5 +1,4 @@
-"""
-Extended exception hierarchy and error recovery system for VFWidgets Theme System.
+"""Extended exception hierarchy and error recovery system for VFWidgets Theme System.
 
 This module provides comprehensive error handling that ensures applications
 NEVER crash due to theme issues. All errors have appropriate fallbacks and
@@ -24,10 +23,9 @@ Performance Requirements:
 - Thread-safe error handling
 """
 
-import logging
 import threading
 import time
-from typing import Any, Dict, Optional, Callable, Union
+from typing import Any, Callable, Dict, Optional
 from weakref import WeakSet
 
 # Import base ThemeError from protocols
@@ -45,6 +43,7 @@ class ThemeNotFoundError(ThemeError):
             theme = provider.load_theme("missing-theme")
         except ThemeNotFoundError:
             theme = get_fallback_theme()
+
     """
 
     def __init__(self, theme_name: str, message: Optional[str] = None):
@@ -64,6 +63,7 @@ class ThemeLoadError(ThemeError):
             theme_data = json.load(theme_file)
         except (JSONDecodeError, IOError) as e:
             raise ThemeLoadError(f"Failed to load theme: {e}")
+
     """
 
     def __init__(self, message: str, file_path: Optional[str] = None, original_error: Optional[Exception] = None):
@@ -82,6 +82,7 @@ class PropertyNotFoundError(ThemeError):
             color = theme["colors"]["primary"]
         except KeyError:
             raise PropertyNotFoundError("primary", "colors.primary")
+
     """
 
     def __init__(self, property_key: str, full_path: Optional[str] = None):
@@ -99,6 +100,7 @@ class InvalidThemeFormatError(ThemeError):
     Example:
         if not isinstance(theme_data, dict):
             raise InvalidThemeFormatError("Theme data must be a dictionary")
+
     """
 
     def __init__(self, message: str, invalid_data: Optional[Any] = None):
@@ -114,6 +116,7 @@ class ThemeSystemNotInitializedError(ThemeError):
     Example:
         if not self._initialized:
             raise ThemeSystemNotInitializedError()
+
     """
 
     def __init__(self, message: Optional[str] = None):
@@ -132,6 +135,7 @@ class ThemeApplicationError(ThemeError):
             apply_theme_to_widget(widget, theme)
         except ThemeApplicationError:
             apply_minimal_theme_to_widget(widget)
+
     """
 
     def __init__(self, widget_type: str, theme_name: str, message: Optional[str] = None):
@@ -150,6 +154,7 @@ class ThemeValidationError(ThemeError):
             validate_theme(theme)
         except ThemeValidationError as e:
             theme = sanitize_theme(theme, e.validation_errors)
+
     """
 
     def __init__(self, theme_name: str, validation_errors: list, message: Optional[str] = None):
@@ -168,6 +173,7 @@ class ThemeNotificationError(ThemeError):
             notify_theme_change(theme)
         except ThemeNotificationError:
             log_warning("Theme notification failed, continuing...")
+
     """
 
     def __init__(self, notification_type: str, message: Optional[str] = None):
@@ -197,6 +203,7 @@ class ErrorRecoveryManager:
             theme = recovery_manager.recover_from_error(
                 e, operation="load_theme"
             )
+
     """
 
     def __init__(self):
@@ -245,6 +252,7 @@ class ErrorRecoveryManager:
             Appropriate fallback value based on error type.
 
         Performance: < 1ms for error recovery.
+
         """
         self._ensure_dependencies()
 
@@ -309,6 +317,7 @@ class ErrorRecoveryManager:
             Corrected theme data with fallbacks for invalid parts.
 
         Performance: < 5ms for theme validation and correction.
+
         """
         if not isinstance(theme_data, dict):
             return self._fallback_functions['get_fallback_theme']()
@@ -409,6 +418,7 @@ class ErrorRecoveryManager:
         Args:
             callback: Function called for critical errors.
                      Receives (error, operation) as arguments.
+
         """
         self._notification_callbacks.add(callback)
 
@@ -417,6 +427,7 @@ class ErrorRecoveryManager:
 
         Returns:
             Dictionary with error counts and timing information.
+
         """
         with self._lock:
             stats = {}
@@ -448,6 +459,7 @@ class ErrorRecoveryManager:
 
         Returns:
             Appropriate fallback value or re-raises if not a theme error.
+
         """
         if isinstance(error, ThemeError):
             # Use existing recovery mechanism for theme errors
@@ -473,6 +485,7 @@ def create_error_recovery_manager() -> ErrorRecoveryManager:
 
     Returns:
         New ErrorRecoveryManager instance for handling theme errors.
+
     """
     return ErrorRecoveryManager()
 
@@ -483,6 +496,7 @@ def get_global_error_recovery_manager() -> ErrorRecoveryManager:
     Returns:
         Global ErrorRecoveryManager instance (created if needed).
         Thread-safe singleton access.
+
     """
     global _global_recovery_manager
 
@@ -512,6 +526,7 @@ def notify_user(error: ThemeError, operation: str) -> None:
     Note:
         This is a placeholder implementation. Real applications should
         integrate with their UI notification system.
+
     """
     # In a real application, this would show a toast notification,
     # status bar message, or other appropriate UI feedback

@@ -1,5 +1,4 @@
-"""
-Testing utilities and ThemedTestCase base class for VFWidgets Theme System.
+"""Testing utilities and ThemedTestCase base class for VFWidgets Theme System.
 
 This module provides essential testing utilities that make it easy to write
 comprehensive tests for themed widgets and components. The ThemedTestCase
@@ -16,26 +15,24 @@ Philosophy: Make it impossible to write theme tests incorrectly while
 providing maximum convenience and validation for developers.
 """
 
-import unittest
-import time
 import gc
-from typing import Any, Dict, List, Optional, Callable, Union, Type
+import time
+import unittest
 from contextlib import contextmanager
-from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
 
+from ..protocols import ColorValue, ThemeData
+from .benchmarks import ThemeBenchmark
+from .memory import MemoryProfiler
 from .mocks import (
-    MockThemeProvider,
-    MockThemeableWidget,
+    MockApplication,
     MockColorProvider,
     MockStyleGenerator,
+    MockThemeableWidget,
+    MockThemeProvider,
     MockWidget,
-    MockApplication,
-    create_mock_theme_provider,
     create_mock_widget_hierarchy,
 )
-from .benchmarks import ThemeBenchmark, BenchmarkResult
-from .memory import MemoryProfiler
-from ..protocols import ThemeData, ColorValue, PropertyKey, PropertyValue
 
 
 class ThemedTestCase(unittest.TestCase):
@@ -67,6 +64,7 @@ class ThemedTestCase(unittest.TestCase):
     - Memory leak detection
     - Common assertion helpers
     - Test data generators
+
     """
 
     def setUp(self) -> None:
@@ -177,6 +175,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             MockWidget instance tracked for cleanup.
+
         """
         widget = MockWidget(widget_type)
         self._created_widgets.append(widget)
@@ -194,6 +193,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             MockThemeableWidget instance tracked for cleanup.
+
         """
         provider = theme_provider or self.theme_provider
         widget = MockThemeableWidget(provider)
@@ -206,6 +206,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             Root MockWidget with children attached.
+
         """
         hierarchy = create_mock_widget_hierarchy()
         self._created_widgets.append(hierarchy)
@@ -234,6 +235,7 @@ class ThemedTestCase(unittest.TestCase):
             property_key: Theme property key to check.
             expected_value: Expected property value.
             msg: Optional assertion message.
+
         """
         if hasattr(widget, 'get_theme_property'):
             actual_value = widget.get_theme_property(property_key)
@@ -262,6 +264,7 @@ class ThemedTestCase(unittest.TestCase):
             color_key: Theme color key to check.
             expected_color: Expected color value.
             msg: Optional assertion message.
+
         """
         if hasattr(widget, 'get_theme_color'):
             actual_color = widget.get_theme_color(color_key)
@@ -286,6 +289,7 @@ class ThemedTestCase(unittest.TestCase):
             theme_data: Theme data dictionary to validate.
             required_properties: List of required property keys.
             msg: Optional assertion message.
+
         """
         self.assertIsInstance(theme_data, dict, "Theme data must be a dictionary")
 
@@ -332,6 +336,7 @@ class ThemedTestCase(unittest.TestCase):
             stylesheet: QSS stylesheet string to validate.
             widget_type: Expected widget type in stylesheet.
             msg: Optional assertion message.
+
         """
         self.assertIsInstance(stylesheet, str, "Stylesheet must be string")
         self.assertTrue(stylesheet.strip(), "Stylesheet cannot be empty")
@@ -366,6 +371,7 @@ class ThemedTestCase(unittest.TestCase):
         Example:
             with self.assert_performance(max_time=0.001):
                 widget.on_theme_changed()
+
         """
         start_time = time.perf_counter()
 
@@ -394,6 +400,7 @@ class ThemedTestCase(unittest.TestCase):
             operation: Function to test performance of.
             requirement_type: Type of requirement to validate.
             iterations: Number of iterations to run.
+
         """
         requirements = {
             'theme_switch': 0.1,  # 100ms for 100 widgets
@@ -437,6 +444,7 @@ class ThemedTestCase(unittest.TestCase):
                 for _ in range(100):
                     widget = self.create_test_widget()
                     widget.on_theme_changed()
+
         """
         with self.memory_profiler.profile_operation("leak_test") as profiler:
             yield profiler
@@ -460,6 +468,7 @@ class ThemedTestCase(unittest.TestCase):
             operation: Function to test memory usage of.
             max_memory_mb: Maximum allowed memory usage in megabytes.
             iterations: Number of iterations to run.
+
         """
         import tracemalloc
 
@@ -496,6 +505,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             Complete theme data dictionary.
+
         """
         base_themes = {
             'default': self.default_theme_data,
@@ -526,6 +536,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             List of created widgets.
+
         """
         widgets = []
 
@@ -549,6 +560,7 @@ class ThemedTestCase(unittest.TestCase):
 
         Returns:
             Total time taken for theme switch in seconds.
+
         """
         start_time = time.perf_counter()
 
@@ -571,6 +583,7 @@ class ThemedTestCase(unittest.TestCase):
         Args:
             color: Color value to validate.
             msg: Optional assertion message.
+
         """
         self.assertIsInstance(color, str, "Color must be string")
 
@@ -592,6 +605,7 @@ class ThemedTestCase(unittest.TestCase):
         Args:
             font: Font specification to validate.
             msg: Optional assertion message.
+
         """
         self.assertIsInstance(font, str, "Font must be string")
         self.assertTrue(font.strip(), "Font cannot be empty")
@@ -610,6 +624,7 @@ class ThemedTestCase(unittest.TestCase):
         Args:
             size: Size specification to validate.
             msg: Optional assertion message.
+
         """
         self.assertIsInstance(size, str, "Size must be string")
 
@@ -632,6 +647,7 @@ def assert_theme_property(widget: Any, property_key: str, expected_value: Any) -
         widget: Widget to check property on.
         property_key: Theme property key to check.
         expected_value: Expected property value.
+
     """
     if hasattr(widget, 'get_theme_property'):
         actual_value = widget.get_theme_property(property_key)
@@ -657,6 +673,7 @@ def assert_performance_requirement(
         operation: Function to test performance of.
         max_time: Maximum allowed execution time in seconds.
         iterations: Number of iterations to run.
+
     """
     times = []
     for _ in range(iterations):
@@ -683,6 +700,7 @@ def generate_test_theme(
 
     Returns:
         Complete theme data dictionary.
+
     """
     base_themes = {
         'default': {
@@ -727,5 +745,6 @@ def create_test_widget(widget_type: str = "generic") -> MockWidget:
 
     Returns:
         MockWidget instance.
+
     """
     return MockWidget(widget_type)

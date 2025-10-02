@@ -1,5 +1,4 @@
-"""
-Widget registry with WeakRefs for automatic memory management.
+"""Widget registry with WeakRefs for automatic memory management.
 
 This module provides the widget registry system that automatically manages
 themed widgets using weak references. This ensures widgets are automatically
@@ -22,19 +21,18 @@ with theme-specific functionality.
 This will be implemented in Task 8.
 """
 
-from typing import Dict, List, Optional, Any, Callable, Protocol, TypeVar, Generic
-from abc import ABC, abstractmethod
+import threading
+import time
 import weakref
 from dataclasses import dataclass
 from enum import Enum
-import threading
-import time
+from typing import Any, Callable, Dict, List, Optional, Protocol, TypeVar
+
+from ..lifecycle import WidgetRegistry as BaseWidgetRegistry
+from ..logging import get_debug_logger
 
 # Import foundation modules
 from ..protocols import ThemeableWidget
-from ..errors import ThemeError
-from ..logging import get_debug_logger
-from ..lifecycle import WidgetRegistry as BaseWidgetRegistry, LifecycleManager
 
 logger = get_debug_logger(__name__)
 
@@ -43,6 +41,7 @@ T = TypeVar('T', bound=ThemeableWidget)
 
 class RegistryEventType(Enum):
     """Types of registry events."""
+
     WIDGET_REGISTERED = "widget_registered"
     WIDGET_UNREGISTERED = "widget_unregistered"
     THEME_APPLIED = "theme_applied"
@@ -51,8 +50,7 @@ class RegistryEventType(Enum):
 
 @dataclass
 class RegistryEntry:
-    """
-    Metadata container for registered widgets.
+    """Metadata container for registered widgets.
 
     Stores information about registered widgets including:
     - Widget reference (weak)
@@ -96,8 +94,7 @@ class RegistryEventHandler(Protocol):
 
 
 class ThemeWidgetRegistry:
-    """
-    Widget registry with theme-specific functionality.
+    """Widget registry with theme-specific functionality.
 
     Extends the base WidgetRegistry with theme-specific features:
     - Theme application tracking
@@ -109,11 +106,11 @@ class ThemeWidgetRegistry:
     """
 
     def __init__(self, base_registry: Optional[BaseWidgetRegistry] = None):
-        """
-        Initialize theme widget registry.
+        """Initialize theme widget registry.
 
         Args:
             base_registry: Optional base registry to extend
+
         """
         self._base_registry = base_registry
         self._entries: Dict[str, RegistryEntry] = {}
@@ -127,8 +124,7 @@ class ThemeWidgetRegistry:
         theme_metadata: Optional[Dict[str, Any]] = None,
         callbacks: Optional[List[Callable[[], None]]] = None
     ) -> str:
-        """
-        Register a themed widget with metadata.
+        """Register a themed widget with metadata.
 
         This method will:
         1. Create a weak reference to the widget
@@ -142,7 +138,7 @@ class ThemeWidgetRegistry:
         with self._lock:
             widget_id = f"widget_{id(widget)}_{int(time.time() * 1000000)}"
 
-            def cleanup_callback():
+            def cleanup_callback(ref):
                 """Called when widget is garbage collected."""
                 logger.debug(f"Widget {widget_id} garbage collected, cleaning up")
                 self._remove_entry(widget_id)
@@ -171,8 +167,7 @@ class ThemeWidgetRegistry:
             return widget_id
 
     def unregister_widget(self, widget_id: str) -> bool:
-        """
-        Unregister a widget by ID.
+        """Unregister a widget by ID.
 
         Implementation will be added in Task 8.
         """
@@ -233,8 +228,7 @@ class ThemeWidgetRegistry:
             return False
 
     def apply_theme_to_widget(self, widget_id: str, theme_name: str) -> bool:
-        """
-        Apply theme to specific widget and track it.
+        """Apply theme to specific widget and track it.
 
         Implementation will be added in Task 8.
         """
@@ -271,8 +265,7 @@ class ThemeWidgetRegistry:
 
 
 class DefaultRegistryEventHandler:
-    """
-    Default implementation of registry event handler.
+    """Default implementation of registry event handler.
 
     Provides basic logging and statistics tracking for registry events.
     This class will be fully implemented in Task 8.
@@ -312,8 +305,7 @@ class DefaultRegistryEventHandler:
 
 # Factory function for creating widget registry
 def create_widget_registry(base_registry: Optional[BaseWidgetRegistry] = None) -> ThemeWidgetRegistry:
-    """
-    Create theme widget registry with default configuration.
+    """Create theme widget registry with default configuration.
 
     Implementation will be completed in Task 8.
     """

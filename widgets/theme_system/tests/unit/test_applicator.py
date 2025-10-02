@@ -11,17 +11,17 @@ Tests theme application to widgets and applications including:
 - Error handling and recovery
 """
 
-import pytest
-import time
 import threading
-from unittest.mock import Mock, patch, MagicMock, call
-from typing import List, Dict, Any
+import time
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Import Qt components with fallback for headless testing
 try:
-    from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel
-    from PySide6.QtCore import QObject, Signal, QTimer
+    from PySide6.QtCore import QObject, QTimer, Signal
     from PySide6.QtGui import QPalette
+    from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QWidget
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -43,15 +43,18 @@ except ImportError:
 
 # Import the modules under test
 from vfwidgets_theme.core.applicator import (
-    ThemeApplicator, WidgetThemeApplicator, ApplicationThemeApplicator,
-    BatchThemeUpdater, StyleInvalidator, AsyncThemeApplicator,
-    PlatformThemeAdapter, create_theme_applicator
+    ApplicationThemeApplicator,
+    AsyncThemeApplicator,
+    BatchThemeUpdater,
+    PlatformThemeAdapter,
+    StyleInvalidator,
+    ThemeApplicator,
+    WidgetThemeApplicator,
+    create_theme_applicator,
 )
-from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.core.registry import ThemeWidgetRegistry
-from vfwidgets_theme.errors import ThemeApplicationError, ThemeNotFoundError
-from vfwidgets_theme.testing import ThemedTestCase, MockThemeableWidget
-from vfwidgets_theme.protocols import ThemeableWidget
+from vfwidgets_theme.core.theme import Theme
+from vfwidgets_theme.testing import ThemedTestCase
 
 
 class MockWidget(QWidget):
@@ -790,7 +793,6 @@ class TestApplicatorIntegration(ThemedTestCase):
     def test_memory_efficiency(self):
         """Test memory efficiency of theme application."""
         import gc
-        import sys
 
         registry = ThemeWidgetRegistry()
         applicator = create_theme_applicator(registry)

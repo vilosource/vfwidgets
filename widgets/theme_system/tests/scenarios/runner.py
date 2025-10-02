@@ -7,21 +7,22 @@ This module runs all integration test scenarios and provides
 comprehensive reporting of theme system capabilities.
 """
 
-import time
 import json
-import traceback
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-from datetime import datetime
 import sys
+import time
+import traceback
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from vfwidgets_theme.validation import ValidationFramework, ValidationMode
 from complex_application import ComplexApplicationScenario
 from theme_switching import ThemeSwitchingScenario
+
+from vfwidgets_theme.validation import ValidationFramework, ValidationMode
 
 
 @dataclass

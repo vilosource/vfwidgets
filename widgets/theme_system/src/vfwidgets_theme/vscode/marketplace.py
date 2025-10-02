@@ -1,28 +1,26 @@
-"""
-VSCode marketplace integration for theme downloads.
+"""VSCode marketplace integration for theme downloads.
 
 This module provides functionality to search, download, and import themes
 from the VSCode marketplace. Due to authentication requirements for the
 official marketplace API, it also supports offline/local theme management.
 """
 
+import hashlib
 import json
+import shutil
+import tempfile
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-import aiohttp
+from typing import Any, Dict, List, Optional
+
 import aiofiles
-from urllib.parse import urljoin
-import hashlib
-import os
-import tempfile
-import shutil
+import aiohttp
 
 from ..core.theme import Theme
 from ..errors import ThemeSystemError
-from ..utils.file_utils import ensure_directory
 from ..logging import get_logger
+from ..utils.file_utils import ensure_directory
 
 logger = get_logger(__name__)
 
@@ -47,8 +45,7 @@ class ThemeExtension:
 
 
 class MarketplaceClient:
-    """
-    VSCode marketplace integration for theme downloads.
+    """VSCode marketplace integration for theme downloads.
 
     Provides both online marketplace access and local theme management.
     Since the VSCode marketplace API requires authentication, this client
@@ -58,11 +55,11 @@ class MarketplaceClient:
     MARKETPLACE_API = "https://marketplace.visualstudio.com/_apis/public/gallery"
 
     def __init__(self, cache_dir: Optional[Path] = None):
-        """
-        Initialize marketplace client.
+        """Initialize marketplace client.
 
         Args:
             cache_dir: Directory for caching downloaded themes
+
         """
         self.cache_dir = cache_dir or Path.home() / ".vfwidgets" / "theme_cache"
         self.extensions_dir = self.cache_dir / "extensions"
@@ -87,8 +84,7 @@ class MarketplaceClient:
             await self._session.close()
 
     async def search_themes(self, query: str, limit: int = 20) -> List[ThemeExtension]:
-        """
-        Search VSCode marketplace for themes.
+        """Search VSCode marketplace for themes.
 
         Note: Due to marketplace API authentication requirements,
         this currently searches local cache and provides sample results.
@@ -99,6 +95,7 @@ class MarketplaceClient:
 
         Returns:
             List of theme extensions
+
         """
         logger.info(f"Searching themes for query: {query}")
 
@@ -122,7 +119,7 @@ class MarketplaceClient:
                 try:
                     manifest_path = ext_dir / "package.json"
                     if manifest_path.exists():
-                        async with aiofiles.open(manifest_path, 'r') as f:
+                        async with aiofiles.open(manifest_path) as f:
                             manifest = json.loads(await f.read())
 
                         if self._matches_query(manifest, query):
@@ -218,8 +215,7 @@ class MarketplaceClient:
         return suggestions
 
     async def download_theme(self, extension_id: str) -> Optional[Path]:
-        """
-        Download theme extension.
+        """Download theme extension.
 
         Note: This is a placeholder for marketplace downloads.
         In practice, users would install extensions manually or
@@ -230,6 +226,7 @@ class MarketplaceClient:
 
         Returns:
             Path to downloaded extension or None if not available
+
         """
         logger.info(f"Attempting to download theme: {extension_id}")
 
@@ -246,14 +243,14 @@ class MarketplaceClient:
         return None
 
     def import_from_extension(self, extension_path: Path) -> List[Theme]:
-        """
-        Extract themes from a VSCode extension.
+        """Extract themes from a VSCode extension.
 
         Args:
             extension_path: Path to extension directory or .vsix file
 
         Returns:
             List of imported themes
+
         """
         logger.info(f"Importing themes from extension: {extension_path}")
 
@@ -307,7 +304,7 @@ class MarketplaceClient:
         if not manifest_path.exists():
             raise ThemeSystemError("Extension manifest (package.json) not found")
 
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path) as f:
             manifest = json.load(f)
 
         # Get theme contributions
@@ -334,7 +331,7 @@ class MarketplaceClient:
     def _load_theme_file(self, theme_path: Path, contribution: Dict[str, Any]) -> Optional[Theme]:
         """Load a single theme file."""
         try:
-            with open(theme_path, 'r') as f:
+            with open(theme_path) as f:
                 theme_data = json.load(f)
 
             # Convert VSCode theme to our Theme format
@@ -383,7 +380,7 @@ class MarketplaceClient:
                 try:
                     manifest_path = ext_dir / "package.json"
                     if manifest_path.exists():
-                        with open(manifest_path, 'r') as f:
+                        with open(manifest_path) as f:
                             manifest = json.load(f)
 
                         extension = self._manifest_to_extension(manifest, ext_dir)
@@ -395,14 +392,14 @@ class MarketplaceClient:
         return extensions
 
     def install_local_extension(self, extension_path: Path) -> ThemeExtension:
-        """
-        Install an extension from local path.
+        """Install an extension from local path.
 
         Args:
             extension_path: Path to extension directory or .vsix file
 
         Returns:
             Installed extension info
+
         """
         logger.info(f"Installing local extension: {extension_path}")
 
@@ -423,7 +420,7 @@ class MarketplaceClient:
 
             # Read manifest to create extension info
             manifest_path = install_dir / "package.json"
-            with open(manifest_path, 'r') as f:
+            with open(manifest_path) as f:
                 manifest = json.load(f)
 
             extension = self._manifest_to_extension(manifest, install_dir)

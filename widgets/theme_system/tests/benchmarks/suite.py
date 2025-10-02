@@ -4,22 +4,20 @@ Benchmark Suite for VFWidgets Theme System
 Task 23: Performance benchmarking with tracking and regression detection
 """
 
-import time
-import statistics
+import gc
 import json
 import sqlite3
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Callable, Tuple, Union
-from dataclasses import dataclass, asdict
+import statistics
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import wraps
-import gc
-import sys
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from PySide6.QtWidgets import QApplication, QWidget
-from PySide6.QtCore import QSize
+from PySide6.QtWidgets import QApplication
 
-from vfwidgets_theme import ThemedWidget, ThemedApplication
+from vfwidgets_theme import ThemedApplication, ThemedWidget
 from vfwidgets_theme.core.theme import Theme
 
 
@@ -560,8 +558,8 @@ class BenchmarkSuite:
 
 if __name__ == "__main__":
     # Example usage
-    import sys
     from PySide6.QtWidgets import QApplication
+
     from vfwidgets_theme import ThemedApplication
 
     # Create application
@@ -574,7 +572,7 @@ if __name__ == "__main__":
 
     # Generate report
     report = suite.generate_report()
-    print(f"\nBenchmark Report:")
+    print("\nBenchmark Report:")
     print(f"Total benchmarks: {report['total_benchmarks']}")
     print(f"Performance validation: {'PASS' if report['performance_validation']['overall_pass'] else 'FAIL'}")
 

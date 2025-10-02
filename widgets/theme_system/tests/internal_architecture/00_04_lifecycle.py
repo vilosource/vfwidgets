@@ -25,23 +25,21 @@ Run this example to see:
 import gc
 import threading
 import time
-from contextlib import contextmanager
-from typing import List
 
 # Import the memory management components
 from vfwidgets_theme.lifecycle import (
-    WidgetRegistry,
+    CleanupScheduler,
+    LeakDetector,
     LifecycleManager,
+    MemoryTracker,
+    PerformanceContext,
+    PerformanceMonitor,
+    ResourceReporter,
     ThemeUpdateContext,
     WidgetCreationContext,
-    PerformanceContext,
-    MemoryTracker,
-    LeakDetector,
-    ResourceReporter,
-    PerformanceMonitor,
-    CleanupScheduler,
+    WidgetRegistry,
 )
-from vfwidgets_theme.testing import MockWidget, MockThemeProvider
+from vfwidgets_theme.testing import MockThemeProvider, MockWidget
 
 
 def demonstrate_automatic_memory_management():
@@ -348,7 +346,7 @@ def demonstrate_stress_test():
     end_time = time.perf_counter()
     duration = end_time - start_time
 
-    print(f"\nStress test completed:")
+    print("\nStress test completed:")
     print(f"  Total widgets created: {total_widgets_created:,}")
     print(f"  Total duration: {duration:.2f} seconds")
     print(f"  Widgets per second: {total_widgets_created / duration:,.0f}")

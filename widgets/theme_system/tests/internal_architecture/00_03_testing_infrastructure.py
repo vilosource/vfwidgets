@@ -24,16 +24,16 @@ src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
 from vfwidgets_theme.testing import (
-    ThemedTestCase,
-    MockThemeProvider,
-    MockThemeableWidget,
-    ThemeBenchmark,
     MemoryProfiler,
-    performance_test,
-    memory_leak_test,
+    MockThemeableWidget,
+    MockThemeProvider,
+    ThemeBenchmark,
+    ThemedTestCase,
     assert_theme_property,
     benchmark_theme_switch,
     detect_memory_leaks,
+    memory_leak_test,
+    performance_test,
 )
 
 
@@ -182,7 +182,7 @@ def demonstrate_performance_benchmarking():
     # Benchmark theme switching
     result = benchmark_theme_switch(widgets, iterations=10)
 
-    print(f"✓ Theme switch benchmark:")
+    print("✓ Theme switch benchmark:")
     print(f"  - Operation: {result.operation_name}")
     print(f"  - Average time: {result.average_time:.6f}s")
     print(f"  - Operations/sec: {result.operations_per_second:.0f}")

@@ -1,15 +1,14 @@
-"""
-Extension system for theme framework.
+"""Extension system for theme framework.
 
 This module provides a secure plugin system for extending theme capabilities.
 Extensions are sandboxed for security and can provide additional theme
 processing, custom widgets, and theme transformations.
 """
 
-from .system import ExtensionSystem, Extension
-from .sandbox import ExtensionSandbox
 from .api import ExtensionAPI
 from .loader import ExtensionLoader
+from .sandbox import ExtensionSandbox
+from .system import Extension, ExtensionSystem
 
 __all__ = [
     'ExtensionSystem',

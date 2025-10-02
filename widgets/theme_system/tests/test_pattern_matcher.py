@@ -5,18 +5,29 @@ This module provides comprehensive tests for the PatternMatcher,
 including performance benchmarks and integration tests.
 """
 
-import pytest
-import time
 import threading
-from unittest.mock import Mock, patch
+import time
+
+import pytest
 
 from src.vfwidgets_theme.patterns.matcher import (
-    PatternMatcher, PatternType, PatternPriority, Pattern, MatchResult,
-    PatternError, LRUCache, MockWidget,
-    glob_pattern, regex_pattern, widget_name_pattern, widget_type_pattern
+    LRUCache,
+    MatchResult,
+    MockWidget,
+    PatternError,
+    PatternMatcher,
+    PatternPriority,
+    PatternType,
+    glob_pattern,
+    regex_pattern,
+    widget_name_pattern,
+    widget_type_pattern,
 )
 from src.vfwidgets_theme.patterns.plugins import (
-    PatternPlugin, PluginManager, HierarchyPlugin, StatePlugin, GeometryPlugin
+    GeometryPlugin,
+    HierarchyPlugin,
+    PluginManager,
+    StatePlugin,
 )
 
 
@@ -550,13 +561,13 @@ if __name__ == "__main__":
     elapsed_time = (time.perf_counter() - start_time) * 1000
     avg_time = elapsed_time / 1000
 
-    print(f"Performance Test Results:")
+    print("Performance Test Results:")
     print(f"Total time: {elapsed_time:.2f}ms")
     print(f"Average time per match: {avg_time:.3f}ms")
-    print(f"Required: < 1ms per 100 patterns")
+    print("Required: < 1ms per 100 patterns")
     print(f"Status: {'PASS' if avg_time < 1.0 else 'FAIL'}")
 
     stats = matcher.get_statistics()
     print(f"Cache hit rate: {stats['match_cache_stats']['hit_rate']:.1%}")
-    print(f"Required: > 90%")
+    print("Required: > 90%")
     print(f"Status: {'PASS' if stats['match_cache_stats']['hit_rate'] > 0.9 else 'FAIL'}")

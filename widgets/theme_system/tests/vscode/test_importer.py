@@ -2,14 +2,15 @@
 Tests for VSCode theme importer.
 """
 
-import pytest
 import json
 import tempfile
 from pathlib import Path
 
-from vfwidgets_theme.vscode.importer import VSCodeThemeImporter, VSCodeTokenColor
+import pytest
+
 from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.errors import ThemeSystemError
+from vfwidgets_theme.vscode.importer import VSCodeThemeImporter, VSCodeTokenColor
 
 
 class TestVSCodeThemeImporter:
@@ -278,7 +279,7 @@ class TestVSCodeThemeImporter:
             importer.export_to_vscode(theme, output_path)
 
             # Read back and verify
-            with open(output_path, 'r') as f:
+            with open(output_path) as f:
                 exported_data = json.load(f)
 
             assert exported_data["name"] == "Test Theme"

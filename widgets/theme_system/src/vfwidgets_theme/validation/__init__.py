@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Validation Framework
+"""VFWidgets Theme System - Validation Framework
 Task 24: Runtime validation system for theme integrity
 
 This module provides comprehensive validation capabilities:
@@ -11,45 +10,35 @@ This module provides comprehensive validation capabilities:
 - Configurable validation modes (debug, production, strict)
 """
 
-from .framework import (
-    ValidationFramework,
-    ValidationMode,
-    ValidationError,
-    ValidationResult,
-    ValidationType
-)
-
-from .decorators import (
-    validate_theme,
-    validate_contract,
-    validation_decorator,
-    require_valid_color,
-    require_theme_structure,
-    require_widget_state
-)
-
-from .schema import (
-    ThemeSchema,
-    WidgetSchema,
-    ColorSchema,
-    StyleSchema,
-    validate_schema
-)
-
-from .contracts import (
-    ThemeProtocol,
-    WidgetProtocol,
-    ContractValidator,
-    validate_protocol_implementation
-)
-
 from .assertions import (
-    RuntimeAssertion,
     AssertionContext,
+    RuntimeAssertion,
+    performance_assertions,
     theme_assertions,
     widget_assertions,
-    performance_assertions
 )
+from .contracts import (
+    ContractValidator,
+    ThemeProtocol,
+    WidgetProtocol,
+    validate_protocol_implementation,
+)
+from .decorators import (
+    require_theme_structure,
+    require_valid_color,
+    require_widget_state,
+    validate_contract,
+    validate_theme,
+    validation_decorator,
+)
+from .framework import (
+    ValidationError,
+    ValidationFramework,
+    ValidationMode,
+    ValidationResult,
+    ValidationType,
+)
+from .schema import ColorSchema, StyleSchema, ThemeSchema, WidgetSchema, validate_schema
 
 __all__ = [
     # Core framework

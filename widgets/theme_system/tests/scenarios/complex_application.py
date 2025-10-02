@@ -7,20 +7,31 @@ This scenario tests the theme system with a complex application containing
 100+ widgets to ensure scalability and performance.
 """
 
-import time
-import threading
-import weakref
-from typing import List, Dict, Any, Optional
-from pathlib import Path
 import sys
+import threading
+import time
+import weakref
+from pathlib import Path
+from typing import Any, Dict
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 try:
-    from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget
-    from PySide6.QtWidgets import QPushButton, QLabel, QLineEdit, QTextEdit, QComboBox, QCheckBox
     from PySide6.QtCore import QTimer
+    from PySide6.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QComboBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QMainWindow,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
+    )
     PYSIDE_AVAILABLE = True
 except ImportError:
     PYSIDE_AVAILABLE = False
@@ -575,19 +586,19 @@ if __name__ == "__main__":
 
     if results['performance_results']:
         perf = results['performance_results']
-        print(f"Performance Test:")
+        print("Performance Test:")
         print(f"  Total Time: {perf.get('total_time', 0):.2f}ms")
         print(f"  Avg Time per Widget: {perf.get('average_time_per_widget', 0):.2f}ms")
 
     if results['memory_results']:
         mem = results['memory_results']
-        print(f"Memory Test:")
+        print("Memory Test:")
         print(f"  Alive Widgets: {mem.get('alive_widgets', 0)}/{mem.get('initial_widgets', 0)}")
         print(f"  Memory Test Passed: {mem.get('memory_test_passed', False)}")
 
     if results['concurrent_results']:
         conc = results['concurrent_results']
-        print(f"Concurrent Test:")
+        print("Concurrent Test:")
         print(f"  Operations: {conc.get('successful_operations', 0)}/{conc.get('total_operations', 0)}")
         print(f"  Duration: {conc.get('duration_ms', 0):.2f}ms")
 

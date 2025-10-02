@@ -1,14 +1,13 @@
-"""
-File association manager for mapping files to icons.
+"""File association manager for mapping files to icons.
 
 Provides mapping between file extensions, filenames, and icon names
 for the icon theme system.
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Optional, List, Set
 import re
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 from ..logging import get_logger
 
@@ -16,8 +15,7 @@ logger = get_logger(__name__)
 
 
 class FileAssociationManager:
-    """
-    Manages file associations for icon themes.
+    """Manages file associations for icon themes.
 
     Maps file extensions and filenames to icon names, supporting
     pattern matching and priority-based resolution.
@@ -238,35 +236,35 @@ class FileAssociationManager:
         self.language_mappings.update(default_languages)
 
     def add_extension_mapping(self, extension: str, icon_name: str) -> None:
-        """
-        Add file extension to icon mapping.
+        """Add file extension to icon mapping.
 
         Args:
             extension: File extension (without dot)
             icon_name: Icon name to map to
+
         """
         ext = extension.lower().lstrip('.')
         self.extension_mappings[ext] = icon_name
         logger.debug(f"Added extension mapping: .{ext} -> {icon_name}")
 
     def add_filename_mapping(self, filename: str, icon_name: str) -> None:
-        """
-        Add filename to icon mapping.
+        """Add filename to icon mapping.
 
         Args:
             filename: Exact filename
             icon_name: Icon name to map to
+
         """
         self.filename_mappings[filename] = icon_name
         logger.debug(f"Added filename mapping: {filename} -> {icon_name}")
 
     def add_pattern_mapping(self, pattern: str, icon_name: str) -> None:
-        """
-        Add regex pattern to icon mapping.
+        """Add regex pattern to icon mapping.
 
         Args:
             pattern: Regular expression pattern
             icon_name: Icon name to map to
+
         """
         try:
             compiled_pattern = re.compile(pattern, re.IGNORECASE)
@@ -276,25 +274,25 @@ class FileAssociationManager:
             logger.error(f"Invalid regex pattern '{pattern}': {e}")
 
     def add_language_mapping(self, language: str, icon_name: str) -> None:
-        """
-        Add programming language to icon mapping.
+        """Add programming language to icon mapping.
 
         Args:
             language: Programming language name
             icon_name: Icon name to map to
+
         """
         self.language_mappings[language.lower()] = icon_name
         logger.debug(f"Added language mapping: {language} -> {icon_name}")
 
     def get_icon_for_file(self, file_path: Path) -> Optional[str]:
-        """
-        Get icon name for file path using resolution order.
+        """Get icon name for file path using resolution order.
 
         Args:
             file_path: Path to file
 
         Returns:
             Icon name or None if no mapping found
+
         """
         filename = file_path.name
         extension = file_path.suffix.lstrip('.').lower()
@@ -319,39 +317,39 @@ class FileAssociationManager:
         return None
 
     def get_icon_for_filename(self, filename: str) -> Optional[str]:
-        """
-        Get icon name for exact filename.
+        """Get icon name for exact filename.
 
         Args:
             filename: Filename to check
 
         Returns:
             Icon name or None
+
         """
         return self.filename_mappings.get(filename)
 
     def get_icon_for_extension(self, extension: str) -> Optional[str]:
-        """
-        Get icon name for file extension.
+        """Get icon name for file extension.
 
         Args:
             extension: File extension (without dot)
 
         Returns:
             Icon name or None
+
         """
         ext = extension.lower().lstrip('.')
         return self.extension_mappings.get(ext)
 
     def get_icon_for_pattern(self, filename: str) -> Optional[str]:
-        """
-        Get icon name using pattern matching.
+        """Get icon name using pattern matching.
 
         Args:
             filename: Filename to match
 
         Returns:
             Icon name or None
+
         """
         for pattern, icon_name in self.pattern_mappings:
             if pattern.match(filename):
@@ -359,14 +357,14 @@ class FileAssociationManager:
         return None
 
     def detect_language(self, file_path: Path) -> Optional[str]:
-        """
-        Detect programming language from file.
+        """Detect programming language from file.
 
         Args:
             file_path: Path to file
 
         Returns:
             Language name or None
+
         """
         extension = file_path.suffix.lstrip('.').lower()
 
@@ -414,8 +412,7 @@ class FileAssociationManager:
         return ext_to_lang.get(extension)
 
     def load_associations_from_file(self, file_path: Path) -> None:
-        """
-        Load associations from JSON file.
+        """Load associations from JSON file.
 
         Args:
             file_path: Path to JSON file
@@ -423,10 +420,11 @@ class FileAssociationManager:
         Raises:
             FileNotFoundError: If file doesn't exist
             json.JSONDecodeError: If file has invalid JSON
+
         """
         logger.info(f"Loading file associations from: {file_path}")
 
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             data = json.load(f)
 
         # Load extension mappings
@@ -452,11 +450,11 @@ class FileAssociationManager:
         logger.info(f"Loaded associations from {file_path}")
 
     def save_associations_to_file(self, file_path: Path) -> None:
-        """
-        Save associations to JSON file.
+        """Save associations to JSON file.
 
         Args:
             file_path: Path to save JSON file
+
         """
         data = {
             'extensions': self.extension_mappings,
@@ -492,14 +490,14 @@ class FileAssociationManager:
         return icon_names
 
     def remove_extension_mapping(self, extension: str) -> bool:
-        """
-        Remove extension mapping.
+        """Remove extension mapping.
 
         Args:
             extension: Extension to remove
 
         Returns:
             True if removed, False if not found
+
         """
         ext = extension.lower().lstrip('.')
         if ext in self.extension_mappings:
@@ -509,14 +507,14 @@ class FileAssociationManager:
         return False
 
     def remove_filename_mapping(self, filename: str) -> bool:
-        """
-        Remove filename mapping.
+        """Remove filename mapping.
 
         Args:
             filename: Filename to remove
 
         Returns:
             True if removed, False if not found
+
         """
         if filename in self.filename_mappings:
             del self.filename_mappings[filename]

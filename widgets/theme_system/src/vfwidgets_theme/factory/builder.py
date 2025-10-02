@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Theme Factory and Builder System - Task 19
+"""Theme Factory and Builder System - Task 19
 
 This module provides a comprehensive theme construction system with:
 - ThemeFactory: Main factory for creating themed components
@@ -18,17 +17,16 @@ Features:
 """
 
 import copy
-import time
 import logging
-from typing import Dict, List, Optional, Union, Any, Callable, Set
-from pathlib import Path
+import time
 from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
+from typing import Any, Callable, Dict, List, Optional, Union
 
 # Import core theme system
-from ..core.theme import Theme, ThemeBuilder as CoreThemeBuilder
-from ..protocols import ThemeData, ColorValue
+from ..core.theme import Theme
+from ..core.theme import ThemeBuilder as CoreThemeBuilder
 from ..errors import ThemeError, ThemeValidationError
+from ..protocols import ColorValue
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +60,7 @@ class ThemeTemplate:
 
 
 class ThemeBuilder:
-    """
-    Fluent API for building themes step by step.
+    """Fluent API for building themes step by step.
 
     This provides a clean, chainable interface for constructing themes
     with validation and intelligent defaults.
@@ -75,14 +72,15 @@ class ThemeBuilder:
             .add_style("window", {"background-color": "@colors.background"})
             .set_type("dark")
             .build())
+
     """
 
     def __init__(self, name: str):
-        """
-        Initialize theme builder.
+        """Initialize theme builder.
 
         Args:
             name: Name of the theme being built
+
         """
         self._name = name
         self._colors: Dict[str, ColorValue] = {}
@@ -97,8 +95,7 @@ class ThemeBuilder:
         logger.debug(f"Created ThemeBuilder for: {name}")
 
     def add_color(self, key: str, value: ColorValue) -> 'ThemeBuilder':
-        """
-        Add a color to the theme.
+        """Add a color to the theme.
 
         Args:
             key: Color key (e.g., "primary", "background")
@@ -106,6 +103,7 @@ class ThemeBuilder:
 
         Returns:
             Self for chaining
+
         """
         if self._validation_enabled:
             self._validate_color(key, value)
@@ -115,22 +113,21 @@ class ThemeBuilder:
         return self
 
     def add_colors(self, colors: Dict[str, ColorValue]) -> 'ThemeBuilder':
-        """
-        Add multiple colors at once.
+        """Add multiple colors at once.
 
         Args:
             colors: Dictionary of color key-value pairs
 
         Returns:
             Self for chaining
+
         """
         for key, value in colors.items():
             self.add_color(key, value)
         return self
 
     def add_style(self, selector: str, properties: Dict[str, Any]) -> 'ThemeBuilder':
-        """
-        Add a style rule to the theme.
+        """Add a style rule to the theme.
 
         Args:
             selector: CSS-like selector for the style
@@ -138,6 +135,7 @@ class ThemeBuilder:
 
         Returns:
             Self for chaining
+
         """
         if self._validation_enabled:
             self._validate_style(selector, properties)
@@ -147,22 +145,21 @@ class ThemeBuilder:
         return self
 
     def add_styles(self, styles: Dict[str, Dict[str, Any]]) -> 'ThemeBuilder':
-        """
-        Add multiple style rules at once.
+        """Add multiple style rules at once.
 
         Args:
             styles: Dictionary of selector -> properties mappings
 
         Returns:
             Self for chaining
+
         """
         for selector, properties in styles.items():
             self.add_style(selector, properties)
         return self
 
     def add_metadata(self, key: str, value: Any) -> 'ThemeBuilder':
-        """
-        Add metadata to the theme.
+        """Add metadata to the theme.
 
         Args:
             key: Metadata key
@@ -170,33 +167,34 @@ class ThemeBuilder:
 
         Returns:
             Self for chaining
+
         """
         self._metadata[key] = value
         logger.debug(f"Added metadata {key}: {value}")
         return self
 
     def set_description(self, description: str) -> 'ThemeBuilder':
-        """
-        Set theme description.
+        """Set theme description.
 
         Args:
             description: Theme description
 
         Returns:
             Self for chaining
+
         """
         self._description = description
         return self
 
     def set_type(self, theme_type: str) -> 'ThemeBuilder':
-        """
-        Set theme type (light, dark, etc.).
+        """Set theme type (light, dark, etc.).
 
         Args:
             theme_type: Theme type
 
         Returns:
             Self for chaining
+
         """
         if theme_type not in ["light", "dark", "high-contrast", "auto"]:
             logger.warning(f"Non-standard theme type: {theme_type}")
@@ -205,14 +203,14 @@ class ThemeBuilder:
         return self
 
     def inherit_from(self, parent_theme: Theme) -> 'ThemeBuilder':
-        """
-        Inherit properties from a parent theme.
+        """Inherit properties from a parent theme.
 
         Args:
             parent_theme: Theme to inherit from
 
         Returns:
             Self for chaining
+
         """
         self._parent_theme = parent_theme
 
@@ -235,36 +233,36 @@ class ThemeBuilder:
         return self
 
     def apply_template(self, template: ThemeTemplate) -> 'ThemeBuilder':
-        """
-        Apply a theme template.
+        """Apply a theme template.
 
         Args:
             template: Theme template to apply
 
         Returns:
             Self for chaining
+
         """
         return template.apply_to_builder(self)
 
     def enable_validation(self, enabled: bool = True) -> 'ThemeBuilder':
-        """
-        Enable or disable validation during building.
+        """Enable or disable validation during building.
 
         Args:
             enabled: Whether to enable validation
 
         Returns:
             Self for chaining
+
         """
         self._validation_enabled = enabled
         return self
 
     def clone(self) -> 'ThemeBuilder':
-        """
-        Create a copy of this builder.
+        """Create a copy of this builder.
 
         Returns:
             New ThemeBuilder with the same configuration
+
         """
         new_builder = ThemeBuilder(f"{self._name}_copy")
         new_builder._colors = copy.deepcopy(self._colors)
@@ -278,14 +276,14 @@ class ThemeBuilder:
         return new_builder
 
     def build(self) -> Theme:
-        """
-        Build the final theme.
+        """Build the final theme.
 
         Returns:
             Constructed Theme object
 
         Raises:
             ThemeValidationError: If theme validation fails
+
         """
         start_time = time.perf_counter()
 
@@ -378,8 +376,7 @@ class ThemeBuilder:
 
 
 class ThemeComposer:
-    """
-    Compose multiple themes together with priority-based merging.
+    """Compose multiple themes together with priority-based merging.
 
     This allows combining themes where properties from higher-priority
     themes override those from lower-priority ones.
@@ -390,6 +387,7 @@ class ThemeComposer:
             .add_theme(accent_theme, priority=200)
             .add_theme(override_theme, priority=300)
             .compose("composed-theme"))
+
     """
 
     def __init__(self):
@@ -399,8 +397,7 @@ class ThemeComposer:
         logger.debug("Created ThemeComposer")
 
     def add_theme(self, theme: Theme, priority: int = 100) -> 'ThemeComposer':
-        """
-        Add a theme to the composition.
+        """Add a theme to the composition.
 
         Args:
             theme: Theme to add
@@ -408,6 +405,7 @@ class ThemeComposer:
 
         Returns:
             Self for chaining
+
         """
         self._themes.append((theme, priority))
         # Sort by priority (highest first)
@@ -417,14 +415,14 @@ class ThemeComposer:
         return self
 
     def set_merge_strategy(self, strategy: str) -> 'ThemeComposer':
-        """
-        Set merge strategy for conflicting properties.
+        """Set merge strategy for conflicting properties.
 
         Args:
             strategy: "override" (default) or "blend"
 
         Returns:
             Self for chaining
+
         """
         if strategy not in ["override", "blend"]:
             raise ValueError(f"Invalid merge strategy: {strategy}")
@@ -433,8 +431,7 @@ class ThemeComposer:
         return self
 
     def compose(self, name: str, description: str = "") -> Theme:
-        """
-        Compose all added themes into a new theme.
+        """Compose all added themes into a new theme.
 
         Args:
             name: Name for the composed theme
@@ -442,6 +439,7 @@ class ThemeComposer:
 
         Returns:
             New composed theme
+
         """
         if not self._themes:
             raise ThemeError("No themes added to composer")
@@ -496,8 +494,7 @@ class ThemeComposer:
 
 
 class ThemeVariantGenerator:
-    """
-    Generate theme variants (light/dark) from base themes.
+    """Generate theme variants (light/dark) from base themes.
 
     This automatically creates light and dark variants by intelligently
     adjusting colors while maintaining the theme's character.
@@ -506,6 +503,7 @@ class ThemeVariantGenerator:
         generator = ThemeVariantGenerator()
         dark_variant = generator.create_dark_variant(light_theme)
         light_variant = generator.create_light_variant(dark_theme)
+
     """
 
     def __init__(self):
@@ -515,8 +513,7 @@ class ThemeVariantGenerator:
         logger.debug("Created ThemeVariantGenerator")
 
     def create_dark_variant(self, base_theme: Theme, name_suffix: str = "_dark") -> Theme:
-        """
-        Create a dark variant from a light theme.
+        """Create a dark variant from a light theme.
 
         Args:
             base_theme: Base theme to create variant from
@@ -524,12 +521,12 @@ class ThemeVariantGenerator:
 
         Returns:
             New dark variant theme
+
         """
         return self._create_variant(base_theme, "dark", name_suffix)
 
     def create_light_variant(self, base_theme: Theme, name_suffix: str = "_light") -> Theme:
-        """
-        Create a light variant from a dark theme.
+        """Create a light variant from a dark theme.
 
         Args:
             base_theme: Base theme to create variant from
@@ -537,16 +534,17 @@ class ThemeVariantGenerator:
 
         Returns:
             New light variant theme
+
         """
         return self._create_variant(base_theme, "light", name_suffix)
 
     def register_color_transformer(self, color_key: str, transformer: Callable[[str], str]):
-        """
-        Register a custom color transformer for specific color keys.
+        """Register a custom color transformer for specific color keys.
 
         Args:
             color_key: Color key to transform (e.g., "primary", "background")
             transformer: Function that transforms color values
+
         """
         self._color_transformers[color_key] = transformer
         logger.debug(f"Registered color transformer for: {color_key}")
@@ -662,8 +660,7 @@ class ThemeVariantGenerator:
 
 
 class ThemeFactory:
-    """
-    Main factory for creating themes with various construction methods.
+    """Main factory for creating themes with various construction methods.
 
     This is the primary entry point for theme creation, providing:
     - Builder creation with templates
@@ -685,6 +682,7 @@ class ThemeFactory:
 
         # Compose themes
         composed = factory.compose_themes(base_theme, accent_theme, name="composed")
+
     """
 
     def __init__(self):
@@ -699,51 +697,50 @@ class ThemeFactory:
         logger.debug("Created ThemeFactory")
 
     def create_builder(self, name: str) -> ThemeBuilder:
-        """
-        Create a new theme builder.
+        """Create a new theme builder.
 
         Args:
             name: Name for the theme
 
         Returns:
             New ThemeBuilder instance
+
         """
         return ThemeBuilder(name)
 
     def get_template(self, template_name: str) -> Optional[ThemeTemplate]:
-        """
-        Get a theme template by name.
+        """Get a theme template by name.
 
         Args:
             template_name: Name of the template
 
         Returns:
             ThemeTemplate if found, None otherwise
+
         """
         return self._templates.get(template_name)
 
     def register_template(self, template: ThemeTemplate):
-        """
-        Register a new theme template.
+        """Register a new theme template.
 
         Args:
             template: Template to register
+
         """
         self._templates[template.name] = template
         logger.debug(f"Registered template: {template.name}")
 
     def list_templates(self) -> List[str]:
-        """
-        List available template names.
+        """List available template names.
 
         Returns:
             List of template names
+
         """
         return list(self._templates.keys())
 
     def create_from_template(self, template_name: str, theme_name: str) -> ThemeBuilder:
-        """
-        Create a theme builder from a template.
+        """Create a theme builder from a template.
 
         Args:
             template_name: Name of the template to use
@@ -754,6 +751,7 @@ class ThemeFactory:
 
         Raises:
             ThemeError: If template not found
+
         """
         template = self.get_template(template_name)
         if not template:
@@ -765,8 +763,7 @@ class ThemeFactory:
         return builder
 
     def create_variant(self, base_theme: Theme, variant_type: str, name_suffix: str = None) -> Theme:
-        """
-        Create a variant of an existing theme.
+        """Create a variant of an existing theme.
 
         Args:
             base_theme: Base theme to create variant from
@@ -775,6 +772,7 @@ class ThemeFactory:
 
         Returns:
             New variant theme
+
         """
         if name_suffix is None:
             name_suffix = f"_{variant_type}"
@@ -787,8 +785,7 @@ class ThemeFactory:
             raise ThemeError(f"Unknown variant type: {variant_type}")
 
     def compose_themes(self, *themes: Union[Theme, tuple[Theme, int]], name: str, description: str = "") -> Theme:
-        """
-        Compose multiple themes together.
+        """Compose multiple themes together.
 
         Args:
             *themes: Themes to compose. Can be Theme objects or (Theme, priority) tuples
@@ -797,6 +794,7 @@ class ThemeFactory:
 
         Returns:
             Composed theme
+
         """
         composer = ThemeComposer()
 
@@ -810,8 +808,7 @@ class ThemeFactory:
         return composer.compose(name, description)
 
     def create_minimal_theme(self, name: str, primary_color: str, background_color: str) -> Theme:
-        """
-        Create a minimal theme with just basic colors.
+        """Create a minimal theme with just basic colors.
 
         Args:
             name: Theme name
@@ -820,6 +817,7 @@ class ThemeFactory:
 
         Returns:
             Minimal theme
+
         """
         return (self.create_builder(name)
                .add_color("primary", primary_color)
@@ -833,11 +831,11 @@ class ThemeFactory:
                .build())
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get factory usage statistics.
+        """Get factory usage statistics.
 
         Returns:
             Statistics dictionary
+
         """
         return {
             "templates_registered": len(self._templates),
@@ -847,7 +845,6 @@ class ThemeFactory:
 
     def _setup_default_templates(self):
         """Setup default theme templates."""
-
         # Web application template
         web_app_template = ThemeTemplate(
             name="web_app",

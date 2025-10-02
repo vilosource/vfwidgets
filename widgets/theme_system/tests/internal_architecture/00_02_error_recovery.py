@@ -16,30 +16,26 @@ Run this example to see how the theme system handles various error scenarios
 gracefully while maintaining application functionality.
 """
 
-import time
 import threading
-from typing import Any, Dict
+import time
 
 # Import theme system components
 from vfwidgets_theme.errors import (
-    ThemeNotFoundError,
-    ThemeLoadError,
-    PropertyNotFoundError,
     InvalidThemeFormatError,
+    PropertyNotFoundError,
+    ThemeLoadError,
+    ThemeNotFoundError,
     ThemeSystemNotInitializedError,
     create_error_recovery_manager,
 )
-
 from vfwidgets_theme.fallbacks import (
-    MINIMAL_THEME,
-    get_fallback_theme,
     get_fallback_color,
     get_fallback_property,
+    get_fallback_theme,
 )
-
 from vfwidgets_theme.logging import (
-    create_theme_logger,
     configure_theme_logging,
+    create_theme_logger,
     log_theme_error,
 )
 
@@ -145,7 +141,7 @@ def demonstrate_error_recovery():
     recovered_theme = recovery_manager.recover_from_error(
         error, operation="initialize_system"
     )
-    print(f"✓ System not initialized → Recovered with minimal theme")
+    print("✓ System not initialized → Recovered with minimal theme")
 
     print()
 
@@ -222,7 +218,7 @@ def demonstrate_thread_safety():
     for thread in threads:
         thread.join()
 
-    print(f"✓ Thread safety test completed")
+    print("✓ Thread safety test completed")
     print(f"  Results: {len(results)} operations")
     print(f"  Errors: {len(errors)} errors")
     print(f"  {'✓ PASS' if len(errors) == 0 else '✗ FAIL'}")

@@ -1,5 +1,4 @@
-"""
-Testing infrastructure for VFWidgets Theme System.
+"""Testing infrastructure for VFWidgets Theme System.
 
 This module provides comprehensive testing utilities including mock objects,
 test fixtures, performance benchmarking, and memory profiling tools.
@@ -15,40 +14,37 @@ All testing components follow the same philosophy as the theme system:
 "ThemedWidget is THE way" - make testing as simple as inheriting from ThemedTestCase.
 """
 
-from .mocks import (
-    MockThemeProvider,
-    MockThemeableWidget,
-    MockColorProvider,
-    MockStyleGenerator,
-    MockWidget,
-    MockApplication,
-    MockPainter,
-)
-
-from .utils import (
-    ThemedTestCase,
-    assert_theme_property,
-    assert_performance_requirement,
-    generate_test_theme,
-    create_test_widget,
-)
-
 from .benchmarks import (
     ThemeBenchmark,
-    benchmark_theme_switch,
-    benchmark_property_access,
     benchmark_memory_usage,
-    validate_performance_requirements,
-    performance_test,
+    benchmark_property_access,
+    benchmark_theme_switch,
     memory_test,
+    performance_test,
+    validate_performance_requirements,
 )
-
 from .memory import (
     MemoryProfiler,
     detect_memory_leaks,
+    memory_leak_test,
     track_widget_lifecycle,
     validate_memory_requirements,
-    memory_leak_test,
+)
+from .mocks import (
+    MockApplication,
+    MockColorProvider,
+    MockPainter,
+    MockStyleGenerator,
+    MockThemeableWidget,
+    MockThemeProvider,
+    MockWidget,
+)
+from .utils import (
+    ThemedTestCase,
+    assert_performance_requirement,
+    assert_theme_property,
+    create_test_widget,
+    generate_test_theme,
 )
 
 __all__ = [

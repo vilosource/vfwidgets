@@ -1,5 +1,4 @@
-"""
-Advanced Theme Mapping with CSS Selector Support and Validation
+"""Advanced Theme Mapping with CSS Selector Support and Validation
 
 This module implements Task 13: CSS selector-based theme mapping with conflict
 resolution, composition support, visual debugging, and comprehensive validation.
@@ -14,17 +13,22 @@ Key Features:
 """
 
 import re
-import weakref
 import threading
 import time
-from typing import (
-    Any, Dict, List, Optional, Union, Set, Tuple, Callable,
-    Pattern, NamedTuple, TYPE_CHECKING
-)
+import weakref
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
-from functools import lru_cache
-from collections import defaultdict, OrderedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 if TYPE_CHECKING:
     from ..widgets.base import ThemedWidget
@@ -41,20 +45,22 @@ except ImportError:
     class QWidget:
         pass
 
-from ..protocols import PropertyKey, PropertyValue, ThemeData
 from ..errors import ThemeError
 from ..logging import get_debug_logger
+from ..protocols import PropertyKey, PropertyValue
 
 logger = get_debug_logger(__name__)
 
 
 class MappingError(ThemeError):
     """Raised when theme mapping operations fail."""
+
     pass
 
 
 class SelectorType(Enum):
     """Types of CSS selectors supported."""
+
     ID = "id"                    # #widget_id
     CLASS = "class"              # .class_name
     TYPE = "type"                # QPushButton
@@ -68,6 +74,7 @@ class SelectorType(Enum):
 
 class MappingPriority(IntEnum):
     """Priority levels for mapping conflicts."""
+
     LOWEST = 0
     LOW = 100
     NORMAL = 500
@@ -78,6 +85,7 @@ class MappingPriority(IntEnum):
 
 class ConflictResolution(Enum):
     """Strategies for resolving mapping conflicts."""
+
     PRIORITY = "priority"         # Use highest priority mapping
     MERGE = "merge"              # Merge all applicable mappings
     FIRST_MATCH = "first_match"  # Use first matching mapping
@@ -88,6 +96,7 @@ class ConflictResolution(Enum):
 @dataclass
 class SelectorPart:
     """Represents a part of a CSS selector."""
+
     type: SelectorType
     value: str
     attributes: Dict[str, str] = field(default_factory=dict)
@@ -98,6 +107,7 @@ class SelectorPart:
 @dataclass
 class ParsedSelector:
     """Represents a fully parsed CSS selector."""
+
     parts: List[SelectorPart]
     specificity: Tuple[int, int, int, int]  # inline, id, class/attr, element
     raw_selector: str
@@ -106,6 +116,7 @@ class ParsedSelector:
 @dataclass
 class MappingRule:
     """Represents a single theme mapping rule."""
+
     selector: ParsedSelector
     properties: Dict[PropertyKey, PropertyValue]
     priority: MappingPriority = MappingPriority.NORMAL
@@ -496,8 +507,7 @@ class ConflictResolver:
 
 
 class ThemeMapping:
-    """
-    Advanced theme mapping system with CSS selector support.
+    """Advanced theme mapping system with CSS selector support.
 
     This is the core implementation of Task 13, providing:
     - CSS selector parsing and matching
@@ -510,12 +520,12 @@ class ThemeMapping:
     def __init__(self,
                  conflict_resolution: ConflictResolution = ConflictResolution.PRIORITY,
                  debug: bool = False):
-        """
-        Initialize theme mapping system.
+        """Initialize theme mapping system.
 
         Args:
             conflict_resolution: Strategy for resolving mapping conflicts
             debug: Enable debug logging
+
         """
         self.conflict_resolution = conflict_resolution
         self.debug = debug
@@ -555,8 +565,7 @@ class ThemeMapping:
                  name: Optional[str] = None,
                  description: Optional[str] = None,
                  conditions: List[Callable[['ThemedWidget'], bool]] = None) -> int:
-        """
-        Add a mapping rule.
+        """Add a mapping rule.
 
         Args:
             selector: CSS selector string
@@ -571,6 +580,7 @@ class ThemeMapping:
 
         Raises:
             MappingError: If selector parsing or validation fails
+
         """
         try:
             # Parse selector
@@ -634,14 +644,14 @@ class ThemeMapping:
             return False
 
     def get_mapping(self, widget: 'ThemedWidget') -> Dict[PropertyKey, PropertyValue]:
-        """
-        Get resolved theme mapping for a widget.
+        """Get resolved theme mapping for a widget.
 
         Args:
             widget: Widget to get mapping for
 
         Returns:
             Dictionary of resolved theme properties
+
         """
         start_time = time.perf_counter()
 

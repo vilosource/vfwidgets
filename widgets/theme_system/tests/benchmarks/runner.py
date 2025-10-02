@@ -3,14 +3,12 @@
 Benchmark Runner with Advanced Features
 """
 
-import time
 import threading
-import multiprocessing
-from typing import Dict, List, Any, Callable, Optional
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import time
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
 
-from .suite import BenchmarkSuite, BenchmarkResult
+from .suite import BenchmarkResult, BenchmarkSuite
 
 
 @dataclass
@@ -281,8 +279,8 @@ class BenchmarkRunner:
     def _profile_with_cprofile(self, benchmark_func: Callable) -> Dict[str, Any]:
         """Profile using cProfile."""
         import cProfile
-        import pstats
         import io
+        import pstats
 
         profiler = cProfile.Profile()
         profiler.enable()

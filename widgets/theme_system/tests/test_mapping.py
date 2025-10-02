@@ -9,18 +9,26 @@ Tests all components of Task 13 including:
 - Validation and error recovery
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch
+
+import pytest
 
 from src.vfwidgets_theme.mapping.mapper import (
-    ThemeMapping, SelectorParser, SelectorMatcher, ConflictResolver,
-    SelectorType, MappingPriority, ConflictResolution, MappingError,
-    ThemeMappingVisualizer, SelectorPart, ParsedSelector, MappingRule,
-    css_selector, id_selector, class_selector, type_selector, attribute_selector
+    ConflictResolution,
+    ConflictResolver,
+    MappingError,
+    MappingPriority,
+    MappingRule,
+    SelectorMatcher,
+    SelectorParser,
+    SelectorType,
+    ThemeMapping,
+    ThemeMappingVisualizer,
+    attribute_selector,
+    class_selector,
+    id_selector,
+    type_selector,
 )
-from src.vfwidgets_theme.properties.descriptors import PropertyDescriptor
-from src.vfwidgets_theme.events.system import ThemeEventSystem
 
 
 class MockWidget:

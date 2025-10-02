@@ -1,12 +1,11 @@
-"""
-Plugin System for Pattern Matching
+"""Plugin System for Pattern Matching
 
 This module provides a plugin system for extending pattern matching
 capabilities with custom pattern types.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 if TYPE_CHECKING:
     from ..widgets.base import ThemedWidget
@@ -15,20 +14,19 @@ from .matcher import MatchResult
 
 
 class PatternPlugin(ABC):
-    """
-    Base class for pattern matching plugins.
+    """Base class for pattern matching plugins.
 
     Plugins can implement custom pattern matching logic that integrates
     seamlessly with the PatternMatcher system.
     """
 
     def __init__(self, name: str, description: str = ""):
-        """
-        Initialize plugin.
+        """Initialize plugin.
 
         Args:
             name: Unique plugin name
             description: Plugin description
+
         """
         self.name = name
         self.description = description
@@ -36,8 +34,7 @@ class PatternPlugin(ABC):
     @abstractmethod
     def match(self, pattern: str, target: str, widget: 'ThemedWidget',
               context: Optional[Dict[str, Any]] = None) -> MatchResult:
-        """
-        Check if target matches the pattern.
+        """Check if target matches the pattern.
 
         Args:
             pattern: Pattern string specific to this plugin
@@ -47,19 +44,20 @@ class PatternPlugin(ABC):
 
         Returns:
             MatchResult indicating match status and quality
+
         """
         pass
 
     @abstractmethod
     def validate_pattern(self, pattern: str) -> bool:
-        """
-        Validate a pattern string for this plugin.
+        """Validate a pattern string for this plugin.
 
         Args:
             pattern: Pattern string to validate
 
         Returns:
             True if pattern is valid, False otherwise
+
         """
         pass
 
@@ -73,8 +71,7 @@ class PatternPlugin(ABC):
 
 
 class PluginManager:
-    """
-    Manages pattern matching plugins.
+    """Manages pattern matching plugins.
 
     This class handles plugin registration, validation, and lifecycle
     management for the pattern matching system.
@@ -84,14 +81,14 @@ class PluginManager:
         self._plugins: Dict[str, PatternPlugin] = {}
 
     def register_plugin(self, plugin: PatternPlugin) -> bool:
-        """
-        Register a pattern plugin.
+        """Register a pattern plugin.
 
         Args:
             plugin: Plugin instance to register
 
         Returns:
             True if registered successfully, False if name conflict
+
         """
         if plugin.name in self._plugins:
             return False
@@ -100,14 +97,14 @@ class PluginManager:
         return True
 
     def unregister_plugin(self, plugin_name: str) -> bool:
-        """
-        Unregister a pattern plugin.
+        """Unregister a pattern plugin.
 
         Args:
             plugin_name: Name of plugin to unregister
 
         Returns:
             True if unregistered successfully, False if not found
+
         """
         if plugin_name in self._plugins:
             del self._plugins[plugin_name]
@@ -140,8 +137,7 @@ class HierarchyPlugin(PatternPlugin):
 
     def match(self, pattern: str, target: str, widget: 'ThemedWidget',
               context: Optional[Dict[str, Any]] = None) -> MatchResult:
-        """
-        Match hierarchy patterns like "Dialog.Button" or "Window>Panel>Button".
+        """Match hierarchy patterns like "Dialog.Button" or "Window>Panel>Button".
 
         Pattern format:
         - "Parent.Child" - direct parent-child relationship
@@ -192,8 +188,7 @@ class StatePlugin(PatternPlugin):
 
     def match(self, pattern: str, target: str, widget: 'ThemedWidget',
               context: Optional[Dict[str, Any]] = None) -> MatchResult:
-        """
-        Match state patterns like "enabled", "visible", "focused".
+        """Match state patterns like "enabled", "visible", "focused".
 
         Pattern format:
         - "enabled" - widget is enabled
@@ -247,8 +242,7 @@ class GeometryPlugin(PatternPlugin):
 
     def match(self, pattern: str, target: str, widget: 'ThemedWidget',
               context: Optional[Dict[str, Any]] = None) -> MatchResult:
-        """
-        Match geometry patterns like "width>100", "height<50", "x=0".
+        """Match geometry patterns like "width>100", "height<50", "x=0".
 
         Pattern format:
         - "width>100" - width greater than 100

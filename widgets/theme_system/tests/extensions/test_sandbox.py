@@ -2,19 +2,19 @@
 Tests for extension sandbox security.
 """
 
-import pytest
-import tempfile
 from pathlib import Path
 
+import pytest
+
+from vfwidgets_theme.errors import SecurityError
 from vfwidgets_theme.extensions.sandbox import (
+    ExecutionLimiter,
     ExtensionSandbox,
     RestrictedBuiltins,
+    SafeObjectProxy,
     SandboxSecurityChecker,
-    ExecutionLimiter,
-    SafeObjectProxy
 )
 from vfwidgets_theme.extensions.system import Extension
-from vfwidgets_theme.errors import SecurityError, ExtensionError
 
 
 class TestRestrictedBuiltins:

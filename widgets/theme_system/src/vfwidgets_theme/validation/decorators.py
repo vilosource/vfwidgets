@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-VFWidgets Theme System - Validation Decorators
+"""VFWidgets Theme System - Validation Decorators
 Task 24: Validation decorators for easy integration
 
 This module provides decorators that integrate validation seamlessly
@@ -9,18 +8,19 @@ into the theme system components.
 
 import functools
 import time
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, Optional, Type
+
 from .framework import ValidationFramework, ValidationMode, ValidationType
 
 
 def validation_decorator(validation_type: ValidationType,
                         enabled_modes: Optional[set] = None):
-    """
-    Base validation decorator factory.
+    """Base validation decorator factory.
 
     Args:
         validation_type: Type of validation to perform
         enabled_modes: Validation modes where this decorator is active
+
     """
     if enabled_modes is None:
         enabled_modes = {ValidationMode.DEBUG, ValidationMode.STRICT}
@@ -50,12 +50,12 @@ def validation_decorator(validation_type: ValidationType,
 def validate_theme(func: Callable = None, *,
                    strict: bool = False,
                    theme_arg: str = 'theme'):
-    """
-    Decorator to validate theme objects passed to functions.
+    """Decorator to validate theme objects passed to functions.
 
     Args:
         strict: If True, validation runs in all modes
         theme_arg: Name of the theme argument to validate
+
     """
     enabled_modes = {ValidationMode.DEBUG, ValidationMode.STRICT}
     if strict:
@@ -105,11 +105,11 @@ def validate_theme(func: Callable = None, *,
 
 
 def validate_contract(protocol: Type):
-    """
-    Decorator to validate that objects implement required protocols.
+    """Decorator to validate that objects implement required protocols.
 
     Args:
         protocol: Protocol/interface that objects should implement
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -135,11 +135,11 @@ def validate_contract(protocol: Type):
 
 
 def require_valid_color(color_arg: str = 'color'):
-    """
-    Decorator to validate color values.
+    """Decorator to validate color values.
 
     Args:
         color_arg: Name of the color argument to validate
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -180,11 +180,11 @@ def require_valid_color(color_arg: str = 'color'):
 
 
 def require_theme_structure(required_attrs: Optional[set] = None):
-    """
-    Decorator to validate theme has required structure.
+    """Decorator to validate theme has required structure.
 
     Args:
         required_attrs: Set of required attribute names
+
     """
     if required_attrs is None:
         required_attrs = {'name', 'colors', 'styles'}
@@ -226,11 +226,11 @@ def require_theme_structure(required_attrs: Optional[set] = None):
 
 
 def require_widget_state(expected_state: Dict[str, Any]):
-    """
-    Decorator to validate widget runtime state.
+    """Decorator to validate widget runtime state.
 
     Args:
         expected_state: Dictionary of expected state values
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -261,12 +261,12 @@ def require_widget_state(expected_state: Dict[str, Any]):
 
 def performance_monitor(operation_name: Optional[str] = None,
                        threshold_ms: Optional[float] = None):
-    """
-    Decorator to monitor function performance and validate against thresholds.
+    """Decorator to monitor function performance and validate against thresholds.
 
     Args:
         operation_name: Name for the operation (defaults to function name)
         threshold_ms: Performance threshold in milliseconds
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -306,11 +306,11 @@ def performance_monitor(operation_name: Optional[str] = None,
 
 
 def validate_return_type(expected_type: Type):
-    """
-    Decorator to validate function return type.
+    """Decorator to validate function return type.
 
     Args:
         expected_type: Expected return type
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -335,11 +335,11 @@ def validate_return_type(expected_type: Type):
 
 
 def validate_arguments(**type_hints):
-    """
-    Decorator to validate function argument types.
+    """Decorator to validate function argument types.
 
     Args:
         **type_hints: Mapping of argument names to expected types
+
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -376,6 +376,7 @@ def validate_arguments(**type_hints):
 
 class PerformanceError(Exception):
     """Exception raised for performance validation failures."""
+
     pass
 
 

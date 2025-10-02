@@ -18,30 +18,27 @@ These tests validate that our testing infrastructure meets the goal:
 "Make it impossible to test theme functionality incorrectly."
 """
 
-import time
 import gc
-from typing import List, Dict, Any
+import time
 
 from src.vfwidgets_theme.testing import (
-    ThemedTestCase,
-    MockThemeProvider,
-    MockThemeableWidget,
+    MemoryProfiler,
     MockColorProvider,
     MockStyleGenerator,
+    MockThemeableWidget,
+    MockThemeProvider,
     MockWidget,
-    MockApplication,
-    ThemeBenchmark,
-    MemoryProfiler,
-    assert_theme_property,
+    ThemedTestCase,
     assert_performance_requirement,
-    generate_test_theme,
-    create_test_widget,
-    benchmark_theme_switch,
+    assert_theme_property,
     benchmark_property_access,
+    benchmark_theme_switch,
+    create_test_widget,
     detect_memory_leaks,
-    performance_test,
-    memory_test,
+    generate_test_theme,
     memory_leak_test,
+    memory_test,
+    performance_test,
 )
 
 

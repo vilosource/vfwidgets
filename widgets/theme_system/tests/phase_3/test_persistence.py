@@ -5,29 +5,28 @@ Test Suite for Task 16: Theme Persistence System
 Tests for theme saving/loading with validation, backups, migration, and compression.
 """
 
-import pytest
-import json
 import gzip
-import tempfile
-import datetime
-from pathlib import Path
-from unittest.mock import Mock, patch
+import json
+import os
 
 # Import the code under test
 import sys
-import os
+import tempfile
+from pathlib import Path
+
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
+from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.persistence.storage import (
-    ThemePersistence,
-    ThemeValidationResult,
+    BackupManager,
     PersistenceError,
     ThemeFormatError,
-    BackupManager,
     ThemeMigrator,
-    ThemeValidator
+    ThemePersistence,
+    ThemeValidator,
 )
-from vfwidgets_theme.core.theme import Theme
 
 
 class TestThemeValidator:

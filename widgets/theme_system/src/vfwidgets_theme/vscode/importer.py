@@ -1,14 +1,13 @@
-"""
-VSCode theme importer for converting VSCode themes to our theme format.
+"""VSCode theme importer for converting VSCode themes to our theme format.
 
 This module handles the conversion of VSCode theme JSON files into our
 internal theme representation, mapping colors and properties appropriately.
 """
 
 import json
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from ..core.theme import Theme, ThemeColors, ThemeProperties
 from ..errors import ThemeSystemError
@@ -20,134 +19,134 @@ logger = get_logger(__name__)
 @dataclass
 class VSCodeTokenColor:
     """Represents a VSCode token color definition."""
+
     name: Optional[str] = None
     scope: Optional[List[str]] = None
     settings: Optional[Dict[str, str]] = None
 
 
 class VSCodeThemeImporter:
-    """
-    Imports VSCode themes and converts them to our theme format.
+    """Imports VSCode themes and converts them to our theme format.
 
     Handles both color themes and token color mappings from VSCode
     theme JSON files.
     """
 
-    # Mapping from VSCode color keys to our theme properties
+    # Mapping from VSCode color keys to our NAMESPACED theme properties
     COLOR_MAPPINGS = {
-        # Editor colors
-        'editor.background': 'background',
-        'editor.foreground': 'text',
-        'editor.selectionBackground': 'selection_background',
-        'editor.selectionForeground': 'selection_text',
-        'editor.lineHighlightBackground': 'line_highlight',
-        'editor.findMatchBackground': 'find_match_background',
-        'editor.findMatchHighlightBackground': 'find_highlight_background',
+        # Editor colors - map to editor.* tokens
+        'editor.background': 'editor.background',
+        'editor.foreground': 'editor.foreground',
+        'editor.selectionBackground': 'editor.selectionBackground',
+        'editor.selectionForeground': 'editor.selectionForeground',
+        'editor.lineHighlightBackground': 'editor.lineHighlightBackground',
+        'editor.findMatchBackground': 'editor.findMatchBackground',
+        'editor.findMatchHighlightBackground': 'editor.findMatchHighlightBackground',
 
         # Activity Bar
-        'activityBar.background': 'sidebar_background',
-        'activityBar.foreground': 'sidebar_text',
-        'activityBar.inactiveForeground': 'sidebar_text_inactive',
+        'activityBar.background': 'activityBar.background',
+        'activityBar.foreground': 'activityBar.foreground',
+        'activityBar.inactiveForeground': 'activityBar.inactiveForeground',
 
         # Side Bar
-        'sideBar.background': 'sidebar_background',
-        'sideBar.foreground': 'sidebar_text',
-        'sideBar.border': 'sidebar_border',
+        'sideBar.background': 'sideBar.background',
+        'sideBar.foreground': 'sideBar.foreground',
+        'sideBar.border': 'sideBar.border',
 
         # Status Bar
-        'statusBar.background': 'statusbar_background',
-        'statusBar.foreground': 'statusbar_text',
-        'statusBar.border': 'statusbar_border',
+        'statusBar.background': 'statusBar.background',
+        'statusBar.foreground': 'statusBar.foreground',
+        'statusBar.border': 'statusBar.border',
 
         # Tab colors
-        'tab.activeBackground': 'tab_active_background',
-        'tab.activeForeground': 'tab_active_text',
-        'tab.inactiveBackground': 'tab_inactive_background',
-        'tab.inactiveForeground': 'tab_inactive_text',
-        'tab.border': 'tab_border',
+        'tab.activeBackground': 'tab.activeBackground',
+        'tab.activeForeground': 'tab.activeForeground',
+        'tab.inactiveBackground': 'tab.inactiveBackground',
+        'tab.inactiveForeground': 'tab.inactiveForeground',
+        'tab.border': 'tab.border',
 
         # Title Bar
-        'titleBar.activeBackground': 'titlebar_background',
-        'titleBar.activeForeground': 'titlebar_text',
-        'titleBar.inactiveBackground': 'titlebar_inactive_background',
-        'titleBar.inactiveForeground': 'titlebar_inactive_text',
+        'titleBar.activeBackground': 'titleBar.activeBackground',
+        'titleBar.activeForeground': 'titleBar.activeForeground',
+        'titleBar.inactiveBackground': 'titleBar.inactiveBackground',
+        'titleBar.inactiveForeground': 'titleBar.inactiveForeground',
 
         # Menu Bar
-        'menubar.selectionBackground': 'menu_selection_background',
-        'menubar.selectionForeground': 'menu_selection_text',
+        'menubar.selectionBackground': 'menubar.selectionBackground',
+        'menubar.selectionForeground': 'menubar.selectionForeground',
 
         # Input controls
-        'input.background': 'input_background',
-        'input.foreground': 'input_text',
-        'input.border': 'input_border',
+        'input.background': 'input.background',
+        'input.foreground': 'input.foreground',
+        'input.border': 'input.border',
 
         # Button controls
-        'button.background': 'button_background',
-        'button.foreground': 'button_text',
-        'button.hoverBackground': 'button_hover_background',
+        'button.background': 'button.background',
+        'button.foreground': 'button.foreground',
+        'button.hoverBackground': 'button.hoverBackground',
 
         # Dropdown controls
-        'dropdown.background': 'dropdown_background',
-        'dropdown.foreground': 'dropdown_text',
-        'dropdown.border': 'dropdown_border',
+        'dropdown.background': 'dropdown.background',
+        'dropdown.foreground': 'dropdown.foreground',
+        'dropdown.border': 'dropdown.border',
 
         # List/tree controls
-        'list.activeSelectionBackground': 'list_selection_background',
-        'list.activeSelectionForeground': 'list_selection_text',
-        'list.hoverBackground': 'list_hover_background',
-        'list.hoverForeground': 'list_hover_text',
+        'list.activeSelectionBackground': 'list.activeSelectionBackground',
+        'list.activeSelectionForeground': 'list.activeSelectionForeground',
+        'list.hoverBackground': 'list.hoverBackground',
+        'list.hoverForeground': 'list.hoverForeground',
 
         # Panel
-        'panel.background': 'panel_background',
-        'panel.border': 'panel_border',
+        'panel.background': 'panel.background',
+        'panel.border': 'panel.border',
 
         # Terminal
-        'terminal.background': 'terminal_background',
-        'terminal.foreground': 'terminal_text',
+        'terminal.background': 'terminal.background',
+        'terminal.foreground': 'terminal.foreground',
 
         # Scrollbar
-        'scrollbar.shadow': 'scrollbar_shadow',
-        'scrollbarSlider.background': 'scrollbar_background',
-        'scrollbarSlider.hoverBackground': 'scrollbar_hover_background',
-        'scrollbarSlider.activeBackground': 'scrollbar_active_background',
+        'scrollbar.shadow': 'scrollbar.shadow',
+        'scrollbarSlider.background': 'scrollbarSlider.background',
+        'scrollbarSlider.hoverBackground': 'scrollbarSlider.hoverBackground',
+        'scrollbarSlider.activeBackground': 'scrollbarSlider.activeBackground',
 
-        # Border colors
-        'focusBorder': 'focus_border',
-        'contrastBorder': 'contrast_border',
-        'contrastActiveBorder': 'contrast_active_border',
+        # Border colors - map to colors.*
+        'focusBorder': 'colors.focus',
+        'contrastBorder': 'colors.border',
+        'contrastActiveBorder': 'colors.border',
 
-        # Text colors
-        'foreground': 'text',
-        'descriptionForeground': 'text_secondary',
-        'errorForeground': 'text_error',
+        # Text colors - map to colors.*
+        'foreground': 'colors.foreground',
+        'descriptionForeground': 'colors.text_secondary',
+        'errorForeground': 'colors.error',
 
         # Badge
-        'badge.background': 'badge_background',
-        'badge.foreground': 'badge_text',
+        'badge.background': 'badge.background',
+        'badge.foreground': 'badge.foreground',
 
         # Progress bar
-        'progressBar.background': 'progress_background',
+        'progressBar.background': 'progressBar.background',
 
         # Editor widget
-        'editorWidget.background': 'widget_background',
-        'editorWidget.border': 'widget_border',
+        'editorWidget.background': 'editorWidget.background',
+        'editorWidget.border': 'editorWidget.border',
 
         # Peek view
-        'peekView.border': 'peek_border',
-        'peekViewEditor.background': 'peek_editor_background',
-        'peekViewResult.background': 'peek_result_background',
+        'peekView.border': 'peekView.border',
+        'peekViewEditor.background': 'peekViewEditor.background',
+        'peekViewResult.background': 'peekViewResult.background',
 
         # Git decoration
-        'gitDecoration.modifiedResourceForeground': 'git_modified',
-        'gitDecoration.deletedResourceForeground': 'git_deleted',
-        'gitDecoration.untrackedResourceForeground': 'git_untracked',
-        'gitDecoration.addedResourceForeground': 'git_added',
+        'gitDecoration.modifiedResourceForeground': 'gitDecoration.modifiedResourceForeground',
+        'gitDecoration.deletedResourceForeground': 'gitDecoration.deletedResourceForeground',
+        'gitDecoration.untrackedResourceForeground': 'gitDecoration.untrackedResourceForeground',
+        'gitDecoration.addedResourceForeground': 'gitDecoration.addedResourceForeground',
 
         # Notification
-        'notificationCenter.border': 'notification_border',
-        'notificationCenterHeader.background': 'notification_header_background',
-        'notifications.background': 'notification_background',
-        'notifications.foreground': 'notification_text',
+        'notificationCenter.border': 'notificationCenter.border',
+        'notificationCenterHeader.background': 'notificationCenterHeader.background',
+        'notifications.background': 'notifications.background',
+        'notifications.foreground': 'notifications.foreground',
     }
 
     def __init__(self):
@@ -155,8 +154,7 @@ class VSCodeThemeImporter:
         pass
 
     def import_from_file(self, theme_path: Path) -> Theme:
-        """
-        Import theme from VSCode theme file.
+        """Import theme from VSCode theme file.
 
         Args:
             theme_path: Path to VSCode theme JSON file
@@ -166,6 +164,7 @@ class VSCodeThemeImporter:
 
         Raises:
             ThemeSystemError: If theme file cannot be loaded
+
         """
         logger.info(f"Importing VSCode theme from: {theme_path}")
 
@@ -173,7 +172,7 @@ class VSCodeThemeImporter:
             raise ThemeSystemError(f"Theme file does not exist: {theme_path}")
 
         try:
-            with open(theme_path, 'r', encoding='utf-8') as f:
+            with open(theme_path, encoding='utf-8') as f:
                 theme_data = json.load(f)
 
             theme_name = theme_path.stem
@@ -185,8 +184,7 @@ class VSCodeThemeImporter:
             raise ThemeSystemError(f"Error importing theme from {theme_path}: {e}")
 
     def import_theme(self, theme_data: Dict[str, Any], theme_name: str) -> Theme:
-        """
-        Import theme from VSCode theme data.
+        """Import theme from VSCode theme data.
 
         Args:
             theme_data: VSCode theme JSON data
@@ -194,6 +192,7 @@ class VSCodeThemeImporter:
 
         Returns:
             Imported theme
+
         """
         logger.info(f"Converting VSCode theme: {theme_name}")
 
@@ -317,20 +316,22 @@ class VSCodeThemeImporter:
         return '#000000'
 
     def _add_color_fallbacks(self, mapped_colors: Dict[str, str], vscode_colors: Dict[str, str]):
-        """Add fallback colors for essential properties."""
-        # Ensure we have basic colors
-        if 'background' not in mapped_colors:
-            mapped_colors['background'] = vscode_colors.get('editor.background', '#1e1e1e')
+        """Add fallback colors for essential properties with namespaced keys."""
+        # Ensure we have basic colors (using namespaced keys)
+        if 'colors.background' not in mapped_colors and 'editor.background' not in mapped_colors:
+            mapped_colors['colors.background'] = vscode_colors.get('editor.background', '#1e1e1e')
 
-        if 'text' not in mapped_colors:
-            mapped_colors['text'] = vscode_colors.get('editor.foreground', '#d4d4d4')
+        if 'colors.foreground' not in mapped_colors and 'editor.foreground' not in mapped_colors:
+            mapped_colors['colors.foreground'] = vscode_colors.get('editor.foreground', '#d4d4d4')
 
         # Generate complementary colors if missing
-        if 'sidebar_background' not in mapped_colors:
-            mapped_colors['sidebar_background'] = self._darken_color(mapped_colors['background'], 0.1)
+        bg = mapped_colors.get('editor.background') or mapped_colors.get('colors.background', '#1e1e1e')
 
-        if 'statusbar_background' not in mapped_colors:
-            mapped_colors['statusbar_background'] = self._darken_color(mapped_colors['background'], 0.2)
+        if 'sideBar.background' not in mapped_colors:
+            mapped_colors['sideBar.background'] = self._darken_color(bg, 0.1)
+
+        if 'statusBar.background' not in mapped_colors:
+            mapped_colors['statusBar.background'] = self._darken_color(bg, 0.2)
 
     def _darken_color(self, color: str, factor: float) -> str:
         """Darken a color by the given factor."""
@@ -387,8 +388,7 @@ class VSCodeThemeImporter:
         return None
 
     def export_to_vscode(self, theme: Theme, output_path: Path) -> None:
-        """
-        Export our theme to VSCode format.
+        """Export our theme to VSCode format.
 
         Args:
             theme: Theme to export
@@ -396,6 +396,7 @@ class VSCodeThemeImporter:
 
         Raises:
             ThemeSystemError: If export fails
+
         """
         logger.info(f"Exporting theme to VSCode format: {output_path}")
 

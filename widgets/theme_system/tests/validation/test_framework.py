@@ -3,7 +3,6 @@
 Test suite for validation framework - Task 24
 """
 
-import pytest
 import sys
 from pathlib import Path
 
@@ -11,16 +10,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from vfwidgets_theme.validation import (
+    ThemeProtocol,
+    ThemeSchema,
     ValidationFramework,
     ValidationMode,
-    ValidationError,
-    ValidationResult,
     ValidationType,
-    validate_theme,
-    validate_schema,
-    ThemeSchema,
     validate_protocol_implementation,
-    ThemeProtocol
+    validate_theme,
 )
 
 

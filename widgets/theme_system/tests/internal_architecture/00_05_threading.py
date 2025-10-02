@@ -16,24 +16,33 @@ Key Demonstrations:
 """
 
 import asyncio
-import threading
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, Any, List
+import os
 
 # Import threading infrastructure
 import sys
-import os
+import threading
+import time
+from typing import Any, Dict, List
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from vfwidgets_theme.threading import (
+    AsyncThemeLoader,
+    ConcurrentRegistry,
+    CrossThreadNotifier,
+    DeadlockDetection,
+    LoadProgress,
+    PropertyCache,
+    PropertyLock,
+    StyleCache,
+    ThemeCache,
+    ThemeLoadQueue,
+    ThemeLock,
+    ThemeSignalManager,
     ThreadSafeThemeManager,
-    ThemeLock, PropertyLock, RegistryLock,
-    ThemeCache, StyleCache, PropertyCache,
-    AsyncThemeLoader, ThemeLoadQueue, LoadProgress,
-    ThemeSignalManager, CrossThreadNotifier, WidgetNotificationProxy,
-    ReadWriteLock, AtomicOperations, ConcurrentRegistry,
-    DeadlockDetection, get_performance_metrics, reset_performance_metrics
+    WidgetNotificationProxy,
+    get_performance_metrics,
+    reset_performance_metrics,
 )
 
 
@@ -191,7 +200,7 @@ class ThreadSafetyDemo:
         print(f"✅ Cached {total_styles} stylesheets")
         print(f"✅ Cached {total_properties} properties")
         print(f"✅ Cache hit rate: {hit_rate:.2%} (target: >90%)")
-        print(f"✅ Thread isolation: Each thread has independent cache")
+        print("✅ Thread isolation: Each thread has independent cache")
 
         self.results['caching'] = {
             'total_themes': total_themes,
@@ -288,7 +297,7 @@ class ThreadSafetyDemo:
 
         print(f"✅ Qt signals processed: {len(signal_results)} (from {4 * 5} sent)")
         print(f"✅ Cross-thread notifications: {len(notification_results)} (from {4 * 3} sent)")
-        print(f"✅ Widget notifications processed")
+        print("✅ Widget notifications processed")
         print(f"✅ Widgets registered: {widget_proxy.get_registered_count()}")
 
         self.results['notifications'] = {
@@ -437,7 +446,7 @@ class ThreadSafetyDemo:
         print(f"✅ Average lock time: {avg_lock_time*1000000:.2f}μs (target: <1μs)")
         print(f"✅ Total widgets registered: {total_widgets}")
         print(f"✅ Operations per second: {len(operation_times)/total_time:.0f}")
-        print(f"✅ Concurrent threads supported: 10 (target: 8+)")
+        print("✅ Concurrent threads supported: 10 (target: 8+)")
 
         self.results['performance'] = {
             'total_operations': len(operation_times),
@@ -513,8 +522,9 @@ class ThreadSafetyDemo:
         print("\n7️⃣  Memory Efficiency")
         print("-" * 40)
 
-        import psutil
         import os
+
+        import psutil
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss
@@ -577,7 +587,7 @@ class ThreadSafetyDemo:
         print(f"✅ Themes cached across all threads: {total_themes}")
         print(f"✅ Styles cached across all threads: {total_styles}")
         print(f"✅ Memory per cached item: {memory_increase / (total_themes + total_styles):.0f} bytes")
-        print(f"✅ Thread-local isolation: Each thread has independent caches")
+        print("✅ Thread-local isolation: Each thread has independent caches")
 
         self.results['memory_efficiency'] = {
             'memory_increase_mb': memory_increase / (1024*1024),
@@ -601,13 +611,13 @@ class ThreadSafetyDemo:
         print(f"{'✅' if self.results['performance']['concurrent_threads'] >= 8 else '❌'} Concurrent threads: {self.results['performance']['concurrent_threads']} (target: 8+)")
         print(f"{'✅' if self.results['async_loading']['concurrent_load_time'] < 2.5 else '❌'} Async loading: {self.results['async_loading']['concurrent_load_time']:.3f}s (target: <0.5s each)")
 
-        print(f"\n📈 Overall Performance:")
+        print("\n📈 Overall Performance:")
         print(f"  • Operations per second: {self.results['performance']['operations_per_second']:.0f}")
         print(f"  • Memory efficiency: {self.results['memory_efficiency']['memory_per_item']:.0f} bytes per item")
-        print(f"  • Thread safety: All operations completed successfully")
+        print("  • Thread safety: All operations completed successfully")
         print(f"  • Deadlock prevention: {self.results['deadlock_prevention']['successful_operations']} successful operations")
 
-        print(f"\n🎉 Thread Safety Infrastructure Validation:")
+        print("\n🎉 Thread Safety Infrastructure Validation:")
         print(f"  ✅ Singleton pattern: Thread-safe across {self.results['singleton']['instances_created']} accesses")
         print(f"  ✅ Thread-local caching: {self.results['caching']['total_themes']} themes cached efficiently")
         print(f"  ✅ Cross-thread notifications: {self.results['notifications']['signal_count']} signals processed")

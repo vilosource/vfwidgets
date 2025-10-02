@@ -5,11 +5,12 @@ A professional Chrome-style tabbed window widget for PySide6/PyQt6 with full QTa
 ## Features
 
 - 🎯 **100% QTabWidget API Compatible** - Drop-in replacement for QTabWidget
+- 🎨 **Theme System Integration** - Automatic color adaptation with VFWidgets theme system
 - 🪟 **Dual Mode Operation**:
   - **Top-level mode**: Frameless window with custom title bar and native move/resize
   - **Embedded mode**: Regular tab widget for use in layouts
 - 🌍 **Cross-Platform**: Windows, macOS, Linux (X11/Wayland), WSL/WSLg
-- 🎨 **Chrome-Style UI**: Modern tab design with smooth animations
+- 🎭 **Chrome-Style UI**: Modern tab design with smooth animations
 - ⚡ **High Performance**: < 50ms tab operations, 60 FPS animations
 - 🔧 **Platform-Aware**: Automatic detection and graceful degradation
 - ♿ **Accessible**: Full keyboard navigation and screen reader support
@@ -64,6 +65,40 @@ main_window.setCentralWidget(central)
 main_window.show()
 ```
 
+## Theme System Integration
+
+ChromeTabbedWindow integrates seamlessly with the VFWidgets theme system:
+
+```python
+from chrome_tabbed_window import ChromeTabbedWindow
+from vfwidgets_theme import ThemedApplication
+from vfwidgets_theme.widgets import add_theme_menu
+
+# Create themed application
+app = ThemedApplication(sys.argv)
+app.set_theme("dark")
+
+# ChromeTabbedWindow automatically uses theme colors!
+window = ChromeTabbedWindow()
+window.addTab(QTextEdit(), "Tab 1")
+
+# Add theme switching menu
+add_theme_menu(window)
+
+window.show()
+app.exec()
+```
+
+**Theme Features:**
+- ✅ Automatic color adaptation from theme
+- ✅ Dynamic theme switching support
+- ✅ Works with all built-in themes (dark, light, default, minimal)
+- ✅ Custom theme support
+- ✅ Embedded mode respects parent theme
+- ✅ Graceful fallback to Chrome colors when theme system unavailable
+
+See [examples/04_themed_chrome_tabs.py](examples/04_themed_chrome_tabs.py) for complete example.
+
 ## QTabWidget API Compatibility
 
 ChromeTabbedWindow provides 100% compatibility with QTabWidget's public API:
@@ -112,10 +147,10 @@ python examples/run_examples.py
 
 Available examples:
 1. **Basic Usage** - Simple tabbed window
-2. **Embedded Mode** - Inside regular window
-3. **With Split Panes** - Combined with MultiSplit widget
-4. **IDE Example** - Full IDE-like interface
-5. **Custom Styling** - QSS theming
+2. **Frameless Chrome** - Top-level frameless window
+3. **Tab Compression** - Chrome-style tab sizing
+4. **Themed Chrome Tabs** - Integration with theme system
+5. **Themed Embedded** - Embedded tabs with theming
 
 ## Development
 

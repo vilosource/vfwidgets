@@ -4,23 +4,16 @@ Unit tests for ThemedWidget base class.
 Tests the primary API that developers use - ThemedWidget inheritance pattern
 with automatic registration, property access, and lifecycle management.
 """
-import unittest
 import threading
 import time
+import unittest
 import weakref
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, Any, Optional, Set, List
+from unittest.mock import Mock, patch
 
-import pytest
-
-from vfwidgets_theme.widgets.base import ThemedWidget, ThemedWidgetMeta
-from vfwidgets_theme.widgets.properties import ThemePropertyDescriptor, ThemePropertiesManager
-from vfwidgets_theme.core.theme import Theme
-from vfwidgets_theme.protocols import ThemeProvider
-from vfwidgets_theme.errors import ThemeError, PropertyNotFoundError
-from vfwidgets_theme.testing import ThemedTestCase, ThemeBenchmark, MemoryProfiler
+from vfwidgets_theme.errors import PropertyNotFoundError, ThemeError
 from vfwidgets_theme.lifecycle import WidgetRegistry
-from vfwidgets_theme.threading import ThreadSafeThemeManager
+from vfwidgets_theme.testing import MemoryProfiler, ThemeBenchmark, ThemedTestCase
+from vfwidgets_theme.widgets.base import ThemedWidget
 
 
 class TestThemedWidgetCreation(ThemedTestCase):

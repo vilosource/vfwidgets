@@ -17,4 +17,4 @@ __all__ = [
 # Import main class and public types
 from .chrome_tabbed_window import ChromeTabbedWindow
 from .core.constants import TabPosition, TabShape, WindowMode
-from .platform.capabilities import PlatformCapabilities
+from .platform_support.capabilities import PlatformCapabilities

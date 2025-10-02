@@ -13,45 +13,41 @@ Test Coverage:
 - Performance requirements for error handling
 """
 
-import unittest
 import logging
-import time
 import threading
-from unittest.mock import Mock, patch
+import time
+import unittest
 from io import StringIO
+from unittest.mock import Mock, patch
 
 # Import modules under test
 from src.vfwidgets_theme.errors import (
+    # Error recovery
+    InvalidThemeFormatError,
+    PropertyNotFoundError,
     # Exception hierarchy
     ThemeError,
-    ThemeNotFoundError,
     ThemeLoadError,
-    PropertyNotFoundError,
-    InvalidThemeFormatError,
+    ThemeNotFoundError,
     ThemeSystemNotInitializedError,
-
-    # Error recovery
-    ErrorRecoveryManager,
     create_error_recovery_manager,
 )
-
 from src.vfwidgets_theme.fallbacks import (
     # Fallback theme system
     MINIMAL_THEME,
     FallbackColorSystem,
     create_fallback_color_system,
-    get_fallback_theme,
     get_fallback_color,
     get_fallback_property,
+    get_fallback_theme,
 )
-
 from src.vfwidgets_theme.logging import (
     # Logging infrastructure
     ThemeLogger,
     create_theme_logger,
     get_performance_logger,
-    log_theme_error,
     log_performance_warning,
+    log_theme_error,
 )
 
 
@@ -407,7 +403,6 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
     def test_zero_memory_leaks_in_error_paths(self):
         """Test no memory leaks in error handling paths."""
         import gc
-        import sys
 
         # Get initial object count
         gc.collect()

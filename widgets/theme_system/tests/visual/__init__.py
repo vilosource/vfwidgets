@@ -9,9 +9,9 @@ This module provides screenshot-based visual regression testing capabilities:
 - CI/CD integration support
 """
 
-from .framework import VisualTestFramework
 from .comparison import ImageComparator
 from .diff_generator import DiffGenerator
+from .framework import VisualTestFramework
 
 __all__ = [
     "VisualTestFramework",
