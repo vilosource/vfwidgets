@@ -164,14 +164,169 @@ editor.setProperty("role", "editor")  # Automatically uses monospace font
 
 ---
 
-## Stage 3: Advanced Features
+## Stage 3: Phase 2 Features (Examples 07-11)
+
+### Example 07: Theme Menu
+**File:** `07_theme_menu.py`
+
+Add a theme switcher menu to your application.
+
+**Key concepts:**
+- Pre-built theme menu widget
+- Integration with application menu bar
+- User theme preferences
+
+---
+
+### Example 08: Theme Toolbar
+**File:** `08_theme_toolbar.py`
+
+Add a theme switcher toolbar to your application.
+
+**Key concepts:**
+- Theme toolbar widget
+- Icon-based theme selection
+- Quick theme switching UI
+
+---
+
+### Example 09: Settings Dialog
+**File:** `09_settings_dialog.py`
+
+Comprehensive settings dialog with theme preferences.
+
+**Key concepts:**
+- Settings integration
+- Theme preview in settings
+- Saving user preferences
+
+---
+
+### Example 10: Live Preview
+**File:** `10_live_preview.py`
+
+Real-time theme preview while editing.
+
+**Key concepts:**
+- Live theme preview widget
+- Sample widget rendering
+- Real-time theme updates
+
+---
+
+### Example 11: Keyboard Shortcuts
+**File:** `11_keyboard_shortcuts.py`
+
+Keyboard shortcuts for theme operations.
+
+**Key concepts:**
+- Theme switching with keyboard
+- Shortcut registration
+- KeybindingManager integration
+
+---
+
+## Stage 4: Theme Editor & Developer Tools (Examples 12-15)
+
+**Status:** Design phase - templates ready for implementation
+
+### Example 12: Standalone Theme Editor Dialog
+**File:** `12_theme_editor_standalone.py`
+
+Open the theme editor as a standalone dialog for creating or editing themes.
+
+```python
+from vfwidgets_theme.widgets import ThemeEditorDialog
+
+dialog = ThemeEditorDialog(
+    parent=self,
+    base_theme="dark",
+    mode="create"  # "create", "edit", or "clone"
+)
+dialog.exec()
+```
+
+**Key concepts:**
+- Creating themes from scratch
+- Editing existing themes
+- Cloning and customizing themes
+- Visual token editor
+
+---
+
+### Example 13: Embedded Theme Editor Widget
+**File:** `13_theme_editor_embedded.py`
+
+Embed the theme editor directly into your settings page.
+
+```python
+from vfwidgets_theme.widgets import ThemeEditorWidget
+
+editor = ThemeEditorWidget(
+    parent=settings_tab,
+    show_preview=True,
+    show_validation=True
+)
+```
+
+**Key concepts:**
+- Embedding theme editor in application UI
+- Settings page integration
+- Live preview panel
+- Accessibility validation
+
+---
+
+### Example 14: Quick Theme Customization
+**File:** `14_theme_editor_quick_edit.py`
+
+Simple quick-edit UI for basic color customization.
+
+**Key concepts:**
+- Quick color pickers for key tokens
+- Simplified customization UI
+- "Change App Color" feature implementation
+- Real-time preview
+
+---
+
+### Example 15: Theme Code Generation (DX Feature)
+**File:** `15_theme_code_generation.py`
+
+Generate code from visual themes - a Developer Experience feature.
+
+```python
+from vfwidgets_theme.generators import ThemeCodeGenerator
+
+generator = ThemeCodeGenerator()
+python_code = generator.generate_python_code(theme)
+typescript = generator.generate_typescript_types(theme)
+css_vars = generator.generate_css_variables(theme)
+```
+
+**Output formats:**
+- Python ThemeBuilder code
+- TypeScript type definitions
+- CSS custom properties
+- QSS stylesheets
+- JSON export
+
+**Key concepts:**
+- Code generation from visual editor
+- Multi-format export
+- Developer workflow integration
+- Theme sharing and distribution
+
+---
+
+## Stage 5: Advanced Features
 
 **See:** `legacy/` directory for more complex examples (being reorganized)
 
 **Coming soon:**
-- Example 07: Advanced theming features
-- Example 08: Custom themes and token constants
-- Example 09: Building reusable widget libraries
+- Theme templates and presets
+- Advanced token management
+- Building reusable widget libraries
 
 ---
 
@@ -209,19 +364,28 @@ cd widgets/theme_system
 ### Running Individual Examples
 
 ```bash
-# Start here!
+# Stage 1: Simple Apps
 python examples/01_hello_world.py
-
-# Work your way up
 python examples/02_buttons_and_layout.py
 python examples/03_theme_switching.py
 python examples/04_input_forms.py
 
-# When you need custom widgets (QTextEdit, QFrame, etc.)
+# Stage 2: Custom Widgets (The Bridge!)
 python examples/05_vscode_editor.py
-
-# Advanced features
 python examples/06_role_markers.py
+
+# Stage 3: Phase 2 Features
+python examples/07_theme_menu.py
+python examples/08_theme_toolbar.py
+python examples/09_settings_dialog.py
+python examples/10_live_preview.py
+python examples/11_keyboard_shortcuts.py
+
+# Stage 4: Theme Editor & Developer Tools (Templates - not yet implemented)
+python examples/12_theme_editor_standalone.py
+python examples/13_theme_editor_embedded.py
+python examples/14_theme_editor_quick_edit.py
+python examples/15_theme_code_generation.py
 ```
 
 ### Running All Examples (Test Suite)

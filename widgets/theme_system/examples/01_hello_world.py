@@ -1,58 +1,81 @@
 #!/usr/bin/env python3
+"""Example 01: Hello World - The Simplest Themed App
+=====================================================
+
+The absolute simplest themed Qt application - just 20 lines!
+
+What you'll learn:
+- How to create a ThemedApplication
+- How to use ThemedMainWindow for automatic theming
+- Zero-configuration theming (no setup required!)
+
+Key concepts:
+- ThemedApplication: Drop-in replacement for QApplication
+- ThemedMainWindow: Automatically themed main window
+- All child widgets are themed automatically
+
+Run:
+    python examples/01_hello_world.py
 """
-Example 01: Hello World
-========================
 
-The simplest possible themed Qt application.
-Just a few lines to get a themed widget running!
-
-What this demonstrates:
-- Creating a themed application
-- Using ThemedQWidget for simple single inheritance
-- Automatic theme application with zero configuration
-"""
-
-import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Add src to path for development
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLabel, QVBoxLayout
 
-from vfwidgets_theme import ThemedApplication, ThemedQWidget
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
 
 
-class HelloWidget(ThemedQWidget):
-    """A simple themed widget displaying 'Hello World'."""
+class HelloWindow(ThemedMainWindow):
+    """A simple themed main window."""
 
     def __init__(self):
         super().__init__()
-        self.setup_ui()
+        self.setWindowTitle("Hello VFWidgets Theme System!")
+        self.setMinimumSize(500, 300)
 
-    def setup_ui(self):
-        # Create a label as the central content
-        from PySide6.QtWidgets import QVBoxLayout
-        layout = QVBoxLayout(self)
+        # Create central widget
+        central = ThemedQWidget()
+        self.setCentralWidget(central)
 
-        label = QLabel("Hello, Themed World!")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        layout = QVBoxLayout(central)
 
-        layout.addWidget(label)
+        # Add a welcoming label - automatically themed!
+        welcome = QLabel("🎨 Welcome to VFWidgets Theme System 2.0!")
+        welcome.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        welcome.setStyleSheet("font-size: 18px; font-weight: bold; padding: 20px;")
+        layout.addWidget(welcome)
 
-        self.setMinimumSize(400, 200)
-        self.setWindowTitle("Hello World - VFWidgets Theme System")
+        # Add description
+        description = QLabel(
+            "This window and all its child widgets are automatically themed.\n\n"
+            "No configuration required!\n"
+            "No manual stylesheet writing!\n"
+            "Just inherit from ThemedMainWindow and you're done."
+        )
+        description.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        description.setWordWrap(True)
+        layout.addWidget(description)
+
+        layout.addStretch()
 
 
 def main():
+    """Main entry point."""
+    # 1. Create ThemedApplication (instead of QApplication)
     app = ThemedApplication(sys.argv)
 
-    widget = HelloWidget()
-    widget.show()
+    # 2. Create your window (using ThemedMainWindow)
+    window = HelloWindow()
+    window.show()
 
+    # 3. Run the app
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

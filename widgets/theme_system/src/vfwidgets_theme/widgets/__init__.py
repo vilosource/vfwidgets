@@ -36,6 +36,31 @@ from .dialogs import (
     ThemePickerDialog,
     ThemeSettingsWidget,
 )
+from .color_editor import (
+    ColorEditorWidget,
+)
+from .font_editor import (
+    FontEditorWidget,
+)
+from .preview_samples import (
+    PreviewSampleGenerator,
+    ThemePreviewWidget,
+)
+from .theme_editor import (
+    ThemeEditorDialog,
+    ThemeEditorWidget,
+)
+from .token_browser import (
+    TokenBrowserWidget,
+)
+from .validation_panel import (
+    ValidationPanel,
+)
+from .import_export import (
+    ThemeExportDialog,
+    ThemeImportDialog,
+    ThemeMetadataEditor,
+)
 from .helpers import (
     ThemePreview,
     ThemeSettings,
@@ -112,4 +137,17 @@ __all__ = [
     # Theme switching dialogs
     "ThemePickerDialog",
     "ThemeSettingsWidget",
+
+    # Theme editor (Phase 1-5)
+    "ThemeEditorDialog",
+    "ThemeEditorWidget",
+    "TokenBrowserWidget",
+    "ColorEditorWidget",
+    "FontEditorWidget",
+    "ThemePreviewWidget",
+    "PreviewSampleGenerator",
+    "ValidationPanel",
+    "ThemeImportDialog",
+    "ThemeExportDialog",
+    "ThemeMetadataEditor",
 ]
