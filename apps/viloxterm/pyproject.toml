@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viloxterm"
+version = "1.0.0"
+description = "Modern terminal emulator showcasing VFWidgets integration"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Vilosource", email = "vilosource@viloforge.com"}
+]
+
+dependencies = [
+    "PySide6>=6.9.0",
+    "vfwidgets-theme-system",
+    "chrome-tabbed-window",
+    "vfwidgets-multisplit",
+    "vfwidgets-terminal",
+    "vfwidgets-keybinding",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "ruff>=0.0.250",
+    "mypy>=0.990",
+]
+
+[project.scripts]
+viloxterm = "viloxterm.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
