@@ -455,6 +455,66 @@ app.set_theme(theme.name)
 
 **Target Release:** Q3 2025 (Delivered early!)
 
+### Phase 2.5: Visual Theme Editor ✅ COMPLETED (v2.0.0)
+
+**Goal:** Provide visual theme creation and editing capabilities.
+
+**Status:** ✅ COMPLETED (Phases 1-5 implemented)
+
+**Release:** v2.0.0 (2025-10-04)
+
+#### Implemented Components:
+
+**Phase 1: Token Browser**
+- Tree-based navigation of 200 tokens
+- Category organization (Button, Input, Editor, etc.)
+- Search and filtering
+- Token selection and editing
+
+**Phase 2: Visual Editors**
+- ColorEditorWidget with hex/rgb/rgba format conversion
+- FontEditorWidget with visual font selection (future)
+- Live token value editing
+
+**Phase 3: Live Preview**
+- Real-time preview panel with sample widgets
+- Debounced updates (300ms) for performance
+- Comprehensive widget coverage
+
+**Phase 4: Validation**
+- WCAG accessibility contrast checking
+- AA/AAA compliance badges
+- Auto-fix suggestions
+- Token highlighting for issues
+
+**Phase 5: Import/Export**
+- JSON theme file support
+- Metadata editing (name, version, author, description)
+- Theme validation on import
+- Export with formatting
+
+**Integration Patterns:**
+```python
+# Standalone dialog
+from vfwidgets_theme.widgets import ThemeEditorDialog
+dialog = ThemeEditorDialog(base_theme="dark", mode="create")
+dialog.exec()
+
+# Embedded in settings
+from vfwidgets_theme.widgets import ThemeEditorWidget
+editor = ThemeEditorWidget(show_preview=True, show_validation=True)
+settings_layout.addWidget(editor)
+```
+
+**UI Optimizations:**
+- Compacted color selector (280px input width, 400px group width)
+- Live preview panel uses stretch factors to fill available space
+- Responsive layout for embedded use cases
+
+**Examples:**
+- Example 09: Standalone theme editor dialog
+- Example 10: Embedded theme editor in settings
+
 #### 2.1 Theme Inheritance ✅ IMPLEMENTED
 
 **Status:** ✅ COMPLETED - See [theme-customization-GUIDE.md > Theme Inheritance](theme-customization-GUIDE.md#theme-inheritance)

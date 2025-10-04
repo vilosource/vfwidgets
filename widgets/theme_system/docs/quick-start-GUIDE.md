@@ -310,15 +310,19 @@ code_editor.setPlainText("def hello():\n    print('Hello!')")
 ```bash
 cd examples/
 
-# Basic examples
-python 01_hello_world.py          # Simplest possible
-python 02_buttons_and_layout.py   # Multiple widgets
-python 03_theme_switching.py      # Dynamic themes
+# Basic examples (01-05)
+python 01_hello_world.py           # Simplest themed application
+python 02_widgets_and_layouts.py   # Multiple widgets with automatic theming
+python 03_theme_switching.py       # Dynamic theme changes
+python 04_role_markers.py          # Semantic styling with roles
+python 05_custom_widgets.py        # ThemedWidget mixin introduction
 
-# Advanced examples
-python 04_input_forms.py          # Forms and dialogs
-python 05_vscode_editor.py        # Production-quality app
-python 06_role_markers.py         # Role marker demo
+# Advanced examples (06-10)
+python 06_production_app.py        # Complete production-quality editor
+python 07_theme_helpers.py         # One-liner helper utilities
+python 08_custom_themes.py         # Programmatic theme creation
+python 09_theme_editor_dialog.py   # Visual theme editor dialog
+python 10_embedded_theme_editor.py # Embedding theme editor in settings
 ```
 
 ### 2. Build Custom Widgets

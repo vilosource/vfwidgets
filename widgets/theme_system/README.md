@@ -2,7 +2,7 @@
 
 **Professional theme management for PySide6/Qt applications - Zero configuration, maximum flexibility**
 
-[![Version](https://img.shields.io/badge/version-2.0.0--rc1-blue.svg)](https://github.com/yourusername/vfwidgets)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/yourusername/vfwidgets)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PySide6](https://img.shields.io/badge/PySide6-6.0+-green.svg)](https://pypi.org/project/PySide6/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -12,11 +12,12 @@
 ## ✨ What's New in 2.0
 
 🎯 **Zero Configuration** - All child widgets themed automatically
-🎨 **197 Tokens** - Comprehensive coverage of all UI elements
+🎨 **200 Tokens** - Comprehensive coverage of all UI elements
 🚀 **5 Built-in Themes** - vscode, dark, light, default, minimal
 🔥 **Role Markers** - Semantic styling (danger, success, warning, editor)
+🎛️ **Visual Theme Editor** - Create and edit themes with live preview
 📦 **100% Coverage** - Every Qt widget type supported
-⚡ **Production Ready** - 36 unit tests, all examples working
+⚡ **Production Ready** - 36 unit tests, 10 progressive examples
 
 ---
 
@@ -138,7 +139,7 @@ Switch themes dynamically:
 app.set_theme("light")  # All widgets update automatically!
 ```
 
-### 📊 197 Theme Tokens
+### 📊 200 Theme Tokens
 
 Complete control over every visual aspect:
 
@@ -146,6 +147,28 @@ Complete control over every visual aspect:
 - **14 font tokens** - Separate UI and editor fonts
 - **14 categories** - Organized by widget type
 - **Smart defaults** - Missing tokens fall back intelligently
+
+### 🎛️ Visual Theme Editor
+
+Create and customize themes visually with the integrated theme editor:
+
+- **Token Browser** - Navigate 200 tokens organized by category
+- **Color Picker** - Visual color selection with hex/rgb/rgba formats
+- **Live Preview** - Real-time preview with sample widgets
+- **Validation** - WCAG accessibility contrast checking
+- **Import/Export** - JSON theme file support
+
+```python
+from vfwidgets_theme.widgets import ThemeEditorDialog
+
+# Standalone dialog
+dialog = ThemeEditorDialog(base_theme="dark", mode="create")
+dialog.exec()
+
+# Or embed in settings
+from vfwidgets_theme.widgets import ThemeEditorWidget
+editor = ThemeEditorWidget(show_preview=True, show_validation=True)
+```
 
 ---
 

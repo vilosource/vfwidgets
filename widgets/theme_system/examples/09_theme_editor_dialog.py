@@ -28,6 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGroupBox,
     QLabel,
@@ -129,7 +130,7 @@ class ThemeEditorDemo(ThemedMainWindow):
             "💡 The theme editor is a complete visual tool for theme customization.\n"
             "Create professional themes without touching a single line of code!"
         )
-        info.setAlignment(alignment=None)
+        info.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info.setWordWrap(True)
         info.setStyleSheet("font-size: 11px; color: #888; padding: 10px;")
         layout.addWidget(info)

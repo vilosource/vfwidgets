@@ -98,9 +98,9 @@ class HelpersDemo(ThemedMainWindow):
         add_theme_toolbar(self)
 
         # 3. Add keyboard shortcuts
-        shortcuts = ThemeShortcuts(self)
+        ThemeShortcuts(self)
 
-        # Customize shortcuts if desired
+        # Shortcuts are automatically active
         # shortcuts.set_theme_1_shortcut("Ctrl+Shift+1")
         # shortcuts.set_cycle_themes_shortcut("F9")
 

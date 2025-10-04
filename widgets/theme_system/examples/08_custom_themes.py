@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
 )
 
 from vfwidgets_theme import ThemedApplication, ThemedMainWindow, ThemedQWidget
-from vfwidgets_theme.core.theme import ThemeBuilder, ThemeComposer
+from vfwidgets_theme.core.theme import ThemeBuilder
 
 
 class CustomThemesDemo(ThemedMainWindow):

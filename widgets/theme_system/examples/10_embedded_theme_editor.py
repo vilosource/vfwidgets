@@ -27,7 +27,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from PySide6.QtWidgets import (
     QCheckBox,
     QDialogButtonBox,
-    QGroupBox,
     QLabel,
     QTabWidget,
     QVBoxLayout,
@@ -72,10 +71,7 @@ class PreferencesDialog(ThemedDialog):
         appearance_tab = ThemedQWidget()
         appearance_layout = QVBoxLayout(appearance_tab)
 
-        info = QLabel(
-            "Customize the application theme visually.\n"
-            "Changes preview in real-time!"
-        )
+        info = QLabel("Customize the application theme visually.\nChanges preview in real-time!")
         info.setWordWrap(True)
         info.setStyleSheet("padding: 10px;")
         appearance_layout.addWidget(info)
@@ -110,9 +106,7 @@ class PreferencesDialog(ThemedDialog):
         )
         button_box.accepted.connect(self.on_accept)
         button_box.rejected.connect(self.reject)
-        button_box.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(
-            self.on_apply
-        )
+        button_box.button(QDialogButtonBox.StandardButton.Apply).clicked.connect(self.on_apply)
         layout.addWidget(button_box)
 
     def on_apply(self):
