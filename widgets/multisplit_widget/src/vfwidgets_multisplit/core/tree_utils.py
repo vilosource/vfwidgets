@@ -3,14 +3,14 @@
 Core tree operations and validation functions.
 """
 
-from typing import List, Optional
+from typing import Optional
 
 from .nodes import LeafNode, PaneNode, SplitNode
 from .types import NodeId, PaneId
 from .visitor import NodeVisitor
 
 
-def normalize_ratios(ratios: List[float]) -> List[float]:
+def normalize_ratios(ratios: list[float]) -> list[float]:
     """Normalize ratios to sum to 1.0.
 
     Note: This function was moved from types.py
@@ -22,7 +22,7 @@ def normalize_ratios(ratios: List[float]) -> List[float]:
     return [r / total for r in ratios]
 
 
-def validate_ratios(ratios: List[float], tolerance: float = 0.001) -> bool:
+def validate_ratios(ratios: list[float], tolerance: float = 0.001) -> bool:
     """Check if ratios are valid (sum to 1.0 within tolerance).
 
     Args:
@@ -90,7 +90,7 @@ class LeafCollector(NodeVisitor):
 
     def __init__(self):
         """Initialize collector."""
-        self.leaves: List[LeafNode] = []
+        self.leaves: list[LeafNode] = []
 
     def visit_leaf(self, node: LeafNode) -> None:
         """Add leaf to collection."""
@@ -102,7 +102,7 @@ class LeafCollector(NodeVisitor):
             child.accept(self)
 
 
-def get_all_leaves(root: PaneNode) -> List[LeafNode]:
+def get_all_leaves(root: PaneNode) -> list[LeafNode]:
     """Get all leaf nodes in tree.
 
     Args:
@@ -149,7 +149,7 @@ class StructureValidator(NodeVisitor):
     def __init__(self):
         """Initialize validator."""
         self.is_valid = True
-        self.errors: List[str] = []
+        self.errors: list[str] = []
 
     def visit_leaf(self, node: LeafNode) -> None:
         """Validate leaf node."""
@@ -180,7 +180,7 @@ class StructureValidator(NodeVisitor):
             child.accept(self)
 
 
-def validate_tree_structure(root: PaneNode) -> tuple[bool, List[str]]:
+def validate_tree_structure(root: PaneNode) -> tuple[bool, list[str]]:
     """Validate tree structure invariants.
 
     Args:

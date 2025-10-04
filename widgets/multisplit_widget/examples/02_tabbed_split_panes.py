@@ -47,9 +47,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from vfwidgets_multisplit import MultisplitWidget
-from vfwidgets_multisplit.core.types import WherePosition
-from vfwidgets_multisplit.view.container import WidgetProvider
+from vfwidgets_multisplit import MultisplitWidget, WherePosition, WidgetProvider
 
 
 class CustomTab(QWidget):
@@ -388,16 +386,10 @@ class TabbedSplitProvider(WidgetProvider):
         """Get pane widget by ID."""
         return self.panes.get(pane_id)
 
-    def widget_closing(self, widget_id: str, widget: QWidget) -> None:
-        """Handle widget closing."""
-        # Find pane by widget
-        pane_id = None
-        for pid, pane in self.panes.items():
-            if pane == widget:
-                pane_id = pid
-                break
-
-        if pane_id:
+    def widget_closing(self, widget_id: str, pane_id: str, widget: QWidget) -> None:
+        """Handle widget closing - called before pane removal."""
+        # Clean up pane tracking
+        if pane_id in self.panes:
             del self.panes[pane_id]
 
 
@@ -423,7 +415,7 @@ class TabbedSplitWindow(QMainWindow):
         self.setup_statusbar()
 
         # Connect signals
-        self.multisplit.pane_focused.connect(self.on_pane_focused)
+        self.multisplit.focus_changed.connect(self.on_focus_changed)
         self.multisplit.pane_added.connect(self.on_pane_added)
         self.multisplit.pane_removed.connect(self.on_pane_removed)
 
@@ -581,12 +573,14 @@ class TabbedSplitWindow(QMainWindow):
             print(f"  Pane {pane_id}: {pane.tab_container.count()} tabs")
         print("=========================\n")
 
-    def on_pane_focused(self, pane_id: str):
+    def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
         """Handle pane focus change."""
-        pane_widget = self.provider.get_pane_widget(pane_id)
+        if not new_pane_id:
+            return
+        pane_widget = self.provider.get_pane_widget(new_pane_id)
         if pane_widget:
             tab_count = pane_widget.tab_container.count()
-            self.statusbar.showMessage(f"Focus: {pane_id[:8]}... ({tab_count} tabs)", 2000)
+            self.statusbar.showMessage(f"Focus: {new_pane_id[:8]}... ({tab_count} tabs)", 2000)
 
     def on_tab_focused(self, pane_id: str, tab_id: str):
         """Handle tab focus within pane."""

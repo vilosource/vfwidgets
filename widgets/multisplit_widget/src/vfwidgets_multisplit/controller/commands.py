@@ -5,7 +5,7 @@ All model mutations go through commands for undo/redo support.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ..core.logger import log_split_operation, log_tree_structure, logger
 from ..core.model import PaneModel
@@ -27,7 +27,7 @@ class Command(ABC):
         """Initialize command with model reference."""
         self.model = model
         self.executed = False
-        self._state_before: Optional[Dict[str, Any]] = None
+        self._state_before: Optional[dict[str, Any]] = None
 
     @abstractmethod
     def execute(self) -> bool:
@@ -390,14 +390,14 @@ class SetRatiosCommand(Command):
     """Command to set split ratios."""
 
     node_id: NodeId
-    ratios: List[float]
+    ratios: list[float]
 
-    def __init__(self, model: PaneModel, node_id: NodeId, ratios: List[float]):
+    def __init__(self, model: PaneModel, node_id: NodeId, ratios: list[float]):
         """Initialize set ratios command."""
         super().__init__(model)
         self.node_id = node_id
         self.ratios = ratios
-        self._old_ratios: Optional[List[float]] = None
+        self._old_ratios: Optional[list[float]] = None
 
     def execute(self) -> bool:
         """Set the ratios."""

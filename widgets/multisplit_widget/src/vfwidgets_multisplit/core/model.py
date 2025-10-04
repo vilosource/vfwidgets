@@ -5,7 +5,7 @@ Manages tree state and emits signals for changes.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from .nodes import LeafNode, PaneNode, SplitNode
 from .signals import ModelSignals
@@ -26,7 +26,7 @@ class PaneModel:
     signals: ModelSignals = field(default_factory=ModelSignals)
 
     # Internal state
-    _pane_registry: Dict[PaneId, PaneNode] = field(default_factory=dict)
+    _pane_registry: dict[PaneId, PaneNode] = field(default_factory=dict)
 
     def __post_init__(self):
         """Initialize model state."""
@@ -47,7 +47,7 @@ class PaneModel:
         """Get pane by ID."""
         return self._pane_registry.get(pane_id)
 
-    def get_all_pane_ids(self) -> List[PaneId]:
+    def get_all_pane_ids(self) -> list[PaneId]:
         """Get all pane IDs."""
         return list(self._pane_registry.keys())
 
@@ -83,14 +83,14 @@ class PaneModel:
             return self.set_focused_pane(pane_ids[0])
         return False
 
-    def validate(self) -> tuple[bool, List[str]]:
+    def validate(self) -> tuple[bool, list[str]]:
         """Validate model state."""
         if not self.root:
             return True, []  # Empty is valid
 
         return validate_tree_structure(self.root)
 
-    def to_dict(self, include_metadata: bool = True) -> Dict[str, Any]:
+    def to_dict(self, include_metadata: bool = True) -> dict[str, Any]:
         """Serialize model to dictionary.
 
         Args:
@@ -99,7 +99,7 @@ class PaneModel:
         Returns:
             Serialized model state
         """
-        def node_to_dict(node: PaneNode) -> Dict[str, Any]:
+        def node_to_dict(node: PaneNode) -> dict[str, Any]:
             if isinstance(node, LeafNode):
                 return {
                     'type': 'leaf',
@@ -134,7 +134,7 @@ class PaneModel:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PaneModel':
+    def from_dict(cls, data: dict[str, Any]) -> 'PaneModel':
         """Deserialize model from dictionary.
 
         Args:
@@ -150,7 +150,7 @@ class PaneModel:
         if version.split('.')[0] != '1':
             raise ValueError(f"Incompatible version: {version}")
 
-        def dict_to_node(node_dict: Dict[str, Any]) -> Optional[PaneNode]:
+        def dict_to_node(node_dict: dict[str, Any]) -> Optional[PaneNode]:
             if not node_dict:
                 return None
 

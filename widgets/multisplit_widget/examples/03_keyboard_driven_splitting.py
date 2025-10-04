@@ -53,9 +53,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from vfwidgets_multisplit import MultisplitWidget
-from vfwidgets_multisplit.core.types import WherePosition
-from vfwidgets_multisplit.view.container import WidgetProvider
+from vfwidgets_multisplit import MultisplitWidget, WherePosition, WidgetProvider
 
 
 class Mode(Enum):
@@ -218,7 +216,16 @@ class KeyboardPaneWidget(QWidget):
 
         # Setup layout
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(2, 2, 2, 2)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Set initial border style (unfocused)
+        self.setStyleSheet("""
+            QWidget {
+                border: 2px solid #e0e0e0;
+                background-color: white;
+            }
+        """)
 
         # Header with status
         self.header = QFrame()
@@ -244,23 +251,42 @@ class KeyboardPaneWidget(QWidget):
         layout.addWidget(self.editor, 1)
 
     def update_header_style(self, focused: bool):
-        """Update header style based on focus."""
+        """Update header and border style based on focus."""
+        print(f"[STYLE] Updating {self.pane_id[:8]} focused={focused}")
         if focused:
+            # Blue border around entire pane (using QWidget since class selector doesn't work)
+            self.setStyleSheet("""
+                QWidget {
+                    border: 4px solid #0078d4;
+                    background-color: white;
+                }
+            """)
+            # Green header
             self.header.setStyleSheet("""
                 QFrame {
                     background-color: #4CAF50;
-                    border: 2px solid #45a049;
+                    border: none;
                     padding: 2px;
                 }
             """)
+            print(f"[STYLE] Applied BLUE border to {self.pane_id[:8]}")
         else:
+            # Light gray border when unfocused (visible but subtle)
+            self.setStyleSheet("""
+                QWidget {
+                    border: 2px solid #e0e0e0;
+                    background-color: white;
+                }
+            """)
+            # Gray header
             self.header.setStyleSheet("""
                 QFrame {
                     background-color: #f0f0f0;
-                    border: 1px solid #ccc;
+                    border: none;
                     padding: 2px;
                 }
             """)
+            print(f"[STYLE] Applied GRAY border to {self.pane_id[:8]}")
 
     def set_mode(self, mode: Mode):
         """Set current mode."""
@@ -303,17 +329,16 @@ class KeyboardProvider(WidgetProvider):
         self.document_counter += 1
         return f"doc-{self.document_counter}"
 
-    def widget_closing(self, widget_id: str, widget: QWidget) -> None:
-        """Handle widget closing."""
-        # Find and remove pane
-        pane_id = None
-        for pid, pane in self.panes.items():
-            if pane == widget:
-                pane_id = pid
-                break
+    def widget_closing(self, widget_id: str, pane_id: str, widget: QWidget) -> None:
+        """Handle widget closing - lifecycle hook called before pane removal."""
+        print(f"[LIFECYCLE] widget_closing() called for {widget_id} in pane {pane_id[:8]}")
 
-        if pane_id:
+        # Clean up from tracking dictionary
+        if pane_id in self.panes:
+            print(f"[PROVIDER] Removing pane {pane_id[:8]} from provider tracking")
             del self.panes[pane_id]
+        else:
+            print(f"[PROVIDER] Warning: Pane {pane_id[:8]} not found in provider tracking")
 
 
 class GlobalKeyHandler(QObject):
@@ -378,7 +403,9 @@ class KeyboardDrivenWindow(QMainWindow):
         # Connect signals
         self.key_handler.command_mode_requested.connect(self.enter_command_mode)
         self.key_handler.command_palette_requested.connect(self.show_command_palette)
-        self.multisplit.pane_focused.connect(self.on_pane_focused)
+
+        # Connect to public focus_changed signal
+        self.multisplit.focus_changed.connect(self.on_focus_changed)
 
         # Setup UI
         self.setup_statusbar()
@@ -439,9 +466,21 @@ class KeyboardDrivenWindow(QMainWindow):
 
     def connect_pane_signals(self):
         """Connect signals from pane editors."""
-        for pane_widget in self.provider.panes.values():
-            if hasattr(pane_widget, "editor"):
-                pane_widget.editor.focus_navigation_requested.connect(self.navigate_focus)
+        for pid, pane_widget in list(self.provider.panes.items()):
+            try:
+                if hasattr(pane_widget, "editor"):
+                    # Disconnect first to avoid duplicate connections
+                    try:
+                        pane_widget.editor.focus_navigation_requested.disconnect(self.navigate_focus)
+                    except:
+                        pass  # Not connected yet
+
+                    # Connect
+                    pane_widget.editor.focus_navigation_requested.connect(self.navigate_focus)
+            except RuntimeError as e:
+                # Widget was deleted, skip it
+                print(f"[SIGNALS] Skipping deleted widget {pid[:8]}: {e}")
+                continue
 
     def enter_command_mode(self):
         """Enter command mode."""
@@ -664,11 +703,23 @@ class KeyboardDrivenWindow(QMainWindow):
 
         self.statusbar.showMessage(msg)
 
-    def on_pane_focused(self, pane_id: str):
-        """Handle pane focus change."""
+    def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
+        """Handle focus change event."""
+        old_display = old_pane_id[:8] if old_pane_id else "None"
+        new_display = new_pane_id[:8] if new_pane_id else "None"
+        print(f"[FOCUS] Focus changed: {old_display} -> {new_display}")
+
         # Update visual focus indicators
-        for pid, pane_widget in self.provider.panes.items():
-            pane_widget.update_header_style(pid == pane_id)
+        # Note: Deleted panes are automatically cleaned up via widget_closing() lifecycle hook
+        for pid, pane_widget in list(self.provider.panes.items()):
+            try:
+                is_focused = (pid == new_pane_id)
+                print(f"[FOCUS] Setting {pid[:8]} focused={is_focused}")
+                pane_widget.update_header_style(is_focused)
+            except RuntimeError as e:
+                # Widget was deleted, skip it
+                print(f"[FOCUS] Skipping deleted widget {pid[:8]}: {e}")
+                continue
 
         self.update_status_message()
 

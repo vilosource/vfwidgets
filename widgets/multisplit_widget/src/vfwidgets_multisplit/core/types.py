@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import NewType, Optional
+from typing import NewType
 
 # Type aliases
 PaneId = NewType('PaneId', str)
@@ -32,7 +32,7 @@ class WherePosition(str, Enum):
     BEFORE = "before"  # Insert before target (same parent)
     AFTER = "after"    # Insert after target (same parent)
 
-    def to_orientation(self) -> Optional[Orientation]:
+    def to_orientation(self) -> Orientation | None:
         """Convert position to split orientation."""
         if self in (WherePosition.LEFT, WherePosition.RIGHT):
             return Orientation.HORIZONTAL
@@ -145,8 +145,8 @@ class SizeConstraints:
     """Size constraints for panes."""
     min_width: int = 50
     min_height: int = 50
-    max_width: Optional[int] = None
-    max_height: Optional[int] = None
+    max_width: int | None = None
+    max_height: int | None = None
 
     def __post_init__(self):
         """Validate constraints."""
@@ -217,3 +217,161 @@ class Bounds:
                    other.right <= self.x or
                    self.bottom <= other.y or
                    other.bottom <= self.y)
+
+
+@dataclass(frozen=True)
+class SplitterStyle:
+    """Configuration for splitter appearance.
+
+    This dataclass controls the visual styling of split pane dividers.
+    All settings are optional with sensible defaults for comfortable use.
+
+    Preset Styles:
+        - minimal(): 1px handles, no margins (terminal emulators)
+        - compact(): 3px handles, 1px margins (compact layouts)
+        - comfortable(): 6px handles, 2px margins (default, easy to grab)
+
+    Example - Minimal style:
+        >>> style = SplitterStyle.minimal()
+        >>> multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+
+    Example - Custom colors:
+        >>> style = SplitterStyle(
+        ...     handle_width=2,
+        ...     handle_bg="#1e1e1e",
+        ...     handle_hover_bg="#007acc"
+        ... )
+    """
+
+    # Dimensions
+    handle_width: int = 6
+    """Width of splitter handle in pixels (default: 6)."""
+
+    handle_margin_horizontal: int = 2
+    """Top/bottom margin for horizontal handles in pixels (default: 2)."""
+
+    handle_margin_vertical: int = 2
+    """Left/right margin for vertical handles in pixels (default: 2)."""
+
+    # Colors (optional - defaults to theme if None)
+    handle_bg: str | None = None
+    """Background color for handle (default: uses theme 'widget.background')."""
+
+    handle_hover_bg: str | None = None
+    """Hover background color (default: uses theme 'list.hoverBackground')."""
+
+    handle_border: str | None = None
+    """Border color (default: transparent)."""
+
+    handle_hover_border: str | None = None
+    """Border color on hover (default: uses theme 'widget.border' if show_hover_effect)."""
+
+    # Border styles
+    border_width: int = 1
+    """Border width in pixels (default: 1)."""
+
+    border_radius: int = 0
+    """Corner radius for handle in pixels (default: 0, square corners)."""
+
+    # Hover behavior
+    show_hover_effect: bool = True
+    """Enable/disable hover highlighting (default: True)."""
+
+    cursor_on_hover: bool = True
+    """Change cursor to resize arrows on hover (default: True)."""
+
+    def __post_init__(self):
+        """Validate splitter style values."""
+        if self.handle_width < 0:
+            raise ValueError(f"handle_width must be non-negative: {self.handle_width}")
+        if self.handle_margin_horizontal < 0:
+            raise ValueError(f"handle_margin_horizontal must be non-negative: {self.handle_margin_horizontal}")
+        if self.handle_margin_vertical < 0:
+            raise ValueError(f"handle_margin_vertical must be non-negative: {self.handle_margin_vertical}")
+        if self.border_width < 0:
+            raise ValueError(f"border_width must be non-negative: {self.border_width}")
+        if self.border_radius < 0:
+            raise ValueError(f"border_radius must be non-negative: {self.border_radius}")
+
+    @classmethod
+    def minimal(cls) -> SplitterStyle:
+        """Minimal style for terminal emulators.
+
+        Returns 1px handles with no margins for a clean, minimal appearance.
+        Ideal for terminal emulators and applications where space is critical.
+
+        Total visual width: 1px
+
+        Returns:
+            SplitterStyle with minimal dimensions
+        """
+        return cls(
+            handle_width=1,
+            handle_margin_horizontal=0,
+            handle_margin_vertical=0,
+            border_width=0
+        )
+
+    @classmethod
+    def compact(cls) -> SplitterStyle:
+        """Compact style for space-efficient layouts.
+
+        Returns 3px handles with 1px margins for a compact appearance
+        while still being easy to grab.
+
+        Total visual width: 5px (3px + 1px margin each side)
+
+        Returns:
+            SplitterStyle with compact dimensions
+        """
+        return cls(
+            handle_width=3,
+            handle_margin_horizontal=1,
+            handle_margin_vertical=1,
+            border_width=1
+        )
+
+    @classmethod
+    def comfortable(cls) -> SplitterStyle:
+        """Comfortable style - current default.
+
+        Returns 6px handles with 2px margins for comfortable grabbing.
+        This is the default style used when no style is specified.
+
+        Total visual width: 10px (6px + 2px margin each side)
+
+        Returns:
+            SplitterStyle with comfortable dimensions
+        """
+        return cls(
+            handle_width=6,
+            handle_margin_horizontal=2,
+            handle_margin_vertical=2,
+            border_width=1
+        )
+
+
+__all__ = [
+    # Type aliases
+    "PaneId",
+    "NodeId",
+    "WidgetId",
+    # Enums
+    "Orientation",
+    "WherePosition",
+    "Direction",
+    # Exceptions
+    "PaneError",
+    "PaneNotFoundError",
+    "InvalidStructureError",
+    "InvalidRatioError",
+    "WidgetProviderError",
+    "CommandExecutionError",
+    # Data classes
+    "Size",
+    "Position",
+    "Rect",
+    "SizeConstraints",
+    "Bounds",
+    "SplitterStyle",
+]

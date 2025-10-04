@@ -53,7 +53,7 @@ def test_widget_public_api(widget):
     assert len(widget.get_pane_ids()) == 2
 
     # Test focus operations
-    first_pane = widget.get_pane_ids()[0]
+    widget.get_pane_ids()[0]
     second_pane = widget.get_pane_ids()[1]
 
     # Focus the second pane (the newly created one)

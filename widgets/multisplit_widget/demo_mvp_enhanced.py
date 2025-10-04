@@ -774,7 +774,7 @@ class EnhancedDemoWindow(QMainWindow):
         self.pane_label.setText(f"Panes: {len(panes)}")
 
         # Widget count
-        total_widgets = (self.provider.editor_count +
+        (self.provider.editor_count +
                         self.provider.terminal_count +
                         self.provider.widget_count)
         self.widget_label.setText(f"Editors: {self.provider.editor_count}, "

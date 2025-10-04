@@ -4,7 +4,7 @@ This module provides the connection between pure Python
 signals in the Model layer and Qt signals in the View layer.
 """
 
-from typing import Any, List, Protocol, Tuple
+from typing import Any, Protocol
 
 from ..core.signals import AbstractSignal
 
@@ -30,7 +30,7 @@ class SignalBridge:
 
     def __init__(self):
         """Initialize bridge with empty connections."""
-        self._bridges: List[Tuple[AbstractSignal, QtSignalProtocol, Any]] = []
+        self._bridges: list[tuple[AbstractSignal, QtSignalProtocol, Any]] = []
 
     def bridge_to_qt(self, abstract_signal: AbstractSignal,
                      qt_signal: QtSignalProtocol) -> None:

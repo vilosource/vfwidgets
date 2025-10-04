@@ -5,7 +5,7 @@ enable efficient UI updates without full rebuilds.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Set
+from typing import Any, Optional
 
 from ..core.nodes import LeafNode, PaneNode, SplitNode
 from ..core.types import PaneId
@@ -15,10 +15,10 @@ from ..core.visitor import NodeVisitor
 @dataclass
 class DiffResult:
     """Result of tree diff operation."""
-    removed: Set[PaneId] = field(default_factory=set)
-    added: Set[PaneId] = field(default_factory=set)
-    moved: Set[PaneId] = field(default_factory=set)
-    modified: Set[PaneId] = field(default_factory=set)
+    removed: set[PaneId] = field(default_factory=set)
+    added: set[PaneId] = field(default_factory=set)
+    moved: set[PaneId] = field(default_factory=set)
+    modified: set[PaneId] = field(default_factory=set)
 
     def has_changes(self) -> bool:
         """Check if any changes exist.
@@ -43,7 +43,7 @@ class NodeCollector(NodeVisitor):
 
     def __init__(self):
         """Initialize collector."""
-        self.nodes: Dict[PaneId, Dict[str, Any]] = {}
+        self.nodes: dict[PaneId, dict[str, Any]] = {}
 
     def visit_leaf(self, node: LeafNode) -> None:
         """Collect leaf node information."""

@@ -4,7 +4,6 @@ Provides real-time constraint checking and validation.
 """
 
 from dataclasses import dataclass
-from typing import List
 
 from .model import PaneModel
 from .tree_utils import validate_tree_structure
@@ -16,8 +15,8 @@ class ValidationResult:
     """Result of validation check."""
 
     is_valid: bool
-    errors: List[str]
-    warnings: List[str]
+    errors: list[str]
+    warnings: list[str]
 
     def add_error(self, message: str):
         """Add error message."""
@@ -111,7 +110,7 @@ class OperationValidator:
 
         return result
 
-    def validate_ratios(self, node_id: str, ratios: List[float]) -> ValidationResult:
+    def validate_ratios(self, node_id: str, ratios: list[float]) -> ValidationResult:
         """Validate ratio adjustment.
 
         Args:

@@ -141,7 +141,7 @@ class TestPhase1Integration(unittest.TestCase):
 
         controller.split_pane(PaneId("main"), WidgetId("terminal"), WherePosition.BOTTOM, 0.3)
         pane_ids = model.get_all_pane_ids()
-        terminal_id = next(pid for pid in pane_ids if pid != PaneId("main"))
+        next(pid for pid in pane_ids if pid != PaneId("main"))
 
         controller.split_pane(PaneId("main"), WidgetId("sidebar"), WherePosition.LEFT, 0.2)
 

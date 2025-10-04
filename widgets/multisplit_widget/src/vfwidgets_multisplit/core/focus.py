@@ -4,7 +4,7 @@ Handles focus chain calculation and navigation.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 from .model import PaneModel
 from .nodes import LeafNode, SplitNode
@@ -17,7 +17,7 @@ class FocusManager:
     """Manages focus chain and navigation."""
 
     model: PaneModel
-    _focus_order_cache: Optional[List[PaneId]] = field(default=None, init=False)
+    _focus_order_cache: Optional[list[PaneId]] = field(default=None, init=False)
     _cache_valid: bool = field(default=False, init=False)
 
     def __post_init__(self):
@@ -31,7 +31,7 @@ class FocusManager:
         self._cache_valid = False
         self._focus_order_cache = None
 
-    def get_focus_order(self) -> List[PaneId]:
+    def get_focus_order(self) -> list[PaneId]:
         """Get panes in focus traversal order.
 
         Returns:
@@ -120,7 +120,7 @@ class FocusOrderVisitor(NodeVisitor):
 
     def __init__(self):
         """Initialize visitor."""
-        self.pane_order: List[PaneId] = []
+        self.pane_order: list[PaneId] = []
 
     def visit_leaf(self, node: LeafNode):
         """Add leaf to focus order."""

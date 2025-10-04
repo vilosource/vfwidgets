@@ -3,7 +3,6 @@
 Calculates exact pixel positions for all panes from tree structure.
 """
 
-from typing import Dict, List
 
 from .nodes import LeafNode, PaneNode, SplitNode
 from .types import Bounds, Orientation, PaneId
@@ -21,7 +20,7 @@ class GeometryCalculator:
         self.divider_width = divider_width
 
     def calculate_layout(self, root: PaneNode, bounds: Bounds,
-                        divider_width: int = 6) -> Dict[PaneId, Bounds]:
+                        divider_width: int = 6) -> dict[PaneId, Bounds]:
         """Calculate pixel-perfect layout with constraint enforcement.
 
         Args:
@@ -43,7 +42,7 @@ class GeometryCalculator:
 
         return result
 
-    def calculate(self, root: PaneNode, container_bounds: Bounds) -> Dict[PaneId, Bounds]:
+    def calculate(self, root: PaneNode, container_bounds: Bounds) -> dict[PaneId, Bounds]:
         """Calculate all pane positions within container bounds.
 
         Args:
@@ -61,12 +60,12 @@ class GeometryCalculator:
         return result
 
     def _calculate_node_bounds(self, node: PaneNode, bounds: Bounds,
-                             result: Dict[PaneId, Bounds]):
+                             result: dict[PaneId, Bounds]):
         """Calculate bounds for nodes (alias for _calculate_recursive)."""
         self._calculate_recursive(node, bounds, result)
 
     def _apply_constraints(self, node: PaneNode,
-                          layout: Dict[PaneId, Bounds]):
+                          layout: dict[PaneId, Bounds]):
         """Apply size constraints to layout.
 
         Args:
@@ -97,7 +96,7 @@ class GeometryCalculator:
             self._propagate_constraints(node, layout)
 
     def _propagate_constraints(self, split_node: SplitNode,
-                              layout: Dict[PaneId, Bounds]):
+                              layout: dict[PaneId, Bounds]):
         """Propagate constraints through split node.
 
         Args:
@@ -145,7 +144,7 @@ class GeometryCalculator:
         return 50  # Default minimum
 
     def _calculate_recursive(self, node: PaneNode, bounds: Bounds,
-                           result: Dict[PaneId, Bounds]):
+                           result: dict[PaneId, Bounds]):
         """Recursively calculate bounds for tree nodes.
 
         Args:
@@ -171,7 +170,7 @@ class GeometryCalculator:
                 self._calculate_recursive(child, child_bound, result)
 
     def _split_bounds(self, bounds: Bounds, orientation: Orientation,
-                     ratios: List[float], child_count: int) -> List[Bounds]:
+                     ratios: list[float], child_count: int) -> list[Bounds]:
         """Split bounds according to orientation and ratios.
 
         Args:
@@ -197,8 +196,8 @@ class GeometryCalculator:
         else:
             return self._split_vertical(bounds, ratios, total_divider_space)
 
-    def _split_horizontal(self, bounds: Bounds, ratios: List[float],
-                         divider_space: int) -> List[Bounds]:
+    def _split_horizontal(self, bounds: Bounds, ratios: list[float],
+                         divider_space: int) -> list[Bounds]:
         """Split bounds horizontally.
 
         Args:
@@ -237,8 +236,8 @@ class GeometryCalculator:
 
         return child_bounds
 
-    def _split_vertical(self, bounds: Bounds, ratios: List[float],
-                       divider_space: int) -> List[Bounds]:
+    def _split_vertical(self, bounds: Bounds, ratios: list[float],
+                       divider_space: int) -> list[Bounds]:
         """Split bounds vertically.
 
         Args:
@@ -278,7 +277,7 @@ class GeometryCalculator:
         return child_bounds
 
     def calculate_divider_bounds(self, root: PaneNode,
-                                container_bounds: Bounds) -> List[Bounds]:
+                                container_bounds: Bounds) -> list[Bounds]:
         """Calculate bounds for all dividers in the tree.
 
         Args:
@@ -293,7 +292,7 @@ class GeometryCalculator:
         return dividers
 
     def _collect_divider_bounds(self, node: PaneNode, bounds: Bounds,
-                               dividers: List[Bounds]):
+                               dividers: list[Bounds]):
         """Collect divider bounds recursively.
 
         Args:

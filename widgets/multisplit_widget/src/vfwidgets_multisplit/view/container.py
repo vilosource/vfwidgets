@@ -3,10 +3,10 @@
 Qt widget that renders the pane tree.
 """
 
-from typing import Dict, Optional, Protocol
+from typing import Optional, Protocol
 
 from PySide6.QtCore import QEvent, Qt, Signal
-from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QSplitter, QWidget
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
@@ -17,10 +17,12 @@ except ImportError:
 
 from ..core.logger import log_widget_creation, logger
 from ..core.model import PaneModel
-from ..core.nodes import LeafNode, PaneNode, SplitNode
-from ..core.types import Direction, NodeId, PaneId, WidgetId
+from ..core.nodes import LeafNode, PaneNode
+from ..core.types import Direction, PaneId, WidgetId
+from ..view.geometry_manager import GeometryManager
 from ..view.tree_reconciler import ReconcilerOperations, TreeReconciler
-
+from ..view.visual_renderer import VisualRenderer
+from ..view.widget_pool import WidgetPool
 
 if THEME_AVAILABLE:
     class StyledSplitter(ThemedWidget, QSplitter):
@@ -38,6 +40,10 @@ if THEME_AVAILABLE:
             super().__init__(orientation=orientation, parent=parent)
             self.setChildrenCollapsible(False)
             self.setHandleWidth(6)  # Wider for easier grabbing
+
+            # Prevent white flash when splitter is created before children are added
+            from PySide6.QtCore import Qt
+            self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
 
             self._is_hovered = False
             self.on_theme_changed()  # Apply initial theme
@@ -110,6 +116,23 @@ class WidgetProvider(Protocol):
         """Provide widget for pane."""
         ...
 
+    def widget_closing(self, widget_id: WidgetId, pane_id: PaneId, widget: QWidget) -> None:
+        """
+        Called BEFORE a widget is removed from a pane.
+
+        This lifecycle hook allows providers to clean up resources, save state,
+        or perform any necessary teardown before the widget is destroyed.
+
+        Args:
+            widget_id: The widget ID that was used to create the widget
+            pane_id: The pane ID that contained the widget
+            widget: The widget instance being removed
+
+        Note:
+            This is an optional hook. If not implemented, no action is taken.
+        """
+        ...
+
 
 class PaneContainer(QWidget, ReconcilerOperations):
     """Qt container widget managing pane display."""
@@ -129,11 +152,18 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self.provider = provider
         self.reconciler = TreeReconciler()
 
-        # Widget tracking
-        self._widgets: Dict[PaneId, QWidget] = {}
-        self._splitters: Dict[str, QSplitter] = {}
-        self._current_tree: Optional[PaneNode] = None
-        self._focus_frames: Dict[PaneId, QWidget] = {}
+        self._current_tree: Optional[PaneNode] = None  # Needed for reconciliation
+
+        # Fixed Container Architecture (Layer 1-3)
+        self._widget_pool = WidgetPool(self)  # Layer 1: Fixed container
+        self._geometry_manager = GeometryManager()  # Layer 2: Pure calculation
+        self._visual_renderer = VisualRenderer(self._widget_pool)  # Layer 3: Geometry application
+
+        # Prevent white flash during layout rebuilds using Qt widget attributes
+        # WA_NoSystemBackground: Prevent Qt from erasing widget background (prevents white flash)
+        # This is the proper Qt way to prevent flashing when widgets aren't ready to paint yet
+        from PySide6.QtCore import Qt
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
 
         # Connect model signals
         logger.debug(f"Connecting to model signals: {self.model}")
@@ -206,172 +236,45 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self._current_tree = self.model.root.clone() if self.model.root else None
 
     def _rebuild_layout(self):
-        """Rebuild widget layout from model."""
+        """
+        Rebuild widget layout from model using Fixed Container Architecture.
+
+        NEW APPROACH (Geometry-Based):
+            - No widget tree building
+            - No splitter hierarchy
+            - No reparenting (except when first adding widgets to pool)
+            - Pure geometry calculations + setGeometry() updates
+
+        This eliminates white flashes by avoiding reparenting of QWebEngineView widgets.
+        """
+        logger.info("Rebuilding layout using geometry-based architecture")
+
         if not self.model.root:
-            # Clear everything
-            for widget in self._widgets.values():
-                widget.setParent(None)
+            # No panes - hide all widgets
+            self._visual_renderer.hide_all()
             return
 
-        # Build widget tree
-        root_widget = self._build_widget_tree(self.model.root)
+        # Calculate geometries from tree
+        viewport = self.rect()
+        geometries = self._geometry_manager.calculate_layout(self.model.root, viewport)
 
-        # Set as main widget
-        if self.layout():
-            # Clear old layout
-            old = self.layout().takeAt(0)
-            if old and old.widget():
-                old.widget().setParent(None)
-        else:
-            # Create layout
-            layout = QVBoxLayout(self)
-            layout.setContentsMargins(0, 0, 0, 0)
-            self.setLayout(layout)
+        logger.debug(f"Calculated geometries for {len(geometries)} panes")
+        for pane_id, geometry in geometries.items():
+            logger.debug(f"  {pane_id}: {geometry}")
 
-        if root_widget:
-            self.layout().addWidget(root_widget)
-
-    def _build_widget_tree(self, node: PaneNode) -> Optional[QWidget]:
-        """Build Qt widget tree from node tree."""
-        if isinstance(node, LeafNode):
-            # Check if we already have a frame container for this pane
-            if node.pane_id in self._focus_frames:
-                logger.debug(f"Reusing existing frame container for pane {node.pane_id}")
-                frame = self._focus_frames[node.pane_id]
-
-                # CRITICAL: Re-install comprehensive focus tracking when reusing frames
-                # They may have been lost during previous rebuilds
-                if not frame.property("event_filter_installed"):
-                    logger.debug(f"Reinstalling comprehensive focus tracking for pane {node.pane_id}")
-
-                    # Reinstall on frame
-                    self._install_recursive_filters(frame, node.pane_id)
-
-                    # Reinstall on child widget if it exists
-                    if frame.layout() and frame.layout().count() > 0:
-                        child_widget = frame.layout().itemAt(0).widget()
-                        if child_widget:
-                            self._install_recursive_filters(child_widget, node.pane_id)
-                            self._handle_complex_widget(child_widget, node.pane_id)
-
-                return frame
-
-            # Get or create widget
-            widget = None
-            if node.pane_id in self._widgets:
-                logger.debug(f"Reusing existing widget for pane {node.pane_id}")
-                widget = self._widgets[node.pane_id]
-            else:
-                # Request widget from provider
-                if self.provider:
-                    logger.info(f"Requesting widget from provider: {node.widget_id} for pane {node.pane_id}")
-                    widget = self.provider.provide_widget(
-                        node.widget_id, node.pane_id
-                    )
-                    self._widgets[node.pane_id] = widget
-                    log_widget_creation(node.widget_id, node.pane_id, type(widget))
-                else:
-                    # Emit signal for widget
-                    logger.warning(f"No provider available, emitting widget_needed signal for {node.widget_id}")
-                    self.widget_needed.emit(
-                        str(node.widget_id), str(node.pane_id)
-                    )
-                    # Create placeholder
-                    placeholder = QWidget()
-                    placeholder.setStyleSheet("background-color: lightgray; border: 1px solid gray;")
-                    self._widgets[node.pane_id] = placeholder
-                    widget = placeholder
-                    logger.debug(f"Created placeholder widget for pane {node.pane_id}")
-
-            # Wrap in focus container (only if we don't have one already)
-            return self._create_pane_container(node.pane_id, widget)
-
-        elif isinstance(node, SplitNode):
-            # Create styled splitter
-            orientation = (Qt.Orientation.Horizontal
-                         if node.orientation.value == "horizontal"
-                         else Qt.Orientation.Vertical)
-
-            splitter = StyledSplitter(orientation)  # Changed from QSplitter
-
-            # Track splitter
-            self._splitters[str(node.node_id)] = splitter
-
-            # Add children
-            for child in node.children:
-                child_widget = self._build_widget_tree(child)
-                if child_widget:
-                    splitter.addWidget(child_widget)
-
-            # Set sizes based on ratios
-            if node.ratios and len(node.ratios) == splitter.count():
-                total = sum(node.ratios)
-                sizes = [int(1000 * r / total) for r in node.ratios]
-                splitter.setSizes(sizes)
-
-            # Connect splitter movement
-            splitter.splitterMoved.connect(
-                lambda pos, index: self._on_splitter_moved(node.node_id, splitter)
-            )
-
-            return splitter
-
-        return None
+        # Apply geometries (NO REPARENTING - only setGeometry() calls)
+        self._visual_renderer.render(geometries)
 
     def _on_focus_changed(self, old_id: Optional[PaneId], new_id: Optional[PaneId]):
         """Handle focus changes."""
-        # Clear old focus indicator
-        if old_id and old_id in self._focus_frames:
-            self._focus_frames[old_id].setStyleSheet("")
+        # Use visual renderer to manage focus
+        self._visual_renderer.set_focused_pane(new_id)
 
-        # Set new focus indicator
-        if new_id and new_id in self._focus_frames:
-            self._focus_frames[new_id].setStyleSheet("""
-                QFrame {
-                    border: 2px solid #0078d4;
-                    border-radius: 3px;
-                }
-            """)
-
-            # Ensure widget has Qt focus
-            if new_id in self._widgets:
-                self._widgets[new_id].setFocus()
-
-    def _create_pane_container(self, pane_id: PaneId, widget: QWidget) -> QWidget:
-        """Create container with comprehensive focus tracking for pane widget."""
-        from PySide6.QtWidgets import QFrame, QVBoxLayout
-
-        # Create frame for focus indicator
-        frame = QFrame()
-        frame.setFrameStyle(QFrame.Shape.Box)
-        frame.setStyleSheet("")  # Start with no border
-
-        # Layout to hold widget
-        layout = QVBoxLayout(frame)
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.addWidget(widget)
-
-        # Track frame for focus updates
-        self._focus_frames[pane_id] = frame
-
-        # COMPREHENSIVE FOCUS TRACKING SETUP
-
-        # 1. Install recursive filters on frame and all children
-        self._install_recursive_filters(frame, pane_id)
-        self._install_recursive_filters(widget, pane_id)
-
-        # 2. Handle complex widgets with special requirements
-        self._handle_complex_widget(widget, pane_id)
-
-        # 3. Monitor for dynamic children (optional for performance)
-        widget_type = widget.__class__.__name__
-        if any(complex_type in widget_type for complex_type in ["WebView", "WebEngine", "TabWidget"]):
-            # Only monitor highly dynamic widgets
-            self._monitor_widget_children(widget, pane_id)
-            logger.info(f"Dynamic monitoring enabled for {widget_type} in pane {pane_id}")
-
-        logger.debug(f"Created pane container with comprehensive focus tracking: {pane_id}")
-        return frame
+        # Ensure widget has Qt focus
+        if new_id:
+            widget = self._widget_pool.get_widget(new_id)
+            if widget:
+                widget.setFocus()
 
     def _on_pane_clicked(self, pane_id: PaneId, event):
         """Handle pane click for focus."""
@@ -424,15 +327,11 @@ class PaneContainer(QWidget, ReconcilerOperations):
             if pane_id:
                 return pane_id
 
-            # Check if widget is in our tracking dict
-            for pid, w in self._widgets.items():
-                if w == current:
-                    return str(pid)
-
-            # Check frame containers
-            for pid, frame in self._focus_frames.items():
-                if frame == current or frame.isAncestorOf(current):
-                    return str(pid)
+            # Check widget pool
+            for pool_pane_id in self._widget_pool.get_all_pane_ids():
+                pool_widget = self._widget_pool.get_widget(pool_pane_id)
+                if pool_widget == current or (pool_widget and pool_widget.isAncestorOf(current)):
+                    return str(pool_pane_id)
 
             current = current.parent()
             max_depth -= 1
@@ -531,18 +430,6 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
         logger.debug(f"Started child monitoring for {widget.__class__.__name__} in pane {pane_id}")
 
-    def _on_splitter_moved(self, node_id: NodeId, splitter: QSplitter):
-        """Handle splitter drag."""
-        # Calculate new ratios from sizes
-        sizes = splitter.sizes()
-        total = sum(sizes)
-
-        if total > 0:
-            ratios = [s / total for s in sizes]
-
-            # Emit signal for ratio change
-            self.splitter_moved.emit(str(node_id), ratios)
-
     def keyPressEvent(self, event):
         """Handle keyboard events for navigation."""
         from PySide6.QtCore import Qt
@@ -607,42 +494,78 @@ class PaneContainer(QWidget, ReconcilerOperations):
     # ReconcilerOperations implementation
 
     def add_pane(self, pane_id: PaneId):
-        """Add new pane (widget will be created during rebuild)."""
-        # Widget creation happens in _build_widget_tree
-        pass
+        """
+        Add new pane to the widget pool.
+
+        Creates widget and adds to pool immediately.
+        Widget stays in pool for its entire lifetime.
+        """
+        # Check if already in pool
+        if self._widget_pool.has_widget(pane_id):
+            logger.debug(f"Pane {pane_id} already in pool, skipping")
+            return
+
+        # Get the leaf node from model to find widget_id
+        pane_node = self.model.get_pane(pane_id)
+        if not pane_node or not isinstance(pane_node, LeafNode):
+            logger.warning(f"Cannot add pane {pane_id}: not found in model or not a leaf")
+            return
+
+        # Create widget via provider
+        widget = None
+        if self.provider:
+            logger.info(f"Requesting widget from provider: {pane_node.widget_id} for pane {pane_id}")
+            widget = self.provider.provide_widget(pane_node.widget_id, pane_id)
+            log_widget_creation(pane_node.widget_id, pane_id, type(widget))
+        else:
+            # Emit signal or create placeholder
+            logger.warning(f"No provider available, emitting widget_needed signal for {pane_node.widget_id}")
+            self.widget_needed.emit(str(pane_node.widget_id), str(pane_id))
+            # Create placeholder
+            placeholder = QWidget()
+            placeholder.setStyleSheet("background-color: lightgray; border: 1px solid gray;")
+            widget = placeholder
+            logger.debug(f"Created placeholder widget for pane {pane_id}")
+
+        # Add to pool (ONLY reparenting point)
+        self._widget_pool.add_widget(pane_id, widget)
+        logger.info(f"Added widget for pane {pane_id} to pool")
+
+        # Install event filters for focus tracking
+        self._install_recursive_filters(widget, pane_id)
+        self._handle_complex_widget(widget, pane_id)
 
     def remove_pane(self, pane_id: PaneId):
-        """Remove pane widget and clean up all associated resources."""
-        if pane_id in self._widgets:
-            widget = self._widgets[pane_id]
+        """Remove pane widget from pool and clean up resources."""
+        # Get pane info before removal
+        pane_node = self.model.get_pane(pane_id)
+        widget_id = pane_node.widget_id if (pane_node and isinstance(pane_node, LeafNode)) else None
+
+        # Remove from pool
+        if self._widget_pool.has_widget(pane_id):
+            widget = self._widget_pool.get_widget(pane_id)
+
+            # Call lifecycle hook BEFORE removing widget
+            if widget and widget_id and self.provider and hasattr(self.provider, 'widget_closing'):
+                try:
+                    logger.debug(f"Calling widget_closing() for {widget_id} in pane {pane_id}")
+                    self.provider.widget_closing(widget_id, pane_id, widget)
+                except Exception as e:
+                    logger.warning(f"Error in widget_closing() hook: {e}")
 
             # Clean up child monitoring timer if it exists
-            timer = widget.property("child_monitor_timer")
-            if timer:
-                logger.debug(f"Stopping child monitor timer for pane {pane_id}")
-                timer.stop()
-                timer.deleteLater()
-                widget.setProperty("child_monitor_timer", None)
+            if widget:
+                timer = widget.property("child_monitor_timer")
+                if timer:
+                    logger.debug(f"Stopping child monitor timer for pane {pane_id}")
+                    timer.stop()
+                    timer.deleteLater()
+                    widget.setProperty("child_monitor_timer", None)
 
-            # Clean up the widget
-            widget.setParent(None)
-            widget.deleteLater()
-            del self._widgets[pane_id]
+            self._widget_pool.remove_widget(pane_id)
+            logger.info(f"Removed pane {pane_id} from pool")
 
-        # Clean up focus frame and any associated timers
-        if pane_id in self._focus_frames:
-            frame = self._focus_frames[pane_id]
-
-            # Check for any child monitor timers in the frame's children
-            for child in frame.findChildren(QWidget):
-                child_timer = child.property("child_monitor_timer")
-                if child_timer:
-                    logger.debug(f"Stopping child timer for widget {child.__class__.__name__} in pane {pane_id}")
-                    child_timer.stop()
-                    child_timer.deleteLater()
-
-            del self._focus_frames[pane_id]
-            logger.debug(f"Cleaned up all resources for pane {pane_id}")
+        logger.debug(f"Cleaned up all resources for pane {pane_id}")
 
     def set_widget_provider(self, provider: WidgetProvider):
         """Set widget provider."""
@@ -651,5 +574,26 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
     def provide_widget_for_pane(self, pane_id: PaneId, widget: QWidget):
         """Manually provide a widget for a pane."""
-        self._widgets[pane_id] = widget
+        self._widget_pool.add_widget(pane_id, widget)
         self._update_view()
+
+    def resizeEvent(self, event):
+        """
+        Handle window resize using geometry recalculation.
+
+        Recalculates geometries and applies them - no widget reparenting needed.
+        """
+        super().resizeEvent(event)
+
+        if not self.model.root:
+            return
+
+        # Recalculate geometries for new viewport size
+        viewport = self.rect()
+        geometries = self._geometry_manager.calculate_layout(self.model.root, viewport)
+
+        # Apply new geometries (NO REPARENTING)
+        self._visual_renderer.render(geometries)
+
+
+__all__ = ["WidgetProvider", "PaneContainer"]

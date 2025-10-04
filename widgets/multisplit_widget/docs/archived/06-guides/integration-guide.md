@@ -1310,6 +1310,288 @@ class HierarchicalPaneManager:
 
 ---
 
+## Automatic Focus Management
+
+### Signal-Based Focus Integration
+
+MultisplitWidget provides signals for managing focus across panes. Applications typically want to automatically focus newly created panes after split operations:
+
+```python
+class ApplicationWithAutoFocus:
+    """Application with automatic focus management"""
+
+    def __init__(self):
+        self.multisplit = MultisplitWidget(provider=self.provider)
+
+        # Track when splits are user-initiated
+        self._splitting_in_progress = False
+
+        # Connect to pane_added signal for auto-focus
+        self.multisplit.pane_added.connect(self._on_pane_added)
+
+    def _on_pane_added(self, pane_id: str) -> None:
+        """Handle pane added - conditionally auto-focus."""
+        # Only auto-focus panes from user-initiated splits
+        if self._splitting_in_progress:
+            self.multisplit.focus_pane(pane_id)
+            self._splitting_in_progress = False
+
+    def _on_split_horizontal(self) -> None:
+        """User-initiated horizontal split."""
+        focused = self.multisplit.get_focused_pane()
+        if not focused:
+            return
+
+        # Mark split in progress for auto-focus
+        self._splitting_in_progress = True
+
+        success = self.multisplit.split_pane(
+            focused,
+            new_widget_id,
+            WherePosition.RIGHT,
+            ratio=0.5
+        )
+
+        if not success:
+            self._splitting_in_progress = False
+```
+
+### Production Pattern from ViloxTerm
+
+ViloxTerm demonstrates the complete production pattern:
+
+```python
+class ViloxTermApp(ChromeTabbedWindow):
+    """ViloxTerm with conditional auto-focus."""
+
+    def __init__(self):
+        super().__init__()
+        self._splitting_in_progress = False
+        # ... setup
+
+    def add_new_terminal_tab(self, title: str) -> None:
+        """Create tab with MultisplitWidget."""
+        multisplit = MultisplitWidget(
+            provider=self.terminal_provider,
+            splitter_style=SplitterStyle.minimal()
+        )
+
+        # Connect to pane_added signal for auto-focus
+        multisplit.pane_added.connect(self._on_pane_added)
+
+        self.addTab(multisplit, title)
+
+    def _on_pane_added(self, pane_id: str) -> None:
+        """Auto-focus new panes from splits."""
+        if self._splitting_in_progress:
+            multisplit = self.currentWidget()
+            if isinstance(multisplit, MultisplitWidget):
+                multisplit.focus_pane(pane_id)
+            self._splitting_in_progress = False
+
+    def _on_split_vertical(self) -> None:
+        """Split vertical with auto-focus."""
+        multisplit = self.currentWidget()
+        focused = multisplit.get_focused_pane()
+
+        # Mark split in progress
+        self._splitting_in_progress = True
+
+        success = multisplit.split_pane(
+            focused, new_widget_id,
+            WherePosition.BOTTOM, ratio=0.5
+        )
+
+        if not success:
+            self._splitting_in_progress = False
+```
+
+**Reference**: See [`apps/viloxterm/src/viloxterm/app.py:226`](../../../../apps/viloxterm/src/viloxterm/app.py#L226)
+
+### Timing Considerations
+
+**Important**: The `pane_added` signal fires immediately after pane creation, but widgets may not be fully initialized:
+
+```python
+def _on_pane_added(self, pane_id: str) -> None:
+    """Handle pane added with timing awareness."""
+
+    # Qt focus can be set immediately
+    self.multisplit.focus_pane(pane_id)
+
+    # But widget content might still be loading
+    # For async widgets, wait for initialization:
+    widget = self.get_widget_for_pane(pane_id)
+    if hasattr(widget, 'initialized'):
+        widget.initialized.connect(
+            lambda: self.on_widget_ready(pane_id)
+        )
+```
+
+### QWebEngineView Focus Handling
+
+Widgets using `QWebEngineView` (terminals, browsers, web views) require special handling:
+
+**Problem**: Standard Qt focus is insufficient for QWebEngineView widgets. The internal focus proxy must be explicitly focused to receive keyboard input.
+
+**Solution**: Override `setFocus()` in your custom widget:
+
+```python
+class MyWebWidget(QWidget):
+    """Widget using QWebEngineView with proper focus handling."""
+
+    def __init__(self):
+        super().__init__()
+        self.web_view = QWebEngineView()
+        # ... setup layout
+
+    def setFocus(self) -> None:
+        """Override to focus web view's focus proxy."""
+        super().setFocus()
+
+        # Focus the web view's focus proxy (actual input receiver)
+        focus_proxy = self.web_view.focusProxy()
+        if focus_proxy:
+            focus_proxy.setFocus()
+        else:
+            # Fallback: focus web view directly
+            self.web_view.setFocus()
+```
+
+**Why this is necessary**:
+
+```
+MyWebWidget
+└── QWebEngineView
+    └── Focus Proxy (hidden internal widget)
+        └── Receives keyboard input
+```
+
+When `multisplit.focus_pane()` is called:
+1. Qt sets focus on `MyWebWidget` ✓
+2. But the focus proxy remains unfocused ✗
+3. Result: Widget looks focused but doesn't receive keyboard input
+
+By overriding `setFocus()`, you ensure the focus proxy is explicitly focused.
+
+**Reference Implementation**: See TerminalWidget's `setFocus()` override at [`widgets/terminal_widget/src/vfwidgets_terminal/terminal.py:653`](../../../terminal_widget/src/vfwidgets_terminal/terminal.py#L653)
+
+### Advanced Focus Patterns
+
+#### Focus History Tracking
+
+Track focus history for "focus previous" functionality:
+
+```python
+from collections import deque
+
+class FocusHistoryManager:
+    """Track focus history for navigation."""
+
+    def __init__(self, multisplit: MultisplitWidget, max_history: int = 10):
+        self.multisplit = multisplit
+        self.focus_history = deque(maxlen=max_history)
+
+        multisplit.pane_focused.connect(self.on_pane_focused)
+
+    def on_pane_focused(self, pane_id: str):
+        """Track focus changes."""
+        self.focus_history.append(pane_id)
+
+    def focus_previous(self) -> bool:
+        """Focus the previously focused pane."""
+        if len(self.focus_history) > 1:
+            self.focus_history.pop()  # Remove current
+            previous = self.focus_history[-1]
+            return self.multisplit.focus_pane(previous)
+        return False
+```
+
+#### User Preference Control
+
+Respect user preferences for focus behavior:
+
+```python
+class ConfigurableFocusManager:
+    """Focus manager with user preferences."""
+
+    def __init__(self, multisplit: MultisplitWidget, config: dict):
+        self.multisplit = multisplit
+        self.auto_focus_on_split = config.get("auto_focus_on_split", True)
+        self.auto_focus_on_remove = config.get("auto_focus_on_remove", True)
+
+        multisplit.pane_added.connect(self.on_pane_added)
+        multisplit.pane_removed.connect(self.on_pane_removed)
+
+    def on_pane_added(self, pane_id: str):
+        """Conditionally auto-focus based on preferences."""
+        if self.auto_focus_on_split:
+            self.multisplit.focus_pane(pane_id)
+
+    def on_pane_removed(self, pane_id: str):
+        """Handle focus after pane removal."""
+        if self.auto_focus_on_remove:
+            # MultisplitWidget handles focus automatically,
+            # but custom logic can be added here
+            pass
+```
+
+### Focus Management Best Practices
+
+#### ✅ Do
+
+1. **Connect to `pane_added`** - Use the signal for automatic focus after splits
+2. **Use conditional logic** - Control when auto-focus happens (e.g., `_splitting_in_progress` flag)
+3. **Override `setFocus()`** - Required for QWebEngineView-based widgets
+4. **Handle timing** - Account for asynchronously initialized widgets
+5. **Respect user preferences** - Allow users to control focus behavior
+
+#### ❌ Don't
+
+1. **Don't call `focus_pane()` in tight loops** - Can cause performance issues
+2. **Don't assume widget is fully initialized** - When `pane_added` fires
+3. **Don't forget to disconnect signals** - When cleaning up
+4. **Don't ignore return value** - `focus_pane()` returns False if pane doesn't exist
+5. **Don't fight Qt's focus system** - Work with it by overriding `setFocus()`
+
+### Debugging Focus Issues
+
+Enable focus logging for troubleshooting:
+
+```python
+import logging
+
+logger = logging.getLogger("focus_debug")
+logger.setLevel(logging.DEBUG)
+
+def log_pane_added(pane_id: str):
+    logger.debug(f"Pane added: {pane_id}")
+
+def log_pane_focused(pane_id: str):
+    logger.debug(f"Pane focused: {pane_id}")
+
+multisplit.pane_added.connect(log_pane_added)
+multisplit.pane_focused.connect(log_pane_focused)
+```
+
+Verify signal connections:
+
+```python
+# Check if signal has receivers
+if multisplit.pane_added.receivers() > 0:
+    print("pane_added has receivers")
+else:
+    print("WARNING: pane_added has NO receivers")
+```
+
+### Further Reading
+
+- **[Focus Management Guide](../focus-management-GUIDE.md)** - Complete focus management documentation
+- **[ViloxTerm Focus Guide](../../../../apps/viloxterm/docs/focus-handling-GUIDE.md)** - Production implementation lessons
+- **[TerminalWidget Docs](../../../terminal_widget/README.md)** - QWebEngineView widget reference
+
+---
+
 ## Common Pitfalls
 
 ### Pitfall 1: Memory Leaks in Caching

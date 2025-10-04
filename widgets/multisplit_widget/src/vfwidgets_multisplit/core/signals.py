@@ -5,7 +5,7 @@ Provides signal/slot mechanism for the Model layer.
 """
 
 import weakref
-from typing import Callable, List
+from typing import Callable
 
 
 class AbstractSignal:
@@ -15,8 +15,8 @@ class AbstractSignal:
         """Initialize signal with empty handler list."""
         # Use weak references to prevent memory leaks
         # Note: We store both weak refs and a special handling for bound methods
-        self._handlers: List[weakref.ref] = []
-        self._method_refs: List[tuple] = []  # (obj_ref, method_name)
+        self._handlers: list[weakref.ref] = []
+        self._method_refs: list[tuple] = []  # (obj_ref, method_name)
 
     def connect(self, handler: Callable) -> None:
         """Connect a handler to this signal.
@@ -46,7 +46,7 @@ class AbstractSignal:
         Args:
             handler: Handler to remove
         """
-        ref = weakref.ref(handler)
+        weakref.ref(handler)
         self._handlers = [h for h in self._handlers if h() != handler]
 
     def emit(self, *args, **kwargs) -> None:

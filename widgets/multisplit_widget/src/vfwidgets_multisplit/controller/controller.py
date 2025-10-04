@@ -4,7 +4,6 @@ Manages commands, transactions, and undo/redo stack.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
 
 from ..core.model import PaneModel
 from ..core.types import PaneId, WherePosition, WidgetId
@@ -18,10 +17,10 @@ class PaneController:
     """Controller managing model mutations through commands."""
 
     model: PaneModel
-    _undo_stack: List[Command] = field(default_factory=list)
-    _redo_stack: List[Command] = field(default_factory=list)
+    _undo_stack: list[Command] = field(default_factory=list)
+    _redo_stack: list[Command] = field(default_factory=list)
     _transaction_depth: int = 0
-    _transaction_commands: List[Command] = field(default_factory=list)
+    _transaction_commands: list[Command] = field(default_factory=list)
     _validator: OperationValidator = field(init=False)  # NEW
 
     # Configuration
@@ -32,7 +31,7 @@ class PaneController:
         """Initialize controller."""
         self._validator = OperationValidator(self.model)
 
-    def validate_and_execute(self, command: Command) -> Tuple[bool, ValidationResult]:
+    def validate_and_execute(self, command: Command) -> tuple[bool, ValidationResult]:
         """Validate and execute command if valid.
 
         Args:
@@ -152,7 +151,7 @@ class PaneController:
     # High-level operations
 
     def split_pane(self, target_pane_id: PaneId, widget_id: WidgetId,
-                   position: WherePosition, ratio: float = 0.5) -> Tuple[bool, ValidationResult]:
+                   position: WherePosition, ratio: float = 0.5) -> tuple[bool, ValidationResult]:
         """Split a pane with validation.
 
         Returns:
@@ -163,7 +162,7 @@ class PaneController:
         )
         return self.validate_and_execute(command)
 
-    def remove_pane(self, pane_id: PaneId) -> Tuple[bool, ValidationResult]:
+    def remove_pane(self, pane_id: PaneId) -> tuple[bool, ValidationResult]:
         """Remove a pane with validation.
 
         Returns:
@@ -230,7 +229,7 @@ class PaneController:
 
     # Compatibility methods for Phase 0 transaction system
 
-    def _create_savepoint(self) -> Dict:
+    def _create_savepoint(self) -> dict:
         """Create a savepoint of current state.
 
         Returns:
@@ -243,7 +242,7 @@ class PaneController:
             # For mock models or other types, create simple savepoint
             return {'model_state': getattr(self.model, '__dict__', {})}
 
-    def _restore_savepoint(self, savepoint: Dict):
+    def _restore_savepoint(self, savepoint: dict):
         """Restore from a savepoint.
 
         Args:

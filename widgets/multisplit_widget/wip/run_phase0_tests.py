@@ -9,7 +9,6 @@ It checks for file existence, runs tests, and reports status.
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -59,7 +58,7 @@ PHASE0_TESTS = [
 ]
 
 
-def check_file_exists(filepath: str) -> Tuple[bool, str]:
+def check_file_exists(filepath: str) -> tuple[bool, str]:
     """Check if a file exists relative to project root."""
     full_path = PROJECT_ROOT / filepath
     exists = full_path.exists()
@@ -67,7 +66,7 @@ def check_file_exists(filepath: str) -> Tuple[bool, str]:
     return exists, status
 
 
-def run_test(test_file: str) -> Tuple[bool, str, str]:
+def run_test(test_file: str) -> tuple[bool, str, str]:
     """Run a specific test file and return results."""
     test_path = PROJECT_ROOT / test_file
 
@@ -110,7 +109,7 @@ def run_test(test_file: str) -> Tuple[bool, str, str]:
         return False, "ERROR", str(e)
 
 
-def check_imports() -> Tuple[bool, List[str]]:
+def check_imports() -> tuple[bool, list[str]]:
     """Check if core modules can be imported."""
     errors = []
     modules_to_check = [

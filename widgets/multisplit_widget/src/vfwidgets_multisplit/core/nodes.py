@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from .types import Bounds, NodeId, Orientation, PaneId, SizeConstraints, WidgetId
 
@@ -20,8 +20,8 @@ class PaneNode(ABC):
 
     def __init__(self):
         """Initialize base node."""
-        self.parent: Optional[SplitNode] = None
-        self._bounds: Optional[Bounds] = None
+        self.parent: SplitNode | None = None
+        self._bounds: Bounds | None = None
 
     @abstractmethod
     def accept(self, visitor: NodeVisitor) -> Any:
@@ -36,7 +36,7 @@ class PaneNode(ABC):
         pass
 
     @property
-    def bounds(self) -> Optional[Bounds]:
+    def bounds(self) -> Bounds | None:
         """Get node bounds (set by geometry calculator)."""
         return self._bounds
 
@@ -102,8 +102,8 @@ class SplitNode(PaneNode):
 
     node_id: NodeId
     orientation: Orientation
-    children: List[PaneNode] = field(default_factory=list)
-    ratios: List[float] = field(default_factory=list)
+    children: list[PaneNode] = field(default_factory=list)
+    ratios: list[float] = field(default_factory=list)
 
     def __post_init__(self):
         """Initialize parent class and set parent references."""

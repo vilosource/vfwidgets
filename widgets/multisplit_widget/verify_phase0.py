@@ -183,8 +183,8 @@ def verify_functionality():
         from vfwidgets_multisplit.core.geometry import GeometryCalculator
         from vfwidgets_multisplit.core.types import Bounds
 
-        calc = GeometryCalculator()
-        bounds = Bounds(0, 0, 800, 600)
+        GeometryCalculator()
+        Bounds(0, 0, 800, 600)
         # Just verify it instantiates
 
     except Exception as e:

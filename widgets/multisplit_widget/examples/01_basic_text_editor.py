@@ -42,9 +42,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from vfwidgets_multisplit import MultisplitWidget
-from vfwidgets_multisplit.core.types import WherePosition
-from vfwidgets_multisplit.view.container import WidgetProvider
+from vfwidgets_multisplit import MultisplitWidget, WherePosition, WidgetProvider
 
 
 class DocumentEditor(QPlainTextEdit):
@@ -140,14 +138,32 @@ class DocumentEditor(QPlainTextEdit):
 
 
 class TextEditorProvider(WidgetProvider):
-    """Provides text editor widgets for MultiSplit panes."""
+    """Provides text editor widgets for MultiSplit panes.
+
+    This is the WidgetProvider implementation - the core pattern for using MultisplitWidget.
+    The provider is responsible for:
+    1. Creating widgets when new panes are added (provide_widget)
+    2. Cleaning up when widgets are removed (widget_closing)
+
+    The MultisplitWidget calls these methods automatically during pane lifecycle.
+    """
 
     def __init__(self):
         self.editors: dict[str, DocumentEditor] = {}
         self.document_counter = 0
 
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
-        """Create a text editor widget."""
+        """Create a text editor widget.
+
+        Called by MultisplitWidget when a new pane is created.
+
+        Args:
+            widget_id: Identifies what type of content to create (e.g., "doc-1", "file:/path/to/file")
+            pane_id: Unique ID for the pane containing this widget
+
+        Returns:
+            QWidget that will be displayed in the pane
+        """
         # Create container with editor info
         container = QWidget()
         layout = QVBoxLayout(container)
@@ -199,8 +215,20 @@ class TextEditorProvider(WidgetProvider):
         self.document_counter += 1
         return f"doc-{self.document_counter}"
 
-    def widget_closing(self, widget_id: str, widget: QWidget) -> None:
-        """Handle widget closing."""
+    def widget_closing(self, widget_id: str, pane_id: str, widget: QWidget) -> None:
+        """Handle widget closing - called before pane removal.
+
+        This is the lifecycle hook added in v0.2.0 that gets called automatically
+        before a widget is removed from a pane. Use this for cleanup tasks like:
+        - Saving unsaved changes
+        - Releasing resources
+        - Updating internal state
+
+        Args:
+            widget_id: The widget ID that was originally passed to provide_widget
+            pane_id: The pane ID where the widget is being removed from
+            widget: The actual QWidget instance being removed
+        """
         if widget_id in self.editors:
             editor = self.editors[widget_id]
 
@@ -233,7 +261,17 @@ class TextEditorProvider(WidgetProvider):
 
 
 class TextEditorWindow(QMainWindow):
-    """Main window demonstrating runtime pane splitting with text editors."""
+    """Main window demonstrating runtime pane splitting with text editors.
+
+    This example shows the basic pattern for using MultisplitWidget:
+    1. Create a WidgetProvider (TextEditorProvider)
+    2. Create MultisplitWidget with the provider
+    3. Initialize with content
+    4. Use split_pane() to add more panes dynamically
+
+    The MultisplitWidget handles all layout management - you just provide
+    the content through the WidgetProvider pattern.
+    """
 
     def __init__(self):
         super().__init__()
@@ -241,10 +279,11 @@ class TextEditorWindow(QMainWindow):
         self.setWindowTitle("MultiSplit Text Editor - Runtime Splitting Demo")
         self.setGeometry(100, 100, 1200, 800)
 
-        # Create provider
+        # Step 1: Create provider - defines what widgets go in panes
         self.provider = TextEditorProvider()
 
-        # Create MultiSplit widget
+        # Step 2: Create MultiSplit widget with provider
+        # This is your main layout container - it manages all the panes
         self.multisplit = MultisplitWidget(provider=self.provider)
         self.setCentralWidget(self.multisplit)
 
@@ -254,7 +293,7 @@ class TextEditorWindow(QMainWindow):
         self.setup_statusbar()
 
         # Connect signals
-        self.multisplit.pane_focused.connect(self.on_pane_focused)
+        self.multisplit.focus_changed.connect(self.on_focus_changed)
         self.multisplit.pane_added.connect(self.on_pane_added)
         self.multisplit.pane_removed.connect(self.on_pane_removed)
 
@@ -392,23 +431,83 @@ class TextEditorWindow(QMainWindow):
                 self.statusbar.showMessage(f"Opened: {Path(file_path).name}")
 
     def save_current(self):
-        """Save currently focused document."""
+        """Save currently focused document - demonstrates get_widget() API."""
         focused_pane = self.multisplit.get_focused_pane()
         if not focused_pane:
             self.statusbar.showMessage("No document focused")
             return
 
-        # Find the widget ID for this pane
-        # This is a limitation of current API - we need to track pane->widget mapping
-        # For this demo, we'll show the concept
-        self.statusbar.showMessage("Save functionality - would save focused document")
+        # Use new widget lookup API to get the widget in the focused pane
+        container = self.multisplit.get_widget(focused_pane)
+        if not container:
+            self.statusbar.showMessage("No widget in focused pane")
+            return
+
+        # Extract the editor from the container (which is a QVBoxLayout with header + editor)
+        layout = container.layout()
+        if layout and layout.count() >= 2:
+            editor = layout.itemAt(1).widget()
+            if isinstance(editor, DocumentEditor):
+                if not editor.file_path:
+                    # Need to get save location
+                    file_path, _ = QFileDialog.getSaveFileName(
+                        self, "Save Document", "", "Text Files (*.txt);;All Files (*)"
+                    )
+                    if file_path:
+                        if editor.save_file(file_path):
+                            self.statusbar.showMessage(f"Saved: {Path(file_path).name}")
+                        else:
+                            self.statusbar.showMessage("Save failed")
+                    else:
+                        self.statusbar.showMessage("Save cancelled")
+                else:
+                    if editor.save_file():
+                        self.statusbar.showMessage(f"Saved: {Path(editor.file_path).name}")
+                    else:
+                        self.statusbar.showMessage("Save failed")
+            else:
+                self.statusbar.showMessage("Widget is not an editor")
 
     def save_as_current(self):
-        """Save as currently focused document."""
-        self.statusbar.showMessage("Save As functionality - would save focused document as...")
+        """Save as currently focused document - demonstrates get_widget() API."""
+        focused_pane = self.multisplit.get_focused_pane()
+        if not focused_pane:
+            self.statusbar.showMessage("No document focused")
+            return
+
+        # Use widget lookup API
+        container = self.multisplit.get_widget(focused_pane)
+        if not container:
+            self.statusbar.showMessage("No widget in focused pane")
+            return
+
+        # Extract the editor
+        layout = container.layout()
+        if layout and layout.count() >= 2:
+            editor = layout.itemAt(1).widget()
+            if isinstance(editor, DocumentEditor):
+                file_path, _ = QFileDialog.getSaveFileName(
+                    self, "Save Document As", "", "Text Files (*.txt);;All Files (*)"
+                )
+                if file_path:
+                    if editor.save_file(file_path):
+                        self.statusbar.showMessage(f"Saved as: {Path(file_path).name}")
+                    else:
+                        self.statusbar.showMessage("Save failed")
+                else:
+                    self.statusbar.showMessage("Save cancelled")
 
     def split_current_pane(self, position: WherePosition):
-        """Split the currently focused pane - CORE FEATURE!"""
+        """Split the currently focused pane - demonstrates MultisplitWidget's CORE FEATURE!
+
+        This method shows the fundamental power of MultisplitWidget:
+        1. Get the currently focused pane (focus tracking)
+        2. Create new content (via WidgetProvider)
+        3. Split the pane dynamically at runtime
+
+        This is what makes MultisplitWidget special - you can split ANY pane
+        at ANY time during runtime, creating complex layouts on the fly.
+        """
         focused_pane = self.multisplit.get_focused_pane()
 
         if not focused_pane:
@@ -419,6 +518,7 @@ class TextEditorWindow(QMainWindow):
         doc_id = self.provider.create_new_document()
 
         # Perform the split - this is the key capability!
+        # The MultisplitWidget handles all the layout management automatically
         success = self.multisplit.split_pane(focused_pane, doc_id, position, 0.5)
 
         if success:
@@ -455,11 +555,19 @@ class TextEditorWindow(QMainWindow):
         print(f"Total editors: {len(self.provider.editors)}")
         print("==================\n")
 
-    def on_pane_focused(self, pane_id: str):
-        """Handle pane focus change."""
-        self.statusbar.showMessage(
-            f"Focus: {pane_id[:8]}... | Use Split menu to create more panes", 2000
-        )
+    def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
+        """Handle pane focus change.
+
+        The focus_changed signal (v0.2.0+) provides complete transition information:
+        - old_pane_id: The pane that lost focus (empty string if none)
+        - new_pane_id: The pane that gained focus (empty string if none)
+
+        This enables clean focus border management and UI updates.
+        """
+        if new_pane_id:
+            self.statusbar.showMessage(
+                f"Focus: {new_pane_id[:8]}... | Use Split menu to create more panes", 2000
+            )
 
     def on_pane_added(self, pane_id: str):
         """Handle pane added."""

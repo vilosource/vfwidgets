@@ -75,27 +75,6 @@ python 03_keyboard_driven_splitting.py
 
 **Key insight:** Complex layouts become manageable with proper keyboard control - no mouse required for sophisticated operations.
 
----
-
-### 4. Advanced Dynamic Workspace (`04_advanced_dynamic_workspace.py`)
-**Difficulty:** Expert
-**Focus:** Complete application architecture
-
-```bash
-python 04_advanced_dynamic_workspace.py
-```
-
-**What you'll learn:**
-- Multiple widget types (editors, terminals, browsers, logs, dashboard)
-- Dynamic pane creation at runtime
-- Session save/restore functionality
-- Plugin-like architecture for different pane types
-- Real-time updates and data flow between panes
-- Complete IDE-like application structure
-- Advanced workspace management patterns
-
-**Key insight:** MultiSplit can serve as the foundation for any complex application - IDEs, monitoring dashboards, data analysis tools, etc.
-
 ## 🎯 Core Concepts Demonstrated
 
 ### Runtime Pane Splitting
@@ -132,13 +111,16 @@ Save and restore complex layouts:
 
 ### Basic Usage Pattern
 ```python
-from vfwidgets_multisplit import MultisplitWidget
-from vfwidgets_multisplit.core.types import WherePosition
+from vfwidgets_multisplit import MultisplitWidget, WherePosition, WidgetProvider
 
 # 1. Create a widget provider
 class MyProvider(WidgetProvider):
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
         return MyCustomWidget(widget_id)
+
+    def widget_closing(self, widget_id: str, pane_id: str, widget: QWidget) -> None:
+        """Optional: cleanup before widget removal"""
+        print(f"Widget {widget_id} closing in pane {pane_id}")
 
 # 2. Create MultiSplit widget
 provider = MyProvider()
@@ -177,12 +159,13 @@ focused = multisplit.get_focused_pane()
 if focused:
     multisplit.split_pane(focused, "new-widget", WherePosition.BOTTOM, 0.5)
 
-# Handle focus changes
-multisplit.pane_focused.connect(self.on_pane_focused)
+# Handle focus changes (v0.2.0+)
+multisplit.focus_changed.connect(self.on_focus_changed)
 
-def on_pane_focused(self, pane_id: str):
-    print(f"Focus changed to: {pane_id}")
-    self.update_ui_for_focused_pane(pane_id)
+def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
+    print(f"Focus changed: {old_pane_id} -> {new_pane_id}")
+    if new_pane_id:
+        self.update_ui_for_focused_pane(new_pane_id)
 ```
 
 ## 🏗️ Building Your Own Application
@@ -191,15 +174,16 @@ Use these examples as templates for building your own applications:
 
 ### For Simple Multi-Document Apps
 Start with **Example 1** (Basic Text Editor):
-- Replace `TextEditorPane` with your document type
+- Replace `DocumentEditor` with your document type
 - Customize the `WidgetProvider` for your content
 - Add file operations specific to your domain
+- Use the widget lookup APIs for focus-aware operations
 
 ### For Complex Applications with Multiple Widget Types
-Use **Example 4** (Advanced Workspace) as a foundation:
-- Define your own `PaneType` enum
-- Create custom pane classes inheriting from `BasePane`
-- Implement session management for your data
+Use **Example 2** (Tabbed Split Panes) as a foundation:
+- Combine complex widgets (tabs, trees, etc.) with splitting
+- Handle nested widget hierarchies
+- Implement context menus for advanced interactions
 - Add domain-specific toolbar and menu actions
 
 ### For Keyboard-Driven Tools
@@ -244,14 +228,19 @@ class MultisplitWidget(QWidget):
     def get_pane_ids() -> List[str]
     def get_focused_pane() -> Optional[str]
 
+    # Widget Lookup (v0.2.0+)
+    def get_widget(self, pane_id: str) -> Optional[QWidget]
+    def get_all_widgets() -> dict[str, QWidget]
+    def find_pane_by_widget(self, widget: QWidget) -> Optional[str]
+
     # Session Management
     def save_session() -> str  # Returns JSON
     def load_session(json_str: str) -> bool
 
     # Signals
-    pane_added = Signal(str)       # pane_id
-    pane_removed = Signal(str)     # pane_id
-    pane_focused = Signal(str)     # pane_id
+    pane_added = Signal(str)              # pane_id
+    pane_removed = Signal(str)            # pane_id
+    focus_changed = Signal(str, str)      # old_pane_id, new_pane_id (v0.2.0+)
     layout_changed = Signal()
 ```
 
@@ -262,8 +251,8 @@ class WidgetProvider(Protocol):
         """Create widget for the given IDs."""
         ...
 
-    def widget_closing(self, widget_id: str, widget: QWidget) -> None:
-        """Handle widget cleanup (optional)."""
+    def widget_closing(self, widget_id: str, pane_id: str, widget: QWidget) -> None:
+        """Handle widget cleanup before removal (optional, v0.2.0+)."""
         ...
 ```
 

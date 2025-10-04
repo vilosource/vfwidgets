@@ -30,13 +30,13 @@ class TestContainer(unittest.TestCase):
 
     def test_container_creation(self):
         """Test container widget creation."""
-        model = PaneModel(
+        PaneModel(
             root=LeafNode(PaneId("p1"), WidgetId("test"))
         )
 
         # Test creation without Qt app (just test the constructor logic)
         try:
-            provider = TestWidgetProvider()
+            TestWidgetProvider()
             # This will fail in CI without Qt app, but that's expected
             # container = PaneContainer(model, provider)
             # self.assertEqual(container.model, model)

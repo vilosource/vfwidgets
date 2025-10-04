@@ -5,7 +5,7 @@ with automatic rollback on failure.
 """
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .command import Command
@@ -22,7 +22,7 @@ class TransactionContext:
             controller: Controller managing this transaction
         """
         self.controller = controller
-        self.commands: List[Command] = []
+        self.commands: list[Command] = []
         self.rolled_back = False
         self.committed = False
         self.savepoint = None

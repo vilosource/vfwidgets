@@ -1,12 +1,12 @@
 """Test suite for themed MultisplitWidget integration."""
 
 import pytest
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel
 from vfwidgets_multisplit import MultisplitWidget
 from vfwidgets_multisplit.view.container import StyledSplitter
 from vfwidgets_multisplit.view.error_widget import ErrorWidget, ValidationOverlay
 from vfwidgets_theme import ThemedApplication
-from PySide6.QtCore import Qt
 
 
 @pytest.fixture(scope="module")
@@ -80,7 +80,7 @@ def test_multisplit_widget_basic(app):
     widget = MultisplitWidget(provider=SimpleProvider())
     assert widget is not None
     # The container should use StyledSplitter (which is themed)
-    assert widget.container is not None
+    assert widget._container is not None
 
 
 if __name__ == "__main__":
