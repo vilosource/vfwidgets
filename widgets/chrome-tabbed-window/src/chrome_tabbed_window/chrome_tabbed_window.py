@@ -54,7 +54,7 @@ class ChromeTabbedWindow(_BaseClass):
 
     Key Features:
     - 100% QTabWidget API compatibility
-    - Chrome browser tab styling
+    - Chrome browser tab styling with built-in "+" button
     - Automatic mode detection (embedded vs window)
     - Platform-specific optimizations
     - Identical signal timing and behavior
@@ -65,6 +65,17 @@ class ChromeTabbedWindow(_BaseClass):
         tabs = ChromeTabbedWindow()
         tabs.addTab(widget, "Tab Title")
         tabs.setCurrentIndex(0)
+
+    Customizing New Tab Behavior:
+        # Override _on_new_tab_requested() to customize the built-in "+" button
+        class MyWindow(ChromeTabbedWindow):
+            def _on_new_tab_requested(self):
+                # Create custom widget instead of default "New Tab" placeholder
+                widget = MyCustomWidget()
+                self.addTab(widget, f"Tab {self.count() + 1}")
+
+        Note: ChromeTabbedWindow has a built-in "+" button painted on the tab bar.
+        Do NOT create a separate button via setCornerWidget() - it will be ignored.
     """
 
     # Theme configuration - maps theme tokens to Chrome tab colors
@@ -409,6 +420,24 @@ class ChromeTabbedWindow(_BaseClass):
                 if hasattr(self, '_drag_pos'):
                     del self._drag_pos
                     return True  # Event handled
+
+            elif event.type() == event.Type.MouseButtonDblClick:
+                if event.button() == Qt.MouseButton.LeftButton:
+                    # Check if double-click is on empty tab bar area
+                    tab_index = self._tab_bar.tabAt(event.pos())
+                    is_valid_tab = (tab_index >= 0 and tab_index < self._tab_bar.count())
+
+                    if not is_valid_tab:
+                        # Check if click is on new tab button - if so, ignore
+                        if self._tab_bar.new_tab_button_rect.contains(event.pos()):
+                            return False
+
+                        # Double-click on empty area - toggle maximize
+                        if self.isMaximized():
+                            self.showNormal()
+                        else:
+                            self.showMaximized()
+                        return True  # Event handled
 
         return False  # Let the event continue to the tab bar
 

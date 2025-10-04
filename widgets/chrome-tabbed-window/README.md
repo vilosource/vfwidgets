@@ -99,6 +99,53 @@ app.exec()
 
 See [examples/04_themed_chrome_tabs.py](examples/04_themed_chrome_tabs.py) for complete example.
 
+## Customizing New Tab Behavior
+
+ChromeTabbedWindow includes a built-in "+" button rendered on the tab bar (not a QWidget). By default, clicking it creates a placeholder widget with "New Tab" text.
+
+### ❌ Wrong Approach
+
+**Do NOT create a separate "+" button:**
+```python
+# ❌ WRONG - This button will be ignored!
+class MyWindow(ChromeTabbedWindow):
+    def __init__(self):
+        super().__init__()
+
+        # This creates a second button that conflicts with the built-in one
+        new_tab_button = QPushButton("+")
+        new_tab_button.clicked.connect(self._on_new_tab)
+        self.setCornerWidget(new_tab_button, Qt.Corner.TopRightCorner)
+```
+
+### ✅ Correct Approach
+
+**Override `_on_new_tab_requested()` instead:**
+```python
+# ✅ CORRECT - Override the built-in handler
+class MyWindow(ChromeTabbedWindow):
+    def __init__(self):
+        super().__init__()
+        self.add_custom_tab("Tab 1")
+
+    def _on_new_tab_requested(self):
+        """Called when the built-in + button is clicked."""
+        tab_count = self.count()
+        self.add_custom_tab(f"Tab {tab_count + 1}")
+
+    def add_custom_tab(self, title: str):
+        widget = MyCustomWidget()
+        self.addTab(widget, title)
+```
+
+**Why this matters:**
+- The "+" button is **painted on the tab bar**, not a separate QWidget
+- It's positioned dynamically after the last tab
+- Clicking it calls `_on_new_tab_requested()`
+- The method is designed to be overridden for custom behavior
+
+See [examples/02_frameless_chrome.py](examples/02_frameless_chrome.py) for the default behavior.
+
 ## QTabWidget API Compatibility
 
 ChromeTabbedWindow provides 100% compatibility with QTabWidget's public API:
@@ -128,6 +175,23 @@ See [API Documentation](docs/api.md) for complete reference.
 | WSL/WSLg | ⚠️ | ⚠️ | ⚠️ | Falls back to native |
 
 *Requires Qt 6.5+ and compositor support
+
+## Known Limitations
+
+### Frameless Mode Features
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Window dragging | ✅ Implemented | Click and drag empty tab bar area |
+| Minimize/Maximize/Close buttons | ✅ Implemented | Native-style window controls |
+| Double-click to maximize | ✅ Implemented | Double-click empty tab bar area |
+| System context menu | ⚠️ Platform-dependent | Right-click title bar (Windows/Linux) |
+| Native window animations | ⚠️ Platform-dependent | Maximize/minimize animations vary by OS |
+
+**Double-Click to Maximize:**
+- Double-click any empty area of the tab bar to toggle maximize/restore
+- Works in frameless (top-level) mode only
+- Does not interfere with tab double-click events
 
 ## Documentation
 
