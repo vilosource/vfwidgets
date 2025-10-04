@@ -22,6 +22,8 @@ __email__ = "vilosource@viloforge.com"
 
 from .constants import DEFAULT_COLS, DEFAULT_ROWS, THEMES
 from .embedded_server import EmbeddedTerminalServer
+from .multi_session_server import MultiSessionTerminalServer
+from .session import TerminalSession
 from .terminal import (
     ContextMenuEvent,
     DebugWebEngineView,
@@ -36,6 +38,9 @@ from .terminal import (
 __all__ = [
     # Main widget
     "TerminalWidget",
+    # Multi-session server
+    "MultiSessionTerminalServer",
+    "TerminalSession",
     # Event system types (Phase 2 & 3)
     "ProcessEvent",
     "KeyEvent",

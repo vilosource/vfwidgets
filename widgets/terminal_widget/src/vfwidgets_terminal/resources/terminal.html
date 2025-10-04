@@ -69,7 +69,7 @@
 </head>
 <body>
     <div id="terminal"></div>
-    <div id="loading" class="loading">Connecting to terminal...</div>
+    <div id="loading" class="loading hidden">Connecting to terminal...</div>
 
     <!-- External scripts -->
     <script src="https://unpkg.com/xterm@4.19.0/lib/xterm.js"></script>
@@ -196,22 +196,41 @@
             console.log('Rich event handlers set up');
         }
 
+        // Extract session_id from URL if present (for multi-session server)
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
         // Connect to server
-        const socket = io('/pty', {
+        const socketOptions = {
             transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionAttempts: 5
-        });
+        };
+
+        // Add session_id to query for multi-session server
+        if (sessionId) {
+            socketOptions.query = { session_id: sessionId };
+        }
+
+        const socket = io('/pty', socketOptions);
 
         // Terminal input handler
         term.onData(data => {
-            socket.emit('pty-input', { input: data });
+            const payload = { input: data };
+            // Include session_id for multi-session server
+            if (sessionId) {
+                payload.session_id = sessionId;
+            }
+            socket.emit('pty-input', payload);
         });
 
         // Server output handler
         socket.on('pty-output', data => {
-            term.write(data.output);
+            // For multi-session server, verify session_id matches
+            if (!sessionId || data.session_id === sessionId) {
+                term.write(data.output);
+            }
         });
 
         // Connection handlers
@@ -225,10 +244,15 @@
             // Send initial size
             const dims = fitAddon.proposeDimensions();
             if (dims) {
-                socket.emit('resize', {
+                const resizePayload = {
                     rows: dims.rows,
                     cols: dims.cols
-                });
+                };
+                // Include session_id for multi-session server
+                if (sessionId) {
+                    resizePayload.session_id = sessionId;
+                }
+                socket.emit('resize', resizePayload);
             }
         });
 
@@ -242,6 +266,21 @@
             console.log('Reconnected after', attemptNumber, 'attempts');
             document.getElementById('loading').classList.add('hidden');
         });
+
+        // Handle session closed event (multi-session server)
+        socket.on('session_closed', data => {
+            if (!sessionId || data.session_id === sessionId) {
+                console.log('Terminal session ended');
+                term.write('\r\n\r\n[Process exited]\r\n');
+            }
+        });
+
+        // Send heartbeat every 30 seconds (multi-session server)
+        if (sessionId) {
+            setInterval(() => {
+                socket.emit('heartbeat', { session_id: sessionId });
+            }, 30000);
+        }
 
         // Resize handling
         function fitTerminal() {
@@ -260,10 +299,15 @@
             fitTerminal();
             const dims = fitAddon.proposeDimensions();
             if (dims) {
-                socket.emit('resize', {
+                const resizePayload = {
                     rows: dims.rows,
                     cols: dims.cols
-                });
+                };
+                // Include session_id for multi-session server
+                if (sessionId) {
+                    resizePayload.session_id = sessionId;
+                }
+                socket.emit('resize', resizePayload);
             }
         }, 100);
 

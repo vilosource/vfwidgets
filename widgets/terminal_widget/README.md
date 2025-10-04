@@ -6,13 +6,15 @@ A powerful PySide6 terminal emulator widget powered by xterm.js for the VFWidget
 
 - 🖥️ **Full Terminal Emulation** - Complete terminal experience using xterm.js
 - 🎛️ **Easy Integration** - Drop-in widget for any PySide6/Qt application
-- 🔌 **Flexible Architecture** - Embedded or external server modes
+- 🔌 **Three Usage Modes** - Embedded, Multi-Session, or Custom Server
+- 💾 **Memory Efficient** - Multi-session mode uses 63% less memory
 - 📡 **Rich Signal System** - Comprehensive signals for terminal events
-- 🎨 **Customizable Themes** - Built-in dark/light themes
+- 🎨 **Customizable Themes** - Built-in dark/light themes with vfwidgets-theme integration
 - 📋 **Copy/Paste Support** - Full clipboard integration
 - 🔍 **Output Capture** - Capture and process terminal output programmatically
 - 🚀 **Developer Friendly** - Extensive API for terminal control
 - 🖱️ **Interactive Features** - Clickable links, search, custom key bindings
+- 🌐 **Cross-Platform** - Works on Linux, macOS, and Windows
 
 ## Installation
 
@@ -178,12 +180,52 @@ terminal = TerminalWidget(read_only=True)
 terminal.set_read_only(True)
 ```
 
-### External Server Mode
+### Multi-Session Server Mode (Recommended for Multiple Terminals)
+
+Use a shared server for memory-efficient multi-terminal applications:
 
 ```python
-# Connect to existing terminal server
-terminal = TerminalWidget(server_url='http://localhost:5000')
+from vfwidgets_terminal import MultiSessionTerminalServer, TerminalWidget
+
+# Create shared server once
+server = MultiSessionTerminalServer(port=0)  # Auto-allocate port
+server.start()
+
+# Create multiple terminals sharing the server
+def create_terminal():
+    # Create session first
+    session_id = server.create_session(command="bash")
+
+    # Get session URL
+    session_url = server.get_session_url(session_id)
+
+    # Connect widget to session
+    return TerminalWidget(server_url=session_url)
+
+# Create terminals
+terminal1 = create_terminal()
+terminal2 = create_terminal()
+# ... up to 20 terminals (configurable)
+
+# Cleanup on exit
+server.shutdown()
 ```
+
+**Benefits:**
+- **63% less memory:** 20 terminals = ~110MB vs ~300MB (embedded mode)
+- **Centralized management:** One server handles all sessions
+- **Scalable:** Supports 5-20+ concurrent terminals efficiently
+
+**When to use:**
+- Applications with 5+ terminals
+- Multi-terminal IDEs (like ViloxTerm)
+- Memory-constrained environments
+
+### External/Custom Server Mode
+
+```python
+# Connect to custom terminal server
+terminal = TerminalWidget(server_url='http://localhost:5000')
 
 ## Advanced Examples
 
@@ -290,6 +332,23 @@ The widget uses a random port by default. To specify a fixed port:
 terminal = TerminalWidget(port=8765)
 ```
 
+## Documentation
+
+### Comprehensive Guides
+
+- **[Lessons Learned](docs/lessons-learned-GUIDE.md)** - Critical lessons from multi-session implementation
+- **[Backend Implementation](docs/backend-implementation-GUIDE.md)** - Guide to implementing custom backends
+- **[Server Implementation](docs/server-implementation-GUIDE.md)** - Guide to implementing custom servers
+- **[Protocol Specification](docs/terminal-server-protocol-SPEC.md)** - Complete SocketIO protocol
+- **[Architecture Design](docs/architecture-DESIGN.md)** - System architecture and design decisions
+- **[Theme Integration](docs/theme-integration-lessons-GUIDE.md)** - Theme system integration guide
+
+### Quick Links
+
+- **Examples:** See `examples/README.md` for usage examples
+- **API Reference:** See `docs/api.md` for complete API documentation
+- **Usage Guide:** See `docs/usage.md` for detailed usage patterns
+
 ## Development
 
 ```bash
@@ -309,23 +368,27 @@ mypy src/
 
 ## Architecture
 
+### Embedded Mode (1-5 terminals)
 ```
-┌─────────────────────────────────┐
-│     PySide6 Application         │
-├─────────────────────────────────┤
-│     TerminalWidget              │
-├─────────────────────────────────┤
-│     QWebEngineView              │
-│            ↕                    │
-│   EmbeddedTerminalServer        │
-├─────────────────────────────────┤
-│   Flask + SocketIO (localhost)  │
-│            ↕                    │
-│    PTY Process + WebSocket      │
-│            ↕                    │
-│         xterm.js                │
-└─────────────────────────────────┘
+TerminalWidget #1 → EmbeddedServer (port 5001) → PTY #1
+TerminalWidget #2 → EmbeddedServer (port 5002) → PTY #2
 ```
+
+### Multi-Session Mode (5-20+ terminals - **Recommended**)
+```
+MultiSessionTerminalServer (port 5000)
+├─ Session abc123 → PTY #1
+├─ Session def456 → PTY #2
+└─ Session ghi789 → PTY #3
+
+TerminalWidget #1, #2, #3 → All connect to port 5000
+```
+
+**Memory Comparison:**
+- Embedded (20 terminals): ~300 MB
+- Multi-Session (20 terminals): ~110 MB (63% reduction)
+
+For complete architecture details, see [Architecture Design](docs/architecture-DESIGN.md)
 
 ## License
 

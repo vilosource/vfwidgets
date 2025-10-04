@@ -578,6 +578,11 @@ class TerminalWidget(_BaseTerminalClass):
         # Create web view for terminal (use our enhanced version for context menu debugging)
         self.web_view = DebugWebEngineView(self)
         self.web_view.set_debug(self.debug)
+
+        # Set background color to match terminal theme (prevents white flash on startup)
+        from PySide6.QtGui import QColor
+        self.web_view.page().setBackgroundColor(QColor("#1e1e1e"))
+
         layout.addWidget(self.web_view)
 
         # Connect right-click signal
@@ -644,6 +649,22 @@ class TerminalWidget(_BaseTerminalClass):
             if success
             else logger.warning("❌ FOCUS SETUP: Page failed to load")
         )
+
+    def setFocus(self) -> None:
+        """Override setFocus to properly focus the web view.
+
+        When Qt focus is set on TerminalWidget programmatically,
+        we need to explicitly set focus on the QWebEngineView to
+        ensure the terminal can receive keyboard input immediately.
+        """
+        super().setFocus()
+        # Focus the web view's focus proxy (the actual input receiver)
+        focus_proxy = self.web_view.focusProxy()
+        if focus_proxy:
+            focus_proxy.setFocus()
+        else:
+            # Fallback: focus the web view itself
+            self.web_view.setFocus()
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """Handle events from the QWebEngineView focus proxy.
