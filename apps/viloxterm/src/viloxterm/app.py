@@ -145,18 +145,18 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.keybinding_manager.register_actions(
             [
                 ActionDefinition(
-                    id="pane.split_vertical",
-                    description="Split Vertical",
-                    default_shortcut="Ctrl+Shift+V",
-                    category="Pane",
-                    callback=self._on_split_vertical,
-                ),
-                ActionDefinition(
                     id="pane.split_horizontal",
                     description="Split Horizontal",
-                    default_shortcut="Ctrl+Shift+H",
+                    default_shortcut="Ctrl+Shift+H",  # H = Horizontal divider = top/bottom split
                     category="Pane",
                     callback=self._on_split_horizontal,
+                ),
+                ActionDefinition(
+                    id="pane.split_vertical",
+                    description="Split Vertical",
+                    default_shortcut="Ctrl+Shift+V",  # V = Vertical divider = left/right split
+                    category="Pane",
+                    callback=self._on_split_vertical,
                 ),
                 ActionDefinition(
                     id="pane.close",
@@ -297,15 +297,15 @@ class ViloxTermApp(ChromeTabbedWindow):
             key_event = event
 
             # Check if this matches any of our registered shortcuts
-            key_sequence = QKeySequence(
-                int(key_event.modifiers()) | int(key_event.key())
-            )
+            key_sequence = QKeySequence(int(key_event.modifiers()) | int(key_event.key()))
 
             # Check all registered actions
             for action_id, action in self.actions.items():
                 if action.shortcut().matches(key_sequence) == QKeySequence.SequenceMatch.ExactMatch:
                     # Trigger the action and consume the event
-                    logger.debug(f"Intercepted shortcut: {action.shortcut().toString()} for {action_id}")
+                    logger.debug(
+                        f"Intercepted shortcut: {action.shortcut().toString()} for {action_id}"
+                    )
                     action.trigger()
                     return True  # Event handled, don't propagate
 
@@ -592,10 +592,11 @@ class ViloxTermApp(ChromeTabbedWindow):
             f"{new_pane_id[:8] if new_pane_id else 'None'}"
         )
 
-    def _on_split_vertical(self) -> None:
-        """Handle split vertical request from menu.
+    def _on_split_horizontal(self) -> None:
+        """Handle horizontal split request (top/bottom panes).
 
-        Splits the focused pane vertically (creates horizontal divider).
+        Creates a horizontal divider, splitting the pane into top and bottom.
+        Triggered by Ctrl+Shift+H.
         """
         multisplit = self.currentWidget()
         if not isinstance(multisplit, MultisplitWidget):
@@ -613,21 +614,22 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Mark split in progress for auto-focus
         self._splitting_in_progress = True
 
-        # Split pane (BOTTOM = vertical split with horizontal divider)
+        # Split pane (BOTTOM = horizontal divider between top/bottom panes)
         success = multisplit.split_pane(
             focused_pane, new_widget_id, WherePosition.BOTTOM, ratio=0.5
         )
 
         if success:
-            logger.info(f"Split pane {focused_pane} vertically")
+            logger.info(f"Split pane {focused_pane} horizontally (top/bottom)")
         else:
             logger.warning(f"Failed to split pane {focused_pane}")
             self._splitting_in_progress = False
 
-    def _on_split_horizontal(self) -> None:
-        """Handle split horizontal request from menu.
+    def _on_split_vertical(self) -> None:
+        """Handle vertical split request (left/right panes).
 
-        Splits the focused pane horizontally (creates vertical divider).
+        Creates a vertical divider, splitting the pane into left and right.
+        Triggered by Ctrl+Shift+V.
         """
         multisplit = self.currentWidget()
         if not isinstance(multisplit, MultisplitWidget):
@@ -645,11 +647,11 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Mark split in progress for auto-focus
         self._splitting_in_progress = True
 
-        # Split pane (RIGHT = horizontal split with vertical divider)
+        # Split pane (RIGHT = vertical divider between left/right panes)
         success = multisplit.split_pane(focused_pane, new_widget_id, WherePosition.RIGHT, ratio=0.5)
 
         if success:
-            logger.info(f"Split pane {focused_pane} horizontally")
+            logger.info(f"Split pane {focused_pane} vertically (left/right)")
         else:
             logger.warning(f"Failed to split pane {focused_pane}")
             self._splitting_in_progress = False

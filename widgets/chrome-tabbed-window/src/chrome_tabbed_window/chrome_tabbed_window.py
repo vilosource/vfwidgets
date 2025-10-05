@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QHBoxLayout, QTabBar, QTabWidget, QVBoxLayout, QWi
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -36,10 +37,9 @@ from .model import TabModel
 from .platform_support import PlatformFactory
 from .view import ChromeTabBar, TabContentArea
 
-
 if THEME_AVAILABLE:
     # CRITICAL: ThemedWidget MUST come first for theming to work!
-    _BaseClass = type('_BaseClass', (ThemedWidget, QWidget), {})
+    _BaseClass = type("_BaseClass", (ThemedWidget, QWidget), {})
 else:
     _BaseClass = QWidget
 
@@ -80,14 +80,14 @@ class ChromeTabbedWindow(_BaseClass):
 
     # Theme configuration - maps theme tokens to Chrome tab colors
     theme_config = {
-        'tab_background': 'tab.activeBackground',
-        'tab_inactive_background': 'tab.inactiveBackground',
-        'tab_hover_background': 'tab.hoverBackground',
-        'tab_border': 'tab.border',
-        'tab_active_foreground': 'tab.activeForeground',
-        'tab_inactive_foreground': 'tab.inactiveForeground',
-        'background': 'editorGroupHeader.tabsBackground',
-        'border': 'editorGroupHeader.tabsBorder',
+        "tab_background": "tab.activeBackground",
+        "tab_inactive_background": "tab.inactiveBackground",
+        "tab_hover_background": "tab.hoverBackground",
+        "tab_border": "tab.border",
+        "tab_active_foreground": "tab.activeForeground",
+        "tab_inactive_foreground": "tab.inactiveForeground",
+        "background": "editorGroupHeader.tabsBackground",
+        "border": "editorGroupHeader.tabsBorder",
     }
 
     # ==================== QTabWidget Signals (EXACT MATCH) ====================
@@ -135,6 +135,9 @@ class ChromeTabbedWindow(_BaseClass):
         # Edge resizing state for frameless windows
         self._resize_edge = None
         self.RESIZE_MARGIN = 8  # Pixels from edge to trigger resize
+
+        # Enable mouse tracking for edge resize cursor changes
+        self.setMouseTracking(True)
 
         # Setup components
         self._setup_ui()
@@ -210,11 +213,11 @@ class ChromeTabbedWindow(_BaseClass):
             return
 
         # Trigger tab bar repaint with new theme colors
-        if hasattr(self, '_tab_bar') and self._tab_bar:
+        if hasattr(self, "_tab_bar") and self._tab_bar:
             self._tab_bar.update()
 
         # Update window controls if in frameless mode
-        if hasattr(self, '_window_controls') and self._window_controls:
+        if hasattr(self, "_window_controls") and self._window_controls:
             self._window_controls.update()
 
         # Force full repaint
@@ -234,7 +237,7 @@ class ChromeTabbedWindow(_BaseClass):
             return None
 
         # Access theme from ThemedWidget's _theme_manager
-        if hasattr(self, '_theme_manager') and self._theme_manager:
+        if hasattr(self, "_theme_manager") and self._theme_manager:
             return self._theme_manager.current_theme
 
         return None
@@ -265,10 +268,10 @@ class ChromeTabbedWindow(_BaseClass):
         """Set up frameless window for Chrome browser appearance."""
         # Set frameless window hint
         self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowSystemMenuHint |
-            Qt.WindowType.WindowMinMaxButtonsHint |
-            Qt.WindowType.WindowCloseButtonHint
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowSystemMenuHint
+            | Qt.WindowType.WindowMinMaxButtonsHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
 
         # Enable transparency for proper Chrome tab rendering
@@ -336,7 +339,7 @@ class ChromeTabbedWindow(_BaseClass):
         """Handle mouse move for window dragging and edge resizing in frameless mode."""
         if self._window_mode == WindowMode.Frameless:
             # Handle window dragging
-            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, '_drag_pos'):
+            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, "_drag_pos"):
                 self.move(event.globalPos() - self._drag_pos)
                 event.accept()
                 return
@@ -347,13 +350,17 @@ class ChromeTabbedWindow(_BaseClass):
 
                 if edges:
                     # Set appropriate cursor based on edges
-                    if ('left' in edges and 'top' in edges) or ('right' in edges and 'bottom' in edges):
+                    if ("left" in edges and "top" in edges) or (
+                        "right" in edges and "bottom" in edges
+                    ):
                         self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-                    elif ('right' in edges and 'top' in edges) or ('left' in edges and 'bottom' in edges):
+                    elif ("right" in edges and "top" in edges) or (
+                        "left" in edges and "bottom" in edges
+                    ):
                         self.setCursor(Qt.CursorShape.SizeBDiagCursor)
-                    elif 'left' in edges or 'right' in edges:
+                    elif "left" in edges or "right" in edges:
                         self.setCursor(Qt.CursorShape.SizeHorCursor)
-                    elif 'top' in edges or 'bottom' in edges:
+                    elif "top" in edges or "bottom" in edges:
                         self.setCursor(Qt.CursorShape.SizeVerCursor)
                 else:
                     self.setCursor(Qt.CursorShape.ArrowCursor)
@@ -362,7 +369,7 @@ class ChromeTabbedWindow(_BaseClass):
 
     def mouseReleaseEvent(self, event) -> None:
         """Handle mouse release to stop window dragging and resizing."""
-        if hasattr(self, '_drag_pos'):
+        if hasattr(self, "_drag_pos"):
             del self._drag_pos
 
         # Reset resize edge
@@ -385,7 +392,7 @@ class ChromeTabbedWindow(_BaseClass):
 
                     # CRITICAL: Validate that tab_index is truly valid
                     # Qt's tabAt() can return stale indices after tab removal
-                    is_valid_tab = (tab_index >= 0 and tab_index < self._tab_bar.count())
+                    is_valid_tab = tab_index >= 0 and tab_index < self._tab_bar.count()
 
                     # IMPORTANT: Only intercept clicks on empty areas or invalid indices
                     # Let all clicks on actual valid tabs pass through to the tab bar for close buttons
@@ -396,7 +403,7 @@ class ChromeTabbedWindow(_BaseClass):
 
                         # Empty tab bar area - start window drag using native system move
                         # Try Qt's native window dragging (Qt 5.15+)
-                        if hasattr(self.windowHandle(), 'startSystemMove'):
+                        if hasattr(self.windowHandle(), "startSystemMove"):
                             self.windowHandle().startSystemMove()
                             return True
 
@@ -409,7 +416,7 @@ class ChromeTabbedWindow(_BaseClass):
                         return False  # Let tab bar handle the click (for close buttons, etc.)
 
             elif event.type() == event.Type.MouseMove:
-                if hasattr(self, '_drag_pos') and event.buttons() == Qt.MouseButton.LeftButton:
+                if hasattr(self, "_drag_pos") and event.buttons() == Qt.MouseButton.LeftButton:
                     # Manual dragging fallback
                     global_pos = self._tab_bar.mapToGlobal(event.pos())
                     new_pos = global_pos - self._drag_pos
@@ -417,7 +424,7 @@ class ChromeTabbedWindow(_BaseClass):
                     return True  # Event handled
 
             elif event.type() == event.Type.MouseButtonRelease:
-                if hasattr(self, '_drag_pos'):
+                if hasattr(self, "_drag_pos"):
                     del self._drag_pos
                     return True  # Event handled
 
@@ -425,7 +432,7 @@ class ChromeTabbedWindow(_BaseClass):
                 if event.button() == Qt.MouseButton.LeftButton:
                     # Check if double-click is on empty tab bar area
                     tab_index = self._tab_bar.tabAt(event.pos())
-                    is_valid_tab = (tab_index >= 0 and tab_index < self._tab_bar.count())
+                    is_valid_tab = tab_index >= 0 and tab_index < self._tab_bar.count()
 
                     if not is_valid_tab:
                         # Check if click is on new tab button - if so, ignore
@@ -472,31 +479,31 @@ class ChromeTabbedWindow(_BaseClass):
 
         edges = []
         if pos.x() < margin:
-            edges.append('left')
+            edges.append("left")
         elif pos.x() > rect.width() - margin:
-            edges.append('right')
+            edges.append("right")
 
         if pos.y() < margin:
-            edges.append('top')
+            edges.append("top")
         elif pos.y() > rect.height() - margin:
-            edges.append('bottom')
+            edges.append("bottom")
 
         return edges if edges else None
 
     def _start_system_resize(self, edges):
         """Start system resize operation if supported."""
         # Try Qt 6.5+ method first
-        if hasattr(self.windowHandle(), 'startSystemResize'):
+        if hasattr(self.windowHandle(), "startSystemResize"):
             # Map edges to Qt edge constants
             edge_map = {
-                ('left',): Qt.Edge.LeftEdge,
-                ('right',): Qt.Edge.RightEdge,
-                ('top',): Qt.Edge.TopEdge,
-                ('bottom',): Qt.Edge.BottomEdge,
-                ('left', 'top'): Qt.Edge.LeftEdge | Qt.Edge.TopEdge,
-                ('right', 'top'): Qt.Edge.RightEdge | Qt.Edge.TopEdge,
-                ('left', 'bottom'): Qt.Edge.LeftEdge | Qt.Edge.BottomEdge,
-                ('right', 'bottom'): Qt.Edge.RightEdge | Qt.Edge.BottomEdge,
+                ("left",): Qt.Edge.LeftEdge,
+                ("right",): Qt.Edge.RightEdge,
+                ("top",): Qt.Edge.TopEdge,
+                ("bottom",): Qt.Edge.BottomEdge,
+                ("left", "top"): Qt.Edge.LeftEdge | Qt.Edge.TopEdge,
+                ("right", "top"): Qt.Edge.RightEdge | Qt.Edge.TopEdge,
+                ("left", "bottom"): Qt.Edge.LeftEdge | Qt.Edge.BottomEdge,
+                ("right", "bottom"): Qt.Edge.RightEdge | Qt.Edge.BottomEdge,
             }
 
             qt_edge = edge_map.get(tuple(edges))
@@ -526,16 +533,16 @@ class ChromeTabbedWindow(_BaseClass):
         # Initialize Qt properties with current values from methods
         # This ensures property() method returns correct values
         # Note: Qt properties must use Qt enums, not our custom enums
-        super().setProperty('count', self.count())
-        super().setProperty('currentIndex', self.currentIndex())
-        super().setProperty('tabPosition', QTabWidget.TabPosition(self.tabPosition().value))
-        super().setProperty('tabShape', QTabWidget.TabShape(self.tabShape().value))
-        super().setProperty('tabsClosable', self.tabsClosable())
-        super().setProperty('movable', self.isMovable())
-        super().setProperty('documentMode', self.documentMode())
-        super().setProperty('usesScrollButtons', self.usesScrollButtons())
-        super().setProperty('elideMode', self.elideMode())
-        super().setProperty('iconSize', self.iconSize())
+        super().setProperty("count", self.count())
+        super().setProperty("currentIndex", self.currentIndex())
+        super().setProperty("tabPosition", QTabWidget.TabPosition(self.tabPosition().value))
+        super().setProperty("tabShape", QTabWidget.TabShape(self.tabShape().value))
+        super().setProperty("tabsClosable", self.tabsClosable())
+        super().setProperty("movable", self.isMovable())
+        super().setProperty("documentMode", self.documentMode())
+        super().setProperty("usesScrollButtons", self.usesScrollButtons())
+        super().setProperty("elideMode", self.elideMode())
+        super().setProperty("iconSize", self.iconSize())
 
     def _update_qt_property(self, name: str, value) -> None:
         """
@@ -546,7 +553,6 @@ class ChromeTabbedWindow(_BaseClass):
             value: New value
         """
         super().setProperty(name, value)
-
 
     def setProperty(self, name: str, value) -> bool:
         """
@@ -560,16 +566,16 @@ class ChromeTabbedWindow(_BaseClass):
             True if property was set successfully
         """
         # Handle read-only properties
-        if name == 'count':
+        if name == "count":
             # count is read-only, but we still need to return True for compatibility
             return True
 
         # Map QTabWidget property names to our internal methods
         try:
-            if name == 'currentIndex':
+            if name == "currentIndex":
                 self.setCurrentIndex(int(value))
                 return True
-            elif name == 'tabPosition':
+            elif name == "tabPosition":
                 # Handle both Qt enum and our custom enum and int values
                 if isinstance(value, QTabWidget.TabPosition):
                     self.setTabPosition(TabPosition(value.value))
@@ -578,7 +584,7 @@ class ChromeTabbedWindow(_BaseClass):
                 else:
                     self.setTabPosition(TabPosition(int(value)))
                 return True
-            elif name == 'tabShape':
+            elif name == "tabShape":
                 # Handle both Qt enum and our custom enum and int values
                 if isinstance(value, QTabWidget.TabShape):
                     self.setTabShape(TabShape(value.value))
@@ -587,26 +593,26 @@ class ChromeTabbedWindow(_BaseClass):
                 else:
                     self.setTabShape(TabShape(int(value)))
                 return True
-            elif name == 'tabsClosable':
+            elif name == "tabsClosable":
                 self.setTabsClosable(bool(value))
                 return True
-            elif name == 'movable':
+            elif name == "movable":
                 self.setMovable(bool(value))
                 return True
-            elif name == 'documentMode':
+            elif name == "documentMode":
                 self.setDocumentMode(bool(value))
                 return True
-            elif name == 'usesScrollButtons':
+            elif name == "usesScrollButtons":
                 self.setUsesScrollButtons(bool(value))
                 return True
-            elif name == 'elideMode':
+            elif name == "elideMode":
                 # Handle both enum and int values
                 if isinstance(value, Qt.TextElideMode):
                     self.setElideMode(value)
                 else:
                     self.setElideMode(Qt.TextElideMode(int(value)))
                 return True
-            elif name == 'iconSize':
+            elif name == "iconSize":
                 if isinstance(value, QSize):
                     self.setIconSize(value)
                     return True
@@ -627,6 +633,7 @@ class ChromeTabbedWindow(_BaseClass):
         # Create a simple default widget for the new tab
         # Applications should connect to this signal to provide custom behavior
         from PySide6.QtWidgets import QLabel
+
         widget = QLabel("New Tab")
         widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.addTab(widget, "New Tab")
@@ -664,7 +671,9 @@ class ChromeTabbedWindow(_BaseClass):
                 self.setTabIcon(index, icon)
             return index
         else:
-            raise TypeError(f"addTab() takes 2 or 3 positional arguments but {len(args) + 1} were given")
+            raise TypeError(
+                f"addTab() takes 2 or 3 positional arguments but {len(args) + 1} were given"
+            )
 
     def insertTab(self, index: int, widget: QWidget, *args) -> int:
         """
@@ -693,7 +702,9 @@ class ChromeTabbedWindow(_BaseClass):
             # insertTab(index, widget, icon, label)
             icon, label = args
         else:
-            raise TypeError(f"insertTab() takes 3 or 4 positional arguments but {len(args) + 2} were given")
+            raise TypeError(
+                f"insertTab() takes 3 or 4 positional arguments but {len(args) + 2} were given"
+            )
 
         # Reparent widget to content area (QTabWidget behavior)
         widget.setParent(self._content_area)
@@ -710,7 +721,7 @@ class ChromeTabbedWindow(_BaseClass):
                 self.setTabIcon(actual_index, icon)
 
             # Update Qt property for compatibility
-            self._update_qt_property('count', self.count())
+            self._update_qt_property("count", self.count())
 
         return actual_index
 
@@ -727,8 +738,8 @@ class ChromeTabbedWindow(_BaseClass):
         if 0 <= index < self.count():
             self._model.remove_tab(index)
         # Update Qt properties for compatibility
-        self._update_qt_property('count', self.count())
-        self._update_qt_property('currentIndex', self.currentIndex())
+        self._update_qt_property("count", self.count())
+        self._update_qt_property("currentIndex", self.currentIndex())
 
     def clear(self) -> None:
         """
@@ -738,8 +749,8 @@ class ChromeTabbedWindow(_BaseClass):
         """
         self._model.clear()
         # Update Qt properties for compatibility
-        self._update_qt_property('count', self.count())
-        self._update_qt_property('currentIndex', self.currentIndex())
+        self._update_qt_property("count", self.count())
+        self._update_qt_property("currentIndex", self.currentIndex())
 
     # ==================== Tab Access (QTabWidget API) ====================
 
@@ -777,7 +788,7 @@ class ChromeTabbedWindow(_BaseClass):
         """
         self._model.set_current_index(index)
         # Update Qt property for compatibility
-        self._update_qt_property('currentIndex', index)
+        self._update_qt_property("currentIndex", index)
 
     def currentWidget(self) -> Optional[QWidget]:
         """
@@ -1123,7 +1134,7 @@ class ChromeTabbedWindow(_BaseClass):
         """
         self._elide_mode = mode
         # Update Qt property for compatibility
-        self._update_qt_property('elideMode', mode)
+        self._update_qt_property("elideMode", mode)
         self._tab_bar.setElideMode(mode)
 
     def elideMode(self) -> Qt.TextElideMode:
@@ -1173,7 +1184,7 @@ class ChromeTabbedWindow(_BaseClass):
         """
         self._tab_position = position
         # Update Qt property for compatibility (convert to Qt enum)
-        self._update_qt_property('tabPosition', QTabWidget.TabPosition(position.value))
+        self._update_qt_property("tabPosition", QTabWidget.TabPosition(position.value))
         # TODO: Implement layout changes for different positions
 
     def tabPosition(self) -> TabPosition:
@@ -1198,7 +1209,7 @@ class ChromeTabbedWindow(_BaseClass):
         """
         self._tab_shape = shape
         # Update Qt property for compatibility (convert to Qt enum)
-        self._update_qt_property('tabShape', QTabWidget.TabShape(shape.value))
+        self._update_qt_property("tabShape", QTabWidget.TabShape(shape.value))
         self._tab_bar.setShape(QTabBar.Shape(shape))
 
     def tabShape(self) -> TabShape:
@@ -1214,7 +1225,9 @@ class ChromeTabbedWindow(_BaseClass):
 
     # ==================== Corner Widgets & Tab Bar (QTabWidget API) ====================
 
-    def setCornerWidget(self, widget: QWidget, corner: Qt.Corner = Qt.Corner.TopRightCorner) -> None:
+    def setCornerWidget(
+        self, widget: QWidget, corner: Qt.Corner = Qt.Corner.TopRightCorner
+    ) -> None:
         """
         Set a corner widget.
 

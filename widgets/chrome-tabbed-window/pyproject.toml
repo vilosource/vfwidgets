@@ -104,6 +104,8 @@ extend-exclude = '''
 [tool.ruff]
 line-length = 100
 target-version = "py38"
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -119,9 +121,14 @@ ignore = [
     "E501",  # line too long (handled by black)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "N802",  # Qt event handlers use mixedCase (mousePressEvent, etc.)
+    "N815",  # Qt signals/properties use mixedCase for QTabWidget compatibility
+    "SIM102",  # Nested if statements are clearer for complex guard clauses
+    "SIM108",  # Complex ternary operators reduce readability
+    "UP045",  # Optional[T] is more readable than T | None for optional params
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # imported but unused
 "tests/**" = ["S101"]  # use of assert
 
