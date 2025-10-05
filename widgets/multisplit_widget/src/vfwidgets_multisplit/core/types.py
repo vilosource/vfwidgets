@@ -253,6 +253,14 @@ class SplitterStyle:
     handle_margin_vertical: int = 2
     """Left/right margin for vertical handles in pixels (default: 2)."""
 
+    hit_area_padding: int = 0
+    """Extra invisible padding on each side for easier grabbing (default: 0).
+
+    This expands the interactive area without changing visual appearance.
+    Useful for minimal 1px dividers to provide comfortable hit targets.
+    Total hit area width = handle_width + (2 * hit_area_padding)
+    """
+
     # Colors (optional - defaults to theme if None)
     handle_bg: str | None = None
     """Background color for handle (default: uses theme 'widget.background')."""
@@ -288,6 +296,8 @@ class SplitterStyle:
             raise ValueError(f"handle_margin_horizontal must be non-negative: {self.handle_margin_horizontal}")
         if self.handle_margin_vertical < 0:
             raise ValueError(f"handle_margin_vertical must be non-negative: {self.handle_margin_vertical}")
+        if self.hit_area_padding < 0:
+            raise ValueError(f"hit_area_padding must be non-negative: {self.hit_area_padding}")
         if self.border_width < 0:
             raise ValueError(f"border_width must be non-negative: {self.border_width}")
         if self.border_radius < 0:
@@ -300,16 +310,18 @@ class SplitterStyle:
         Returns 1px handles with no margins for a clean, minimal appearance.
         Ideal for terminal emulators and applications where space is critical.
 
-        Total visual width: 1px
+        Visual width: 1px (very thin divider line)
+        Hit area: 7px (1px + 3px padding on each side for easy grabbing)
 
         Returns:
-            SplitterStyle with minimal dimensions
+            SplitterStyle with minimal dimensions but comfortable hit area
         """
         return cls(
             handle_width=1,
             handle_margin_horizontal=0,
             handle_margin_vertical=0,
-            border_width=0
+            border_width=0,
+            hit_area_padding=3  # 3px padding on each side = 7px total hit area
         )
 
     @classmethod

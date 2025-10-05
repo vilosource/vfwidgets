@@ -5,7 +5,7 @@ Qt widget that renders the pane tree.
 
 from typing import Optional, Protocol
 
-from PySide6.QtCore import QEvent, Qt, Signal
+from PySide6.QtCore import QEvent, QRect, Qt, Signal
 from PySide6.QtWidgets import QSplitter, QWidget
 
 try:
@@ -18,7 +18,7 @@ except ImportError:
 from ..core.logger import log_widget_creation, logger
 from ..core.model import PaneModel
 from ..core.nodes import LeafNode, PaneNode
-from ..core.types import Direction, PaneId, WidgetId
+from ..core.types import Direction, Orientation, PaneId, SplitterStyle, WidgetId
 from ..view.geometry_manager import GeometryManager
 from ..view.tree_reconciler import ReconcilerOperations, TreeReconciler
 from ..view.visual_renderer import VisualRenderer
@@ -35,11 +35,22 @@ if THEME_AVAILABLE:
             'handle_border': 'widget.border',
         }
 
-        def __init__(self, orientation, parent=None):
-            """Initialize styled splitter."""
+        def __init__(self, orientation, parent=None, style: Optional[SplitterStyle] = None):
+            """Initialize styled splitter.
+
+            Args:
+                orientation: Qt.Orientation (Horizontal or Vertical)
+                parent: Parent widget
+                style: SplitterStyle configuration (None = use comfortable defaults)
+            """
             super().__init__(orientation=orientation, parent=parent)
             self.setChildrenCollapsible(False)
-            self.setHandleWidth(6)  # Wider for easier grabbing
+
+            # Use style parameters or comfortable defaults
+            if style is None:
+                style = SplitterStyle.comfortable()
+            self.style = style
+            self.setHandleWidth(style.handle_width)
 
             # Prevent white flash when splitter is created before children are added
             from PySide6.QtCore import Qt
@@ -60,21 +71,34 @@ if THEME_AVAILABLE:
 
         def _update_style(self, hovered: bool = False):
             """Update splitter style based on theme and hover state."""
-            bg = self.theme.handle_hover_bg if hovered else self.theme.handle_bg
-            border = self.theme.handle_border if hovered else "transparent"
+            # Use custom colors from style if provided, otherwise use theme tokens
+            if hovered:
+                bg = self.style.handle_hover_bg or self.theme.handle_hover_bg
+                border = self.style.handle_hover_border or self.theme.handle_border
+            else:
+                bg = self.style.handle_bg or self.theme.handle_bg
+                border = self.style.handle_border or "transparent"
+
+            # Use style dimensions
+            handle_width = self.style.handle_width
+            margin_h = self.style.handle_margin_horizontal
+            margin_v = self.style.handle_margin_vertical
+            border_width = self.style.border_width
+            border_radius = self.style.border_radius
 
             self.setStyleSheet(f"""
                 QSplitter::handle {{
                     background-color: {bg};
-                    border: 1px solid {border};
+                    border: {border_width}px solid {border};
+                    border-radius: {border_radius}px;
                 }}
                 QSplitter::handle:horizontal {{
-                    width: 6px;
-                    margin: 2px 0px;
+                    width: {handle_width}px;
+                    margin: {margin_h}px 0px;
                 }}
                 QSplitter::handle:vertical {{
-                    height: 6px;
-                    margin: 0px 2px;
+                    height: {handle_width}px;
+                    margin: 0px {margin_v}px;
                 }}
             """)
 
@@ -144,26 +168,36 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
     def __init__(self, model: PaneModel,
                  provider: Optional[WidgetProvider] = None,
-                 parent: Optional[QWidget] = None):
+                 parent: Optional[QWidget] = None,
+                 splitter_style: Optional['SplitterStyle'] = None):
         """Initialize container."""
         super().__init__(parent)
 
         self.model = model
         self.provider = provider
+        self.splitter_style = splitter_style  # Store for splitter creation
         self.reconciler = TreeReconciler()
 
         self._current_tree: Optional[PaneNode] = None  # Needed for reconciliation
 
         # Fixed Container Architecture (Layer 1-3)
         self._widget_pool = WidgetPool(self)  # Layer 1: Fixed container
-        self._geometry_manager = GeometryManager()  # Layer 2: Pure calculation
+        # Layer 2: Pure calculation - pass handle_width from splitter_style
+        handle_width = splitter_style.handle_width if splitter_style else 6
+        self._geometry_manager = GeometryManager(handle_width=handle_width)
         self._visual_renderer = VisualRenderer(self._widget_pool)  # Layer 3: Geometry application
+
+        # Divider management (for drag-to-resize)
+        self._dividers: dict[str, list[QWidget]] = {}  # node_id -> list of DividerWidget instances
 
         # Prevent white flash during layout rebuilds using Qt widget attributes
         # WA_NoSystemBackground: Prevent Qt from erasing widget background (prevents white flash)
         # This is the proper Qt way to prevent flashing when widgets aren't ready to paint yet
         from PySide6.QtCore import Qt
         self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
+
+        # Enable mouse tracking to receive mouse move events for divider drag
+        self.setMouseTracking(True)
 
         # Connect model signals
         logger.debug(f"Connecting to model signals: {self.model}")
@@ -176,11 +210,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
     def _on_structure_changed(self):
         """Handle model structure changes."""
-        logger.info("=" * 60)
-        logger.info("STRUCTURE CHANGED SIGNAL RECEIVED")
-        logger.info(f"Current tree type: {type(self._current_tree).__name__ if self._current_tree else 'None'}")
-        logger.info(f"New root type: {type(self.model.root).__name__ if self.model.root else 'None'}")
-        logger.info("=" * 60)
+        logger.debug("Structure changed - updating view")
         self._update_view()
 
     def _update_view(self):
@@ -206,7 +236,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
         # If the root type changed (e.g., Leaf -> Split), we must rebuild
         if self._current_tree is None or self.model.root is None:
             should_rebuild = True
-        elif type(self._current_tree) != type(self.model.root):
+        elif not isinstance(self._current_tree, type(self.model.root)):
             should_rebuild = True
             logger.info("Root node type changed - forcing rebuild")
         elif diff.has_changes():
@@ -265,6 +295,251 @@ class PaneContainer(QWidget, ReconcilerOperations):
         # Apply geometries (NO REPARENTING - only setGeometry() calls)
         self._visual_renderer.render(geometries)
 
+        # Calculate and render dividers
+        divider_geometries = self._geometry_manager.calculate_dividers(self.model.root, viewport)
+        self._update_dividers(divider_geometries)
+
+    def _update_dividers(self, divider_geometries: dict[str, list['QRect']]):
+        """Create/update/remove divider widgets to match tree structure.
+
+        Args:
+            divider_geometries: Dict mapping node_id -> list of divider rectangles
+        """
+        from ..core.nodes import SplitNode
+        from ..core.tree_utils import find_split_by_id
+        from .divider_widget import DividerWidget
+
+        # Remove dividers for nodes that no longer exist
+        nodes_to_remove = []
+        for node_id in list(self._dividers.keys()):
+            if node_id not in divider_geometries:
+                # Remove all dividers for this node
+                for divider in self._dividers[node_id]:
+                    divider.hide()
+                    divider.deleteLater()
+                nodes_to_remove.append(node_id)
+
+        for node_id in nodes_to_remove:
+            del self._dividers[node_id]
+
+        # Create/update dividers for each SplitNode
+        for node_id, rects in divider_geometries.items():
+            # Find the SplitNode to get its orientation
+            split_node = find_split_by_id(self.model.root, node_id)
+            if not split_node or not isinstance(split_node, SplitNode):
+                continue
+
+            # Ensure we have the right number of dividers
+            if node_id not in self._dividers:
+                self._dividers[node_id] = []
+
+            current_dividers = self._dividers[node_id]
+
+            # Remove excess dividers if we have too many
+            while len(current_dividers) > len(rects):
+                divider = current_dividers.pop()
+                divider.hide()
+                divider.deleteLater()
+
+            # Create new dividers if we need more
+            while len(current_dividers) < len(rects):
+                divider_index = len(current_dividers)
+                divider = DividerWidget(
+                    node_id=node_id,
+                    divider_index=divider_index,
+                    orientation=split_node.orientation,
+                    style=self.splitter_style,
+                    parent=self
+                )
+                # Connect signals
+                divider.resize_requested.connect(self._on_divider_resize)  # LIVE preview
+                divider.resize_committed.connect(self._on_divider_commit)  # Final model update
+                current_dividers.append(divider)
+
+            # Update geometries for all dividers
+            for i, rect in enumerate(rects):
+                if i < len(current_dividers):
+                    # Expand rect to include hit area padding for easier grabbing
+                    expanded_rect = self._expand_divider_rect(rect, split_node.orientation)
+                    current_dividers[i].setGeometry(expanded_rect)
+                    current_dividers[i].show()
+                    current_dividers[i].raise_()  # Ensure dividers are on top
+
+        # Force IMMEDIATE repaint of container (repaint() is synchronous, update() is async)
+        self.repaint()
+
+    def _expand_divider_rect(self, rect: QRect, orientation: Orientation) -> QRect:
+        """Expand divider rectangle to include hit area padding.
+
+        Args:
+            rect: Base divider rectangle (just the visible handle width)
+            orientation: Split orientation (determines which dimension to expand)
+
+        Returns:
+            Expanded rectangle with hit area padding for easier mouse interaction
+        """
+        if not self.splitter_style or self.splitter_style.hit_area_padding == 0:
+            return rect  # No expansion needed
+
+        padding = self.splitter_style.hit_area_padding
+
+        if orientation == Orientation.HORIZONTAL:
+            # Horizontal split = vertical divider = expand width (left/right)
+            return QRect(
+                rect.x() - padding,
+                rect.y(),
+                rect.width() + (2 * padding),
+                rect.height()
+            )
+        else:  # VERTICAL
+            # Vertical split = horizontal divider = expand height (top/bottom)
+            return QRect(
+                rect.x(),
+                rect.y() - padding,
+                rect.width(),
+                rect.height() + (2 * padding)
+            )
+
+    def _on_divider_resize(self, node_id: str, divider_index: int, delta_pixels: int):
+        """Handle divider drag - DIRECT geometry update for live feedback.
+
+        This method provides IMMEDIATE visual feedback during drag by directly
+        updating widget geometries WITHOUT going through the model/command pattern.
+
+        The model is only updated when the drag completes (in divider mouseReleaseEvent).
+
+        Args:
+            node_id: ID of the SplitNode being resized
+            divider_index: Which divider was moved (0 = first gap, etc.)
+            delta_pixels: How many pixels the divider moved from drag start
+        """
+        from ..core.nodes import SplitNode
+        from ..core.tree_utils import find_split_by_id
+        from ..core.types import Orientation
+
+        # Find the SplitNode
+        split_node = find_split_by_id(self.model.root, node_id)
+        if not split_node or not isinstance(split_node, SplitNode):
+            logger.warning(f"Cannot resize: SplitNode {node_id} not found")
+            return
+
+        # Calculate total size (width for horizontal, height for vertical)
+        viewport = self.rect()
+        if split_node.orientation == Orientation.HORIZONTAL:
+            total_size = viewport.width()
+        else:
+            total_size = viewport.height()
+
+        # Calculate new ratios for PREVIEW
+        new_ratios = self._calculate_new_ratios(
+            split_node.ratios,
+            divider_index,
+            delta_pixels,
+            total_size
+        )
+
+        # CRITICAL: Create a TEMPORARY modified tree for preview calculation
+        # We temporarily modify the ratios in the node for geometry calculation ONLY
+        # The actual model is NOT changed until drag completes
+        old_ratios = split_node.ratios
+        split_node.ratios = new_ratios
+
+        # Recalculate geometries with preview ratios
+        geometries = self._geometry_manager.calculate_layout(self.model.root, viewport)
+        divider_geometries = self._geometry_manager.calculate_dividers(self.model.root, viewport)
+
+        # Restore original ratios (preview only - don't modify model)
+        split_node.ratios = old_ratios
+
+        # Apply preview geometries DIRECTLY (no model update, no structure_changed signal)
+        self._visual_renderer.render(geometries)
+        self._update_dividers(divider_geometries)
+
+    def _on_divider_commit(self, node_id: str, divider_index: int, delta_pixels: int):
+        """Handle divider drag completion - update model via command pattern.
+
+        This is called when the drag completes (mouseRelease). It updates the model
+        which triggers structure_changed and a full layout rebuild.
+
+        Args:
+            node_id: ID of the SplitNode being resized
+            divider_index: Which divider was moved
+            delta_pixels: Final delta from drag start
+        """
+        from ..core.nodes import SplitNode
+        from ..core.tree_utils import find_split_by_id
+        from ..core.types import Orientation
+
+        # Find the SplitNode
+        split_node = find_split_by_id(self.model.root, node_id)
+        if not split_node or not isinstance(split_node, SplitNode):
+            logger.warning(f"Cannot commit resize: SplitNode {node_id} not found")
+            return
+
+        # Calculate total size
+        viewport = self.rect()
+        if split_node.orientation == Orientation.HORIZONTAL:
+            total_size = viewport.width()
+        else:
+            total_size = viewport.height()
+
+        # Calculate final ratios
+        new_ratios = self._calculate_new_ratios(
+            split_node.ratios,
+            divider_index,
+            delta_pixels,
+            total_size
+        )
+
+        # Emit signal to trigger SetRatiosCommand (updates model, triggers structure_changed)
+        logger.debug(f"Committing resize: node={node_id}, ratios={new_ratios}")
+        self.splitter_moved.emit(node_id, new_ratios)
+
+    def _calculate_new_ratios(
+        self,
+        old_ratios: list[float],
+        divider_index: int,
+        delta_pixels: int,
+        total_size: int
+    ) -> list[float]:
+        """Convert pixel delta to new ratio distribution.
+
+        Args:
+            old_ratios: Current ratio distribution
+            divider_index: Index of divider that moved (between child[i] and child[i+1])
+            delta_pixels: How many pixels the divider moved (positive = right/down)
+            total_size: Total available size in pixels
+
+        Returns:
+            New ratio distribution (normalized to sum to 1.0)
+        """
+        # Convert ratios to pixel sizes
+        sizes = [ratio * total_size for ratio in old_ratios]
+
+        # Account for handle widths (N-1 handles for N children)
+        num_handles = len(sizes) - 1
+        available_size = total_size - (num_handles * self._geometry_manager.HANDLE_WIDTH)
+        sizes = [ratio * available_size for ratio in old_ratios]
+
+        # Apply delta to adjacent panes
+        # Divider between child[divider_index] and child[divider_index + 1]
+        sizes[divider_index] += delta_pixels
+        sizes[divider_index + 1] -= delta_pixels
+
+        # Clamp to minimum sizes (e.g., 50px)
+        MIN_SIZE = 50
+        sizes = [max(MIN_SIZE, s) for s in sizes]
+
+        # Convert back to ratios
+        new_total = sum(sizes)
+        if new_total > 0:
+            new_ratios = [s / new_total for s in sizes]
+        else:
+            # Fallback to equal distribution
+            new_ratios = [1.0 / len(sizes)] * len(sizes)
+
+        return new_ratios
+
     def _on_focus_changed(self, old_id: Optional[PaneId], new_id: Optional[PaneId]):
         """Handle focus changes."""
         # Use visual renderer to manage focus
@@ -309,6 +584,20 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
                 if pane_id_str:
                     logger.info(f"Mouse click detected on {obj.__class__.__name__} in pane: {pane_id_str}")
+
+                    # CRITICAL: Find the actual focusable widget and give it focus
+                    # The pane widget is often just a container - we need to focus the child
+                    pane_widget = self._widget_pool.get_widget(pane_id_str)
+                    if pane_widget:
+                        # If the clicked widget itself can take focus, use it
+                        if obj.focusPolicy() != Qt.FocusPolicy.NoFocus:
+                            obj.setFocus(Qt.FocusReason.MouseFocusReason)
+                        # Otherwise try to find a focusable child in the pane
+                        else:
+                            focusable = self._find_focusable_widget(pane_widget)
+                            if focusable:
+                                focusable.setFocus(Qt.FocusReason.MouseFocusReason)
+
                     self.pane_focused.emit(pane_id_str)
                     # Don't consume the event - let it propagate
                     return False
@@ -335,6 +624,24 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
             current = current.parent()
             max_depth -= 1
+
+        return None
+
+    def _find_focusable_widget(self, widget: QWidget) -> Optional[QWidget]:
+        """Find the first focusable child widget in the pane.
+
+        This is needed because pane widgets are often just containers,
+        and the actual focusable widget (like QTextEdit, terminal, etc.)
+        is a child of the pane widget.
+        """
+        # Check if the widget itself can take focus
+        if widget.focusPolicy() not in (Qt.FocusPolicy.NoFocus, Qt.FocusPolicy.TabFocus):
+            return widget
+
+        # Search children for a focusable widget
+        for child in widget.findChildren(QWidget):
+            if child.focusPolicy() not in (Qt.FocusPolicy.NoFocus, Qt.FocusPolicy.TabFocus):
+                return child
 
         return None
 
@@ -594,6 +901,11 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
         # Apply new geometries (NO REPARENTING)
         self._visual_renderer.render(geometries)
+
+        # CRITICAL: Update divider positions after window resize
+        # Without this, dividers stay at old positions and become ungrabbable
+        divider_geometries = self._geometry_manager.calculate_dividers(self.model.root, viewport)
+        self._update_dividers(divider_geometries)
 
 
 __all__ = ["WidgetProvider", "PaneContainer"]

@@ -3,13 +3,18 @@
 import logging
 from pathlib import Path
 
+from PySide6.QtCore import QEvent, QObject
+from PySide6.QtGui import QKeySequence
+
 from chrome_tabbed_window import ChromeTabbedWindow
 from vfwidgets_terminal import TerminalWidget, MultiSessionTerminalServer
 from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition
 from vfwidgets_keybinding import KeybindingManager, ActionDefinition
 
-from .components import ThemeDialog, MenuButton
+from .components import ThemeDialog, MenuButton, TerminalThemeDialog, TerminalPreferencesDialog
 from .providers import TerminalProvider
+from .terminal_theme_manager import TerminalThemeManager
+from .terminal_preferences_manager import TerminalPreferencesManager
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +43,30 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.terminal_server.start()
         logger.info(f"Terminal server started on port {self.terminal_server.port}")
 
+        # Create terminal theme manager
+        self.terminal_theme_manager = TerminalThemeManager()
+
+        # Create terminal preferences manager
+        self.terminal_preferences_manager = TerminalPreferencesManager()
+
         # Create terminal provider for MultisplitWidget
         self.terminal_provider = TerminalProvider(self.terminal_server)
 
+        # Apply default terminal theme to new terminals
+        default_theme = self.terminal_theme_manager.get_default_theme()
+        self.terminal_provider.set_default_theme(default_theme)
+        logger.info(f"Applied default terminal theme: {default_theme.get('name', 'unknown')}")
+
+        # Apply default terminal preferences to new terminals
+        default_preferences = self.terminal_preferences_manager.load_preferences()
+        self.terminal_provider.set_default_config(default_preferences)
+        logger.info("Applied default terminal preferences")
+
         # Track when we're performing a split (to auto-focus new pane)
         self._splitting_in_progress = False
+
+        # Track tab counter for proper tab naming
+        self._tab_counter = 1
 
         # Customize window after parent init
         self.setWindowTitle("ViloxTerm")
@@ -148,6 +172,107 @@ class ViloxTermApp(ChromeTabbedWindow):
                     category="Tab",
                     callback=self._on_close_tab,
                 ),
+                # Tab Navigation
+                ActionDefinition(
+                    id="tab.new",
+                    description="New Tab",
+                    default_shortcut="Ctrl+Shift+T",
+                    category="Tab",
+                    callback=self._on_new_tab,
+                ),
+                ActionDefinition(
+                    id="tab.next",
+                    description="Next Tab",
+                    default_shortcut="Ctrl+PgDn",
+                    category="Tab",
+                    callback=self._on_next_tab,
+                ),
+                ActionDefinition(
+                    id="tab.previous",
+                    description="Previous Tab",
+                    default_shortcut="Ctrl+PgUp",
+                    category="Tab",
+                    callback=self._on_previous_tab,
+                ),
+                # Quick jump to tabs 1-9
+                ActionDefinition(
+                    id="tab.jump_1",
+                    description="Jump to Tab 1",
+                    default_shortcut="Alt+1",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(1),
+                ),
+                ActionDefinition(
+                    id="tab.jump_2",
+                    description="Jump to Tab 2",
+                    default_shortcut="Alt+2",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(2),
+                ),
+                ActionDefinition(
+                    id="tab.jump_3",
+                    description="Jump to Tab 3",
+                    default_shortcut="Alt+3",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(3),
+                ),
+                ActionDefinition(
+                    id="tab.jump_4",
+                    description="Jump to Tab 4",
+                    default_shortcut="Alt+4",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(4),
+                ),
+                ActionDefinition(
+                    id="tab.jump_5",
+                    description="Jump to Tab 5",
+                    default_shortcut="Alt+5",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(5),
+                ),
+                ActionDefinition(
+                    id="tab.jump_6",
+                    description="Jump to Tab 6",
+                    default_shortcut="Alt+6",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(6),
+                ),
+                ActionDefinition(
+                    id="tab.jump_7",
+                    description="Jump to Tab 7",
+                    default_shortcut="Alt+7",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(7),
+                ),
+                ActionDefinition(
+                    id="tab.jump_8",
+                    description="Jump to Tab 8",
+                    default_shortcut="Alt+8",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(8),
+                ),
+                ActionDefinition(
+                    id="tab.jump_9",
+                    description="Jump to Tab 9",
+                    default_shortcut="Alt+9",
+                    category="Tab",
+                    callback=lambda: self._on_jump_to_tab(9),
+                ),
+                # Appearance
+                ActionDefinition(
+                    id="appearance.terminal_theme",
+                    description="Terminal Colors & Fonts",
+                    default_shortcut="Ctrl+Shift+,",
+                    category="Appearance",
+                    callback=self._show_terminal_theme_dialog,
+                ),
+                ActionDefinition(
+                    id="appearance.terminal_preferences",
+                    description="Terminal Preferences",
+                    default_shortcut="Ctrl+,",
+                    category="Appearance",
+                    callback=self._show_terminal_preferences_dialog,
+                ),
             ]
         )
 
@@ -158,6 +283,33 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.actions = self.keybinding_manager.apply_shortcuts(self)
 
         logger.info("Set up keyboard shortcuts with KeybindingManager")
+
+        # Install event filter to intercept shortcuts before they reach terminal
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        """Intercept keyboard events to handle application shortcuts.
+
+        This ensures shortcuts like Ctrl+PgDn work even when the terminal
+        (QWebEngineView) has focus, which would normally capture these keys.
+        """
+        if event.type() == QEvent.Type.KeyPress:
+            key_event = event
+
+            # Check if this matches any of our registered shortcuts
+            key_sequence = QKeySequence(
+                int(key_event.modifiers()) | int(key_event.key())
+            )
+
+            # Check all registered actions
+            for action_id, action in self.actions.items():
+                if action.shortcut().matches(key_sequence) == QKeySequence.SequenceMatch.ExactMatch:
+                    # Trigger the action and consume the event
+                    logger.debug(f"Intercepted shortcut: {action.shortcut().toString()} for {action_id}")
+                    action.trigger()
+                    return True  # Event handled, don't propagate
+
+        return super().eventFilter(obj, event)
 
     def add_new_terminal_tab(self, title: str = "Terminal") -> None:
         """Create a new tab with MultisplitWidget containing terminals.
@@ -174,11 +326,25 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Store current index to maintain user context
         current_index = self.currentIndex()
 
-        # Create MultisplitWidget with provider and minimal splitter style
-        # Use minimal style (1px borders) for clean terminal appearance
-        multisplit = MultisplitWidget(
-            provider=self.terminal_provider, splitter_style=SplitterStyle.minimal()
+        # Create MultisplitWidget with provider and custom dark splitter style
+        # Use minimal 1px borders with dark colors to match terminal theme
+        dark_splitter_style = SplitterStyle(
+            handle_width=1,
+            handle_margin_horizontal=0,
+            handle_margin_vertical=0,
+            handle_bg="#3a3a3a",  # Dark gray for dividers
+            handle_hover_bg="#505050",  # Slightly lighter on hover
+            border_width=0,
+            show_hover_effect=True,
+            cursor_on_hover=True,
+            hit_area_padding=3,  # 3px padding on each side for easier grabbing (7px total hit area)
         )
+        multisplit = MultisplitWidget(
+            provider=self.terminal_provider, splitter_style=dark_splitter_style
+        )
+
+        # Set dark background for MultisplitWidget container to match terminal theme
+        multisplit.setStyleSheet("background-color: #1e1e1e;")
 
         # Connect to pane_added signal for auto-focus on split
         multisplit.pane_added.connect(self._on_pane_added)
@@ -265,10 +431,86 @@ class ViloxTermApp(ChromeTabbedWindow):
             self.setCurrentIndex(tab_index)
 
     def _show_theme_dialog(self) -> None:
-        """Show theme selection dialog."""
+        """Show application theme selection dialog."""
         dialog = ThemeDialog(self)
         dialog.exec()
-        logger.info("Theme dialog closed")
+        logger.info("Application theme dialog closed")
+
+    def _show_terminal_theme_dialog(self) -> None:
+        """Show terminal theme customization dialog."""
+        dialog = TerminalThemeDialog(self.terminal_theme_manager, self)
+        dialog.themeApplied.connect(self._apply_terminal_theme_to_all)
+        dialog.exec()
+        logger.info("Terminal theme dialog closed")
+
+    def _show_terminal_preferences_dialog(self) -> None:
+        """Show terminal preferences dialog."""
+        current_config = self.terminal_preferences_manager.load_preferences()
+        dialog = TerminalPreferencesDialog(current_config, self)
+        dialog.preferencesApplied.connect(self._apply_terminal_preferences_to_all)
+        dialog.exec()
+        logger.info("Terminal preferences dialog closed")
+
+    def _apply_terminal_theme_to_all(self, theme: dict) -> None:
+        """Apply terminal theme to all existing terminals.
+
+        Args:
+            theme: Terminal theme dictionary
+        """
+        applied_count = 0
+
+        # Iterate all tabs
+        for tab_index in range(self.count()):
+            multisplit = self.widget(tab_index)
+            if not isinstance(multisplit, MultisplitWidget):
+                continue
+
+            # Get all panes in this tab
+            pane_ids = multisplit.get_pane_ids()
+
+            # Apply theme to each terminal widget
+            for pane_id in pane_ids:
+                widget = multisplit.get_widget(pane_id)
+                if isinstance(widget, TerminalWidget):
+                    widget.set_terminal_theme(theme)
+                    applied_count += 1
+
+        logger.info(f"Applied terminal theme to {applied_count} terminals")
+
+        # Update terminal provider to use this theme for new terminals
+        self.terminal_provider.set_default_theme(theme)
+
+    def _apply_terminal_preferences_to_all(self, config: dict) -> None:
+        """Apply terminal preferences to all existing terminals.
+
+        Args:
+            config: Terminal configuration dictionary
+        """
+        applied_count = 0
+
+        # Iterate all tabs
+        for tab_index in range(self.count()):
+            multisplit = self.widget(tab_index)
+            if not isinstance(multisplit, MultisplitWidget):
+                continue
+
+            # Get all panes in this tab
+            pane_ids = multisplit.get_pane_ids()
+
+            # Apply configuration to each terminal widget
+            for pane_id in pane_ids:
+                widget = multisplit.get_widget(pane_id)
+                if isinstance(widget, TerminalWidget):
+                    widget.set_terminal_config(config)
+                    applied_count += 1
+
+        logger.info(f"Applied terminal preferences to {applied_count} terminals")
+
+        # Save preferences to disk
+        self.terminal_preferences_manager.save_preferences(config)
+
+        # Update terminal provider to use these preferences for new terminals
+        self.terminal_provider.set_default_config(config)
 
     def _on_new_tab_requested(self) -> None:
         """Handle new tab request from ChromeTabbedWindow's built-in + button.
@@ -276,9 +518,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         Overrides ChromeTabbedWindow._on_new_tab_requested() to create
         terminal tabs instead of placeholder widgets.
         """
-        tab_count = self.count()
-        logger.info(f"New tab button clicked, current count: {tab_count}")
-        self.add_new_terminal_tab(f"Terminal {tab_count + 1}")
+        self._tab_counter += 1
+        logger.info(f"New tab button clicked, creating Terminal {self._tab_counter}")
+        self.add_new_terminal_tab(f"Terminal {self._tab_counter}")
 
     def _on_tab_close_requested(self, index: int) -> None:
         """Handle tab close request.
@@ -415,7 +657,8 @@ class ViloxTermApp(ChromeTabbedWindow):
     def _on_close_pane(self) -> None:
         """Handle close pane request from menu.
 
-        Closes the currently focused pane.
+        Closes the currently focused pane. If this is the last pane in the tab,
+        closes the entire tab instead.
         """
         multisplit = self.currentWidget()
         if not isinstance(multisplit, MultisplitWidget):
@@ -427,7 +670,17 @@ class ViloxTermApp(ChromeTabbedWindow):
             logger.warning("No focused pane to close")
             return
 
-        # Remove the pane
+        # Check if this is the last pane in the tab
+        pane_count = len(multisplit.get_pane_ids())
+
+        if pane_count == 1:
+            # Last pane - close the entire tab instead
+            logger.info("Closing last pane - will close entire tab")
+            current_index = self.currentIndex()
+            self._on_tab_close_requested(current_index)
+            return
+
+        # Remove the pane (multiple panes exist)
         success = multisplit.remove_pane(focused_pane)
 
         if success:
@@ -442,6 +695,61 @@ class ViloxTermApp(ChromeTabbedWindow):
         """
         current_index = self.currentIndex()
         self._on_tab_close_requested(current_index)
+
+    def _on_new_tab(self) -> None:
+        """Handle new tab request from keyboard shortcut.
+
+        Creates a new tab with auto-incremented name.
+        """
+        self._tab_counter += 1
+        self.add_new_terminal_tab(f"Terminal {self._tab_counter}")
+        logger.info(f"Created new tab via shortcut: Terminal {self._tab_counter}")
+
+    def _on_next_tab(self) -> None:
+        """Navigate to next tab with wrap-around.
+
+        Moves to the next tab, wrapping around to first tab if at the end.
+        """
+        tab_count = self.count()
+        if tab_count <= 1:
+            return  # No other tabs to switch to
+
+        current = self.currentIndex()
+        next_index = (current + 1) % tab_count
+        self.setCurrentIndex(next_index)
+        logger.debug(f"Switched to next tab: {next_index}")
+
+    def _on_previous_tab(self) -> None:
+        """Navigate to previous tab with wrap-around.
+
+        Moves to the previous tab, wrapping around to last tab if at the beginning.
+        """
+        tab_count = self.count()
+        if tab_count <= 1:
+            return  # No other tabs to switch to
+
+        current = self.currentIndex()
+        prev_index = (current - 1) % tab_count
+        self.setCurrentIndex(prev_index)
+        logger.debug(f"Switched to previous tab: {prev_index}")
+
+    def _on_jump_to_tab(self, tab_number: int) -> None:
+        """Jump to specific tab by number (1-9).
+
+        Args:
+            tab_number: Tab number (1-9, where 1 is first tab)
+        """
+        if not 1 <= tab_number <= 9:
+            logger.warning(f"Invalid tab number: {tab_number}")
+            return
+
+        index = tab_number - 1  # Convert to 0-based index
+        if index >= self.count():
+            logger.debug(f"Tab {tab_number} does not exist (only {self.count()} tabs)")
+            return
+
+        self.setCurrentIndex(index)
+        logger.debug(f"Jumped to tab {tab_number} (index {index})")
 
     def closeEvent(self, event) -> None:
         """Handle window close event.

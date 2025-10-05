@@ -26,7 +26,13 @@ class GeometryManager:
         - Layer 3: VisualRenderer - Geometry application
     """
 
-    HANDLE_WIDTH = 6  # Width of splitter handles (spacing between panes)
+    def __init__(self, handle_width: int = 6):
+        """Initialize geometry manager with configurable handle width.
+
+        Args:
+            handle_width: Width of splitter handles in pixels (default: 6)
+        """
+        self.HANDLE_WIDTH = handle_width  # Width of splitter handles (spacing between panes)
 
     def calculate_layout(self, tree: Optional[PaneNode], viewport: QRect) -> dict[str, QRect]:
         """
@@ -189,3 +195,91 @@ class GeometryManager:
             current_y += height
 
         return sections
+
+    def calculate_dividers(self, tree: Optional[PaneNode], viewport: QRect) -> dict[str, list[QRect]]:
+        """
+        Calculate divider geometries for each SplitNode in the tree.
+
+        Each SplitNode with N children has N-1 dividers positioned in the gaps
+        between adjacent children.
+
+        Args:
+            tree: Root of the pane tree
+            viewport: Available rectangle for layout
+
+        Returns:
+            Dictionary mapping node_id -> list of divider rectangles
+            Each SplitNode gets a list of divider rects (one per gap between children)
+
+        Example:
+            For a SplitNode with 2 children (HORIZONTAL orientation):
+            {
+                "node_123": [QRect(597, 0, 6, 800)]  # One divider between 2 children
+            }
+        """
+        if tree is None:
+            return {}
+
+        dividers: dict[str, list[QRect]] = {}
+        self._calculate_dividers_recursive(tree, viewport, dividers)
+        return dividers
+
+    def _calculate_dividers_recursive(
+        self,
+        node: PaneNode,
+        rect: QRect,
+        dividers: dict[str, list[QRect]]
+    ) -> None:
+        """
+        Recursively calculate divider geometries for a node and its children.
+
+        Args:
+            node: Current node in the tree
+            rect: Rectangle available for this node
+            dividers: Output dictionary to populate
+        """
+        if isinstance(node, LeafNode):
+            # Leaf nodes have no dividers
+            return
+
+        elif isinstance(node, SplitNode):
+            # Calculate child rectangles (same logic as layout calculation)
+            if node.orientation == Orientation.HORIZONTAL:
+                child_rects = self._split_horizontal(rect, node.ratios)
+            else:  # VERTICAL
+                child_rects = self._split_vertical(rect, node.ratios)
+
+            # Calculate divider rects for gaps between children
+            node_dividers = []
+            for i in range(len(child_rects) - 1):
+                # Divider sits between child[i] and child[i+1]
+                left_child_rect = child_rects[i]
+
+                if node.orientation == Orientation.HORIZONTAL:
+                    # Horizontal split = vertical divider line
+                    # Gap is between left_child's right edge and right_child's left edge
+                    divider_rect = QRect(
+                        left_child_rect.x() + left_child_rect.width(),  # Start after left child
+                        rect.y(),
+                        self.HANDLE_WIDTH,
+                        rect.height()
+                    )
+                else:  # VERTICAL
+                    # Vertical split = horizontal divider line
+                    # Gap is between top_child's bottom edge and bottom_child's top edge
+                    divider_rect = QRect(
+                        rect.x(),
+                        left_child_rect.y() + left_child_rect.height(),  # Start after top child
+                        rect.width(),
+                        self.HANDLE_WIDTH
+                    )
+
+                node_dividers.append(divider_rect)
+
+            # Store dividers for this SplitNode
+            if node_dividers:
+                dividers[str(node.node_id)] = node_dividers
+
+            # Recurse to children with their calculated rectangles
+            for child, child_rect in zip(node.children, child_rects):
+                self._calculate_dividers_recursive(child, child_rect, dividers)
