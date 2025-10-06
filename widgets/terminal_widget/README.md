@@ -439,12 +439,56 @@ See the `examples/` directory for complete examples:
 
 ## Requirements
 
+### All Platforms
 - Python 3.9+
 - PySide6 >= 6.9.0
 - Flask & Flask-SocketIO
 - Modern web browser engine (Qt WebEngine)
 
+### Windows-Specific
+- **pywinpty** (required for terminal functionality)
+  ```bash
+  pip install pywinpty
+  ```
+- **Important**: Use `MultiSessionTerminalServer` on Windows (not `EmbeddedTerminalServer`)
+- Use `cmd.exe` or `powershell` as the command (not `bash`)
+
 ## Troubleshooting
+
+### Windows: ImportError for fcntl/pty/termios
+
+**Error**: `ModuleNotFoundError: No module named 'fcntl'`
+
+**Solution**: Use `MultiSessionTerminalServer` instead of direct `TerminalWidget()`:
+
+```python
+from vfwidgets_terminal import MultiSessionTerminalServer, TerminalWidget
+
+# Install pywinpty first: pip install pywinpty
+
+# Create multi-session server
+server = MultiSessionTerminalServer(port=0)
+server.start()
+
+# Create terminal with Windows shell
+session_id = server.create_session(command='cmd.exe')  # or 'powershell'
+session_url = server.get_session_url(session_id)
+terminal = TerminalWidget(server_url=session_url)
+
+# Cleanup on exit
+server.shutdown()
+```
+
+**Why**: `EmbeddedTerminalServer` (used by default `TerminalWidget()`) requires Unix-specific modules. `MultiSessionTerminalServer` uses the cross-platform backend system with `pywinpty` for Windows.
+
+### Windows: Missing pywinpty
+
+**Error**: `RuntimeError: Windows terminal backend requires pywinpty`
+
+**Solution**: Install pywinpty package:
+```bash
+pip install pywinpty
+```
 
 ### WSL/VM Graphics Issues
 

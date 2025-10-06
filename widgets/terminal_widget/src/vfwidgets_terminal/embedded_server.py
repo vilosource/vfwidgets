@@ -1,16 +1,31 @@
-"""Embedded terminal server using Flask and SocketIO."""
+"""Embedded terminal server using Flask and SocketIO.
 
-import fcntl
+Note: This implementation uses Unix-specific modules (fcntl, pty, termios, select)
+and is only available on Unix-like systems (Linux, macOS, BSD).
+
+For Windows support, use MultiSessionTerminalServer which uses the cross-platform
+backend system with pywinpty.
+"""
+
 import logging
 import os
-import pty
-import select
 import socket
 import struct
-import termios
+import sys
 import threading
 from pathlib import Path
 from typing import Any, Optional
+
+# Platform-specific imports (Unix only)
+try:
+    import fcntl
+    import pty
+    import select
+    import termios
+
+    UNIX_PLATFORM = True
+except ImportError:
+    UNIX_PLATFORM = False
 
 from flask import Flask
 from flask_socketio import SocketIO
@@ -50,8 +65,35 @@ class EmbeddedTerminalServer(QObject):
             port: Server port (0 for random)
             host: Server host
             capture_output: Whether to capture output
+
+        Raises:
+            RuntimeError: On Windows platform (not supported)
         """
         super().__init__()
+
+        # Check platform support
+        if not UNIX_PLATFORM:
+            raise RuntimeError(
+                "EmbeddedTerminalServer is only available on Unix-like systems (Linux, macOS, BSD).\n"
+                "\n"
+                "For Windows support, use MultiSessionTerminalServer instead:\n"
+                "\n"
+                "  from vfwidgets_terminal import MultiSessionTerminalServer, TerminalWidget\n"
+                "\n"
+                "  # 1. Install Windows dependencies:\n"
+                "  #    pip install pywinpty\n"
+                "\n"
+                "  # 2. Create multi-session server:\n"
+                "  server = MultiSessionTerminalServer(port=0)\n"
+                "  server.start()\n"
+                "\n"
+                "  # 3. Create session and terminal:\n"
+                "  session_id = server.create_session(command='cmd.exe')  # or 'powershell'\n"
+                "  session_url = server.get_session_url(session_id)\n"
+                "  terminal = TerminalWidget(server_url=session_url)\n"
+                "\n"
+                f"Current platform: {sys.platform}"
+            )
 
         self.command = command
         self.args = args or []
