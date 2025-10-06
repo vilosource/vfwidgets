@@ -183,6 +183,17 @@
             // Key press events (raw keyboard events)
             term.attachCustomKeyEventHandler((event) => {
                 if (event.type === 'keydown') {
+                    // Block tab navigation shortcuts - let Qt handle them
+                    // Ctrl+PgUp/PgDn are used for tab switching in the application
+                    if (event.ctrlKey && (event.key === 'PageUp' || event.key === 'PageDown')) {
+                        return false;  // Block xterm.js from processing, let Qt handle
+                    }
+
+                    // Block Alt+Number shortcuts for direct tab jumping
+                    if (event.altKey && event.key >= '1' && event.key <= '9') {
+                        return false;  // Block xterm.js from processing, let Qt handle
+                    }
+
                     terminalBridge.on_key_pressed(
                         event.key,
                         event.code,

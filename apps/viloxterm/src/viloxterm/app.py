@@ -183,7 +183,7 @@ class ViloxTermApp(ChromeTabbedWindow):
                 ActionDefinition(
                     id="tab.next",
                     description="Next Tab",
-                    default_shortcut="Ctrl+PgDn",
+                    default_shortcut="Ctrl+PgDown",
                     category="Tab",
                     callback=self._on_next_tab,
                 ),
@@ -296,15 +296,25 @@ class ViloxTermApp(ChromeTabbedWindow):
         if event.type() == QEvent.Type.KeyPress:
             key_event = event
 
+            # Debug: Log the key event details
+            key_name = QKeySequence(key_event.key()).toString()
+            modifiers = key_event.modifiers()
+            logger.debug(
+                f"Key event: key={key_name} (0x{key_event.key():x}), "
+                f"modifiers={modifiers}, text='{key_event.text()}'"
+            )
+
             # Check if this matches any of our registered shortcuts
-            key_sequence = QKeySequence(int(key_event.modifiers()) | int(key_event.key()))
+            # Note: modifiers() returns KeyboardModifier enum, use .value to get int
+            key_sequence = QKeySequence(int(modifiers.value) | int(key_event.key()))
+            logger.debug(f"Checking sequence: {key_sequence.toString()}")
 
             # Check all registered actions
             for action_id, action in self.actions.items():
                 if action.shortcut().matches(key_sequence) == QKeySequence.SequenceMatch.ExactMatch:
                     # Trigger the action and consume the event
-                    logger.debug(
-                        f"Intercepted shortcut: {action.shortcut().toString()} for {action_id}"
+                    logger.info(
+                        f"✅ Intercepted shortcut: {action.shortcut().toString()} for {action_id}"
                     )
                     action.trigger()
                     return True  # Event handled, don't propagate
