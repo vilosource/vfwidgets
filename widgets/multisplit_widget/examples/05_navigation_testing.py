@@ -282,12 +282,13 @@ class NavigationTestTab(QWidget):
         )
         self.log_message.emit(log_entry)
 
-    def showEvent(self, event):
-        """Handle show event - setup layout when tab becomes visible."""
-        super().showEvent(event)
+    def setup_layout_if_needed(self):
+        """Setup layout if not already done."""
         if not self.setup_complete:
+            print(f"[SETUP] Creating layout for {self.tab_name}")
             self.setup_func(self.multisplit, self.provider)
             self.setup_complete = True
+            print(f"[SETUP] Layout complete for {self.tab_name}")
 
     def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
         """Handle focus change - update visual indicators."""
@@ -399,6 +400,15 @@ class NavigationTestWindow(QMainWindow):
         # Install event filter for keyboard shortcuts
         self.installEventFilter(self)
 
+    def showEvent(self, event):
+        """Setup first tab when window is shown."""
+        super().showEvent(event)
+        # Setup the first tab
+        if self.tabs.count() > 0:
+            first_tab = self.tabs.widget(0)
+            if isinstance(first_tab, NavigationTestTab):
+                first_tab.setup_layout_if_needed()
+
     def create_test_tabs(self):
         """Create all test tabs."""
         # Tab 1: Grid Layout
@@ -431,6 +441,15 @@ class NavigationTestWindow(QMainWindow):
         strips_tab = NavigationTestTab("Horizontal Strips", setup_horizontal_strips, strips_expected)
         strips_tab.log_message.connect(self.add_log_entry)
         self.tabs.addTab(strips_tab, "Tab 3: Strips")
+
+        # Connect tab change signal to setup layouts on demand
+        self.tabs.currentChanged.connect(self.on_tab_changed)
+
+    def on_tab_changed(self, index: int):
+        """Setup layout for the newly selected tab."""
+        tab = self.tabs.widget(index)
+        if isinstance(tab, NavigationTestTab):
+            tab.setup_layout_if_needed()
 
     def add_log_entry(self, message: str):
         """Add entry to log area."""

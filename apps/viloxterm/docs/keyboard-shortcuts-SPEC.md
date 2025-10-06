@@ -42,10 +42,10 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 | Split Horizontal | `Ctrl+Shift+H` | ✅ Implemented | Pane | Creates vertical divider (side-by-side panes) |
 | Split Vertical | `Ctrl+Shift+V` | ✅ Implemented | Pane | Creates horizontal divider (stacked panes) |
 | Close Pane | `Ctrl+W` | ✅ Implemented | Pane | Closes focused pane (closes tab if last pane) |
-| Navigate Left | 💡 Proposed | Pane | Vim-like navigation between panes |
-| Navigate Right | 💡 Proposed | Pane | Vim-like navigation between panes |
-| Navigate Up | 💡 Proposed | Pane | Vim-like navigation between panes |
-| Navigate Down | 💡 Proposed | Pane | Vim-like navigation between panes |
+| Navigate Left | `Ctrl+Shift+Left` | ✅ Implemented | Pane | Move focus to pane on the left |
+| Navigate Right | `Ctrl+Shift+Right` | ✅ Implemented | Pane | Move focus to pane on the right |
+| Navigate Up | `Ctrl+Shift+Up` | ✅ Implemented | Pane | Move focus to pane above |
+| Navigate Down | `Ctrl+Shift+Down` | ✅ Implemented | Pane | Move focus to pane below |
 
 ---
 
@@ -105,15 +105,15 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 ## Implementation Status
 
 ### Current Version (v1.1)
-- ✅ 17 shortcuts implemented (3 pane, 12 tab, 2 appearance)
+- ✅ 21 shortcuts implemented (7 pane, 12 tab, 2 appearance)
 - ✅ KeybindingManager integration with JSON persistence
 - ✅ User-customizable shortcuts via `~/.config/viloxterm/keybindings.json`
 - ✅ Menu integration (shortcuts appear in context menu)
 - ✅ Tab navigation (new, next, prev, jump 1-9)
+- ✅ Pane navigation (arrow keys for directional focus movement)
 - ✅ Terminal preferences and theme customization dialogs
 
 ### Future Enhancements
-- 💡 Vim-like pane navigation
 - 💡 Application-level shortcuts
 - 💡 Theme toggle
 - 💡 Search in all panes

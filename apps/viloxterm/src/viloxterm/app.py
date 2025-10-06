@@ -8,7 +8,7 @@ from PySide6.QtGui import QKeySequence
 
 from chrome_tabbed_window import ChromeTabbedWindow
 from vfwidgets_terminal import TerminalWidget, MultiSessionTerminalServer
-from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition
+from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition, Direction
 from vfwidgets_keybinding import KeybindingManager, ActionDefinition
 
 from .components import ThemeDialog, MenuButton, TerminalThemeDialog, TerminalPreferencesDialog
@@ -164,6 +164,35 @@ class ViloxTermApp(ChromeTabbedWindow):
                     default_shortcut="Ctrl+W",
                     category="Pane",
                     callback=self._on_close_pane,
+                ),
+                # Pane Navigation
+                ActionDefinition(
+                    id="pane.navigate_left",
+                    description="Navigate Left",
+                    default_shortcut="Ctrl+Shift+Left",
+                    category="Pane",
+                    callback=lambda: self._on_navigate_pane(Direction.LEFT),
+                ),
+                ActionDefinition(
+                    id="pane.navigate_right",
+                    description="Navigate Right",
+                    default_shortcut="Ctrl+Shift+Right",
+                    category="Pane",
+                    callback=lambda: self._on_navigate_pane(Direction.RIGHT),
+                ),
+                ActionDefinition(
+                    id="pane.navigate_up",
+                    description="Navigate Up",
+                    default_shortcut="Ctrl+Shift+Up",
+                    category="Pane",
+                    callback=lambda: self._on_navigate_pane(Direction.UP),
+                ),
+                ActionDefinition(
+                    id="pane.navigate_down",
+                    description="Navigate Down",
+                    default_shortcut="Ctrl+Shift+Down",
+                    category="Pane",
+                    callback=lambda: self._on_navigate_pane(Direction.DOWN),
                 ),
                 ActionDefinition(
                     id="tab.close",
@@ -702,6 +731,25 @@ class ViloxTermApp(ChromeTabbedWindow):
             logger.info(f"Closed pane {focused_pane}")
         else:
             logger.warning(f"Failed to close pane {focused_pane}")
+
+    def _on_navigate_pane(self, direction: Direction) -> None:
+        """Navigate focus to adjacent pane in the specified direction.
+
+        Args:
+            direction: Direction to navigate (LEFT, RIGHT, UP, DOWN)
+        """
+        multisplit = self.currentWidget()
+        if not isinstance(multisplit, MultisplitWidget):
+            logger.warning("Current tab is not a MultisplitWidget")
+            return
+
+        # Use MultisplitWidget's built-in navigation
+        success = multisplit.navigate_focus(direction)
+
+        if success:
+            logger.debug(f"Navigated focus {direction.value}")
+        else:
+            logger.debug(f"No pane in {direction.value} direction")
 
     def _on_close_tab(self) -> None:
         """Handle close tab request from menu.
