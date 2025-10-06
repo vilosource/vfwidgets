@@ -156,28 +156,20 @@ class NavigationTestTab(QWidget):
         self.tab_name = tab_name
         self.expected_nav = expected_nav  # pane_label -> {direction: expected_target}
 
-        # Create provider and multisplit
+        # Create provider
         self.provider = TestProvider()
-        self.multisplit = MultisplitWidget(provider=self.provider)
 
-        # Connect focus change signal
-        self.multisplit.focus_changed.connect(self.on_focus_changed)
+        # DON'T create multisplit yet - will be done on first show
+        self.multisplit = None
+        self.setup_func = setup_func
+        self.setup_complete = False
 
         # Setup layout
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Left side: MultisplitWidget
-        self.multisplit.setMinimumWidth(600)
-        main_layout.addWidget(self.multisplit, 3)
-
-        # Right side: Controls and log
-        control_panel = self._create_control_panel()
-        main_layout.addWidget(control_panel, 1)
-
-        # Setup the specific layout for this tab (deferred until widget is shown)
-        self.setup_func = setup_func
-        self.setup_complete = False
+        # Placeholder - will be populated when tab is shown
+        self.main_layout = main_layout
 
     def _create_control_panel(self) -> QWidget:
         """Create control panel with navigation buttons and expected behavior."""
@@ -243,6 +235,10 @@ class NavigationTestTab(QWidget):
 
     def test_navigation(self, direction: Direction):
         """Test navigation in a direction and log results."""
+        if not self.multisplit:
+            self.log_message.emit("Tab not initialized yet")
+            return
+
         current_pane_id = self.multisplit.get_focused_pane()
         if not current_pane_id:
             self.log_message.emit("No pane focused")
@@ -286,6 +282,20 @@ class NavigationTestTab(QWidget):
         """Setup layout if not already done."""
         if not self.setup_complete:
             print(f"[SETUP] Creating layout for {self.tab_name}")
+
+            # Create multisplit widget
+            self.multisplit = MultisplitWidget(provider=self.provider)
+            self.multisplit.focus_changed.connect(self.on_focus_changed)
+
+            # Left side: MultisplitWidget
+            self.multisplit.setMinimumWidth(600)
+            self.main_layout.addWidget(self.multisplit, 3)
+
+            # Right side: Controls and log
+            control_panel = self._create_control_panel()
+            self.main_layout.addWidget(control_panel, 1)
+
+            # Setup the specific split pattern for this tab
             self.setup_func(self.multisplit, self.provider)
             self.setup_complete = True
             print(f"[SETUP] Layout complete for {self.tab_name}")
