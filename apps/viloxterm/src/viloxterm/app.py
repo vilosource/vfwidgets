@@ -377,58 +377,61 @@ class ViloxTermApp(ChromeTabbedWindow):
         """
         from vfwidgets_terminal import TerminalWidget
 
-        # Get the initial terminal widget (created by initialize_empty)
-        # MultisplitWidget creates the first pane with widget_id="default"
-        initial_pane_id = multisplit.get_focused_pane()
-        if not initial_pane_id:
-            # Fallback: if no focused pane yet, wait for pane_added
-            logger.warning("No initial pane found, waiting for pane_added signal")
-            multisplit.pane_added.connect(
-                lambda pane_id: self._on_initial_pane_ready(multisplit, tab_index, pane_id)
-            )
-            return
-
-        terminal = multisplit.get_widget(initial_pane_id)
-        if isinstance(terminal, TerminalWidget):
-            # Connect to terminalReady signal (one-shot connection)
+        def connect_to_terminal_ready(terminal: TerminalWidget):
+            """Connect to terminal ready signal and switch tabs when ready."""
             def on_ready():
                 logger.info(f"Terminal ready, switching to tab {tab_index}")
                 self.setCurrentIndex(tab_index)
                 # Disconnect after first use
-                terminal.terminalReady.disconnect(on_ready)
+                try:
+                    terminal.terminalReady.disconnect(on_ready)
+                except RuntimeError:
+                    pass  # Already disconnected
 
             terminal.terminalReady.connect(on_ready)
-            logger.debug(f"Waiting for terminal in pane {initial_pane_id} to be ready")
+            logger.debug(f"Connected to terminalReady signal, waiting for terminal to be ready")
+
+        # Check if initial pane already exists (it's created during __init__)
+        initial_pane_id = multisplit.get_focused_pane()
+        if initial_pane_id:
+            # Pane already exists, get the widget
+            terminal = multisplit.get_widget(initial_pane_id)
+            if isinstance(terminal, TerminalWidget):
+                logger.debug(f"Initial pane {initial_pane_id} already exists")
+                connect_to_terminal_ready(terminal)
+            else:
+                # Not a terminal widget yet, wait for it to be created
+                logger.debug(f"Pane exists but widget not ready, waiting for pane_added")
+
+                def on_pane_added(pane_id: str):
+                    """Handle pane_added signal."""
+                    widget = multisplit.get_widget(pane_id)
+                    if isinstance(widget, TerminalWidget):
+                        connect_to_terminal_ready(widget)
+                        try:
+                            multisplit.pane_added.disconnect(on_pane_added)
+                        except RuntimeError:
+                            pass
+
+                multisplit.pane_added.connect(on_pane_added)
         else:
-            # Not a terminal widget, switch immediately
-            logger.warning("Widget is not a TerminalWidget, switching immediately")
-            self.setCurrentIndex(tab_index)
+            # No pane yet, wait for pane_added signal
+            logger.debug(f"No initial pane yet, waiting for pane_added signal")
 
-    def _on_initial_pane_ready(
-        self, multisplit: MultisplitWidget, tab_index: int, pane_id: str
-    ) -> None:
-        """Handle initial pane added (fallback case).
+            def on_pane_added(pane_id: str):
+                """Handle pane_added signal."""
+                terminal = multisplit.get_widget(pane_id)
+                if isinstance(terminal, TerminalWidget):
+                    connect_to_terminal_ready(terminal)
+                    try:
+                        multisplit.pane_added.disconnect(on_pane_added)
+                    except RuntimeError:
+                        pass
+                else:
+                    logger.warning("Widget is not a TerminalWidget")
+                    self.setCurrentIndex(tab_index)
 
-        Args:
-            multisplit: The MultisplitWidget
-            tab_index: Index of the tab
-            pane_id: ID of the pane that was added
-        """
-        from vfwidgets_terminal import TerminalWidget
-
-        terminal = multisplit.get_widget(pane_id)
-        if isinstance(terminal, TerminalWidget):
-
-            def on_ready():
-                logger.info(f"Terminal ready (delayed), switching to tab {tab_index}")
-                self.setCurrentIndex(tab_index)
-                terminal.terminalReady.disconnect(on_ready)
-
-            terminal.terminalReady.connect(on_ready)
-            logger.debug(f"Connected to terminal ready signal for pane {pane_id}")
-        else:
-            # Not a terminal, switch immediately
-            self.setCurrentIndex(tab_index)
+            multisplit.pane_added.connect(on_pane_added)
 
     def _show_theme_dialog(self) -> None:
         """Show application theme selection dialog."""
