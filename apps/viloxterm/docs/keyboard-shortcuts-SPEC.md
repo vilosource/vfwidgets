@@ -1,7 +1,7 @@
 # ViloxTerm Keyboard Shortcuts Specification
 
 **Status**: Living Document
-**Last Updated**: 2025-10-04
+**Last Updated**: 2025-10-06
 
 This document tracks all keyboard shortcuts in ViloxTerm, both implemented and planned.
 
@@ -21,7 +21,7 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 |--------|----------|--------|----------|-------|
 | New Tab | `Ctrl+Shift+T` | ✅ Implemented | Tab | Standard across terminals/browsers |
 | Close Tab | `Ctrl+Shift+W` | ✅ Implemented | Tab | Matches VSCode/Chrome |
-| Next Tab | `Ctrl+PgDn` | ✅ Implemented | Tab | VSCode standard, wraps around |
+| Next Tab | `Ctrl+PgDown` | ✅ Implemented | Tab | VSCode standard, wraps around |
 | Previous Tab | `Ctrl+PgUp` | ✅ Implemented | Tab | VSCode standard, wraps around |
 | Jump to Tab 1 | `Alt+1` | ✅ Implemented | Tab | Quick access to first tab |
 | Jump to Tab 2 | `Alt+2` | ✅ Implemented | Tab | Quick access to second tab |
@@ -54,7 +54,7 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 | Action | Shortcut | Status | Category | Notes |
 |--------|----------|--------|----------|-------|
 | Quit Application | `Ctrl+Q` | 💡 Proposed | App | Standard quit shortcut |
-| Settings/Preferences | `Ctrl+,` | 💡 Proposed | App | VSCode standard |
+| Terminal Preferences | `Ctrl+,` | ✅ Implemented | App | Opens terminal preferences dialog |
 
 ---
 
@@ -63,6 +63,7 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 | Action | Shortcut | Status | Category | Notes |
 |--------|----------|--------|----------|-------|
 | Theme Menu | Via Menu Button | ✅ Implemented | Theme | Click menu button in window controls |
+| Terminal Colors & Fonts | `Ctrl+Shift+,` | ✅ Implemented | Theme | Opens terminal theme customization dialog |
 | Toggle Theme | 💡 Proposed | Theme | Quick dark/light toggle |
 
 ---
@@ -104,11 +105,12 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 ## Implementation Status
 
 ### Current Version (v1.1)
-- ✅ 15 shortcuts implemented (3 pane, 12 tab)
+- ✅ 17 shortcuts implemented (3 pane, 12 tab, 2 appearance)
 - ✅ KeybindingManager integration with JSON persistence
 - ✅ User-customizable shortcuts via `~/.config/viloxterm/keybindings.json`
 - ✅ Menu integration (shortcuts appear in context menu)
 - ✅ Tab navigation (new, next, prev, jump 1-9)
+- ✅ Terminal preferences and theme customization dialogs
 
 ### Future Enhancements
 - 💡 Vim-like pane navigation
@@ -163,11 +165,12 @@ After editing, restart ViloxTerm for changes to take effect.
    - Alternative: Close Tab (more common in browsers/IDEs)
    - **Resolution**: Keep Ctrl+W for pane, use Ctrl+Shift+W for tab
 
-3. **Ctrl+PgDn (Fixed)**
-   - Issue: QWebEngineView (terminal) was capturing Ctrl+PgDn before app-level shortcut
-   - **Resolution**: Added event filter to ViloxTermApp that intercepts keyboard events
-   - Implementation: `eventFilter()` method checks shortcuts and triggers actions before propagation
-   - All shortcuts now work consistently even when terminal has focus
+3. **Ctrl+PgDown (Fixed)**
+   - Issue: Shortcut string was `"Ctrl+PgDn"` which QKeySequence doesn't recognize
+   - **Root Cause**: QKeySequence requires `"Ctrl+PgDown"` (not "PgDn") for proper parsing
+   - **Resolution**: Fixed shortcut string in ActionDefinition (app.py line 186)
+   - Additionally: Added JavaScript blocking in terminal.html to prevent xterm.js from capturing these keys
+   - All tab navigation shortcuts now work consistently
 
 No conflicts detected with current implementation.
 
