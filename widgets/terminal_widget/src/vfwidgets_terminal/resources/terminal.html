@@ -5,8 +5,8 @@
     <title>VFWidgets Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- External dependencies -->
-    <link rel="stylesheet" href="https://unpkg.com/xterm@4.19.0/css/xterm.css">
+    <!-- Local dependencies -->
+    <link rel="stylesheet" href="/static/css/xterm.css">
 
     <style>
         * {
@@ -71,17 +71,39 @@
     <div id="terminal"></div>
     <div id="loading" class="loading hidden">Connecting to terminal...</div>
 
-    <!-- External scripts -->
-    <script src="https://unpkg.com/xterm@4.19.0/lib/xterm.js"></script>
-    <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
-    <script src="https://unpkg.com/xterm-addon-web-links@0.5.0/lib/xterm-addon-web-links.js"></script>
-    <script src="https://unpkg.com/xterm-addon-search@0.9.0/lib/xterm-addon-search.js"></script>
-    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <!-- Local scripts -->
+    <script src="/static/js/xterm.js"></script>
+    <script src="/static/js/xterm-addon-fit.js"></script>
+    <script src="/static/js/xterm-addon-web-links.js"></script>
+    <script src="/static/js/xterm-addon-search.js"></script>
+    <script src="/static/js/socket.io.min.js"></script>
 
     <!-- QWebChannel for Qt integration -->
     <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
 
     <script>
+        console.log('Script execution started');
+        console.log('Terminal available:', typeof Terminal !== 'undefined');
+        console.log('FitAddon available:', typeof FitAddon !== 'undefined');
+        console.log('io available:', typeof io !== 'undefined');
+
+        // Check if required libraries loaded
+        if (typeof Terminal === 'undefined') {
+            console.error('CRITICAL: xterm.js library failed to load from CDN');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').textContent = 'Error: Terminal library failed to load. Check internet connection.';
+            throw new Error('Terminal library not loaded');
+        }
+
+        if (typeof io === 'undefined') {
+            console.error('CRITICAL: socket.io library failed to load from CDN');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').textContent = 'Error: Socket.IO library failed to load. Check internet connection.';
+            throw new Error('Socket.IO library not loaded');
+        }
+
+        console.log('All required libraries loaded successfully');
+
         // Terminal configuration
         const CONFIG = {
             cursorBlink: true,

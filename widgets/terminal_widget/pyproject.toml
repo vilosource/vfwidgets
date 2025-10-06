@@ -54,8 +54,8 @@ where = ["src"]
 vfwidgets_terminal = [
     "py.typed",
     "resources/*.html",
-    "resources/*.css",
-    "resources/*.js",
+    "resources/css/*.css",
+    "resources/js/*.js",
     "resources/icons/*",
     "resources/styles/*",
 ]
