@@ -161,6 +161,66 @@ Layout visualization:
 
 **Key Issue**: Even when tab order accidentally produces correct results for some directions, it fails for boundary cases (navigating UP when already at top, DOWN when at bottom, etc.).
 
+### Horizontal Strips Layout Behavior
+
+Using `examples/05_navigation_testing.py` with Horizontal Strips layout:
+
+**Tree Structure**:
+```python
+initialize_empty("pane_a")              # Creates A (top)
+split_pane(A, "pane_b", BOTTOM, 0.33)  # Creates B below A
+split_pane(B, "pane_c", BOTTOM, 0.5)   # Creates C below B
+```
+
+Tree:
+```
+    Root (Vert: A/B/C)
+     /      |       \
+    A       B        C
+```
+
+**Resulting Tab Order**: A → B → C
+
+**Layout visualization**:
+```
+┌──────────────────┐
+│     Pane A       │
+│     (Top)        │
+├──────────────────┤
+│     Pane B       │
+│    (Middle)      │
+├──────────────────┤
+│     Pane C       │
+│    (Bottom)      │
+└──────────────────┘
+```
+
+**Observed Navigation**: ✅ **ALL TESTS PASS**
+
+- A → DOWN → B ✓ (next in tab order)
+- A → UP → none ✓ (no previous, already at start)
+- A → LEFT/RIGHT → none ✓ (wraps but should be none - accidental pass or actual boundary?)
+- B → UP → A ✓ (previous in tab order)
+- B → DOWN → C ✓ (next in tab order)
+- B → LEFT/RIGHT → none ✓
+- C → UP → B ✓ (previous in tab order)
+- C → DOWN → none ✓ (no next, already at end)
+- C → LEFT/RIGHT → none ✓
+
+**Why It Works**:
+- Tab order A→B→C perfectly matches the vertical spatial arrangement top-to-bottom
+- UP direction = previous pane in tab order
+- DOWN direction = next pane in tab order
+- LEFT/RIGHT have no valid targets (single column), and tab order doesn't provide any either
+- Boundaries work correctly because start/end of tab order align with top/bottom of layout
+
+**Important**: This is the ONLY scenario where tab-order navigation accidentally produces completely correct results because:
+1. Linear vertical arrangement matches linear tab order
+2. Only UP/DOWN navigation is valid (LEFT/RIGHT should always be none)
+3. Tab order direction (forward/backward) maps perfectly to spatial direction (down/up)
+
+This demonstrates that tab-order navigation can work correctly, but **only in the special case of single-column/row layouts**. Any 2D grid immediately breaks this alignment.
+
 ---
 
 ## Test Scenarios
