@@ -270,7 +270,7 @@ class MultisplitWidget(QWidget):
         return self._model.set_focused_pane(PaneId(pane_id))
 
     def navigate_focus(self, direction: Direction) -> bool:
-        """Navigate focus in a direction.
+        """Navigate focus in a direction using spatial algorithm.
 
         Args:
             direction: Direction to navigate
@@ -278,7 +278,14 @@ class MultisplitWidget(QWidget):
         Returns:
             True if focus moved
         """
-        target = self._focus_manager.navigate(direction)
+        # Get current pane geometries from container
+        geometries = self._container.get_pane_geometries()
+
+        # Convert string keys back to PaneId for FocusManager
+        pane_geometries = {PaneId(k): v for k, v in geometries.items()}
+
+        # Navigate with geometry data
+        target = self._focus_manager.navigate(direction, pane_geometries)
         if target:
             return self._model.set_focused_pane(target)
         return False

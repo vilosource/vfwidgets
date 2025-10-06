@@ -198,6 +198,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self._geometry_manager = GeometryManager(handle_width=handle_width)
         self._visual_renderer = VisualRenderer(self._widget_pool)  # Layer 3: Geometry application
 
+        # Geometry cache for spatial navigation
+        self._last_geometries: dict[str, "QRect"] = {}  # pane_id -> geometry
+
         # Divider management (for drag-to-resize)
         self._dividers: dict[str, list[QWidget]] = {}  # node_id -> list of DividerWidget instances
 
@@ -308,6 +311,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
         logger.debug(f"Calculated geometries for {len(geometries)} panes")
         for pane_id, geometry in geometries.items():
             logger.debug(f"  {pane_id}: {geometry}")
+
+        # Cache geometries for spatial navigation
+        self._last_geometries = {str(pane_id): geometry for pane_id, geometry in geometries.items()}
 
         # Apply geometries (NO REPARENTING - only setGeometry() calls)
         self._visual_renderer.render(geometries)
@@ -889,6 +895,15 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self._widget_pool.add_widget(pane_id, widget)
         self._update_view()
 
+    def get_pane_geometries(self) -> dict[str, "QRect"]:
+        """Get current pane geometries for spatial navigation.
+
+        Returns:
+            Dictionary mapping pane IDs to their geometries (QRect).
+            Empty dict if no layout has been calculated yet.
+        """
+        return self._last_geometries.copy()
+
     def resizeEvent(self, event):
         """
         Handle window resize using geometry recalculation.
@@ -903,6 +918,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
         # Recalculate geometries for new viewport size
         viewport = self.rect()
         geometries = self._geometry_manager.calculate_layout(self.model.root, viewport)
+
+        # Cache geometries for spatial navigation
+        self._last_geometries = {str(pane_id): geometry for pane_id, geometry in geometries.items()}
 
         # Apply new geometries (NO REPARENTING)
         self._visual_renderer.render(geometries)
