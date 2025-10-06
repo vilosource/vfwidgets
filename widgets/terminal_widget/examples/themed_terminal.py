@@ -19,7 +19,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 theme_path = Path(__file__).parent.parent.parent / "theme_system" / "src"
 sys.path.insert(0, str(theme_path))
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -29,11 +28,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-# Import theme system (80% case - automatic theming)
-from vfwidgets_theme import ThemedApplication, ThemedMainWindow
-
 # Import terminal widget
 from vfwidgets_terminal import TerminalWidget
+
+# Import theme system (80% case - automatic theming)
+from vfwidgets_theme import ThemedApplication, ThemedMainWindow
 
 
 class ThemedTerminalWindow(ThemedMainWindow):

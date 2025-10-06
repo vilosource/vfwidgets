@@ -80,9 +80,7 @@ class TestContextMenuEventCreation:
         from vfwidgets_terminal import EventConfig
 
         # Create widget with INTERACTION category disabled
-        config = EventConfig(
-            enabled_categories={EventCategory.LIFECYCLE}  # No INTERACTION
-        )
+        config = EventConfig(enabled_categories={EventCategory.LIFECYCLE})  # No INTERACTION
         widget = TerminalWidget(event_config=config)
         qtbot.addWidget(widget)
 

@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from flask import Flask, request
-from flask_socketio import SocketIO, join_room, emit
+from flask_socketio import SocketIO, join_room
 from vfwidgets_terminal.backends import create_backend
 from vfwidgets_terminal.session import TerminalSession
 
@@ -43,11 +43,7 @@ class CustomTerminalServer:
         self.app = Flask(__name__)
         self.app.config["SECRET_KEY"] = "custom_server_secret"
 
-        self.socketio = SocketIO(
-            self.app,
-            cors_allowed_origins="*",
-            async_mode="threading"
-        )
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
 
         self.sessions = {}
         self.backend = create_backend()
@@ -58,7 +54,7 @@ class CustomTerminalServer:
     def _setup_routes(self):
         """Setup SocketIO event handlers."""
 
-        @self.socketio.on('create_session', namespace='/pty')
+        @self.socketio.on("create_session", namespace="/pty")
         def create_session(data):
             """Create a new terminal session."""
             # Generate session ID
@@ -67,12 +63,12 @@ class CustomTerminalServer:
             # Create session
             session = TerminalSession(
                 session_id=session_id,
-                command=data.get('command', 'bash'),
-                args=data.get('args', []),
-                cwd=data.get('cwd'),
-                env=data.get('env', {}),
-                rows=data.get('rows', 24),
-                cols=data.get('cols', 80)
+                command=data.get("command", "bash"),
+                args=data.get("args", []),
+                cwd=data.get("cwd"),
+                env=data.get("env", {}),
+                rows=data.get("rows", 24),
+                cols=data.get("cols", 80),
             )
 
             # Start PTY process
@@ -80,20 +76,17 @@ class CustomTerminalServer:
                 self.sessions[session_id] = session
 
                 # Start output reader
-                self.socketio.start_background_task(
-                    target=self._read_output,
-                    session_id=session_id
-                )
+                self.socketio.start_background_task(target=self._read_output, session_id=session_id)
 
                 print(f"Created session: {session_id}")
-                return {'session_id': session_id}
+                return {"session_id": session_id}
             else:
-                return {'error': 'Failed to start process'}
+                return {"error": "Failed to start process"}
 
-        @self.socketio.on('connect', namespace='/pty')
+        @self.socketio.on("connect", namespace="/pty")
         def handle_connect():
             """Handle client connection."""
-            session_id = request.args.get('session_id')
+            session_id = request.args.get("session_id")
             if session_id and session_id in self.sessions:
                 join_room(session_id)
                 print(f"Client connected to session: {session_id}")
@@ -101,29 +94,29 @@ class CustomTerminalServer:
                 print(f"Connection rejected: session {session_id} not found")
                 return False
 
-        @self.socketio.on('pty-input', namespace='/pty')
+        @self.socketio.on("pty-input", namespace="/pty")
         def handle_input(data):
             """Handle input from client."""
-            session_id = data.get('session_id')
+            session_id = data.get("session_id")
             if session_id in self.sessions:
                 session = self.sessions[session_id]
-                self.backend.write_input(session, data['input'])
+                self.backend.write_input(session, data["input"])
 
-        @self.socketio.on('resize', namespace='/pty')
+        @self.socketio.on("resize", namespace="/pty")
         def handle_resize(data):
             """Handle terminal resize."""
-            session_id = data.get('session_id')
+            session_id = data.get("session_id")
             if session_id in self.sessions:
                 session = self.sessions[session_id]
-                rows = data.get('rows', 24)
-                cols = data.get('cols', 80)
+                rows = data.get("rows", 24)
+                cols = data.get("cols", 80)
                 self.backend.resize(session, rows, cols)
                 print(f"Resized session {session_id} to {rows}x{cols}")
 
-        @self.socketio.on('heartbeat', namespace='/pty')
+        @self.socketio.on("heartbeat", namespace="/pty")
         def handle_heartbeat(data):
             """Handle heartbeat from client."""
-            session_id = data.get('session_id')
+            session_id = data.get("session_id")
             if session_id in self.sessions:
                 self.sessions[session_id].update_activity()
 
@@ -138,10 +131,10 @@ class CustomTerminalServer:
                 if output:
                     # Send to client (only those in this session's room)
                     self.socketio.emit(
-                        'pty-output',
-                        {'session_id': session_id, 'output': output},
+                        "pty-output",
+                        {"session_id": session_id, "output": output},
                         room=session_id,
-                        namespace='/pty'
+                        namespace="/pty",
                     )
 
             # Check if process is alive
@@ -149,10 +142,10 @@ class CustomTerminalServer:
                 print(f"Session {session_id} process ended")
                 session.active = False
                 self.socketio.emit(
-                    'session_closed',
-                    {'session_id': session_id, 'exit_code': 0},
+                    "session_closed",
+                    {"session_id": session_id, "exit_code": 0},
                     room=session_id,
-                    namespace='/pty'
+                    namespace="/pty",
                 )
                 break
 
@@ -166,17 +159,12 @@ class CustomTerminalServer:
         """Run the server."""
         print(f"\nCustom Terminal Server starting on port {self.port}")
         print(f"Connect terminals to: http://localhost:{self.port}")
-        print("="*60)
+        print("=" * 60)
         print("\nTo use this server from Python:")
         print(f"    terminal = TerminalWidget(server_url='http://localhost:{self.port}')")
         print("\nPress Ctrl+C to stop\n")
 
-        self.socketio.run(
-            self.app,
-            port=self.port,
-            debug=False,
-            allow_unsafe_werkzeug=True
-        )
+        self.socketio.run(self.app, port=self.port, debug=False, allow_unsafe_werkzeug=True)
 
 
 def main():

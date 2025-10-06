@@ -19,19 +19,19 @@ def test_terminal_widget_creation(app):
     terminal = TerminalWidget(command="echo", args=["test"])
     assert terminal is not None
     # Should have theme access if ThemedWidget is integrated
-    assert hasattr(terminal, 'theme')
+    assert hasattr(terminal, "theme")
 
 
 def test_terminal_widget_theme_config(app):
     """Test terminal has theme configuration."""
-    terminal = TerminalWidget(command="echo", args=["test"])
+    TerminalWidget(command="echo", args=["test"])
     # Should have theme_config class attribute
-    assert hasattr(TerminalWidget, 'theme_config')
-    assert 'background' in TerminalWidget.theme_config
-    assert 'foreground' in TerminalWidget.theme_config
+    assert hasattr(TerminalWidget, "theme_config")
+    assert "background" in TerminalWidget.theme_config
+    assert "foreground" in TerminalWidget.theme_config
     # Should map to terminal tokens
-    assert TerminalWidget.theme_config['background'] == 'terminal.background'
-    assert TerminalWidget.theme_config['foreground'] == 'terminal.foreground'
+    assert TerminalWidget.theme_config["background"] == "terminal.background"
+    assert TerminalWidget.theme_config["foreground"] == "terminal.foreground"
 
 
 def test_terminal_widget_theme_access(app):
@@ -56,14 +56,14 @@ def test_terminal_widget_ansi_colors(app):
     _ = terminal.theme.brightBlack
     _ = terminal.theme.brightRed
     # Verify they're all accessible via theme_config
-    assert 'black' in TerminalWidget.theme_config
-    assert 'brightRed' in TerminalWidget.theme_config
+    assert "black" in TerminalWidget.theme_config
+    assert "brightRed" in TerminalWidget.theme_config
 
 
 def test_terminal_widget_on_theme_changed(app):
     """Test on_theme_changed method exists."""
     terminal = TerminalWidget(command="echo", args=["test"])
-    assert hasattr(terminal, 'on_theme_changed')
+    assert hasattr(terminal, "on_theme_changed")
     # Should be callable
     assert callable(terminal.on_theme_changed)
 
@@ -72,12 +72,9 @@ def test_terminal_widget_set_theme_compat(app):
     """Test backward compatibility with set_theme()."""
     terminal = TerminalWidget(command="echo", args=["test"])
     # Old set_theme() method should still work
-    assert hasattr(terminal, 'set_theme')
+    assert hasattr(terminal, "set_theme")
     # Test that it accepts a dict
-    custom_theme = {
-        'background': '#000000',
-        'foreground': '#ffffff'
-    }
+    custom_theme = {"background": "#000000", "foreground": "#ffffff"}
     # Should not raise (even if terminal isn't connected yet)
     terminal.set_theme(custom_theme)
     assert terminal._user_theme == custom_theme

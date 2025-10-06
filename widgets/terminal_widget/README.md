@@ -153,6 +153,56 @@ def json_parser(output: str):
 terminal = TerminalWidget(output_parser=json_parser)
 ```
 
+### Terminal Configuration
+
+Configure xterm.js behavior options (scrollback, cursor, scrolling, etc.):
+
+```python
+# Using configuration dictionary
+terminal = TerminalWidget(
+    terminal_config={
+        "scrollback": 10000,
+        "cursorStyle": "bar",
+        "cursorBlink": True,
+        "bellStyle": "visual",
+        "tabStopWidth": 4,
+        "scrollSensitivity": 2,
+        "fastScrollSensitivity": 10,
+        "rightClickSelectsWord": True
+    }
+)
+
+# Using presets
+from vfwidgets_terminal.presets import TERMINAL_CONFIGS
+
+# Developer preset (10k scrollback, visual bell, bar cursor)
+terminal = TerminalWidget(terminal_config=TERMINAL_CONFIGS["developer"])
+
+# Power user preset (50k scrollback, no cursor blink)
+terminal = TerminalWidget(terminal_config=TERMINAL_CONFIGS["power_user"])
+
+# Log viewer preset (100k scrollback, fast scrolling)
+terminal = TerminalWidget(terminal_config=TERMINAL_CONFIGS["log_viewer"])
+
+# Runtime configuration changes
+terminal.set_terminal_config({"scrollback": 50000})
+current_config = terminal.get_terminal_config()
+```
+
+Available configuration options:
+- `scrollback` (int): Number of scrollback lines (default: 1000)
+- `cursorBlink` (bool): Whether cursor blinks (default: true)
+- `cursorStyle` (str): 'block', 'underline', or 'bar' (default: 'block')
+- `tabStopWidth` (int): Width of tab stops (default: 4)
+- `bellStyle` (str): 'none', 'sound', or 'visual' (default: 'none')
+- `scrollSensitivity` (int): Mouse wheel scroll speed (default: 1)
+- `fastScrollSensitivity` (int): Shift+scroll speed (default: 5)
+- `fastScrollModifier` (str): 'alt', 'ctrl', or 'shift' (default: 'shift')
+- `rightClickSelectsWord` (bool): Select word on right click (default: false)
+- `convertEol` (bool): Convert \n to \r\n (default: false)
+
+Available presets: `default`, `developer`, `power_user`, `minimal`, `accessible`, `log_viewer`, `remote`
+
 ### Themes
 
 ```python
@@ -251,13 +301,15 @@ See the `examples/` directory for complete examples:
 | `host` | str | '127.0.0.1' | Server host |
 | `rows` | int | 24 | Terminal rows |
 | `cols` | int | 80 | Terminal columns |
-| `scrollback` | int | 1000 | Scrollback buffer lines |
+| `scrollback` | int | 1000 | Scrollback buffer lines (DEPRECATED) |
 | `theme` | str | 'dark' | Color theme |
+| `terminal_config` | Dict | None | xterm.js configuration options |
 | `capture_output` | bool | False | Enable output capture |
 | `output_filter` | Callable | None | Output filter function |
 | `output_parser` | Callable | None | Output parser function |
 | `read_only` | bool | False | Read-only mode |
 | `debug` | bool | False | Enable debug logging |
+| `event_config` | EventConfig | None | Event system configuration |
 
 #### Signals
 
@@ -289,6 +341,10 @@ See the `examples/` directory for complete examples:
 | `execute_script(script: str)` | None | Execute multi-line script |
 | `get_process_info()` | Dict | Get process information |
 | `set_working_directory(path: str)` | None | Change working directory |
+| `set_terminal_config(config: dict)` | None | Set xterm.js configuration |
+| `get_terminal_config()` | Dict | Get current terminal configuration |
+| `set_terminal_theme(theme: dict)` | None | Set terminal colors and fonts |
+| `get_terminal_theme()` | Dict | Get current terminal theme |
 | `close_terminal()` | None | Close terminal |
 
 ## Keyboard Shortcuts

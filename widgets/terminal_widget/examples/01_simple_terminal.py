@@ -9,10 +9,12 @@ Usage: python 01_simple_terminal.py
 """
 
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow
 
 # Add parent directory to path for development
 from pathlib import Path
+
+from PySide6.QtWidgets import QApplication, QMainWindow
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from vfwidgets_terminal import TerminalWidget

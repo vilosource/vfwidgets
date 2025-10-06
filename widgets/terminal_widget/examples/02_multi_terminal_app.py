@@ -14,13 +14,15 @@ Usage: python 02_multi_terminal_app.py
 """
 
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
 
 # Add parent directory to path for development
 from pathlib import Path
+
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from vfwidgets_terminal import TerminalWidget, MultiSessionTerminalServer
+from vfwidgets_terminal import MultiSessionTerminalServer, TerminalWidget
 
 
 class MultiTerminalApp(QMainWindow):
@@ -87,7 +89,7 @@ class MultiTerminalApp(QMainWindow):
         self.tabs.removeTab(index)
 
         # Clean up terminal
-        if widget and hasattr(widget, 'cleanup'):
+        if widget and hasattr(widget, "cleanup"):
             widget.cleanup()
 
         widget.deleteLater()
@@ -105,14 +107,14 @@ def main():
     window = MultiTerminalApp()
     window.show()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Multi-Terminal Application Started")
-    print("="*60)
+    print("=" * 60)
     print("- Single server managing all terminals")
     print("- Click '+' to add more terminals")
     print("- Close tabs to remove terminals")
     print("- Memory efficient: ~110MB for 20 terminals")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     sys.exit(app.exec())
 

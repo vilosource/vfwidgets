@@ -231,9 +231,7 @@ class TestFocusEventCategoryFiltering:
         """Test focus events when FOCUS category is disabled."""
         from vfwidgets_terminal import EventConfig
 
-        config = EventConfig(
-            enabled_categories={EventCategory.LIFECYCLE}  # FOCUS not included
-        )
+        config = EventConfig(enabled_categories={EventCategory.LIFECYCLE})  # FOCUS not included
 
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy

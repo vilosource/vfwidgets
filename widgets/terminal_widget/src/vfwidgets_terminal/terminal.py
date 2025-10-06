@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QApplication, QMenu, QVBoxLayout, QWidget
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -235,7 +236,7 @@ class TerminalBridge(QObject):
 
 
 if THEME_AVAILABLE:
-    _BaseTerminalClass = type('_BaseTerminalClass', (ThemedWidget, QWidget), {})
+    _BaseTerminalClass = type("_BaseTerminalClass", (ThemedWidget, QWidget), {})
 else:
     _BaseTerminalClass = QWidget
 
@@ -253,28 +254,28 @@ class TerminalWidget(_BaseTerminalClass):
     # Note: Using editor.* tokens because terminal.* tokens are not populated in built-in themes
     # Terminals are semantically similar to editors (monospace, text-based)
     theme_config = {
-        'background': 'editor.background',
-        'foreground': 'editor.foreground',
-        'cursor': 'editor.foreground',  # Cursor uses editor foreground
-        'cursorAccent': 'editor.background',  # Cursor accent uses editor background
-        'selectionBackground': 'editor.selectionBackground',
+        "background": "editor.background",
+        "foreground": "editor.foreground",
+        "cursor": "editor.foreground",  # Cursor uses editor foreground
+        "cursorAccent": "editor.background",  # Cursor accent uses editor background
+        "selectionBackground": "editor.selectionBackground",
         # ANSI colors fallback to standard terminal colors
-        'black': 'terminal.ansiBlack',
-        'red': 'terminal.ansiRed',
-        'green': 'terminal.ansiGreen',
-        'yellow': 'terminal.ansiYellow',
-        'blue': 'terminal.ansiBlue',
-        'magenta': 'terminal.ansiMagenta',
-        'cyan': 'terminal.ansiCyan',
-        'white': 'terminal.ansiWhite',
-        'brightBlack': 'terminal.ansiBrightBlack',
-        'brightRed': 'terminal.ansiBrightRed',
-        'brightGreen': 'terminal.ansiBrightGreen',
-        'brightYellow': 'terminal.ansiBrightYellow',
-        'brightBlue': 'terminal.ansiBrightBlue',
-        'brightMagenta': 'terminal.ansiBrightMagenta',
-        'brightCyan': 'terminal.ansiBrightCyan',
-        'brightWhite': 'terminal.ansiBrightWhite',
+        "black": "terminal.ansiBlack",
+        "red": "terminal.ansiRed",
+        "green": "terminal.ansiGreen",
+        "yellow": "terminal.ansiYellow",
+        "blue": "terminal.ansiBlue",
+        "magenta": "terminal.ansiMagenta",
+        "cyan": "terminal.ansiCyan",
+        "white": "terminal.ansiWhite",
+        "brightBlack": "terminal.ansiBrightBlack",
+        "brightRed": "terminal.ansiBrightRed",
+        "brightGreen": "terminal.ansiBrightGreen",
+        "brightYellow": "terminal.ansiBrightYellow",
+        "brightBlue": "terminal.ansiBrightBlue",
+        "brightMagenta": "terminal.ansiBrightMagenta",
+        "brightCyan": "terminal.ansiBrightCyan",
+        "brightWhite": "terminal.ansiBrightWhite",
     }
 
     # ============================================================================
@@ -373,8 +374,9 @@ class TerminalWidget(_BaseTerminalClass):
         # Terminal options
         rows: int = DEFAULT_ROWS,
         cols: int = DEFAULT_COLS,
-        scrollback: int = DEFAULT_SCROLLBACK,
+        scrollback: int = DEFAULT_SCROLLBACK,  # DEPRECATED: Use terminal_config instead
         theme: str = "dark",  # 'dark', 'light', or custom dict
+        terminal_config: Optional[dict] = None,  # xterm.js configuration options
         # Developer features
         capture_output: bool = False,
         output_filter: Optional[Callable[[str], str]] = None,
@@ -397,8 +399,19 @@ class TerminalWidget(_BaseTerminalClass):
             host: Host for embedded server
             rows: Initial number of terminal rows
             cols: Initial number of terminal columns
-            scrollback: Number of scrollback lines
+            scrollback: Number of scrollback lines (DEPRECATED: use terminal_config)
             theme: Color theme ('dark', 'light', or custom dict)
+            terminal_config: xterm.js configuration dict with options like:
+                - scrollback: Number of scrollback lines (default: 1000)
+                - cursorBlink: Whether cursor blinks (default: true)
+                - cursorStyle: 'block', 'underline', or 'bar' (default: 'block')
+                - tabStopWidth: Width of tab stops (default: 4)
+                - bellStyle: 'none', 'sound', or 'visual' (default: 'none')
+                - scrollSensitivity: Mouse wheel scroll speed (default: 1)
+                - fastScrollSensitivity: Shift+scroll speed (default: 5)
+                - fastScrollModifier: 'alt', 'ctrl', or 'shift' (default: 'shift')
+                - rightClickSelectsWord: Select word on right click (default: false)
+                - convertEol: Convert \\n to \\r\\n (default: false)
             capture_output: Whether to capture output for retrieval
             output_filter: Function to filter/process output
             output_parser: Function to parse output
@@ -443,6 +456,28 @@ class TerminalWidget(_BaseTerminalClass):
         # Phase 4: Context menu customization
         self.custom_context_menu_handler = None
         self.custom_context_actions = []
+
+        # Terminal theme storage
+        self._current_terminal_theme: Optional[dict] = None
+
+        # Terminal configuration storage (xterm.js options)
+        # Handle terminal_config parameter and backwards compatibility
+        if terminal_config is not None:
+            self._terminal_config = terminal_config.copy()
+            # If scrollback is explicitly set in both places, terminal_config wins
+            if scrollback != DEFAULT_SCROLLBACK and "scrollback" not in self._terminal_config:
+                logger.warning(
+                    "scrollback parameter is deprecated. Use terminal_config={'scrollback': ...} instead"
+                )
+                self._terminal_config["scrollback"] = scrollback
+        elif scrollback != DEFAULT_SCROLLBACK:
+            # Only scrollback parameter provided (old API)
+            logger.warning(
+                "scrollback parameter is deprecated. Use terminal_config={'scrollback': ...} instead"
+            )
+            self._terminal_config = {"scrollback": scrollback}
+        else:
+            self._terminal_config = None
 
         # Phase 7: Set up signal forwarding for backwards compatibility
         self._setup_signal_forwarding()
@@ -581,6 +616,7 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Set background color to match terminal theme (prevents white flash on startup)
         from PySide6.QtGui import QColor
+
         self.web_view.page().setBackgroundColor(QColor("#1e1e1e"))
 
         layout.addWidget(self.web_view)
@@ -645,9 +681,11 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Set up focus detection after page loads
         self.web_view.loadFinished.connect(
-            lambda success: delayed_setup()
-            if success
-            else logger.warning("❌ FOCUS SETUP: Page failed to load")
+            lambda success: (
+                delayed_setup()
+                if success
+                else logger.warning("❌ FOCUS SETUP: Page failed to load")
+            )
         )
 
     def setFocus(self) -> None:
@@ -873,37 +911,49 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Connect rich events from the bridge to new Qt-compliant signals on this widget
         self.bridge.selection_changed.connect(
-            lambda text: self.selectionChanged.emit(text)
-            if EventCategory.INTERACTION in self.event_config.enabled_categories
-            else None
+            lambda text: (
+                self.selectionChanged.emit(text)
+                if EventCategory.INTERACTION in self.event_config.enabled_categories
+                else None
+            )
         )
         self.bridge.cursor_moved.connect(
-            lambda row, col: self.cursor_moved.emit(row, col)
-            if EventCategory.INTERACTION in self.event_config.enabled_categories
-            else None
+            lambda row, col: (
+                self.cursor_moved.emit(row, col)
+                if EventCategory.INTERACTION in self.event_config.enabled_categories
+                else None
+            )
         )
         self.bridge.bell_rang.connect(
-            lambda: self.bellActivated.emit()
-            if EventCategory.APPEARANCE in self.event_config.enabled_categories
-            else None
+            lambda: (
+                self.bellActivated.emit()
+                if EventCategory.APPEARANCE in self.event_config.enabled_categories
+                else None
+            )
         )
         self.bridge.title_changed.connect(
-            lambda title: self.titleChanged.emit(title)
-            if EventCategory.APPEARANCE in self.event_config.enabled_categories
-            else None
+            lambda title: (
+                self.titleChanged.emit(title)
+                if EventCategory.APPEARANCE in self.event_config.enabled_categories
+                else None
+            )
         )
         self.bridge.key_pressed.connect(
             lambda key, code, ctrl, alt, shift: self._emit_key_event(key, code, ctrl, alt, shift)
         )
         self.bridge.data_received.connect(
-            lambda data: self.inputSent.emit(data)
-            if EventCategory.CONTENT in self.event_config.enabled_categories
-            else None
+            lambda data: (
+                self.inputSent.emit(data)
+                if EventCategory.CONTENT in self.event_config.enabled_categories
+                else None
+            )
         )
         self.bridge.scroll_occurred.connect(
-            lambda pos: self.scrollOccurred.emit(pos)
-            if EventCategory.APPEARANCE in self.event_config.enabled_categories
-            else None
+            lambda pos: (
+                self.scrollOccurred.emit(pos)
+                if EventCategory.APPEARANCE in self.event_config.enabled_categories
+                else None
+            )
         )
 
         logger.debug("Bridge signals connected to widget signals")
@@ -999,12 +1049,15 @@ class TerminalWidget(_BaseTerminalClass):
         if success:
             logger.info("Terminal loaded successfully")
             self.is_connected = True
+
+            # Inject any custom configuration BEFORE emitting ready signal
+            # This ensures theme is applied before the tab becomes visible
+            self._configure_terminal()
+
+            # Now signal that terminal is ready (tab can be shown)
             if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
                 self.terminalReady.emit()
             logger.debug("Emitted terminal_ready signal")
-
-            # Inject any custom configuration
-            self._configure_terminal()
         else:
             logger.error("Failed to load terminal")
             if EventCategory.LIFECYCLE in self.event_config.enabled_categories:
@@ -1013,18 +1066,176 @@ class TerminalWidget(_BaseTerminalClass):
 
     def _configure_terminal(self) -> None:
         """Configure terminal after loading."""
-        # Apply theme
+        # Apply terminal configuration (behavior options)
+        if self._terminal_config:
+            self._apply_config(self._terminal_config)
+
+        # Apply legacy theme (old string-based theme parameter)
         if self._user_theme:
             self._apply_theme(self._user_theme)
+
+        # Apply terminal theme (new dict-based theme)
+        if self._current_terminal_theme:
+            self._apply_theme(self._current_terminal_theme)
 
         # Set read-only mode if requested
         if self.read_only:
             self.set_read_only(True)
 
-    def _apply_theme(self, theme) -> None:
-        """Apply color theme to terminal."""
-        # This would inject JavaScript to configure xterm.js theme
-        pass
+    def _apply_theme(self, theme_config: dict) -> None:
+        """Apply terminal theme by injecting JavaScript to xterm.js.
+
+        Args:
+            theme_config: Dictionary with terminal configuration including
+                         colors, fonts, and other xterm.js options.
+                         Can also be a string for legacy theme names (ignored).
+        """
+        if not self.web_view:
+            logger.warning("Cannot apply theme - web_view not initialized")
+            return
+
+        # Handle legacy string theme parameter (from old implementation)
+        if isinstance(theme_config, str):
+            logger.debug(f"Ignoring legacy string theme: {theme_config}")
+            return
+
+        # Extract terminal configuration
+        terminal = theme_config.get("terminal", theme_config)
+
+        # Build JavaScript to update xterm.js configuration
+        font_family = terminal.get("fontFamily", "Consolas, Monaco, 'Courier New', monospace")
+        font_size = terminal.get("fontSize", 14)
+        line_height = terminal.get("lineHeight", 1.2)
+        letter_spacing = terminal.get("letterSpacing", 0)
+        cursor_blink = str(terminal.get("cursorBlink", True)).lower()
+        cursor_style = terminal.get("cursorStyle", "block")
+
+        # Colors
+        background = terminal.get("background", "#1e1e1e")
+        foreground = terminal.get("foreground", "#d4d4d4")
+        cursor = terminal.get("cursor", "#ffcc00")
+        cursor_accent = terminal.get("cursorAccent", "#1e1e1e")
+        selection = terminal.get("selectionBackground", "rgba(38, 79, 120, 0.3)")
+
+        # ANSI colors
+        black = terminal.get("black", "#000000")
+        red = terminal.get("red", "#cd3131")
+        green = terminal.get("green", "#0dbc79")
+        yellow = terminal.get("yellow", "#e5e510")
+        blue = terminal.get("blue", "#2472c8")
+        magenta = terminal.get("magenta", "#bc3fbc")
+        cyan = terminal.get("cyan", "#11a8cd")
+        white = terminal.get("white", "#e5e5e5")
+        bright_black = terminal.get("brightBlack", "#555753")
+        bright_red = terminal.get("brightRed", "#f14c4c")
+        bright_green = terminal.get("brightGreen", "#23d18b")
+        bright_yellow = terminal.get("brightYellow", "#f5f543")
+        bright_blue = terminal.get("brightBlue", "#3b8eea")
+        bright_magenta = terminal.get("brightMagenta", "#d670d6")
+        bright_cyan = terminal.get("brightCyan", "#29b8db")
+        bright_white = terminal.get("brightWhite", "#f5f5f5")
+
+        # Escape font family for JavaScript (replace single quotes with escaped quotes)
+        font_family_escaped = font_family.replace("'", "\\'")
+
+        js_code = f"""
+        if (typeof term !== 'undefined') {{
+            // Update font settings
+            term.options.fontFamily = '{font_family_escaped}';
+            term.options.fontSize = {font_size};
+            term.options.lineHeight = {line_height};
+            term.options.letterSpacing = {letter_spacing};
+            term.options.cursorBlink = {cursor_blink};
+            term.options.cursorStyle = '{cursor_style}';
+
+            // Update color theme
+            term.options.theme = {{
+                background: '{background}',
+                foreground: '{foreground}',
+                cursor: '{cursor}',
+                cursorAccent: '{cursor_accent}',
+                selectionBackground: '{selection}',
+                black: '{black}',
+                red: '{red}',
+                green: '{green}',
+                yellow: '{yellow}',
+                blue: '{blue}',
+                magenta: '{magenta}',
+                cyan: '{cyan}',
+                white: '{white}',
+                brightBlack: '{bright_black}',
+                brightRed: '{bright_red}',
+                brightGreen: '{bright_green}',
+                brightYellow: '{bright_yellow}',
+                brightBlue: '{bright_blue}',
+                brightMagenta: '{bright_magenta}',
+                brightCyan: '{bright_cyan}',
+                brightWhite: '{bright_white}'
+            }};
+
+            console.log('Terminal theme applied: {theme_config.get("name", "custom")}');
+        }} else {{
+            console.error('Terminal not initialized - cannot apply theme');
+        }}
+        """
+
+        self.web_view.page().runJavaScript(js_code)
+        logger.info(f"Applied terminal theme: {theme_config.get('name', 'custom')}")
+
+    def _apply_config(self, config: dict) -> None:
+        """Apply terminal configuration to xterm.js instance via JavaScript injection.
+
+        Args:
+            config: Dictionary with configuration options like scrollback, cursorBlink, etc.
+        """
+        if not self.web_view:
+            logger.warning("Cannot apply terminal config: web_view not initialized")
+            return
+
+        # Build JavaScript code to update terminal options
+        js_updates = []
+
+        # Map of config keys to JavaScript property names (most are the same)
+        config_mapping = {
+            "scrollback": "scrollback",
+            "cursorBlink": "cursorBlink",
+            "cursorStyle": "cursorStyle",
+            "tabStopWidth": "tabStopWidth",
+            "bellStyle": "bellStyle",
+            "scrollSensitivity": "scrollSensitivity",
+            "fastScrollSensitivity": "fastScrollSensitivity",
+            "fastScrollModifier": "fastScrollModifier",
+            "rightClickSelectsWord": "rightClickSelectsWord",
+            "convertEol": "convertEol",
+        }
+
+        for config_key, js_prop in config_mapping.items():
+            if config_key in config:
+                value = config[config_key]
+                # Handle string values vs numeric/boolean
+                if isinstance(value, str):
+                    js_updates.append(f"term.options.{js_prop} = '{value}';")
+                elif isinstance(value, bool):
+                    js_value = "true" if value else "false"
+                    js_updates.append(f"term.options.{js_prop} = {js_value};")
+                else:
+                    js_updates.append(f"term.options.{js_prop} = {value};")
+
+        if not js_updates:
+            logger.debug("No configuration changes to apply")
+            return
+
+        js_code = f"""
+        if (typeof term !== 'undefined') {{
+            {chr(10).join('            ' + update for update in js_updates)}
+            console.log('Terminal configuration updated');
+        }} else {{
+            console.error('Terminal not initialized - cannot apply configuration');
+        }}
+        """
+
+        self.web_view.page().runJavaScript(js_code)
+        logger.info(f"Applied terminal configuration: {', '.join(config.keys())}")
 
     def _handle_output(self, data: str) -> None:
         """Handle output from terminal."""
@@ -1091,6 +1302,106 @@ class TerminalWidget(_BaseTerminalClass):
         """Reset terminal state."""
         if self.server:
             self.server.reset_terminal()
+
+    def set_terminal_theme(self, theme: dict) -> None:
+        """Set terminal-specific theme.
+
+        This applies colors, fonts, and other visual settings specific to the
+        terminal, independent of the application theme.
+
+        The theme is stored and will be applied:
+        - Immediately if the terminal is already loaded
+        - After page load if the terminal is still initializing
+
+        Args:
+            theme: Terminal theme dictionary with 'terminal' key containing:
+                  - fontFamily: Font family string
+                  - fontSize: Font size in points
+                  - background, foreground: Main colors
+                  - cursor, cursorAccent: Cursor colors
+                  - selectionBackground: Selection highlight color
+                  - black, red, green, yellow, blue, magenta, cyan, white: ANSI colors
+                  - brightBlack, brightRed, ... brightWhite: Bright ANSI colors
+
+        Example:
+            theme = {
+                "name": "My Theme",
+                "terminal": {
+                    "fontFamily": "Monaco",
+                    "fontSize": 14,
+                    "background": "#1e1e1e",
+                    "foreground": "#d4d4d4",
+                    ...
+                }
+            }
+            terminal.set_terminal_theme(theme)
+        """
+        self._current_terminal_theme = theme
+
+        # Apply theme if terminal is already loaded, otherwise it will be
+        # applied in _configure_terminal() after page load
+        if self.is_connected and self.web_view:
+            self._apply_theme(theme)
+        else:
+            logger.debug(
+                f"Stored terminal theme (will apply after load): {theme.get('name', 'custom')}"
+            )
+
+    def get_terminal_theme(self) -> dict:
+        """Get current terminal theme configuration.
+
+        Returns:
+            Dictionary with current terminal theme settings, or empty dict if none set
+        """
+        return self._current_terminal_theme.copy() if self._current_terminal_theme else {}
+
+    def set_terminal_config(self, config: dict) -> None:
+        """Set terminal configuration options.
+
+        This configures xterm.js behavior options like scrollback, cursor style,
+        bell behavior, etc. These are independent of visual theme settings.
+
+        The configuration is stored and will be applied:
+        - Immediately if the terminal is already loaded
+        - After page load if the terminal is still initializing
+
+        Args:
+            config: Terminal configuration dictionary with options like:
+                   - scrollback: Number of scrollback lines (default: 1000)
+                   - cursorBlink: Whether cursor blinks (default: true)
+                   - cursorStyle: 'block', 'underline', or 'bar' (default: 'block')
+                   - tabStopWidth: Width of tab stops (default: 4)
+                   - bellStyle: 'none', 'sound', or 'visual' (default: 'none')
+                   - scrollSensitivity: Mouse wheel scroll speed (default: 1)
+                   - fastScrollSensitivity: Shift+scroll speed (default: 5)
+                   - fastScrollModifier: 'alt', 'ctrl', or 'shift' (default: 'shift')
+                   - rightClickSelectsWord: Select word on right click (default: false)
+                   - convertEol: Convert \\n to \\r\\n (default: false)
+
+        Example:
+            config = {
+                "scrollback": 10000,
+                "cursorBlink": true,
+                "cursorStyle": "block",
+                "bellStyle": "visual"
+            }
+            terminal.set_terminal_config(config)
+        """
+        self._terminal_config = config.copy()
+
+        # Apply configuration if terminal is already loaded
+        if self.is_connected and self.web_view:
+            self._apply_config(config)
+        else:
+            logger.debug("Stored terminal configuration (will apply after load)")
+
+    def get_terminal_config(self) -> dict:
+        """Get current terminal configuration options.
+
+        Returns:
+            Dictionary with current terminal configuration, or empty dict if none set
+        """
+        return self._terminal_config.copy() if self._terminal_config else {}
 
     def get_output(self, last_n_lines: Optional[int] = None) -> str:
         """Get terminal output as string.
@@ -1229,19 +1540,20 @@ class TerminalWidget(_BaseTerminalClass):
         try:
             # Use self._current_theme_name (already updated by ThemedWidget)
             # and lookup the theme from the theme manager by name
-            if hasattr(self, '_current_theme_name') and self._current_theme_name:
+            if hasattr(self, "_current_theme_name") and self._current_theme_name:
                 from vfwidgets_theme import ThemedApplication
+
                 app = ThemedApplication.instance()
-                if app and hasattr(app, '_theme_manager') and app._theme_manager:
+                if app and hasattr(app, "_theme_manager") and app._theme_manager:
                     # Get theme by name from theme manager (not from _current_theme which is stale)
                     theme = app._theme_manager.get_theme(self._current_theme_name)
-                    if theme and hasattr(theme, 'type'):
+                    if theme and hasattr(theme, "type"):
                         return theme.type
         except Exception as e:
             logger.error(f"Error getting theme type: {e}")
 
         # Default to dark if we can't determine
-        return 'dark'
+        return "dark"
 
     def on_theme_changed(self) -> None:
         """Called automatically when the application theme changes.
@@ -1256,69 +1568,69 @@ class TerminalWidget(_BaseTerminalClass):
         theme_type = self._get_current_theme_type()
 
         # Theme-aware fallbacks for main colors
-        if theme_type == 'light':
+        if theme_type == "light":
             main_fallbacks = {
-                'background': '#ffffff',      # White background
-                'foreground': '#000000',      # Black text
-                'cursor': '#000000',          # Black cursor
-                'cursorAccent': '#ffffff',    # White cursor accent
-                'selectionBackground': '#add6ff',  # Light blue selection
+                "background": "#ffffff",  # White background
+                "foreground": "#000000",  # Black text
+                "cursor": "#000000",  # Black cursor
+                "cursorAccent": "#ffffff",  # White cursor accent
+                "selectionBackground": "#add6ff",  # Light blue selection
             }
         else:  # dark or unknown
             main_fallbacks = {
-                'background': '#1e1e1e',      # Dark gray background
-                'foreground': '#d4d4d4',      # Light gray text
-                'cursor': '#d4d4d4',          # Light gray cursor
-                'cursorAccent': '#1e1e1e',    # Dark gray cursor accent
-                'selectionBackground': '#264f78',  # Dark blue selection
+                "background": "#1e1e1e",  # Dark gray background
+                "foreground": "#d4d4d4",  # Light gray text
+                "cursor": "#d4d4d4",  # Light gray cursor
+                "cursorAccent": "#1e1e1e",  # Dark gray cursor accent
+                "selectionBackground": "#264f78",  # Dark blue selection
             }
 
         # Standard ANSI color fallbacks (same for light and dark)
         ansi_fallbacks = {
-            'black': '#2e3436',
-            'red': '#cc0000',
-            'green': '#4e9a06',
-            'yellow': '#c4a000',
-            'blue': '#3465a4',
-            'magenta': '#75507b',
-            'cyan': '#06989a',
-            'white': '#d3d7cf',
-            'brightBlack': '#555753',
-            'brightRed': '#ef2929',
-            'brightGreen': '#8ae234',
-            'brightYellow': '#fce94f',
-            'brightBlue': '#729fcf',
-            'brightMagenta': '#ad7fa8',
-            'brightCyan': '#34e2e2',
-            'brightWhite': '#eeeeec',
+            "black": "#2e3436",
+            "red": "#cc0000",
+            "green": "#4e9a06",
+            "yellow": "#c4a000",
+            "blue": "#3465a4",
+            "magenta": "#75507b",
+            "cyan": "#06989a",
+            "white": "#d3d7cf",
+            "brightBlack": "#555753",
+            "brightRed": "#ef2929",
+            "brightGreen": "#8ae234",
+            "brightYellow": "#fce94f",
+            "brightBlue": "#729fcf",
+            "brightMagenta": "#ad7fa8",
+            "brightCyan": "#34e2e2",
+            "brightWhite": "#eeeeec",
         }
 
         # Build xterm.js theme dict using theme-aware fallbacks
         # Note: Built-in themes don't populate editor.* tokens, so we use fallbacks
         # directly instead of checking self.theme properties (which may have stale cached values)
         xterm_theme = {
-            'background': main_fallbacks['background'],
-            'foreground': main_fallbacks['foreground'],
-            'cursor': main_fallbacks['cursor'],
-            'cursorAccent': main_fallbacks['cursorAccent'],
-            'selectionBackground': main_fallbacks['selectionBackground'],
+            "background": main_fallbacks["background"],
+            "foreground": main_fallbacks["foreground"],
+            "cursor": main_fallbacks["cursor"],
+            "cursorAccent": main_fallbacks["cursorAccent"],
+            "selectionBackground": main_fallbacks["selectionBackground"],
             # ANSI colors with standard fallbacks
-            'black': self.theme.black or ansi_fallbacks['black'],
-            'red': self.theme.red or ansi_fallbacks['red'],
-            'green': self.theme.green or ansi_fallbacks['green'],
-            'yellow': self.theme.yellow or ansi_fallbacks['yellow'],
-            'blue': self.theme.blue or ansi_fallbacks['blue'],
-            'magenta': self.theme.magenta or ansi_fallbacks['magenta'],
-            'cyan': self.theme.cyan or ansi_fallbacks['cyan'],
-            'white': self.theme.white or ansi_fallbacks['white'],
-            'brightBlack': self.theme.brightBlack or ansi_fallbacks['brightBlack'],
-            'brightRed': self.theme.brightRed or ansi_fallbacks['brightRed'],
-            'brightGreen': self.theme.brightGreen or ansi_fallbacks['brightGreen'],
-            'brightYellow': self.theme.brightYellow or ansi_fallbacks['brightYellow'],
-            'brightBlue': self.theme.brightBlue or ansi_fallbacks['brightBlue'],
-            'brightMagenta': self.theme.brightMagenta or ansi_fallbacks['brightMagenta'],
-            'brightCyan': self.theme.brightCyan or ansi_fallbacks['brightCyan'],
-            'brightWhite': self.theme.brightWhite or ansi_fallbacks['brightWhite'],
+            "black": self.theme.black or ansi_fallbacks["black"],
+            "red": self.theme.red or ansi_fallbacks["red"],
+            "green": self.theme.green or ansi_fallbacks["green"],
+            "yellow": self.theme.yellow or ansi_fallbacks["yellow"],
+            "blue": self.theme.blue or ansi_fallbacks["blue"],
+            "magenta": self.theme.magenta or ansi_fallbacks["magenta"],
+            "cyan": self.theme.cyan or ansi_fallbacks["cyan"],
+            "white": self.theme.white or ansi_fallbacks["white"],
+            "brightBlack": self.theme.brightBlack or ansi_fallbacks["brightBlack"],
+            "brightRed": self.theme.brightRed or ansi_fallbacks["brightRed"],
+            "brightGreen": self.theme.brightGreen or ansi_fallbacks["brightGreen"],
+            "brightYellow": self.theme.brightYellow or ansi_fallbacks["brightYellow"],
+            "brightBlue": self.theme.brightBlue or ansi_fallbacks["brightBlue"],
+            "brightMagenta": self.theme.brightMagenta or ansi_fallbacks["brightMagenta"],
+            "brightCyan": self.theme.brightCyan or ansi_fallbacks["brightCyan"],
+            "brightWhite": self.theme.brightWhite or ansi_fallbacks["brightWhite"],
         }
 
         # Debug logging

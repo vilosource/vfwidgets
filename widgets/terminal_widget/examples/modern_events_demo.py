@@ -53,13 +53,15 @@ class EventLogWidget(QTextEdit):
         super().__init__()
         self.setMaximumHeight(200)
         self.setFont(QFont("Consolas", 9))
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QTextEdit {
                 background-color: #1e1e1e;
                 color: #d4d4d4;
                 border: 1px solid #464647;
             }
-        """)
+        """
+        )
         self.append("🎪 Modern Terminal Event System Demo")
         self.append("=" * 50)
 

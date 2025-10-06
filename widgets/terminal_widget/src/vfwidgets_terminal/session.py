@@ -2,7 +2,7 @@
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -18,9 +18,9 @@ class TerminalSession:
 
     # Process configuration
     command: str = "bash"
-    args: List[str] = field(default_factory=list)
+    args: list[str] = field(default_factory=list)
     cwd: Optional[str] = None
-    env: Dict[str, str] = field(default_factory=dict)
+    env: dict[str, str] = field(default_factory=dict)
 
     # Terminal dimensions
     rows: int = 24
@@ -36,7 +36,7 @@ class TerminalSession:
     active: bool = True
 
     # Platform-specific data and extensibility
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def update_activity(self) -> None:
         """Update last activity timestamp."""

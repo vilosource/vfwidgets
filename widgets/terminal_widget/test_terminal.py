@@ -63,11 +63,11 @@ def test_basic_terminal(debug=False):
         )
         terminal.bell_rang.connect(lambda: print("🔔 BELL: Terminal bell rang!"))
         terminal.key_pressed.connect(
-            lambda key, code, ctrl, alt, shift: print(
-                f"⌨️  KEY: {key} (ctrl:{ctrl}, alt:{alt}, shift:{shift})"
+            lambda key, code, ctrl, alt, shift: (
+                print(f"⌨️  KEY: {key} (ctrl:{ctrl}, alt:{alt}, shift:{shift})")
+                if ctrl or alt or len(key) > 1
+                else None
             )
-            if ctrl or alt or len(key) > 1
-            else None
         )
 
     # Set as central widget

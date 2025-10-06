@@ -20,6 +20,8 @@ __version__ = "0.1.0"
 __author__ = "Vilosource"
 __email__ = "vilosource@viloforge.com"
 
+# Import presets module (not individual constants to avoid clutter)
+from . import presets
 from .constants import DEFAULT_COLS, DEFAULT_ROWS, THEMES
 from .embedded_server import EmbeddedTerminalServer
 from .multi_session_server import MultiSessionTerminalServer
@@ -55,6 +57,8 @@ __all__ = [
     "THEMES",
     "DEFAULT_ROWS",
     "DEFAULT_COLS",
+    # Configuration presets module
+    "presets",
 ]
 
 # Optional: Setup environment for better compatibility

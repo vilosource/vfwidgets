@@ -9,10 +9,10 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from flask import Flask, request, send_from_directory
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, join_room, leave_room
 from PySide6.QtCore import QObject, Signal
 
 from .backends import create_backend
@@ -69,7 +69,7 @@ class MultiSessionTerminalServer(QObject):
         self.app: Optional[Flask] = None
         self.socketio: Optional[SocketIO] = None
         self.server_thread: Optional[threading.Thread] = None
-        self.sessions: Dict[str, TerminalSession] = {}
+        self.sessions: dict[str, TerminalSession] = {}
         self.backend = None
         self.running = False
 
@@ -84,9 +84,7 @@ class MultiSessionTerminalServer(QObject):
         """Setup Flask application with SocketIO."""
         self.app = Flask(__name__)
         self.app.config["SECRET_KEY"] = "terminal_server_secret!"
-        self.socketio = SocketIO(
-            self.app, cors_allowed_origins="*", async_mode="threading"
-        )
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
 
         # Serve terminal HTML for session
         @self.app.route("/terminal/<session_id>")
@@ -96,7 +94,9 @@ class MultiSessionTerminalServer(QObject):
             logger.debug(f"Active sessions: {list(self.sessions.keys())}")
 
             if session_id not in self.sessions:
-                logger.error(f"Session {session_id} not found. Available: {list(self.sessions.keys())}")
+                logger.error(
+                    f"Session {session_id} not found. Available: {list(self.sessions.keys())}"
+                )
                 return f"Session not found: {session_id}", 404
 
             # Serve from resources directory
@@ -210,8 +210,7 @@ class MultiSessionTerminalServer(QObject):
                 target=self._read_and_forward_pty_output, session_id=session_id
             )
             logger.info(
-                f"Started terminal process for session {session_id}, "
-                f"PID: {session.child_pid}"
+                f"Started terminal process for session {session_id}, " f"PID: {session.child_pid}"
             )
 
     def _read_and_forward_pty_output(self, session_id: str):
@@ -283,9 +282,7 @@ class MultiSessionTerminalServer(QObject):
             RuntimeError: If maximum sessions reached
         """
         if len(self.sessions) >= self.max_sessions:
-            raise RuntimeError(
-                f"Maximum number of sessions ({self.max_sessions}) reached"
-            )
+            raise RuntimeError(f"Maximum number of sessions ({self.max_sessions}) reached")
 
         # Start server if not running (must be running before creating sessions)
         if not self.running:
