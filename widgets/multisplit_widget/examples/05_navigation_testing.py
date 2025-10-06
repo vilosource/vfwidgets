@@ -33,7 +33,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont, QKeyEvent
+from PySide6.QtGui import QFont, QKeyEvent, QShowEvent
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -175,8 +175,9 @@ class NavigationTestTab(QWidget):
         control_panel = self._create_control_panel()
         main_layout.addWidget(control_panel, 1)
 
-        # Setup the specific layout for this tab
-        setup_func(self.multisplit, self.provider)
+        # Setup the specific layout for this tab (deferred until widget is shown)
+        self.setup_func = setup_func
+        self.setup_complete = False
 
     def _create_control_panel(self) -> QWidget:
         """Create control panel with navigation buttons and expected behavior."""
@@ -280,6 +281,13 @@ class NavigationTestTab(QWidget):
             f"Expected='{expected_target}', Actual='{actual}'"
         )
         self.log_message.emit(log_entry)
+
+    def showEvent(self, event):
+        """Handle show event - setup layout when tab becomes visible."""
+        super().showEvent(event)
+        if not self.setup_complete:
+            self.setup_func(self.multisplit, self.provider)
+            self.setup_complete = True
 
     def on_focus_changed(self, old_pane_id: str, new_pane_id: str):
         """Handle focus change - update visual indicators."""
