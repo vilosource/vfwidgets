@@ -240,6 +240,33 @@ def setup_horizontal_strips(multisplit: MultisplitWidget, provider: TestProvider
     print(f"[SCENARIO] Strips layout complete: {len(multisplit.get_pane_ids())} panes")
 
 
+def setup_inverted_t_layout(multisplit: MultisplitWidget, provider: TestProvider):
+    """Setup inverted T layout: A|B on top, C spanning bottom."""
+    print("[SCENARIO] Setting up Inverted T Layout")
+
+    provider.register_pane("pane_a", "Pane A", "Top-Left")
+    provider.register_pane("pane_b", "Pane B", "Top-Right")
+    provider.register_pane("pane_c", "Pane C", "Bottom (Full Width)")
+
+    # Create layout: First split top/bottom, then split top into left/right
+    multisplit.initialize_empty("pane_c")
+    pane_ids = multisplit.get_pane_ids()
+    pane_c_id = pane_ids[0]
+
+    # Split C to create top section (which will be A initially)
+    multisplit.split_pane(pane_c_id, "pane_a", WherePosition.TOP, 0.5)
+
+    # Get pane A ID
+    pane_ids = multisplit.get_pane_ids()
+    pane_a_id = [p for p in pane_ids if p != pane_c_id][0] if len(pane_ids) > 1 else None
+
+    # Split A horizontally to create B on the right
+    if pane_a_id:
+        multisplit.split_pane(pane_a_id, "pane_b", WherePosition.RIGHT, 0.5)
+
+    print(f"[SCENARIO] Inverted T layout complete: {len(multisplit.get_pane_ids())} panes")
+
+
 class NavigationTestWindow(QMainWindow):
     """Main window with navigation test scenarios."""
 
@@ -284,6 +311,15 @@ class NavigationTestWindow(QMainWindow):
                     "Pane A": {"down": "Pane B", "up": "none", "left": "none", "right": "none"},
                     "Pane B": {"up": "Pane A", "down": "Pane C", "left": "none", "right": "none"},
                     "Pane C": {"up": "Pane B", "down": "none", "left": "none", "right": "none"},
+                },
+            },
+            {
+                "name": "Inverted T",
+                "setup_func": setup_inverted_t_layout,
+                "expected_nav": {
+                    "Pane A": {"right": "Pane B", "down": "Pane C", "left": "none", "up": "none"},
+                    "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
+                    "Pane C": {"up": "Pane A or B", "down": "none", "left": "none", "right": "none"},
                 },
             },
         ]
@@ -511,7 +547,7 @@ def main():
     print("PANE NAVIGATION TESTING - SPATIAL ALGORITHM VALIDATION")
     print("=" * 70)
     print()
-    print("This example tests the pane navigation algorithm with 3 scenarios:")
+    print("This example tests the pane navigation algorithm with 4 scenarios:")
     print()
     print("Scenario 1: Grid Layout (2x2)")
     print("  - Tests basic 4-directional navigation")
@@ -525,6 +561,10 @@ def main():
     print("  - 3 panes stacked vertically")
     print("  - Tests up/down navigation, left/right should not navigate")
     print()
+    print("Scenario 4: Inverted T Layout")
+    print("  - Two panes on top (A|B), one spanning bottom (C)")
+    print("  - Tests navigation when one pane spans multiple columns")
+    print()
     print("Controls:")
     print("  - Ctrl+Shift+Arrow keys: Navigate in that direction")
     print("  - Buttons: Test specific navigation")
@@ -533,7 +573,7 @@ def main():
     print()
     print("Current Issue:")
     print("  Navigation uses simple tab order, not spatial awareness!")
-    print("  You'll see FAIL messages for most tests.")
+    print("  You'll see FAIL messages for most 2D grid tests.")
     print("=" * 70)
     print()
 
