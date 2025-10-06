@@ -108,6 +108,12 @@ class TerminalThemeDialog(ThemedDialog):
         self.setup_ui()
         self.load_current_theme()
 
+        # Set combo box to show the current default theme
+        default_theme_name = self.current_theme.get("name", "Default Dark")
+        index = self.theme_combo.findText(default_theme_name)
+        if index >= 0:
+            self.theme_combo.setCurrentIndex(index)
+
     def setup_ui(self):
         """Setup UI layout."""
         layout = QVBoxLayout(self)
