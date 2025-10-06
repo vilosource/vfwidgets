@@ -43,7 +43,6 @@ classifiers = [
 ]
 dependencies = [
     "PySide6>=6.5.0",
-    "vfwidgets-theme-system @ file:///home/kuja/GitHub/vfwidgets/widgets/theme_system",
 ]
 
 [project.optional-dependencies]

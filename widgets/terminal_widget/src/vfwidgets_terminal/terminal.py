@@ -607,6 +607,15 @@ class TerminalWidget(_BaseTerminalClass):
 
     def _setup_ui(self) -> None:
         """Set up the widget UI."""
+        # Log WebEngine configuration for debugging WSL and other special environments
+        try:
+            from vfwidgets_common import log_webengine_configuration
+            if self.debug:
+                log_webengine_configuration()
+        except ImportError:
+            # vfwidgets_common not available, skip logging
+            pass
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
