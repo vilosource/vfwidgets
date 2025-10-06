@@ -9,6 +9,10 @@ Test Scenarios:
 1. Grid Layout (2x2) - Basic 4-directional navigation
 2. Complex Nested - Intelligent selection with multiple candidates
 3. Horizontal Strips - Vertical-only navigation
+4. Inverted T - Two narrow panes on top, one wide below
+5. Normal T - One wide pane on top, two narrow below
+6. Left T - One tall pane on left, two stacked on right
+7. Right T - Two stacked panes on left, one tall on right
 
 Key Features:
 - Visual focus indicators with colored borders
@@ -267,6 +271,87 @@ def setup_inverted_t_layout(multisplit: MultisplitWidget, provider: TestProvider
     print(f"[SCENARIO] Inverted T layout complete: {len(multisplit.get_pane_ids())} panes")
 
 
+def setup_normal_t_layout(multisplit: MultisplitWidget, provider: TestProvider):
+    """Setup normal T layout: A spanning top, B|C on bottom."""
+    print("[SCENARIO] Setting up Normal T Layout")
+
+    provider.register_pane("pane_a", "Pane A", "Top (Full Width)")
+    provider.register_pane("pane_b", "Pane B", "Bottom-Left")
+    provider.register_pane("pane_c", "Pane C", "Bottom-Right")
+
+    # Create layout: First split top/bottom, then split bottom into left/right
+    multisplit.initialize_empty("pane_a")
+    pane_ids = multisplit.get_pane_ids()
+    pane_a_id = pane_ids[0]
+
+    # Split A to create bottom section (which will be B initially)
+    multisplit.split_pane(pane_a_id, "pane_b", WherePosition.BOTTOM, 0.5)
+
+    # Get pane B ID
+    pane_ids = multisplit.get_pane_ids()
+    pane_b_id = [p for p in pane_ids if p != pane_a_id][0] if len(pane_ids) > 1 else None
+
+    # Split B horizontally to create C on the right
+    if pane_b_id:
+        multisplit.split_pane(pane_b_id, "pane_c", WherePosition.RIGHT, 0.5)
+
+    print(f"[SCENARIO] Normal T layout complete: {len(multisplit.get_pane_ids())} panes")
+
+
+def setup_left_t_layout(multisplit: MultisplitWidget, provider: TestProvider):
+    """Setup left T layout: A spanning left, B/C stacked on right."""
+    print("[SCENARIO] Setting up Left T Layout")
+
+    provider.register_pane("pane_a", "Pane A", "Left (Full Height)")
+    provider.register_pane("pane_b", "Pane B", "Top-Right")
+    provider.register_pane("pane_c", "Pane C", "Bottom-Right")
+
+    # Create layout: First split left/right, then split right into top/bottom
+    multisplit.initialize_empty("pane_a")
+    pane_ids = multisplit.get_pane_ids()
+    pane_a_id = pane_ids[0]
+
+    # Split A to create right section (which will be B initially)
+    multisplit.split_pane(pane_a_id, "pane_b", WherePosition.RIGHT, 0.5)
+
+    # Get pane B ID
+    pane_ids = multisplit.get_pane_ids()
+    pane_b_id = [p for p in pane_ids if p != pane_a_id][0] if len(pane_ids) > 1 else None
+
+    # Split B vertically to create C on the bottom
+    if pane_b_id:
+        multisplit.split_pane(pane_b_id, "pane_c", WherePosition.BOTTOM, 0.5)
+
+    print(f"[SCENARIO] Left T layout complete: {len(multisplit.get_pane_ids())} panes")
+
+
+def setup_right_t_layout(multisplit: MultisplitWidget, provider: TestProvider):
+    """Setup right T layout: B/C stacked on left, A spanning right."""
+    print("[SCENARIO] Setting up Right T Layout")
+
+    provider.register_pane("pane_a", "Pane A", "Right (Full Height)")
+    provider.register_pane("pane_b", "Pane B", "Top-Left")
+    provider.register_pane("pane_c", "Pane C", "Bottom-Left")
+
+    # Create layout: First split left/right, then split left into top/bottom
+    multisplit.initialize_empty("pane_a")
+    pane_ids = multisplit.get_pane_ids()
+    pane_a_id = pane_ids[0]
+
+    # Split A to create left section (which will be B initially)
+    multisplit.split_pane(pane_a_id, "pane_b", WherePosition.LEFT, 0.5)
+
+    # Get pane B ID
+    pane_ids = multisplit.get_pane_ids()
+    pane_b_id = [p for p in pane_ids if p != pane_a_id][0] if len(pane_ids) > 1 else None
+
+    # Split B vertically to create C on the bottom
+    if pane_b_id:
+        multisplit.split_pane(pane_b_id, "pane_c", WherePosition.BOTTOM, 0.5)
+
+    print(f"[SCENARIO] Right T layout complete: {len(multisplit.get_pane_ids())} panes")
+
+
 class NavigationTestWindow(QMainWindow):
     """Main window with navigation test scenarios."""
 
@@ -320,6 +405,33 @@ class NavigationTestWindow(QMainWindow):
                     "Pane A": {"right": "Pane B", "down": "Pane C", "left": "none", "up": "none"},
                     "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
                     "Pane C": {"up": "Pane A or B", "down": "none", "left": "none", "right": "none"},
+                },
+            },
+            {
+                "name": "Normal T",
+                "setup_func": setup_normal_t_layout,
+                "expected_nav": {
+                    "Pane A": {"down": "Pane B or C", "up": "none", "left": "none", "right": "none"},
+                    "Pane B": {"right": "Pane C", "up": "Pane A", "left": "none", "down": "none"},
+                    "Pane C": {"left": "Pane B", "up": "Pane A", "right": "none", "down": "none"},
+                },
+            },
+            {
+                "name": "Left T",
+                "setup_func": setup_left_t_layout,
+                "expected_nav": {
+                    "Pane A": {"right": "Pane B or C", "left": "none", "up": "none", "down": "none"},
+                    "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
+                    "Pane C": {"left": "Pane A", "up": "Pane B", "right": "none", "down": "none"},
+                },
+            },
+            {
+                "name": "Right T",
+                "setup_func": setup_right_t_layout,
+                "expected_nav": {
+                    "Pane A": {"left": "Pane B or C", "right": "none", "up": "none", "down": "none"},
+                    "Pane B": {"right": "Pane A", "down": "Pane C", "left": "none", "up": "none"},
+                    "Pane C": {"right": "Pane A", "up": "Pane B", "left": "none", "down": "none"},
                 },
             },
         ]
@@ -547,7 +659,7 @@ def main():
     print("PANE NAVIGATION TESTING - SPATIAL ALGORITHM VALIDATION")
     print("=" * 70)
     print()
-    print("This example tests the pane navigation algorithm with 4 scenarios:")
+    print("This example tests the pane navigation algorithm with 7 scenarios:")
     print()
     print("Scenario 1: Grid Layout (2x2)")
     print("  - Tests basic 4-directional navigation")
@@ -564,6 +676,18 @@ def main():
     print("Scenario 4: Inverted T Layout")
     print("  - Two panes on top (A|B), one spanning bottom (C)")
     print("  - Tests navigation when one pane spans multiple columns")
+    print()
+    print("Scenario 5: Normal T Layout")
+    print("  - One pane on top (A), two panes on bottom (B|C)")
+    print("  - Tests navigation from wide pane to multiple candidates below")
+    print()
+    print("Scenario 6: Left T Layout")
+    print("  - One pane on left (A), two panes stacked on right (B/C)")
+    print("  - Tests navigation from tall pane to multiple candidates on right")
+    print()
+    print("Scenario 7: Right T Layout")
+    print("  - Two panes stacked on left (B/C), one pane on right (A)")
+    print("  - Tests navigation from tall pane to multiple candidates on left")
     print()
     print("Controls:")
     print("  - Ctrl+Shift+Arrow keys: Navigate in that direction")
