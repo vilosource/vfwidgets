@@ -1,11 +1,9 @@
 """Terminal Theme Dialog - UI for customizing terminal colors and fonts."""
 
 import logging
-from pathlib import Path
-from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QFont
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QColorDialog,
     QComboBox,
@@ -21,7 +19,6 @@ from PySide6.QtWidgets import (
     QSlider,
     QSplitter,
     QVBoxLayout,
-    QWidget,
 )
 
 from vfwidgets_theme import ThemedDialog, ThemedQWidget
@@ -250,7 +247,7 @@ class TerminalThemeDialog(ThemedDialog):
 
     def _create_font_settings(self) -> QGroupBox:
         """Create font settings group."""
-        group = QGroupBox("Font Settings")
+        group = QGroupBox("Font & Spacing Settings")
         layout = QFormLayout(group)
 
         # Font family
@@ -274,6 +271,40 @@ class TerminalThemeDialog(ThemedDialog):
         size_layout.addWidget(self.font_size_label)
 
         layout.addRow("Font Size:", size_layout)
+
+        # Line height (spacing between lines)
+        line_height_layout = QHBoxLayout()
+        self.line_height_slider = QSlider(Qt.Orientation.Horizontal)
+        self.line_height_slider.setRange(10, 20)  # 1.0 to 2.0 in increments of 0.1
+        self.line_height_slider.setValue(12)  # 1.2 default
+        self.line_height_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.line_height_slider.setTickInterval(1)
+        self.line_height_slider.valueChanged.connect(self.on_line_height_changed)
+        line_height_layout.addWidget(self.line_height_slider)
+
+        self.line_height_label = QLabel("1.2")
+        self.line_height_label.setMinimumWidth(50)
+        self.line_height_label.setToolTip("Line spacing multiplier (1.0 = tight, 1.5 = relaxed)")
+        line_height_layout.addWidget(self.line_height_label)
+
+        layout.addRow("Line Height:", line_height_layout)
+
+        # Letter spacing (horizontal spacing between characters)
+        letter_spacing_layout = QHBoxLayout()
+        self.letter_spacing_slider = QSlider(Qt.Orientation.Horizontal)
+        self.letter_spacing_slider.setRange(0, 50)  # 0 to 5.0 pixels in increments of 0.1
+        self.letter_spacing_slider.setValue(0)  # 0 default
+        self.letter_spacing_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.letter_spacing_slider.setTickInterval(5)
+        self.letter_spacing_slider.valueChanged.connect(self.on_letter_spacing_changed)
+        letter_spacing_layout.addWidget(self.letter_spacing_slider)
+
+        self.letter_spacing_label = QLabel("0 px")
+        self.letter_spacing_label.setMinimumWidth(50)
+        self.letter_spacing_label.setToolTip("Horizontal spacing between characters")
+        letter_spacing_layout.addWidget(self.letter_spacing_label)
+
+        layout.addRow("Letter Spacing:", letter_spacing_layout)
 
         return group
 
@@ -371,6 +402,15 @@ class TerminalThemeDialog(ThemedDialog):
         font_size = terminal.get("fontSize", 14)
         self.font_size_slider.setValue(font_size)
 
+        # Load spacing settings
+        line_height = terminal.get("lineHeight", 1.2)
+        # Convert lineHeight (1.0-2.0) to slider value (10-20)
+        self.line_height_slider.setValue(int(line_height * 10))
+
+        letter_spacing = terminal.get("letterSpacing", 0)
+        # Convert letterSpacing (0-5.0) to slider value (0-50)
+        self.letter_spacing_slider.setValue(int(letter_spacing * 10))
+
         # Load colors
         for prop, picker in self.color_pickers.items():
             color = terminal.get(prop, "#000000")
@@ -421,6 +461,32 @@ class TerminalThemeDialog(ThemedDialog):
         self.current_theme["terminal"]["fontSize"] = size
         self.font_size_label.setText(f"{size} pt")
         logger.debug(f"Font size changed: {size}")
+
+        # TODO Phase 3: Update preview
+
+    def on_line_height_changed(self, value: int):
+        """Handle line height slider changes."""
+        if "terminal" not in self.current_theme:
+            self.current_theme["terminal"] = {}
+
+        # Convert slider value (10-20) to lineHeight (1.0-2.0)
+        line_height = value / 10.0
+        self.current_theme["terminal"]["lineHeight"] = line_height
+        self.line_height_label.setText(f"{line_height:.1f}")
+        logger.debug(f"Line height changed: {line_height}")
+
+        # TODO Phase 3: Update preview
+
+    def on_letter_spacing_changed(self, value: int):
+        """Handle letter spacing slider changes."""
+        if "terminal" not in self.current_theme:
+            self.current_theme["terminal"] = {}
+
+        # Convert slider value (0-50) to letterSpacing (0-5.0 pixels)
+        letter_spacing = value / 10.0
+        self.current_theme["terminal"]["letterSpacing"] = letter_spacing
+        self.letter_spacing_label.setText(f"{letter_spacing:.1f} px")
+        logger.debug(f"Letter spacing changed: {letter_spacing}")
 
         # TODO Phase 3: Update preview
 
