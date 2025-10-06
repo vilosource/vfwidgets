@@ -24,34 +24,90 @@ class RestrictedBuiltins:
 
     ALLOWED_BUILTINS = {
         # Type functions
-        'abs', 'all', 'any', 'bool', 'bytearray', 'bytes', 'chr', 'dict',
-        'enumerate', 'filter', 'float', 'frozenset', 'int', 'isinstance',
-        'issubclass', 'iter', 'len', 'list', 'map', 'max', 'min', 'next',
-        'object', 'ord', 'range', 'reversed', 'round', 'set', 'slice',
-        'sorted', 'str', 'sum', 'tuple', 'type', 'zip',
-
+        "abs",
+        "all",
+        "any",
+        "bool",
+        "bytearray",
+        "bytes",
+        "chr",
+        "dict",
+        "enumerate",
+        "filter",
+        "float",
+        "frozenset",
+        "int",
+        "isinstance",
+        "issubclass",
+        "iter",
+        "len",
+        "list",
+        "map",
+        "max",
+        "min",
+        "next",
+        "object",
+        "ord",
+        "range",
+        "reversed",
+        "round",
+        "set",
+        "slice",
+        "sorted",
+        "str",
+        "sum",
+        "tuple",
+        "type",
+        "zip",
         # Safe functions
-        'divmod', 'pow', 'repr', 'format', 'hash', 'hex', 'oct', 'bin',
-        'ascii', 'callable', 'classmethod', 'staticmethod', 'property',
-
+        "divmod",
+        "pow",
+        "repr",
+        "format",
+        "hash",
+        "hex",
+        "oct",
+        "bin",
+        "ascii",
+        "callable",
+        "classmethod",
+        "staticmethod",
+        "property",
         # Exceptions
-        'Exception', 'ValueError', 'TypeError', 'KeyError', 'IndexError',
-        'AttributeError', 'RuntimeError', 'NotImplementedError',
+        "Exception",
+        "ValueError",
+        "TypeError",
+        "KeyError",
+        "IndexError",
+        "AttributeError",
+        "RuntimeError",
+        "NotImplementedError",
     }
 
     FORBIDDEN_BUILTINS = {
         # File operations
-        'open', 'file',
-
+        "open",
+        "file",
         # System functions
-        'exec', 'eval', 'compile', '__import__', 'globals', 'locals', 'vars',
-        'dir', 'getattr', 'setattr', 'delattr', 'hasattr',
-
+        "exec",
+        "eval",
+        "compile",
+        "__import__",
+        "globals",
+        "locals",
+        "vars",
+        "dir",
+        "getattr",
+        "setattr",
+        "delattr",
+        "hasattr",
         # Memory operations
-        'memoryview', 'bytearray',
-
+        "memoryview",
+        "bytearray",
         # Debugging
-        'breakpoint', 'input', 'print',  # print can be allowed selectively
+        "breakpoint",
+        "input",
+        "print",  # print can be allowed selectively
     }
 
     @classmethod
@@ -64,7 +120,7 @@ class RestrictedBuiltins:
                 restricted[name] = getattr(builtins, name)
 
         # Add safe print function
-        restricted['print'] = cls._safe_print
+        restricted["print"] = cls._safe_print
 
         return restricted
 
@@ -77,9 +133,9 @@ class RestrictedBuiltins:
             try:
                 safe_args.append(str(arg))
             except Exception:
-                safe_args.append('<unprintable>')
+                safe_args.append("<unprintable>")
 
-        message = ' '.join(safe_args)
+        message = " ".join(safe_args)
         logger.info(f"Extension print: {message}")
 
 
@@ -88,25 +144,45 @@ class SandboxSecurityChecker:
 
     FORBIDDEN_NAMES = {
         # System modules
-        'os', 'sys', 'subprocess', 'threading', 'multiprocessing',
-
+        "os",
+        "sys",
+        "subprocess",
+        "threading",
+        "multiprocessing",
         # File system
-        'open', 'file', 'io', 'pathlib',
-
+        "open",
+        "file",
+        "io",
+        "pathlib",
         # Network
-        'socket', 'urllib', 'requests', 'http',
-
+        "socket",
+        "urllib",
+        "requests",
+        "http",
         # Dangerous builtins
-        'exec', 'eval', '__import__', 'compile',
-
+        "exec",
+        "eval",
+        "__import__",
+        "compile",
         # Internal Python
-        '__builtins__', '__globals__', '__locals__',
+        "__builtins__",
+        "__globals__",
+        "__locals__",
     }
 
     FORBIDDEN_ATTRIBUTES = {
-        '__class__', '__bases__', '__mro__', '__subclasses__',
-        '__globals__', '__code__', '__closure__', '__defaults__',
-        'func_globals', 'func_code', 'gi_frame', 'gi_code',
+        "__class__",
+        "__bases__",
+        "__mro__",
+        "__subclasses__",
+        "__globals__",
+        "__code__",
+        "__closure__",
+        "__defaults__",
+        "func_globals",
+        "func_code",
+        "gi_frame",
+        "gi_code",
     }
 
     def check_ast(self, code: str) -> None:
@@ -192,7 +268,9 @@ class ExecutionLimiter:
             # Check time limit
             elapsed = time.time() - start_time
             if elapsed > self.time_limit:
-                raise SecurityError(f"Extension execution timeout ({elapsed:.2f}s > {self.time_limit}s)")
+                raise SecurityError(
+                    f"Extension execution timeout ({elapsed:.2f}s > {self.time_limit}s)"
+                )
 
         finally:
             # Restore original memory limit
@@ -234,14 +312,15 @@ class ExtensionSandbox:
 
         # Create isolated namespace for extension
         namespace = {
-            '__builtins__': self.restricted_builtins,
-            '__name__': f'extension_{extension.name}',
-            '__extension__': extension,
+            "__builtins__": self.restricted_builtins,
+            "__name__": f"extension_{extension.name}",
+            "__extension__": extension,
         }
 
         # Add extension API
         from .api import ExtensionAPI
-        namespace['api'] = ExtensionAPI()
+
+        namespace["api"] = ExtensionAPI()
 
         self._extension_namespaces[extension.id] = namespace
 
@@ -283,20 +362,20 @@ class ExtensionSandbox:
                 namespace = self._extension_namespaces.get(extension.id, {})
 
                 # Add function to namespace temporarily
-                original_globals = func.__globals__ if hasattr(func, '__globals__') else {}
+                original_globals = func.__globals__ if hasattr(func, "__globals__") else {}
 
                 # Create safe execution environment
                 safe_globals = {**namespace}
 
                 # Execute function
-                if hasattr(func, '__code__'):
+                if hasattr(func, "__code__"):
                     # For regular functions, create new function with safe globals
                     safe_func = types.FunctionType(
                         func.__code__,
                         safe_globals,
                         func.__name__,
                         func.__defaults__,
-                        func.__closure__
+                        func.__closure__,
                     )
                     return safe_func(*args, **kwargs)
                 else:
@@ -311,8 +390,8 @@ class ExtensionSandbox:
             raise ExtensionError(f"Extension execution failed: {e}")
         finally:
             # Clean up thread-local storage
-            if hasattr(self._local, 'current_extension'):
-                delattr(self._local, 'current_extension')
+            if hasattr(self._local, "current_extension"):
+                delattr(self._local, "current_extension")
 
     def validate_code(self, code: str) -> None:
         """Validate extension code for security.
@@ -337,14 +416,14 @@ class ExtensionSandbox:
 
         """
         return {
-            '__builtins__': self.restricted_builtins,
-            '__name__': f'extension_{extension_name}',
-            'api': None,  # Will be set when extension loads
+            "__builtins__": self.restricted_builtins,
+            "__name__": f"extension_{extension_name}",
+            "api": None,  # Will be set when extension loads
         }
 
     def get_current_extension(self):
         """Get currently executing extension from thread-local storage."""
-        return getattr(self._local, 'current_extension', None)
+        return getattr(self._local, "current_extension", None)
 
     def is_safe_attribute(self, obj: Any, attr_name: str) -> bool:
         """Check if attribute access is safe.
@@ -363,7 +442,7 @@ class ExtensionSandbox:
         # Check object type
         if isinstance(obj, type):
             # Don't allow access to class internals
-            if attr_name.startswith('__') and attr_name.endswith('__'):
+            if attr_name.startswith("__") and attr_name.endswith("__"):
                 return False
 
         return True
@@ -397,12 +476,12 @@ class SafeObjectProxy:
     """Proxy object that restricts attribute access."""
 
     def __init__(self, wrapped_object: Any, sandbox: ExtensionSandbox):
-        object.__setattr__(self, '_wrapped_object', wrapped_object)
-        object.__setattr__(self, '_sandbox', sandbox)
+        object.__setattr__(self, "_wrapped_object", wrapped_object)
+        object.__setattr__(self, "_sandbox", sandbox)
 
     def __getattr__(self, name: str) -> Any:
-        sandbox = object.__getattribute__(self, '_sandbox')
-        wrapped = object.__getattribute__(self, '_wrapped_object')
+        sandbox = object.__getattribute__(self, "_sandbox")
+        wrapped = object.__getattribute__(self, "_wrapped_object")
 
         if not sandbox.is_safe_attribute(wrapped, name):
             raise SecurityError(f"Access to attribute '{name}' is forbidden")
@@ -411,11 +490,11 @@ class SafeObjectProxy:
         return sandbox.wrap_object(attr)
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name.startswith('_'):
+        if name.startswith("_"):
             return object.__setattr__(self, name, value)
 
-        sandbox = object.__getattribute__(self, '_sandbox')
-        wrapped = object.__getattribute__(self, '_wrapped_object')
+        sandbox = object.__getattribute__(self, "_sandbox")
+        wrapped = object.__getattribute__(self, "_wrapped_object")
 
         if not sandbox.is_safe_attribute(wrapped, name):
             raise SecurityError(f"Setting attribute '{name}' is forbidden")
@@ -423,8 +502,8 @@ class SafeObjectProxy:
         setattr(wrapped, name, value)
 
     def __delattr__(self, name: str) -> None:
-        sandbox = object.__getattribute__(self, '_sandbox')
-        wrapped = object.__getattribute__(self, '_wrapped_object')
+        sandbox = object.__getattribute__(self, "_sandbox")
+        wrapped = object.__getattribute__(self, "_wrapped_object")
 
         if not sandbox.is_safe_attribute(wrapped, name):
             raise SecurityError(f"Deleting attribute '{name}' is forbidden")
@@ -432,8 +511,8 @@ class SafeObjectProxy:
         delattr(wrapped, name)
 
     def __call__(self, *args, **kwargs) -> Any:
-        wrapped = object.__getattribute__(self, '_wrapped_object')
-        sandbox = object.__getattribute__(self, '_sandbox')
+        wrapped = object.__getattribute__(self, "_wrapped_object")
+        sandbox = object.__getattribute__(self, "_sandbox")
 
         if not callable(wrapped):
             raise TypeError("Object is not callable")
@@ -442,5 +521,5 @@ class SafeObjectProxy:
         return sandbox.wrap_object(result)
 
     def __repr__(self) -> str:
-        wrapped = object.__getattribute__(self, '_wrapped_object')
+        wrapped = object.__getattribute__(self, "_wrapped_object")
         return f"SafeProxy({repr(wrapped)})"

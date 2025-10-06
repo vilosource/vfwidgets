@@ -94,7 +94,7 @@ class ThemePackage:
     installed_by: str = "manual"
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ThemePackage':
+    def from_dict(cls, data: Dict[str, Any]) -> "ThemePackage":
         """Create package from dictionary representation."""
         package = cls(
             name=data["name"],
@@ -103,7 +103,7 @@ class ThemePackage:
             author=data.get("author", ""),
             license=data.get("license", "MIT"),
             homepage=data.get("homepage", ""),
-            repository=data.get("repository", "")
+            repository=data.get("repository", ""),
         )
 
         # Parse dependencies
@@ -111,7 +111,7 @@ class ThemePackage:
             dependency = PackageDependency(
                 name=dep_data["name"],
                 version_spec=dep_data["version"],
-                optional=dep_data.get("optional", False)
+                optional=dep_data.get("optional", False),
             )
             package.dependencies.append(dependency)
 
@@ -128,15 +128,11 @@ class ThemePackage:
             "homepage": self.homepage,
             "repository": self.repository,
             "dependencies": [
-                {
-                    "name": dep.name,
-                    "version": dep.version_spec,
-                    "optional": dep.optional
-                }
+                {"name": dep.name, "version": dep.version_spec, "optional": dep.optional}
                 for dep in self.dependencies
             ],
             "install_time": self.install_time,
-            "installed_by": self.installed_by
+            "installed_by": self.installed_by,
         }
 
     def has_theme(self, theme_name: str) -> bool:
@@ -193,10 +189,17 @@ class ThemePackageManager:
         # Load existing packages
         self._load_installed_packages()
 
-        logger.debug(f"ThemePackageManager initialized with install directory: {self.install_directory}")
+        logger.debug(
+            f"ThemePackageManager initialized with install directory: {self.install_directory}"
+        )
 
-    def create_package(self, package_info: Dict[str, Any], themes: Dict[str, Theme],
-                      output_path: Union[str, Path], assets: Dict[str, bytes] = None) -> Path:
+    def create_package(
+        self,
+        package_info: Dict[str, Any],
+        themes: Dict[str, Theme],
+        output_path: Union[str, Path],
+        assets: Dict[str, bytes] = None,
+    ) -> Path:
         """Create a .vftheme package file.
 
         Args:
@@ -224,7 +227,7 @@ class ThemePackageManager:
                 **package_info,
                 "created_at": time.time(),
                 "themes": list(themes.keys()),
-                "format_version": "1.0"
+                "format_version": "1.0",
             }
 
             with open(temp_path / "package.json", "w") as f:
@@ -309,7 +312,9 @@ Install this package using the VFWidgets Theme Package Manager.
             # Check if already installed
             if package.name in self._installed_packages and not force:
                 existing = self._installed_packages[package.name]
-                raise ThemeError(f"Package '{package.name}' already installed (version {existing.version}). Use force=True to overwrite.")
+                raise ThemeError(
+                    f"Package '{package.name}' already installed (version {existing.version}). Use force=True to overwrite."
+                )
 
             # Resolve dependencies
             self._resolve_dependencies(package)
@@ -334,11 +339,15 @@ Install this package using the VFWidgets Theme Package Manager.
             self._save_package_registry()
 
             install_time = (time.perf_counter() - start_time) * 1000
-            logger.info(f"Installed package '{package.name}' v{package.version} in {install_time:.2f}ms")
+            logger.info(
+                f"Installed package '{package.name}' v{package.version} in {install_time:.2f}ms"
+            )
 
             # Performance requirement check
             if install_time > 500:  # Task requirement: <500ms
-                logger.warning(f"Slow package installation: {install_time:.2f}ms for {package.name}")
+                logger.warning(
+                    f"Slow package installation: {install_time:.2f}ms for {package.name}"
+                )
 
             return package
 
@@ -400,7 +409,11 @@ Install this package using the VFWidgets Theme Package Manager.
         """
         themes = {}
 
-        packages_to_check = [self._installed_packages[package_name]] if package_name else self._installed_packages.values()
+        packages_to_check = (
+            [self._installed_packages[package_name]]
+            if package_name
+            else self._installed_packages.values()
+        )
 
         for package in packages_to_check:
             if package.name not in self._installed_packages:
@@ -422,7 +435,11 @@ Install this package using the VFWidgets Theme Package Manager.
             Theme object if found
 
         """
-        packages_to_search = [self._installed_packages[package_name]] if package_name else self._installed_packages.values()
+        packages_to_search = (
+            [self._installed_packages[package_name]]
+            if package_name
+            else self._installed_packages.values()
+        )
 
         for package in packages_to_search:
             if package.has_theme(theme_name):
@@ -437,7 +454,9 @@ Install this package using the VFWidgets Theme Package Manager.
 
         for package in self._installed_packages.values():
             if package.install_path and package.install_path.exists():
-                total_size += sum(f.stat().st_size for f in package.install_path.rglob("*") if f.is_file())
+                total_size += sum(
+                    f.stat().st_size for f in package.install_path.rglob("*") if f.is_file()
+                )
 
         return {
             "installed_packages": len(self._installed_packages),
@@ -449,10 +468,10 @@ Install this package using the VFWidgets Theme Package Manager.
                     "name": pkg.name,
                     "version": pkg.version,
                     "themes": len(pkg.themes),
-                    "install_time": pkg.install_time
+                    "install_time": pkg.install_time,
                 }
                 for pkg in self._installed_packages.values()
-            ]
+            ],
         }
 
     def _extract_and_validate_package(self, package_path: Path) -> ThemePackage:
@@ -525,7 +544,9 @@ Install this package using the VFWidgets Theme Package Manager.
             else:
                 installed_version = self._installed_packages[dependency.name].version
                 if not dependency.is_satisfied_by(installed_version):
-                    raise ThemeError(f"Dependency version conflict: {dependency.name} requires {dependency.version_spec}, found {installed_version}")
+                    raise ThemeError(
+                        f"Dependency version conflict: {dependency.name} requires {dependency.version_spec}, found {installed_version}"
+                    )
 
         logger.debug(f"Dependencies resolved for package {package.name}")
 
@@ -561,7 +582,9 @@ Install this package using the VFWidgets Theme Package Manager.
 
                     self._installed_packages[package_name] = package
                 else:
-                    logger.warning(f"Package directory missing for {package_name}, removing from registry")
+                    logger.warning(
+                        f"Package directory missing for {package_name}, removing from registry"
+                    )
 
             logger.debug(f"Loaded {len(self._installed_packages)} installed packages")
 
@@ -576,9 +599,8 @@ Install this package using the VFWidgets Theme Package Manager.
             "version": "1.0",
             "updated_at": time.time(),
             "packages": {
-                name: package.to_dict()
-                for name, package in self._installed_packages.items()
-            }
+                name: package.to_dict() for name, package in self._installed_packages.items()
+            },
         }
 
         try:

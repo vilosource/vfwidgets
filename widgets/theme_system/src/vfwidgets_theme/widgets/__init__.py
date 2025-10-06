@@ -25,6 +25,9 @@ from .base import (
     ThemedWidget,
     create_themed_widget,
 )
+from .color_editor import (
+    ColorEditorWidget,
+)
 
 # Convenience themed widgets
 from .convenience import (
@@ -36,36 +39,19 @@ from .dialogs import (
     ThemePickerDialog,
     ThemeSettingsWidget,
 )
-from .color_editor import (
-    ColorEditorWidget,
-)
 from .font_editor import (
     FontEditorWidget,
-)
-from .preview_samples import (
-    PreviewSampleGenerator,
-    ThemePreviewWidget,
-)
-from .theme_editor import (
-    ThemeEditorDialog,
-    ThemeEditorWidget,
-)
-from .token_browser import (
-    TokenBrowserWidget,
-)
-from .validation_panel import (
-    ValidationPanel,
-)
-from .import_export import (
-    ThemeExportDialog,
-    ThemeImportDialog,
-    ThemeMetadataEditor,
 )
 from .helpers import (
     ThemePreview,
     ThemeSettings,
     add_theme_menu,
     add_theme_toolbar,
+)
+from .import_export import (
+    ThemeExportDialog,
+    ThemeImportDialog,
+    ThemeMetadataEditor,
 )
 from .metadata import (
     ThemeInfo,
@@ -82,6 +68,10 @@ from .mixins import (
     remove_theming_from_widget,
     themeable,
 )
+from .preview_samples import (
+    PreviewSampleGenerator,
+    ThemePreviewWidget,
+)
 from .primitives import (
     ThemeButtonGroup,
     ThemeComboBox,
@@ -95,49 +85,52 @@ from .properties import (
 from .shortcuts import (
     ThemeShortcuts,
 )
+from .theme_editor import (
+    ThemeEditorDialog,
+    ThemeEditorWidget,
+)
+from .token_browser import (
+    TokenBrowserWidget,
+)
+from .validation_panel import (
+    ValidationPanel,
+)
 
 __all__ = [
     # Primary user-facing classes - THE API
-    "ThemedWidget",      # THE way to create themed widgets (flexible, multiple inheritance)
-    "ThemedQWidget",     # Convenience class for themed QWidget (single inheritance)
+    "ThemedWidget",  # THE way to create themed widgets (flexible, multiple inheritance)
+    "ThemedQWidget",  # Convenience class for themed QWidget (single inheritance)
     "ThemedMainWindow",  # Convenience class for themed QMainWindow (single inheritance)
-    "ThemedDialog",      # Convenience class for themed QDialog (single inheritance)
-    "ThemedApplication", # THE way to manage themes
+    "ThemedDialog",  # Convenience class for themed QDialog (single inheritance)
+    "ThemedApplication",  # THE way to manage themes
     "create_themed_widget",
     "get_themed_application",
     "set_global_theme",
     "get_global_theme",
     "get_global_available_themes",
-
     # Property system
     "ThemeProperty",
     "ColorProperty",
     "FontProperty",
-
     # Composable behavior
     "ThemeMixin",
     "ColorMixin",
-
     # Metadata system
     "ThemeInfo",
     "ThemeMetadataProvider",
-
     # Theme switching primitives
     "ThemeComboBox",
     "ThemeListWidget",
     "ThemeButtonGroup",
-
     # Theme switching helpers
     "add_theme_menu",
     "add_theme_toolbar",
     "ThemePreview",
     "ThemeSettings",
     "ThemeShortcuts",
-
     # Theme switching dialogs
     "ThemePickerDialog",
     "ThemeSettingsWidget",
-
     # Theme editor (Phase 1-5)
     "ThemeEditorDialog",
     "ThemeEditorWidget",

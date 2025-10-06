@@ -34,13 +34,19 @@ from typing import Any, Dict, List, Optional, Union
 try:
     from PySide6.QtCore import QObject
     from PySide6.QtWidgets import QApplication, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Create mock classes for headless testing
     class QObject:
-        def __init__(self): pass
-    class QWidget(QObject): pass
+        def __init__(self):
+            pass
+
+    class QWidget(QObject):
+        pass
+
 
 # Import foundation modules
 from ..errors import ThemeApplicationError, ThemeLoadError, ThemeNotFoundError
@@ -89,7 +95,7 @@ class ThemeManager:
     ThemedWidget and ThemedApplication can use.
     """
 
-    _instance: Optional['ThemeManager'] = None
+    _instance: Optional["ThemeManager"] = None
     _instance_lock = threading.Lock()
 
     def __init__(
@@ -136,7 +142,7 @@ class ThemeManager:
         logger.debug("ThemeManager initialized with all components")
 
     @classmethod
-    def get_instance(cls) -> 'ThemeManager':
+    def get_instance(cls) -> "ThemeManager":
         """Get singleton instance of ThemeManager.
 
         This method ensures thread-safe singleton access for ThemedApplication.
@@ -573,19 +579,25 @@ class ThemeManager:
                 "errors": self._stats.errors,
                 "total_operation_time": self._stats.total_operation_time,
                 "average_operation_time": (
-                    self._stats.total_operation_time / max(1,
-                        self._stats.theme_switches + self._stats.themes_loaded + self._stats.themes_saved
+                    self._stats.total_operation_time
+                    / max(
+                        1,
+                        self._stats.theme_switches
+                        + self._stats.themes_loaded
+                        + self._stats.themes_saved,
                     )
-                )
+                ),
             }
 
             # Add component statistics
             try:
-                base_stats.update({
-                    "repository_stats": self._repository.get_statistics(),
-                    "applicator_stats": self._applicator.get_statistics(),
-                    "notifier_stats": self._notifier.get_statistics()
-                })
+                base_stats.update(
+                    {
+                        "repository_stats": self._repository.get_statistics(),
+                        "applicator_stats": self._applicator.get_statistics(),
+                        "notifier_stats": self._notifier.get_statistics(),
+                    }
+                )
             except Exception as e:
                 logger.error(f"Error getting component statistics: {e}")
 

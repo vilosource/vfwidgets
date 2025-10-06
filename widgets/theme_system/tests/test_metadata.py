@@ -7,7 +7,6 @@ This module tests:
 - Theme metadata retrieval and management
 """
 
-
 from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.widgets.metadata import (
     ThemeInfo,

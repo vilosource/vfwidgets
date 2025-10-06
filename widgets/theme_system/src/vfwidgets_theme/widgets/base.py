@@ -838,7 +838,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
                     self.renderer.draw(painter, theme)
 
         """
-        if hasattr(self, '_theme_manager') and self._theme_manager:
+        if hasattr(self, "_theme_manager") and self._theme_manager:
             return self._theme_manager.current_theme
         return None
 

@@ -18,18 +18,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Force headless mode to avoid Qt issues
-os.environ.pop('DISPLAY', None)
-os.environ.pop('WAYLAND_DISPLAY', None)
+os.environ.pop("DISPLAY", None)
+os.environ.pop("WAYLAND_DISPLAY", None)
 
 # Force Qt fallback by mocking PySide6 import
 import sys
 
-if 'PySide6' in sys.modules:
-    del sys.modules['PySide6']
-if 'PySide6.QtWidgets' in sys.modules:
-    del sys.modules['PySide6.QtWidgets']
-if 'PySide6.QtCore' in sys.modules:
-    del sys.modules['PySide6.QtCore']
+if "PySide6" in sys.modules:
+    del sys.modules["PySide6"]
+if "PySide6.QtWidgets" in sys.modules:
+    del sys.modules["PySide6.QtWidgets"]
+if "PySide6.QtCore" in sys.modules:
+    del sys.modules["PySide6.QtCore"]
 
 
 class TestPublicAPI(unittest.TestCase):
@@ -63,8 +63,9 @@ class TestPublicAPI(unittest.TestCase):
 
         # Get available themes
         available_themes = app.get_available_themes()
-        theme_names = [theme.name if hasattr(theme, 'name') else str(theme)
-                      for theme in available_themes]
+        theme_names = [
+            theme.name if hasattr(theme, "name") else str(theme) for theme in available_themes
+        ]
 
         # Test switching to each available theme
         for theme_name in theme_names:
@@ -91,7 +92,7 @@ class TestPublicAPI(unittest.TestCase):
             self.assertEqual(widget.test_value, "created")
 
             # Widget should have basic theming functionality
-            self.assertTrue(hasattr(widget, 'theme'))
+            self.assertTrue(hasattr(widget, "theme"))
 
         except Exception as e:
             # In headless mode, widget creation might fail
@@ -108,10 +109,7 @@ class TestPublicAPI(unittest.TestCase):
         try:
             # Create themed widget with configuration
             class ConfiguredWidget(self.ThemedWidget):
-                theme_config = {
-                    'bg': 'background',
-                    'fg': 'foreground'
-                }
+                theme_config = {"bg": "background", "fg": "foreground"}
 
                 def __init__(self):
                     super().__init__()
@@ -120,9 +118,9 @@ class TestPublicAPI(unittest.TestCase):
             self.assertIsNotNone(widget)
 
             # Should have theme config
-            if hasattr(widget, '_theme_config'):
-                self.assertIn('bg', widget._theme_config)
-                self.assertIn('fg', widget._theme_config)
+            if hasattr(widget, "_theme_config"):
+                self.assertIn("bg", widget._theme_config)
+                self.assertIn("fg", widget._theme_config)
 
         except Exception as e:
             # Graceful failure in headless mode is acceptable
@@ -140,7 +138,7 @@ class TestPublicAPI(unittest.TestCase):
             self.assertIsInstance(stats, dict)
 
             # Should have basic stats
-            expected_keys = ['total_themes', 'initialized']
+            expected_keys = ["total_themes", "initialized"]
             for key in expected_keys:
                 if key in stats:
                     self.assertIsNotNone(stats[key])
@@ -161,7 +159,7 @@ class TestPublicAPI(unittest.TestCase):
         # Might be None initially, which is acceptable
 
         if current_theme:
-            self.assertTrue(hasattr(current_theme, 'name'))
+            self.assertTrue(hasattr(current_theme, "name"))
 
         # Clean up
         app.cleanup()
@@ -172,21 +170,26 @@ class TestPublicAPI(unittest.TestCase):
         app = self.ThemedApplication()
 
         public_methods = [
-            'set_theme', 'get_current_theme', 'get_available_themes',
-            'load_theme_file', 'import_vscode_theme', 'get_performance_statistics',
-            'cleanup'
+            "set_theme",
+            "get_current_theme",
+            "get_available_themes",
+            "load_theme_file",
+            "import_vscode_theme",
+            "get_performance_statistics",
+            "cleanup",
         ]
 
         for method in public_methods:
-            self.assertTrue(hasattr(app, method),
-                          f"ThemedApplication missing public method: {method}")
+            self.assertTrue(
+                hasattr(app, method), f"ThemedApplication missing public method: {method}"
+            )
 
         # ThemedWidget should have simple interface
         try:
             widget = self.ThemedWidget()
 
             # Should have theme access
-            self.assertTrue(hasattr(widget, 'theme'))
+            self.assertTrue(hasattr(widget, "theme"))
 
         except Exception:
             # Creation failure is acceptable in headless mode
@@ -224,6 +227,6 @@ def run_integration_test():
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     success = run_integration_test()
     sys.exit(0 if success else 1)

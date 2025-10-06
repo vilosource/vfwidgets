@@ -33,9 +33,9 @@ class MyButton(ThemedWidget):
 
     # Optional: Define which theme properties you want to use
     theme_config = {
-        'button_bg': 'background',
-        'button_fg': 'foreground',
-        'button_accent': 'primary'
+        "button_bg": "background",
+        "button_fg": "foreground",
+        "button_accent": "primary",
     }
 
     def __init__(self, text="My Button"):
@@ -45,8 +45,8 @@ class MyButton(ThemedWidget):
         print(f"✨ Created themed button: {text}")
 
         # Theme properties are automatically available via self.theme
-        bg = self.theme.get('button_bg', '#ffffff')
-        fg = self.theme.get('button_fg', '#000000')
+        bg = self.theme.get("button_bg", "#ffffff")
+        fg = self.theme.get("button_fg", "#000000")
         print(f"   Button colors: bg={bg}, fg={fg}")
 
     def on_theme_changed(self):
@@ -55,19 +55,16 @@ class MyButton(ThemedWidget):
         Override this to update your widget's appearance.
         """
         print(f"🎨 Theme changed for button '{self.text}'")
-        bg = self.theme.get('button_bg', '#ffffff')
-        fg = self.theme.get('button_fg', '#000000')
-        accent = self.theme.get('button_accent', '#007acc')
+        bg = self.theme.get("button_bg", "#ffffff")
+        fg = self.theme.get("button_fg", "#000000")
+        accent = self.theme.get("button_accent", "#007acc")
         print(f"   New colors: bg={bg}, fg={fg}, accent={accent}")
 
 
 class MyWindow(ThemedWidget):
     """Example themed window containing multiple widgets."""
 
-    theme_config = {
-        'window_bg': 'background',
-        'window_fg': 'foreground'
-    }
+    theme_config = {"window_bg": "background", "window_fg": "foreground"}
 
     def __init__(self):
         super().__init__()
@@ -82,8 +79,8 @@ class MyWindow(ThemedWidget):
     def on_theme_changed(self):
         """Handle theme changes for the window."""
         print("🏠 Window theme changed")
-        bg = self.theme.get('window_bg', '#ffffff')
-        fg = self.theme.get('window_fg', '#000000')
+        bg = self.theme.get("window_bg", "#ffffff")
+        fg = self.theme.get("window_fg", "#000000")
         print(f"   Window colors: bg={bg}, fg={fg}")
 
 
@@ -103,7 +100,7 @@ def main():
     # Step 2: See what themes are available
     print("\nStep 2: Discover available themes")
     themes = app.get_available_themes()
-    theme_names = [t.name if hasattr(t, 'name') else str(t) for t in themes]
+    theme_names = [t.name if hasattr(t, "name") else str(t) for t in themes]
     print(f"📋 Available themes: {theme_names}")
 
     # Step 3: Create themed widgets
@@ -129,11 +126,11 @@ def main():
     try:
         stats = app.get_performance_statistics()
         print("📊 Performance statistics:")
-        if 'total_themes' in stats:
+        if "total_themes" in stats:
             print(f"   - Total themes: {stats['total_themes']}")
-        if 'total_widgets' in stats:
+        if "total_widgets" in stats:
             print(f"   - Total widgets: {stats['total_widgets']}")
-        if 'initialized' in stats:
+        if "initialized" in stats:
             print(f"   - System initialized: {stats['initialized']}")
     except Exception as e:
         print(f"   - Stats not available: {e}")

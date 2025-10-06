@@ -37,14 +37,10 @@ class TestMarketplaceClient:
             "publisher": "dracula-theme",
             "contributes": {
                 "themes": [
-                    {
-                        "label": "Dracula",
-                        "uiTheme": "vs-dark",
-                        "path": "./themes/dracula.json"
-                    }
+                    {"label": "Dracula", "uiTheme": "vs-dark", "path": "./themes/dracula.json"}
                 ]
             },
-            "keywords": ["theme", "dark", "dracula"]
+            "keywords": ["theme", "dark", "dracula"],
         }
 
     @pytest.fixture
@@ -58,17 +54,11 @@ class TestMarketplaceClient:
                 "editor.foreground": "#f8f8f2",
                 "activityBar.background": "#282a36",
                 "sideBar.background": "#282a36",
-                "statusBar.background": "#6272a4"
+                "statusBar.background": "#6272a4",
             },
             "tokenColors": [
-                {
-                    "name": "Comment",
-                    "scope": "comment",
-                    "settings": {
-                        "foreground": "#6272a4"
-                    }
-                }
-            ]
+                {"name": "Comment", "scope": "comment", "settings": {"foreground": "#6272a4"}}
+            ],
         }
 
     def test_client_initialization(self, temp_cache_dir):
@@ -92,7 +82,7 @@ class TestMarketplaceClient:
             display_name="Test Theme",
             description="A test theme",
             version="1.0.0",
-            publisher="test"
+            publisher="test",
         )
 
         assert extension.id == "test.theme"
@@ -124,7 +114,7 @@ class TestMarketplaceClient:
         ext_dir.mkdir(parents=True)
 
         manifest_path = ext_dir / "package.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(sample_extension_manifest, f)
 
         async with client:
@@ -170,7 +160,7 @@ class TestMarketplaceClient:
         ext_dir.mkdir(parents=True)
 
         manifest_path = ext_dir / "package.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(sample_extension_manifest, f)
 
         async with client:
@@ -181,7 +171,9 @@ class TestMarketplaceClient:
             if result:
                 assert result.exists()
 
-    def test_import_from_directory(self, client, sample_extension_manifest, sample_theme_data, temp_cache_dir):
+    def test_import_from_directory(
+        self, client, sample_extension_manifest, sample_theme_data, temp_cache_dir
+    ):
         """Test importing themes from extension directory."""
         # Create extension directory structure
         ext_dir = temp_cache_dir / "test_extension"
@@ -189,7 +181,7 @@ class TestMarketplaceClient:
 
         # Create manifest
         manifest_path = ext_dir / "package.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(sample_extension_manifest, f)
 
         # Create theme directory and file
@@ -197,7 +189,7 @@ class TestMarketplaceClient:
         themes_dir.mkdir()
 
         theme_path = themes_dir / "dracula.json"
-        with open(theme_path, 'w') as f:
+        with open(theme_path, "w") as f:
             json.dump(sample_theme_data, f)
 
         # Import themes
@@ -213,14 +205,16 @@ class TestMarketplaceClient:
         with pytest.raises(ThemeSystemError, match="does not exist"):
             client.import_from_extension(Path("/nonexistent/path"))
 
-    def test_install_local_extension_directory(self, client, sample_extension_manifest, temp_cache_dir):
+    def test_install_local_extension_directory(
+        self, client, sample_extension_manifest, temp_cache_dir
+    ):
         """Test installing extension from local directory."""
         # Create source extension directory
         source_dir = temp_cache_dir / "source_extension"
         source_dir.mkdir()
 
         manifest_path = source_dir / "package.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(sample_extension_manifest, f)
 
         # Install extension
@@ -246,7 +240,7 @@ class TestMarketplaceClient:
         ext_dir.mkdir(parents=True)
 
         manifest_path = ext_dir / "package.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             json.dump(sample_extension_manifest, f)
 
         # Get cached extensions

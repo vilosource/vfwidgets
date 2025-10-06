@@ -86,7 +86,7 @@ class ThemeComboBox(ThemedWidget, QComboBox):
             return
 
         themes = self._app.get_available_themes()
-        theme_names = [t.name if hasattr(t, 'name') else str(t) for t in themes]
+        theme_names = [t.name if hasattr(t, "name") else str(t) for t in themes]
         self.addItems(theme_names)
         logger.debug(f"Populated combo with {len(theme_names)} themes")
 
@@ -215,8 +215,9 @@ class ThemeListWidget(ThemedWidget, QListWidget):
                 self.blockSignals(False)
                 break
 
-    def _on_selection_changed(self, current: Optional[QListWidgetItem],
-                             previous: Optional[QListWidgetItem]) -> None:
+    def _on_selection_changed(
+        self, current: Optional[QListWidgetItem], previous: Optional[QListWidgetItem]
+    ) -> None:
         """Handle selection change."""
         if self._syncing or current is None:
             return

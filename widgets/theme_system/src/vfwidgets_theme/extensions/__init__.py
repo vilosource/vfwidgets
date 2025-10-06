@@ -10,10 +10,4 @@ from .loader import ExtensionLoader
 from .sandbox import ExtensionSandbox
 from .system import Extension, ExtensionSystem
 
-__all__ = [
-    'ExtensionSystem',
-    'Extension',
-    'ExtensionSandbox',
-    'ExtensionAPI',
-    'ExtensionLoader'
-]
+__all__ = ["ExtensionSystem", "Extension", "ExtensionSandbox", "ExtensionAPI", "ExtensionLoader"]

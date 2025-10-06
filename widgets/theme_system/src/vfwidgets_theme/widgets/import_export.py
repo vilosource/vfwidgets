@@ -8,7 +8,7 @@ Phase 5: Import/Export UI
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 
 from ..core.theme import Theme
 from ..logging import get_debug_logger
-from ..persistence.storage import ThemePersistence, ThemeValidationResult
+from ..persistence.storage import ThemePersistence
 from .base import ThemedWidget
 
 logger = get_debug_logger(__name__)
@@ -48,6 +48,7 @@ class ThemeMetadataEditor(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -131,6 +132,7 @@ class ThemeMetadataEditor(ThemedWidget, QWidget):
 
         Args:
             metadata: Metadata dictionary
+
         """
         self._metadata = metadata
 
@@ -160,6 +162,7 @@ class ThemeMetadataEditor(ThemedWidget, QWidget):
 
         Returns:
             Metadata dictionary
+
         """
         return {
             "name": self._name_input.text().strip() or "Untitled Theme",
@@ -186,6 +189,7 @@ class ThemeImportDialog(ThemedWidget, QDialog):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -257,6 +261,7 @@ class ThemeImportDialog(ThemedWidget, QDialog):
 
         Args:
             file_path: Path to theme file
+
         """
         self._file_path_input.setText(str(file_path))
         self._validation_output.clear()
@@ -303,6 +308,7 @@ class ThemeImportDialog(ThemedWidget, QDialog):
 
         Returns:
             Imported theme or None
+
         """
         return self._imported_theme
 
@@ -323,6 +329,7 @@ class ThemeExportDialog(ThemedWidget, QDialog):
         Args:
             theme: Theme to export
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -337,13 +344,15 @@ class ThemeExportDialog(ThemedWidget, QDialog):
         self._setup_ui()
 
         # Load theme metadata
-        self._metadata_editor.set_metadata({
-            "name": theme.name,
-            "version": theme.version,
-            "type": theme.type,
-            "author": theme.metadata.get("author", ""),
-            "description": theme.metadata.get("description", ""),
-        })
+        self._metadata_editor.set_metadata(
+            {
+                "name": theme.name,
+                "version": theme.version,
+                "type": theme.type,
+                "author": theme.metadata.get("author", ""),
+                "description": theme.metadata.get("description", ""),
+            }
+        )
 
         logger.debug(f"ThemeExportDialog initialized for: {theme.name}")
 
@@ -377,9 +386,7 @@ class ThemeExportDialog(ThemedWidget, QDialog):
         button_box = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
-        button_box.button(QDialogButtonBox.StandardButton.Save).clicked.connect(
-            self._on_save
-        )
+        button_box.button(QDialogButtonBox.StandardButton.Save).clicked.connect(self._on_save)
         button_box.rejected.connect(self.reject)
         layout.addWidget(button_box)
 
@@ -437,6 +444,7 @@ class ThemeExportDialog(ThemedWidget, QDialog):
 
             # Close dialog after short delay
             from PySide6.QtCore import QTimer
+
             QTimer.singleShot(1000, self.accept)
 
         except Exception as e:

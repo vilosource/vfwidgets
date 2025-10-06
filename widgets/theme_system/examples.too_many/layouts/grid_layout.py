@@ -38,13 +38,13 @@ class ThemedGridCell(ThemedWidget, QFrame):
     """A themed cell for grid layouts."""
 
     theme_config = {
-        'bg': 'grid.cell.background',
-        'fg': 'grid.cell.foreground',
-        'border': 'grid.cell.border',
-        'hover_bg': 'grid.cell.hover.background',
-        'selected_bg': 'grid.cell.selected.background',
-        'selected_fg': 'grid.cell.selected.foreground',
-        'font': 'grid.cell.font'
+        "bg": "grid.cell.background",
+        "fg": "grid.cell.foreground",
+        "border": "grid.cell.border",
+        "hover_bg": "grid.cell.hover.background",
+        "selected_bg": "grid.cell.selected.background",
+        "selected_fg": "grid.cell.selected.foreground",
+        "font": "grid.cell.font",
     }
 
     def __init__(self, content="", cell_type="normal", parent=None):
@@ -99,13 +99,13 @@ class ThemedGridCell(ThemedWidget, QFrame):
     def update_styling(self):
         """Update cell styling based on theme and state."""
         # Get base theme colors
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
-        hover_bg = self.theme.get('hover_bg', '#f0f0f0')
-        selected_bg = self.theme.get('selected_bg', '#0066cc')
-        selected_fg = self.theme.get('selected_fg', '#ffffff')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
+        hover_bg = self.theme.get("hover_bg", "#f0f0f0")
+        selected_bg = self.theme.get("selected_bg", "#0066cc")
+        selected_fg = self.theme.get("selected_fg", "#ffffff")
+        font = self.theme.get("font", "Arial, sans-serif")
 
         # Determine colors based on state and type
         if self._is_selected:
@@ -120,13 +120,13 @@ class ThemedGridCell(ThemedWidget, QFrame):
 
         # Modify colors based on cell type
         if self._cell_type == "header":
-            current_bg = self.theme.get('grid.header.background', '#e0e0e0')
-            current_fg = self.theme.get('grid.header.foreground', '#000000')
+            current_bg = self.theme.get("grid.header.background", "#e0e0e0")
+            current_fg = self.theme.get("grid.header.foreground", "#000000")
         elif self._cell_type == "important":
-            border_color = self.theme.get('accent.primary', '#ff6600')
+            border_color = self.theme.get("accent.primary", "#ff6600")
         elif self._cell_type == "disabled":
-            current_bg = self.theme.get('surface.disabled', '#f5f5f5')
-            current_fg = self.theme.get('text.disabled', '#999999')
+            current_bg = self.theme.get("surface.disabled", "#f5f5f5")
+            current_fg = self.theme.get("text.disabled", "#999999")
 
         # Generate stylesheet
         stylesheet = f"""
@@ -226,15 +226,33 @@ class DynamicGrid(ThemedWidget):
         self.clear_grid()
 
         cell_contents = [
-            "Header", "Data 1", "Data 2", "Data 3",
-            "Row 2", "Value A", "Value B", "Value C",
-            "Row 3", "Item X", "Item Y", "Item Z"
+            "Header",
+            "Data 1",
+            "Data 2",
+            "Data 3",
+            "Row 2",
+            "Value A",
+            "Value B",
+            "Value C",
+            "Row 3",
+            "Item X",
+            "Item Y",
+            "Item Z",
         ]
 
         cell_types = [
-            "header", "normal", "normal", "normal",
-            "header", "normal", "important", "normal",
-            "header", "normal", "normal", "disabled"
+            "header",
+            "normal",
+            "normal",
+            "normal",
+            "header",
+            "normal",
+            "important",
+            "normal",
+            "header",
+            "normal",
+            "normal",
+            "disabled",
         ]
 
         for row in range(self._rows):
@@ -304,8 +322,20 @@ class DynamicGrid(ThemedWidget):
 
     def randomize_content(self):
         """Randomize the content of all cells."""
-        contents = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta",
-                   "Data", "Info", "Value", "Item", "Element", "Content"]
+        contents = [
+            "Alpha",
+            "Beta",
+            "Gamma",
+            "Delta",
+            "Epsilon",
+            "Zeta",
+            "Data",
+            "Info",
+            "Value",
+            "Item",
+            "Element",
+            "Content",
+        ]
         types = ["normal", "important", "header", "disabled"]
 
         for cell in self._cells:
@@ -375,10 +405,22 @@ class GridLayoutDemo(ThemedWidget):
 
         # Create a 4x4 grid with different cell types
         grid_data = [
-            ("Name", "header"), ("Age", "header"), ("City", "header"), ("Status", "header"),
-            ("Alice", "normal"), ("25", "normal"), ("New York", "normal"), ("Active", "important"),
-            ("Bob", "normal"), ("30", "normal"), ("London", "normal"), ("Inactive", "disabled"),
-            ("Carol", "normal"), ("28", "normal"), ("Tokyo", "normal"), ("Active", "important"),
+            ("Name", "header"),
+            ("Age", "header"),
+            ("City", "header"),
+            ("Status", "header"),
+            ("Alice", "normal"),
+            ("25", "normal"),
+            ("New York", "normal"),
+            ("Active", "important"),
+            ("Bob", "normal"),
+            ("30", "normal"),
+            ("London", "normal"),
+            ("Inactive", "disabled"),
+            ("Carol", "normal"),
+            ("28", "normal"),
+            ("Tokyo", "normal"),
+            ("Active", "important"),
         ]
 
         for i, (content, cell_type) in enumerate(grid_data):
@@ -412,15 +454,15 @@ class GridLayoutDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         colorful_btn = QPushButton("Colorful Theme")
-        colorful_btn.clicked.connect(lambda: self.switch_theme('colorful'))
+        colorful_btn.clicked.connect(lambda: self.switch_theme("colorful"))
         controls_layout.addWidget(colorful_btn)
 
         layout.addLayout(controls_layout)
@@ -443,93 +485,66 @@ def main():
 
     # Define themes with grid styling
     light_theme = {
-        'name': 'light',
-        'grid': {
-            'cell': {
-                'background': '#ffffff',
-                'foreground': '#333333',
-                'border': '#cccccc',
-                'hover': {'background': '#f0f0f0'},
-                'selected': {'background': '#0066cc', 'foreground': '#ffffff'},
-                'font': 'Arial, sans-serif'
+        "name": "light",
+        "grid": {
+            "cell": {
+                "background": "#ffffff",
+                "foreground": "#333333",
+                "border": "#cccccc",
+                "hover": {"background": "#f0f0f0"},
+                "selected": {"background": "#0066cc", "foreground": "#ffffff"},
+                "font": "Arial, sans-serif",
             },
-            'header': {
-                'background': '#e6e6e6',
-                'foreground': '#000000'
-            }
+            "header": {"background": "#e6e6e6", "foreground": "#000000"},
         },
-        'surface': {
-            'disabled': '#f8f8f8'
-        },
-        'text': {
-            'disabled': '#999999'
-        },
-        'accent': {
-            'primary': '#ff6600'
-        }
+        "surface": {"disabled": "#f8f8f8"},
+        "text": {"disabled": "#999999"},
+        "accent": {"primary": "#ff6600"},
     }
 
     dark_theme = {
-        'name': 'dark',
-        'grid': {
-            'cell': {
-                'background': '#3a3a3a',
-                'foreground': '#ffffff',
-                'border': '#555555',
-                'hover': {'background': '#4a4a4a'},
-                'selected': {'background': '#66aaff', 'foreground': '#000000'},
-                'font': 'Arial, sans-serif'
+        "name": "dark",
+        "grid": {
+            "cell": {
+                "background": "#3a3a3a",
+                "foreground": "#ffffff",
+                "border": "#555555",
+                "hover": {"background": "#4a4a4a"},
+                "selected": {"background": "#66aaff", "foreground": "#000000"},
+                "font": "Arial, sans-serif",
             },
-            'header': {
-                'background': '#2a2a2a',
-                'foreground': '#ffffff'
-            }
+            "header": {"background": "#2a2a2a", "foreground": "#ffffff"},
         },
-        'surface': {
-            'disabled': '#2d2d2d'
-        },
-        'text': {
-            'disabled': '#777777'
-        },
-        'accent': {
-            'primary': '#ff8833'
-        }
+        "surface": {"disabled": "#2d2d2d"},
+        "text": {"disabled": "#777777"},
+        "accent": {"primary": "#ff8833"},
     }
 
     colorful_theme = {
-        'name': 'colorful',
-        'grid': {
-            'cell': {
-                'background': '#fff5f0',
-                'foreground': '#2d1810',
-                'border': '#ffb380',
-                'hover': {'background': '#ffe6d9'},
-                'selected': {'background': '#ff6b35', 'foreground': '#ffffff'},
-                'font': 'Arial, sans-serif'
+        "name": "colorful",
+        "grid": {
+            "cell": {
+                "background": "#fff5f0",
+                "foreground": "#2d1810",
+                "border": "#ffb380",
+                "hover": {"background": "#ffe6d9"},
+                "selected": {"background": "#ff6b35", "foreground": "#ffffff"},
+                "font": "Arial, sans-serif",
             },
-            'header': {
-                'background': '#ff8c50',
-                'foreground': '#ffffff'
-            }
+            "header": {"background": "#ff8c50", "foreground": "#ffffff"},
         },
-        'surface': {
-            'disabled': '#f0e6e0'
-        },
-        'text': {
-            'disabled': '#b38060'
-        },
-        'accent': {
-            'primary': '#ff3300'
-        }
+        "surface": {"disabled": "#f0e6e0"},
+        "text": {"disabled": "#b38060"},
+        "accent": {"primary": "#ff3300"},
     }
 
     # Register themes
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.register_theme('colorful', colorful_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.register_theme("colorful", colorful_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = GridLayoutDemo()
@@ -538,5 +553,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

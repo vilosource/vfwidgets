@@ -44,7 +44,7 @@ class TestThemeImmutability(ThemedTestCase):
             version="1.0.0",
             colors={"primary": "#ff0000"},
             styles={"font-family": "Arial"},
-            metadata={"author": "test"}
+            metadata={"author": "test"},
         )
 
         # Verify frozen behavior
@@ -59,21 +59,9 @@ class TestThemeImmutability(ThemedTestCase):
 
     def test_theme_hash_consistency(self):
         """Theme hash should be consistent for equality comparisons."""
-        theme1 = Theme(
-            name="test",
-            colors={"primary": "#ff0000"},
-            styles={"font": "Arial"}
-        )
-        theme2 = Theme(
-            name="test",
-            colors={"primary": "#ff0000"},
-            styles={"font": "Arial"}
-        )
-        theme3 = Theme(
-            name="different",
-            colors={"primary": "#ff0000"},
-            styles={"font": "Arial"}
-        )
+        theme1 = Theme(name="test", colors={"primary": "#ff0000"}, styles={"font": "Arial"})
+        theme2 = Theme(name="test", colors={"primary": "#ff0000"}, styles={"font": "Arial"})
+        theme3 = Theme(name="different", colors={"primary": "#ff0000"}, styles={"font": "Arial"})
 
         # Same data should have same hash
         assert hash(theme1) == hash(theme2)
@@ -88,7 +76,7 @@ class TestThemeImmutability(ThemedTestCase):
         theme = Theme(
             name="concurrent_test",
             colors={f"color_{i}": f"#{i:06x}" for i in range(100)},
-            styles={f"prop_{i}": f"value_{i}" for i in range(100)}
+            styles={f"prop_{i}": f"value_{i}" for i in range(100)},
         )
 
         def access_theme_properties():
@@ -150,7 +138,7 @@ class TestThemeValidation(ThemedTestCase):
             "rgb": "rgb(255, 0, 0)",
             "rgba": "rgba(255, 0, 0, 0.5)",
             "named": "red",
-            "hsl": "hsl(0, 100%, 50%)"
+            "hsl": "hsl(0, 100%, 50%)",
         }
         theme = Theme(name="test", colors=valid_colors)
         assert theme.colors == valid_colors
@@ -159,7 +147,7 @@ class TestThemeValidation(ThemedTestCase):
         invalid_colors = {
             "bad_hex": "#gg0000",
             "bad_rgb": "rgb(300, 0, 0)",  # > 255
-            "bad_format": "not_a_color"
+            "bad_format": "not_a_color",
         }
 
         for key, bad_color in invalid_colors.items():
@@ -174,7 +162,7 @@ class TestThemeValidation(ThemedTestCase):
             "font-size": "12px",
             "background-color": "#ffffff",
             "border": "1px solid #000000",
-            "margin": "10px 5px"
+            "margin": "10px 5px",
         }
         theme = Theme(name="test", styles=valid_styles)
         assert theme.styles == valid_styles
@@ -183,7 +171,7 @@ class TestThemeValidation(ThemedTestCase):
         css_styles = {
             "display": "flex",
             "justify-content": "center",
-            "grid-template-columns": "1fr 2fr 1fr"
+            "grid-template-columns": "1fr 2fr 1fr",
         }
         theme = Theme(name="test", styles=css_styles)
         assert theme.styles == css_styles
@@ -197,7 +185,7 @@ class TestThemeValidation(ThemedTestCase):
             "license": "MIT",
             "tags": ["dark", "minimal"],
             "created": "2024-01-01",
-            "updated": "2024-01-15"
+            "updated": "2024-01-15",
         }
         theme = Theme(name="test", metadata=valid_metadata)
         assert theme.metadata == valid_metadata
@@ -212,11 +200,7 @@ class TestThemeBuilder(ThemedTestCase):
 
     def test_builder_from_theme(self):
         """Builder should create from existing theme."""
-        original = Theme(
-            name="original",
-            colors={"primary": "#ff0000"},
-            styles={"font": "Arial"}
-        )
+        original = Theme(name="original", colors={"primary": "#ff0000"}, styles={"font": "Arial"})
 
         builder = ThemeBuilder.from_theme(original)
         assert builder.name == "original"
@@ -276,7 +260,7 @@ class TestThemeBuilder(ThemedTestCase):
         large_theme = Theme(
             name="large",
             colors={f"color_{i}": f"#{i:06x}" for i in range(1000)},
-            styles={f"style_{i}": f"value_{i}" for i in range(1000)}
+            styles={f"style_{i}": f"value_{i}" for i in range(1000)},
         )
 
         # Builder creation should be fast
@@ -312,7 +296,7 @@ class TestThemeValidator(ThemedTestCase):
             "name": "basic",
             "version": "1.0.0",
             "colors": {"primary": "#ff0000"},
-            "styles": {"font-family": "Arial"}
+            "styles": {"font-family": "Arial"},
         }
 
         assert self.validator.validate(basic_theme)
@@ -326,17 +310,11 @@ class TestThemeValidator(ThemedTestCase):
             "colors": {
                 "editor.background": "#1e1e1e",
                 "editor.foreground": "#d4d4d4",
-                "activityBar.background": "#333333"
+                "activityBar.background": "#333333",
             },
             "tokenColors": [
-                {
-                    "name": "Comment",
-                    "scope": "comment",
-                    "settings": {
-                        "foreground": "#6A9955"
-                    }
-                }
-            ]
+                {"name": "Comment", "scope": "comment", "settings": {"foreground": "#6A9955"}}
+            ],
         }
 
         assert self.validator.validate(vscode_theme)
@@ -345,12 +323,8 @@ class TestThemeValidator(ThemedTestCase):
         """Validator should provide detailed error reports."""
         invalid_theme = {
             "name": "",  # Invalid: empty name
-            "colors": {
-                "bad_color": "#invalid"  # Invalid: bad color format
-            },
-            "styles": {
-                123: "invalid_key"  # Invalid: non-string key
-            }
+            "colors": {"bad_color": "#invalid"},  # Invalid: bad color format
+            "styles": {123: "invalid_key"},  # Invalid: non-string key
         }
 
         assert not self.validator.validate(invalid_theme)
@@ -366,7 +340,7 @@ class TestThemeValidator(ThemedTestCase):
         """Validator should provide suggestions for common mistakes."""
         theme_with_typo = {
             "name": "test",
-            "colours": {"primary": "#ff0000"}  # Typo: should be "colors"
+            "colours": {"primary": "#ff0000"},  # Typo: should be "colors"
         }
 
         assert not self.validator.validate(theme_with_typo)
@@ -378,7 +352,7 @@ class TestThemeValidator(ThemedTestCase):
         large_theme = {
             "name": "large_theme",
             "colors": {f"color_{i}": f"#{i:06x}" for i in range(1000)},
-            "styles": {f"style_{i}": f"value_{i}" for i in range(1000)}
+            "styles": {f"style_{i}": f"value_{i}" for i in range(1000)},
         }
 
         start_time = time.perf_counter()
@@ -401,13 +375,13 @@ class TestThemeComposer(ThemedTestCase):
         base_theme = Theme(
             name="base",
             colors={"primary": "#ff0000", "secondary": "#00ff00"},
-            styles={"font-family": "Arial", "font-size": "12px"}
+            styles={"font-family": "Arial", "font-size": "12px"},
         )
 
         override_theme = Theme(
             name="override",
             colors={"primary": "#0000ff"},  # Override primary
-            styles={"font-size": "14px"}    # Override font-size
+            styles={"font-size": "14px"},  # Override font-size
         )
 
         composed = self.composer.compose(base_theme, override_theme)
@@ -422,19 +396,12 @@ class TestThemeComposer(ThemedTestCase):
 
     def test_compose_inheritance_chain(self):
         """Composer should handle inheritance chains."""
-        grandparent = Theme(
-            name="grandparent",
-            colors={"a": "#aaa", "b": "#bbb", "c": "#ccc"}
-        )
+        grandparent = Theme(name="grandparent", colors={"a": "#aaa", "b": "#bbb", "c": "#ccc"})
         parent = Theme(
-            name="parent",
-            colors={"b": "#BBB"},  # Override b
-            metadata={"extends": "grandparent"}
+            name="parent", colors={"b": "#BBB"}, metadata={"extends": "grandparent"}  # Override b
         )
         child = Theme(
-            name="child",
-            colors={"c": "#CCC"},  # Override c
-            metadata={"extends": "parent"}
+            name="child", colors={"c": "#CCC"}, metadata={"extends": "parent"}  # Override c
         )
 
         # Compose inheritance chain
@@ -446,29 +413,15 @@ class TestThemeComposer(ThemedTestCase):
 
     def test_compose_conflict_resolution(self):
         """Composer should handle conflicts with resolution strategies."""
-        theme1 = Theme(
-            name="theme1",
-            colors={"conflict": "#ff0000"},
-            metadata={"priority": 1}
-        )
-        theme2 = Theme(
-            name="theme2",
-            colors={"conflict": "#00ff00"},
-            metadata={"priority": 2}
-        )
+        theme1 = Theme(name="theme1", colors={"conflict": "#ff0000"}, metadata={"priority": 1})
+        theme2 = Theme(name="theme2", colors={"conflict": "#00ff00"}, metadata={"priority": 2})
 
         # Higher priority should win
-        composed = self.composer.compose_with_strategy(
-            [theme1, theme2],
-            strategy="priority"
-        )
+        composed = self.composer.compose_with_strategy([theme1, theme2], strategy="priority")
         assert composed.colors["conflict"] == "#00ff00"  # theme2 wins
 
         # Last one wins strategy
-        composed = self.composer.compose_with_strategy(
-            [theme1, theme2],
-            strategy="last_wins"
-        )
+        composed = self.composer.compose_with_strategy([theme1, theme2], strategy="last_wins")
         assert composed.colors["conflict"] == "#00ff00"  # theme2 wins
 
     def test_compose_performance(self):
@@ -476,12 +429,12 @@ class TestThemeComposer(ThemedTestCase):
         base_theme = Theme(
             name="base",
             colors={f"color_{i}": f"#{i:06x}" for i in range(500)},
-            styles={f"style_{i}": f"value_{i}" for i in range(500)}
+            styles={f"style_{i}": f"value_{i}" for i in range(500)},
         )
         override_theme = Theme(
             name="override",
             colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(250)},
-            styles={f"style_{i}": f"new_value_{i}" for i in range(250)}
+            styles={f"style_{i}": f"new_value_{i}" for i in range(250)},
         )
 
         start_time = time.perf_counter()
@@ -506,16 +459,14 @@ class TestPropertyResolver(ThemedTestCase):
                 "primary": "#ff0000",
                 "secondary": "#00ff00",
                 "accent": "@primary",  # Reference
-                "derived": "@colors.primary"  # Path reference
+                "derived": "@colors.primary",  # Path reference
             },
             styles={
                 "main-font": "Arial",
                 "header-font": "@main-font",  # Reference
-                "computed-size": "calc(@base-size + 2px)"  # Computed
+                "computed-size": "calc(@base-size + 2px)",  # Computed
             },
-            metadata={
-                "base-size": "12px"
-            }
+            metadata={"base-size": "12px"},
         )
         self.resolver = PropertyResolver(self.theme)
 
@@ -576,12 +527,7 @@ class TestPropertyResolver(ThemedTestCase):
     def test_resolver_circular_reference_detection(self):
         """Resolver should detect and handle circular references."""
         circular_theme = Theme(
-            name="circular",
-            colors={
-                "a": "@b",
-                "b": "@c",
-                "c": "@a"  # Circular reference
-            }
+            name="circular", colors={"a": "@b", "b": "@c", "c": "@a"}  # Circular reference
         )
         resolver = PropertyResolver(circular_theme)
 
@@ -590,6 +536,7 @@ class TestPropertyResolver(ThemedTestCase):
 
     def test_resolver_concurrent_access(self):
         """Resolver should be thread-safe for concurrent access."""
+
         def resolve_properties():
             """Resolve various properties concurrently."""
             results = []
@@ -619,15 +566,12 @@ class TestThemeHelperFunctions(ThemedTestCase):
             "name": "test",
             "version": "1.0.0",
             "colors": {"primary": "#ff0000"},
-            "styles": {"font": "Arial"}
+            "styles": {"font": "Arial"},
         }
         assert validate_theme_data(valid_data)
 
         # Invalid theme data
-        invalid_data = {
-            "name": "",  # Invalid
-            "colors": {"bad": "#invalid"}  # Invalid
-        }
+        invalid_data = {"name": "", "colors": {"bad": "#invalid"}}  # Invalid  # Invalid
         assert not validate_theme_data(invalid_data)
 
     def test_create_theme_from_dict(self):
@@ -635,17 +579,9 @@ class TestThemeHelperFunctions(ThemedTestCase):
         theme_data = {
             "name": "dict_theme",
             "version": "2.0.0",
-            "colors": {
-                "primary": "#0066cc",
-                "secondary": "#cc6600"
-            },
-            "styles": {
-                "font-family": "Helvetica",
-                "font-size": "14px"
-            },
-            "metadata": {
-                "author": "Test Creator"
-            }
+            "colors": {"primary": "#0066cc", "secondary": "#cc6600"},
+            "styles": {"font-family": "Helvetica", "font-size": "14px"},
+            "metadata": {"author": "Test Creator"},
         }
 
         theme = create_theme_from_dict(theme_data)
@@ -663,7 +599,7 @@ class TestThemeHelperFunctions(ThemedTestCase):
             version="1.0.0",
             colors={"primary": "#ff0000", "secondary": "#00ff00"},
             styles={"font": "Arial", "size": "12px"},
-            metadata={"author": "JSON Test"}
+            metadata={"author": "JSON Test"},
         )
 
         # Convert to JSON and back
@@ -688,7 +624,7 @@ class TestThemePerformance(ThemedTestCase):
             name="performance_test",
             colors={f"color_{i}": f"#{i:06x}" for i in range(1000)},
             styles={f"style_{i}": f"value_{i}" for i in range(1000)},
-            metadata={f"meta_{i}": f"data_{i}" for i in range(100)}
+            metadata={f"meta_{i}": f"data_{i}" for i in range(100)},
         )
 
     def test_theme_loading_performance(self):
@@ -696,7 +632,7 @@ class TestThemePerformance(ThemedTestCase):
         theme_data = {
             "name": "perf_test",
             "colors": {f"color_{i}": f"#{i:06x}" for i in range(100)},
-            "styles": {f"style_{i}": f"value_{i}" for i in range(100)}
+            "styles": {f"style_{i}": f"value_{i}" for i in range(100)},
         }
 
         start_time = time.perf_counter()
@@ -727,7 +663,7 @@ class TestThemePerformance(ThemedTestCase):
         large_theme_data = {
             "name": "validation_perf",
             "colors": {f"color_{i}": f"#{i:06x}" for i in range(500)},
-            "styles": {f"style_{i}": f"value_{i}" for i in range(500)}
+            "styles": {f"style_{i}": f"value_{i}" for i in range(500)},
         }
 
         start_time = time.perf_counter()
@@ -757,12 +693,12 @@ class TestThemePerformance(ThemedTestCase):
         base_theme = Theme(
             name="base",
             colors={f"color_{i}": f"#{i:06x}" for i in range(250)},
-            styles={f"style_{i}": f"value_{i}" for i in range(250)}
+            styles={f"style_{i}": f"value_{i}" for i in range(250)},
         )
         override_theme = Theme(
             name="override",
             colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(125)},
-            styles={f"style_{i}": f"new_value_{i}" for i in range(125)}
+            styles={f"style_{i}": f"new_value_{i}" for i in range(125)},
         )
 
         composer = ThemeComposer()
@@ -784,9 +720,7 @@ class TestThemeBenchmarks(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         theme = Theme(
-            name="benchmark_test",
-            colors={"primary": "#ff0000"},
-            styles={"font": "Arial"}
+            name="benchmark_test", colors={"primary": "#ff0000"}, styles={"font": "Arial"}
         )
 
         # Benchmark theme operations

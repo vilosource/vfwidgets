@@ -135,9 +135,7 @@ class WidgetDemoWindow(ThemedMainWindow):
     def on_button_click(self, button_name: str):
         """Handle button clicks."""
         text = self.line_edit.text() or "(empty)"
-        self.status_label.setText(
-            f"✅ Button '{button_name}' clicked! Line edit contains: {text}"
-        )
+        self.status_label.setText(f"✅ Button '{button_name}' clicked! Line edit contains: {text}")
 
 
 def main():

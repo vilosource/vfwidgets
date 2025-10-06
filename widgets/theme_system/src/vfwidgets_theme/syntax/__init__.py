@@ -10,11 +10,11 @@ from .language_detector import LanguageDetector
 from .theme_mapper import ThemeColorMapper
 
 __all__ = [
-    'SyntaxHighlighter',
-    'Token',
-    'TokenType',
-    'TextMateGrammar',
-    'GrammarLoader',
-    'LanguageDetector',
-    'ThemeColorMapper'
+    "SyntaxHighlighter",
+    "Token",
+    "TokenType",
+    "TextMateGrammar",
+    "GrammarLoader",
+    "LanguageDetector",
+    "ThemeColorMapper",
 ]

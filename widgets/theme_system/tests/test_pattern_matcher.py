@@ -62,7 +62,7 @@ class TestLRUCache:
         cache.put("key3", "value3")
 
         assert cache.get("key1") == "value1"  # Still there
-        assert cache.get("key2") is None       # Evicted
+        assert cache.get("key2") is None  # Evicted
         assert cache.get("key3") == "value3"  # New
 
     def test_cache_statistics(self):
@@ -74,10 +74,10 @@ class TestLRUCache:
         cache.get("key2")  # Miss
 
         stats = cache.get_stats()
-        assert stats['hits'] == 1
-        assert stats['misses'] == 1
-        assert stats['size'] == 1
-        assert stats['hit_rate'] == 0.5
+        assert stats["hits"] == 1
+        assert stats["misses"] == 1
+        assert stats["size"] == 1
+        assert stats["hit_rate"] == 0.5
 
     def test_cache_thread_safety(self):
         """Test cache thread safety."""
@@ -118,10 +118,7 @@ class TestPatternMatcher:
     def test_add_glob_pattern(self):
         """Test adding glob patterns."""
         index = self.matcher.add_pattern(
-            "Test*",
-            PatternType.GLOB,
-            priority=PatternPriority.HIGH,
-            name="Test Pattern"
+            "Test*", PatternType.GLOB, priority=PatternPriority.HIGH, name="Test Pattern"
         )
 
         assert index == 0
@@ -136,9 +133,7 @@ class TestPatternMatcher:
     def test_add_regex_pattern(self):
         """Test adding regex patterns."""
         index = self.matcher.add_pattern(
-            r"test_\d+",
-            PatternType.REGEX,
-            priority=PatternPriority.NORMAL
+            r"test_\d+", PatternType.REGEX, priority=PatternPriority.NORMAL
         )
 
         assert index == 0
@@ -149,20 +144,16 @@ class TestPatternMatcher:
     def test_add_invalid_regex_pattern(self):
         """Test adding invalid regex pattern raises error."""
         with pytest.raises(PatternError):
-            self.matcher.add_pattern(
-                r"[invalid regex",
-                PatternType.REGEX
-            )
+            self.matcher.add_pattern(r"[invalid regex", PatternType.REGEX)
 
     def test_add_custom_pattern(self):
         """Test adding custom pattern with function."""
+
         def custom_func(target, widget):
             return MatchResult(target.startswith("custom_"), 0.8)
 
         index = self.matcher.add_pattern(
-            "custom_pattern",
-            PatternType.CUSTOM,
-            custom_function=custom_func
+            "custom_pattern", PatternType.CUSTOM, custom_function=custom_func
         )
 
         assert index == 0
@@ -171,10 +162,7 @@ class TestPatternMatcher:
     def test_add_custom_pattern_without_function(self):
         """Test adding custom pattern without function raises error."""
         with pytest.raises(PatternError):
-            self.matcher.add_pattern(
-                "custom_pattern",
-                PatternType.CUSTOM
-            )
+            self.matcher.add_pattern("custom_pattern", PatternType.CUSTOM)
 
     def test_glob_pattern_matching(self):
         """Test glob pattern matching."""
@@ -209,14 +197,13 @@ class TestPatternMatcher:
 
     def test_custom_pattern_matching(self):
         """Test custom pattern matching."""
+
         def starts_with_test(target, widget):
             matched = target.startswith("test")
             return MatchResult(matched, 0.9 if matched else 0.0)
 
         self.matcher.add_pattern(
-            "starts_with_test",
-            PatternType.CUSTOM,
-            custom_function=starts_with_test
+            "starts_with_test", PatternType.CUSTOM, custom_function=starts_with_test
         )
 
         matches = self.matcher.match_patterns("test_widget", self.widget)
@@ -255,11 +242,11 @@ class TestPatternMatcher:
 
         # First match - should be cached
         matches1 = self.matcher.match_patterns("TestWidget", self.widget)
-        cache_misses_1 = self.matcher._stats['cache_misses']
+        cache_misses_1 = self.matcher._stats["cache_misses"]
 
         # Second match - should hit cache
         matches2 = self.matcher.match_patterns("TestWidget", self.widget)
-        cache_hits_2 = self.matcher._stats['cache_hits']
+        cache_hits_2 = self.matcher._stats["cache_hits"]
 
         assert matches1 == matches2
         assert cache_hits_2 > 0
@@ -283,13 +270,13 @@ class TestPatternMatcher:
         self.matcher.match_patterns("TestWidget", self.widget)
 
         stats = self.matcher.get_statistics()
-        assert 'total_patterns' in stats
-        assert 'active_patterns' in stats
-        assert 'match_cache_stats' in stats
-        assert 'performance_stats' in stats
+        assert "total_patterns" in stats
+        assert "active_patterns" in stats
+        assert "match_cache_stats" in stats
+        assert "performance_stats" in stats
 
-        assert stats['total_patterns'] == 1
-        assert stats['active_patterns'] == 1
+        assert stats["total_patterns"] == 1
+        assert stats["active_patterns"] == 1
 
     def test_clear_caches(self):
         """Test cache clearing."""
@@ -313,14 +300,14 @@ class TestPatternMatcher:
         # Run benchmark
         results = self.matcher.benchmark_performance(iterations=100)
 
-        assert 'total_time_ms' in results
-        assert 'average_time_ms' in results
-        assert 'iterations' in results
-        assert 'patterns_per_second' in results
+        assert "total_time_ms" in results
+        assert "average_time_ms" in results
+        assert "iterations" in results
+        assert "patterns_per_second" in results
 
-        assert results['iterations'] == 100
-        assert results['average_time_ms'] > 0
-        assert results['patterns_per_second'] > 0
+        assert results["iterations"] == 100
+        assert results["average_time_ms"] > 0
+        assert results["patterns_per_second"] > 0
 
     def test_performance_requirement(self):
         """Test that pattern matching meets performance requirements."""
@@ -454,9 +441,9 @@ class TestPatternPlugins:
         plugin = StatePlugin()
         info = plugin.get_info()
 
-        assert info['name'] == "state"
-        assert info['type'] == "pattern_plugin"
-        assert 'description' in info
+        assert info["name"] == "state"
+        assert info["type"] == "pattern_plugin"
+        assert "description" in info
 
 
 class TestPatternIntegration:
@@ -504,7 +491,7 @@ class TestPatternIntegration:
 
         # Should be fast due to caching
         stats = self.matcher.get_statistics()
-        hit_rate = stats['match_cache_stats']['hit_rate']
+        hit_rate = stats["match_cache_stats"]["hit_rate"]
 
         assert hit_rate > 0.9  # >90% cache hit rate required
         assert elapsed_time < 100  # Should complete in under 100ms

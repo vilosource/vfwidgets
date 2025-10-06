@@ -57,7 +57,7 @@ class TestThreadSafeThemeManager(ThemedTestCase):
             time.sleep(0.01)  # Simulate initialization time
             original_init(self)
 
-        with patch.object(ThreadSafeThemeManager, '__init__', mock_init):
+        with patch.object(ThreadSafeThemeManager, "__init__", mock_init):
             instances = []
 
             def get_instance():
@@ -85,7 +85,7 @@ class TestThreadSafeThemeManager(ThemedTestCase):
         def configure_manager(config_id: int):
             config = {
                 f"setting_{config_id}": f"value_{config_id}",
-                "thread_id": threading.current_thread().ident
+                "thread_id": threading.current_thread().ident,
             }
             manager.configure(config)
 

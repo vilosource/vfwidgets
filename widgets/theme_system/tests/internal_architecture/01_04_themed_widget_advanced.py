@@ -45,29 +45,60 @@ try:
         QVBoxLayout,
         QWidget,
     )
+
     QT_AVAILABLE = True
 except ImportError:
     print("PySide6 not available. This example will run with fallback implementations.")
     QT_AVAILABLE = False
 
     # Fallback implementations
-    class QVBoxLayout: pass
-    class QHBoxLayout: pass
+    class QVBoxLayout:
+        pass
+
+    class QHBoxLayout:
+        pass
+
     class QPushButton:
-        def __init__(self, text): self.text = text
+        def __init__(self, text):
+            self.text = text
+
     class QLabel:
-        def __init__(self, text): self.text = text
-    class QMainWindow: pass
-    class QWidget: pass
-    class QTextEdit: pass
-    class QSlider: pass
-    class QProgressBar: pass
-    class QTimer: pass
-    class QThread: pass
-    class QPainter: pass
-    class QColor: pass
-    class QPaintEvent: pass
-    def pyqtSignal(*args): pass
+        def __init__(self, text):
+            self.text = text
+
+    class QMainWindow:
+        pass
+
+    class QWidget:
+        pass
+
+    class QTextEdit:
+        pass
+
+    class QSlider:
+        pass
+
+    class QProgressBar:
+        pass
+
+    class QTimer:
+        pass
+
+    class QThread:
+        pass
+
+    class QPainter:
+        pass
+
+    class QColor:
+        pass
+
+    class QPaintEvent:
+        pass
+
+    def pyqtSignal(*args):
+        pass
+
 
 from vfwidgets_theme.core.theme import ThemeBuilder
 from vfwidgets_theme.testing import MemoryProfiler, ThemeBenchmark
@@ -90,23 +121,20 @@ class AdvancedThemedButton(ThemedWidget):
     # Advanced theme configuration with inheritance chains
     theme_config = {
         # Basic properties
-        'background': 'button.background',
-        'foreground': 'button.foreground',
-        'border': 'button.border',
-
+        "background": "button.background",
+        "foreground": "button.foreground",
+        "border": "button.border",
         # State-specific properties
-        'hover_background': 'button.hover.background',
-        'active_background': 'button.active.background',
-        'disabled_background': 'button.disabled.background',
-
+        "hover_background": "button.hover.background",
+        "active_background": "button.active.background",
+        "disabled_background": "button.disabled.background",
         # Advanced properties
-        'border_radius': 'button.border.radius',
-        'shadow_color': 'button.shadow.color',
-        'animation_duration': 'button.animation.duration',
-
+        "border_radius": "button.border.radius",
+        "shadow_color": "button.shadow.color",
+        "animation_duration": "button.animation.duration",
         # Computed properties
-        'computed_gradient': '@colors.primary,@colors.accent',
-        'computed_shadow': '0 2px 4px @colors.shadow'
+        "computed_gradient": "@colors.primary,@colors.accent",
+        "computed_shadow": "0 2px 4px @colors.shadow",
     }
 
     def __init__(self, text="Advanced Button", parent=None):
@@ -131,7 +159,7 @@ class AdvancedThemedButton(ThemedWidget):
         # Demonstrate property access patterns
         properties = {}
         for key in self._theme_config.keys():
-            properties[key] = self.theme.get(key, f'default_{key}')
+            properties[key] = self.theme.get(key, f"default_{key}")
             self._property_access_count += 1
 
         print(f"🎨 Advanced button '{self._text}' theme changed (#{self._theme_change_count})")
@@ -166,12 +194,14 @@ class AdvancedThemedButton(ThemedWidget):
     def get_performance_stats(self) -> Dict[str, Any]:
         """Get button-specific performance statistics."""
         stats = self.theme_statistics.copy()
-        stats.update({
-            'click_count': self._click_count,
-            'property_access_count': self._property_access_count,
-            'theme_change_count': self._theme_change_count,
-            'current_state': self._state
-        })
+        stats.update(
+            {
+                "click_count": self._click_count,
+                "property_access_count": self._property_access_count,
+                "theme_change_count": self._theme_change_count,
+                "current_state": self._state,
+            }
+        )
         return stats
 
 
@@ -188,30 +218,27 @@ class CustomThemedWidget(ThemedWidget):
     # Sophisticated theme configuration
     theme_config = {
         # Color palette
-        'primary_color': 'palette.primary',
-        'secondary_color': 'palette.secondary',
-        'accent_color': 'palette.accent',
-        'success_color': 'palette.success',
-        'warning_color': 'palette.warning',
-        'error_color': 'palette.error',
-
+        "primary_color": "palette.primary",
+        "secondary_color": "palette.secondary",
+        "accent_color": "palette.accent",
+        "success_color": "palette.success",
+        "warning_color": "palette.warning",
+        "error_color": "palette.error",
         # Typography
-        'title_font': 'typography.title.font',
-        'title_size': 'typography.title.size',
-        'body_font': 'typography.body.font',
-        'body_size': 'typography.body.size',
-
+        "title_font": "typography.title.font",
+        "title_size": "typography.title.size",
+        "body_font": "typography.body.font",
+        "body_size": "typography.body.size",
         # Layout
-        'padding': 'layout.padding',
-        'margin': 'layout.margin',
-        'border_width': 'layout.border.width',
-        'border_style': 'layout.border.style',
-
+        "padding": "layout.padding",
+        "margin": "layout.margin",
+        "border_width": "layout.border.width",
+        "border_style": "layout.border.style",
         # Advanced features
-        'transition_duration': 'animation.transition.duration',
-        'easing_function': 'animation.easing.function',
-        'shadow_blur': 'effects.shadow.blur',
-        'shadow_offset': 'effects.shadow.offset'
+        "transition_duration": "animation.transition.duration",
+        "easing_function": "animation.easing.function",
+        "shadow_blur": "effects.shadow.blur",
+        "shadow_offset": "effects.shadow.offset",
     }
 
     def __init__(self, widget_type="custom", parent=None):
@@ -230,12 +257,14 @@ class CustomThemedWidget(ThemedWidget):
         # Demonstrate property validation and type conversion
         try:
             # Numeric properties with validation
-            padding = self._validate_numeric(self.theme.get('padding', '8'), 'padding')
-            margin = self._validate_numeric(self.theme.get('margin', '4'), 'margin')
-            border_width = self._validate_numeric(self.theme.get('border_width', '1'), 'border_width')
+            padding = self._validate_numeric(self.theme.get("padding", "8"), "padding")
+            margin = self._validate_numeric(self.theme.get("margin", "4"), "margin")
+            border_width = self._validate_numeric(
+                self.theme.get("border_width", "1"), "border_width"
+            )
 
             # Duration properties with unit handling
-            transition = self._validate_duration(self.theme.get('transition_duration', '200ms'))
+            transition = self._validate_duration(self.theme.get("transition_duration", "200ms"))
 
             print(f"   - Layout: padding={padding}, margin={margin}, border={border_width}")
             print(f"   - Animation: transition={transition}")
@@ -250,7 +279,8 @@ class CustomThemedWidget(ThemedWidget):
         elif isinstance(value, str):
             # Handle units (px, em, %, etc.)
             import re
-            match = re.match(r'^(\d+(?:\.\d+)?)(px|em|rem|%)?$', value.strip())
+
+            match = re.match(r"^(\d+(?:\.\d+)?)(px|em|rem|%)?$", value.strip())
             if match:
                 return float(match.group(1))
 
@@ -264,9 +294,9 @@ class CustomThemedWidget(ThemedWidget):
             return float(value)
         elif isinstance(value, str):
             value = value.strip().lower()
-            if value.endswith('ms'):
+            if value.endswith("ms"):
                 return float(value[:-2])
-            elif value.endswith('s'):
+            elif value.endswith("s"):
                 return float(value[:-1]) * 1000
 
         return 200.0  # Default 200ms
@@ -291,27 +321,22 @@ class ExistingWidgetWithTheming(QPushButton, ThemeableMixin):
         super().__init__(text)
 
         # Set up theming through mixin
-        self.setup_theming({
-            'bg': 'button.background',
-            'fg': 'button.foreground',
-            'font': 'button.font'
-        })
+        self.setup_theming(
+            {"bg": "button.background", "fg": "button.foreground", "font": "button.font"}
+        )
 
         print(f"🔌 Created widget with ThemeableMixin: {text}")
 
     def on_theme_changed(self):
         """Handle theme changes through mixin."""
         print("🎨 Mixin widget theme changed")
-        if hasattr(self, 'setText'):
+        if hasattr(self, "setText"):
             # Update button text to show theme info
-            bg = self.theme.get('bg', '#ffffff')
+            bg = self.theme.get("bg", "#ffffff")
             self.setText(f"Themed Button ({bg})")
 
 
-@themeable({
-    'panel_bg': 'panel.background',
-    'panel_border': 'panel.border'
-})
+@themeable({"panel_bg": "panel.background", "panel_border": "panel.border"})
 class DecoratedThemedPanel(QWidget, CompositeMixin):
     """
     Panel with complete theming through decorator and composite mixin.
@@ -333,8 +358,8 @@ class DecoratedThemedPanel(QWidget, CompositeMixin):
     def on_theme_changed(self):
         """Handle theme changes for the decorated panel."""
         print("🎨 Decorated panel theme changed")
-        bg = self.theme.get('panel_bg', '#f0f0f0')
-        border = self.theme.get('panel_border', '#cccccc')
+        bg = self.theme.get("panel_bg", "#f0f0f0")
+        border = self.theme.get("panel_border", "#cccccc")
         print(f"   - Panel styling: bg={bg}, border={border}")
 
 
@@ -368,9 +393,9 @@ class ThreadedThemeWorker:
                 # Access widget properties from different thread
                 for widget_ref in self._widgets:
                     widget = widget_ref()
-                    if widget and hasattr(widget, 'theme'):
+                    if widget and hasattr(widget, "theme"):
                         # This should be thread-safe thanks to ThemedWidget's architecture
-                        bg = widget.theme.get('background', '#ffffff')
+                        bg = widget.theme.get("background", "#ffffff")
                         # In real usage, you might update data models or perform calculations
 
                 time.sleep(0.5)  # Simulate work
@@ -389,15 +414,18 @@ class AdvancedExample:
     def __init__(self):
         """Initialize the advanced example."""
         print("🚀 Starting Advanced ThemedWidget Example")
-        print("="*70)
+        print("=" * 70)
 
         # Initialize application with configuration
-        self.app = ThemedApplication([], theme_config={
-            'default_theme': 'dark',
-            'auto_detect_system': True,
-            'vscode_integration': True,
-            'performance_monitoring': True
-        })
+        self.app = ThemedApplication(
+            [],
+            theme_config={
+                "default_theme": "dark",
+                "auto_detect_system": True,
+                "vscode_integration": True,
+                "performance_monitoring": True,
+            },
+        )
 
         # Initialize benchmarking and profiling
         self.benchmark = ThemeBenchmark()
@@ -438,7 +466,7 @@ class AdvancedExample:
             self.advanced_button,
             self.custom_widget,
             self.mixin_widget,
-            self.decorated_panel
+            self.decorated_panel,
         ]
 
         print(f"✅ Created {len(self.widgets)} advanced themed widgets")
@@ -450,7 +478,7 @@ class AdvancedExample:
 
         # Show how widgets inherit and override theme configurations
         for widget in self.widgets:
-            if hasattr(widget, '_theme_config'):
+            if hasattr(widget, "_theme_config"):
                 print(f"📋 {type(widget).__name__}:")
                 config = widget._theme_config
                 print(f"   - Properties: {len(config)}")
@@ -471,10 +499,9 @@ class AdvancedExample:
         # Create a custom theme using ThemeBuilder
         builder = ThemeBuilder()
 
-        custom_theme = (builder
-            .set_name("custom_advanced")
+        custom_theme = (
+            builder.set_name("custom_advanced")
             .set_description("Custom theme for advanced demo")
-
             # Define color palette
             .add_color("primary", "#6366f1")
             .add_color("secondary", "#8b5cf6")
@@ -482,33 +509,23 @@ class AdvancedExample:
             .add_color("success", "#10b981")
             .add_color("warning", "#f59e0b")
             .add_color("error", "#ef4444")
-
             # Define component styles
-            .add_style("button", {
-                "background": "@colors.primary",
-                "foreground": "#ffffff",
-                "border": "1px solid @colors.primary",
-                "border-radius": "6px"
-            })
-            .add_style("button.hover", {
-                "background": "@colors.secondary"
-            })
-            .add_style("panel", {
-                "background": "#f8fafc",
-                "border": "1px solid #e2e8f0"
-            })
-
+            .add_style(
+                "button",
+                {
+                    "background": "@colors.primary",
+                    "foreground": "#ffffff",
+                    "border": "1px solid @colors.primary",
+                    "border-radius": "6px",
+                },
+            )
+            .add_style("button.hover", {"background": "@colors.secondary"})
+            .add_style("panel", {"background": "#f8fafc", "border": "1px solid #e2e8f0"})
             # Define typography
-            .add_style("typography.title", {
-                "font": "600 18px Inter, sans-serif",
-                "size": "18px"
-            })
-            .add_style("typography.body", {
-                "font": "400 14px Inter, sans-serif",
-                "size": "14px"
-            })
-
-            .build())
+            .add_style("typography.title", {"font": "600 18px Inter, sans-serif", "size": "18px"})
+            .add_style("typography.body", {"font": "400 14px Inter, sans-serif", "size": "14px"})
+            .build()
+        )
 
         # Add theme to application
         success = self.app.set_theme(custom_theme)
@@ -537,7 +554,7 @@ class AdvancedExample:
 
         # Benchmark theme switching
         def switch_themes():
-            themes = ['default', 'dark', 'light']
+            themes = ["default", "dark", "light"]
             for theme in themes:
                 self.app.set_theme(theme)
 
@@ -553,8 +570,8 @@ class AdvancedExample:
         def access_properties():
             for _ in range(1000):
                 for widget in self.widgets[:3]:  # Test subset
-                    if hasattr(widget, 'theme'):
-                        _ = widget.theme.get('background', '#fff')
+                    if hasattr(widget, "theme"):
+                        _ = widget.theme.get("background", "#fff")
 
         access_time = self.benchmark.measure_time(access_properties)
         total_accesses = 1000 * 3
@@ -577,7 +594,7 @@ class AdvancedExample:
         worker.start_work()
 
         # Perform theme changes while worker is running
-        themes = ['dark', 'light', 'default']
+        themes = ["dark", "light", "default"]
         for i, theme in enumerate(themes):
             print(f"🔄 Switching to {theme} while threads are active...")
             self.app.set_theme(theme)
@@ -617,6 +634,7 @@ class AdvancedExample:
 
         # Force garbage collection (simulated)
         import gc
+
         gc.collect()
 
         final_memory = self.profiler.get_memory_usage()
@@ -625,7 +643,9 @@ class AdvancedExample:
         print("🧹 After Cleanup:")
         print(f"   - Final memory: {final_memory / 1024:.1f} KB")
         print(f"   - Memory recovered: {memory_recovered / 1024:.1f} KB")
-        print(f"   - Recovery rate: {(memory_recovered / (peak_memory - baseline_memory)) * 100:.1f}%")
+        print(
+            f"   - Recovery rate: {(memory_recovered / (peak_memory - baseline_memory)) * 100:.1f}%"
+        )
 
     def demonstrate_error_recovery(self):
         """Demonstrate comprehensive error recovery."""
@@ -635,7 +655,10 @@ class AdvancedExample:
         # Test various error scenarios
         error_scenarios = [
             ("Invalid theme name", lambda: self.app.set_theme("invalid_theme_12345")),
-            ("Malformed property access", lambda: self.widgets[0].theme.get("deeply.nested.invalid.property.path")),
+            (
+                "Malformed property access",
+                lambda: self.widgets[0].theme.get("deeply.nested.invalid.property.path"),
+            ),
             ("Widget with bad config", self._create_problematic_widget),
         ]
 
@@ -649,17 +672,18 @@ class AdvancedExample:
 
     def _create_problematic_widget(self):
         """Create a widget with problematic configuration for testing."""
+
         class ProblematicWidget(ThemedWidget):
             theme_config = {
-                'invalid1': 'this.path.does.not.exist',
-                'invalid2': 'neither.does.this.one',
-                'circular': '@theme.circular'  # Potential circular reference
+                "invalid1": "this.path.does.not.exist",
+                "invalid2": "neither.does.this.one",
+                "circular": "@theme.circular",  # Potential circular reference
             }
 
         widget = ProblematicWidget()
         # Try to access problematic properties
-        prop1 = widget.theme.get('invalid1', 'fallback1')
-        prop2 = widget.theme.get('invalid2', 'fallback2')
+        prop1 = widget.theme.get("invalid1", "fallback1")
+        prop2 = widget.theme.get("invalid2", "fallback2")
 
         widget._cleanup_theme()
         return f"Created problematic widget: {prop1}, {prop2}"
@@ -681,7 +705,7 @@ class AdvancedExample:
         # Widget-level statistics
         print("\n🔧 Widget Statistics:")
         for i, widget in enumerate(self.widgets):
-            if hasattr(widget, 'get_performance_stats'):
+            if hasattr(widget, "get_performance_stats"):
                 try:
                     stats = widget.get_performance_stats()
                     print(f"   Widget {i+1} ({type(widget).__name__}):")
@@ -704,9 +728,9 @@ class AdvancedExample:
 
         # Clean up all widgets
         for widget in self.widgets:
-            if hasattr(widget, '_cleanup_theme'):
+            if hasattr(widget, "_cleanup_theme"):
                 widget._cleanup_theme()
-            elif hasattr(widget, 'cleanup_theming'):
+            elif hasattr(widget, "cleanup_theming"):
                 widget.cleanup_theming()
 
         # Clean up application
@@ -718,7 +742,7 @@ class AdvancedExample:
         """Run the advanced example."""
         try:
             print("\n🎉 Advanced ThemedWidget Example Completed Successfully!")
-            print("="*70)
+            print("=" * 70)
             print("\nAdvanced Features Demonstrated:")
             print("1. Complex theme configuration with inheritance")
             print("2. Custom property descriptors and validation")
@@ -748,6 +772,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Error running advanced example: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

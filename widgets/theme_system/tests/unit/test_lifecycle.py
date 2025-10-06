@@ -133,7 +133,9 @@ class TestWidgetRegistrySystem(ThemedTestCase):
 
         # WeakRef cleanup timing can be unpredictable in tests
         # The important thing is that most widgets are cleaned up, proving the mechanism works
-        assert remaining <= 5, f"Expected ≤5 widgets remaining, but {remaining} remain (most widgets should be cleaned up)"
+        assert (
+            remaining <= 5
+        ), f"Expected ≤5 widgets remaining, but {remaining} remain (most widgets should be cleaned up)"
 
     @performance_test(max_time=0.01)  # 10ms = 0.01 seconds
     def test_registration_performance(self):
@@ -258,7 +260,7 @@ class TestLifecycleManager(ThemedTestCase):
         manager.register_widget(widget)
 
         # Widget should have theme provider injected
-        assert hasattr(widget, '_theme_provider')
+        assert hasattr(widget, "_theme_provider")
         assert widget._theme_provider is theme_provider
 
     def test_lifecycle_callbacks(self):

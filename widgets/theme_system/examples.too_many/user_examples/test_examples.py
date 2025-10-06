@@ -4,18 +4,19 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+
 
 def test_example(module_name):
     """Test that an example module can be imported."""
     print(f"\nTesting {module_name}...")
     try:
         # Import the module
-        module = __import__(module_name.replace('.py', ''))
+        module = __import__(module_name.replace(".py", ""))
         print("  ✓ Module imported successfully")
 
         # Check for main function
-        if hasattr(module, 'main'):
+        if hasattr(module, "main"):
             print("  ✓ Has main() function")
         else:
             print("  ⚠ No main() function found")
@@ -28,11 +29,11 @@ def test_example(module_name):
 
 def main():
     examples = [
-        '01_minimal_hello_world.py',
-        '02_theme_switching.py',
-        '03_custom_themed_widgets.py',
-        '04_multi_window_application.py',
-        '05_complete_application.py'
+        "01_minimal_hello_world.py",
+        "02_theme_switching.py",
+        "03_custom_themed_widgets.py",
+        "04_multi_window_application.py",
+        "05_complete_application.py",
     ]
 
     print("Testing VFWidgets Theme System Examples")
@@ -59,5 +60,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

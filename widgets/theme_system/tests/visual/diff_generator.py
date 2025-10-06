@@ -9,6 +9,7 @@ from typing import Tuple
 
 try:
     from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
@@ -16,6 +17,7 @@ except ImportError:
 
 class DiffMode(Enum):
     """Visual diff display modes."""
+
     HIGHLIGHT = "highlight"  # Highlight differences
     SIDE_BY_SIDE = "side_by_side"  # Show images side by side
     OVERLAY = "overlay"  # Overlay differences
@@ -29,11 +31,13 @@ class DiffGenerator:
         if not PIL_AVAILABLE:
             raise ImportError("PIL (Pillow) is required for diff generation")
 
-    def generate_highlight_diff(self,
-                               actual: Image.Image,
-                               expected: Image.Image,
-                               highlight_color: Tuple[int, int, int] = (255, 0, 0),
-                               threshold: int = 10) -> Image.Image:
+    def generate_highlight_diff(
+        self,
+        actual: Image.Image,
+        expected: Image.Image,
+        highlight_color: Tuple[int, int, int] = (255, 0, 0),
+        threshold: int = 10,
+    ) -> Image.Image:
         """
         Generate diff with differences highlighted.
 
@@ -75,11 +79,13 @@ class DiffGenerator:
         result.putdata(new_data)
         return result
 
-    def generate_side_by_side_diff(self,
-                                  actual: Image.Image,
-                                  expected: Image.Image,
-                                  separator_width: int = 2,
-                                  separator_color: Tuple[int, int, int] = (128, 128, 128)) -> Image.Image:
+    def generate_side_by_side_diff(
+        self,
+        actual: Image.Image,
+        expected: Image.Image,
+        separator_width: int = 2,
+        separator_color: Tuple[int, int, int] = (128, 128, 128),
+    ) -> Image.Image:
         """
         Generate side-by-side comparison.
 
@@ -101,7 +107,7 @@ class DiffGenerator:
 
         # Create result image
         total_width = actual.width + expected.width + separator_width
-        result = Image.new('RGB', (total_width, max_height), separator_color)
+        result = Image.new("RGB", (total_width, max_height), separator_color)
 
         # Paste images
         result.paste(expected, (0, 0))
@@ -118,7 +124,12 @@ class DiffGenerator:
 
             # Add labels
             draw.text((10, 10), "Expected", fill=(255, 255, 255), font=font)
-            draw.text((expected.width + separator_width + 10, 10), "Actual", fill=(255, 255, 255), font=font)
+            draw.text(
+                (expected.width + separator_width + 10, 10),
+                "Actual",
+                fill=(255, 255, 255),
+                font=font,
+            )
 
         except Exception:
             # If text drawing fails, continue without labels
@@ -126,10 +137,9 @@ class DiffGenerator:
 
         return result
 
-    def generate_overlay_diff(self,
-                             actual: Image.Image,
-                             expected: Image.Image,
-                             alpha: float = 0.5) -> Image.Image:
+    def generate_overlay_diff(
+        self, actual: Image.Image, expected: Image.Image, alpha: float = 0.5
+    ) -> Image.Image:
         """
         Generate overlay diff showing both images blended.
 
@@ -151,10 +161,9 @@ class DiffGenerator:
         # Blend images
         return Image.blend(expected, actual, alpha)
 
-    def generate_heatmap_diff(self,
-                             actual: Image.Image,
-                             expected: Image.Image,
-                             colormap: str = 'hot') -> Image.Image:
+    def generate_heatmap_diff(
+        self, actual: Image.Image, expected: Image.Image, colormap: str = "hot"
+    ) -> Image.Image:
         """
         Generate heatmap showing difference intensity.
 
@@ -171,8 +180,8 @@ class DiffGenerator:
             expected = expected.resize(actual.size, Image.Resampling.LANCZOS)
 
         # Convert to grayscale for difference calculation
-        actual_gray = actual.convert('L')
-        expected_gray = expected.convert('L')
+        actual_gray = actual.convert("L")
+        expected_gray = expected.convert("L")
 
         # Calculate difference
         actual_data = list(actual_gray.getdata())
@@ -197,7 +206,7 @@ class DiffGenerator:
             heatmap_data.append(color)
 
         # Create result image
-        result = Image.new('RGB', actual.size)
+        result = Image.new("RGB", actual.size)
         result.putdata(heatmap_data)
 
         return result
@@ -213,7 +222,7 @@ class DiffGenerator:
         Returns:
             RGB color tuple
         """
-        if colormap == 'hot':
+        if colormap == "hot":
             # Hot colormap: black -> red -> yellow -> white
             if intensity < 0.33:
                 # Black to red
@@ -230,12 +239,12 @@ class DiffGenerator:
                 r = 255
                 g = 255
                 b = int(255 * ((intensity - 0.66) / 0.34))
-        elif colormap == 'cool':
+        elif colormap == "cool":
             # Cool colormap: cyan -> magenta
             r = int(255 * intensity)
             g = int(255 * (1 - intensity))
             b = 255
-        elif colormap == 'rainbow':
+        elif colormap == "rainbow":
             # Rainbow colormap using HSV
             h = (1 - intensity) * 0.8  # Hue from red to blue
             s = 1.0  # Full saturation
@@ -249,11 +258,13 @@ class DiffGenerator:
 
         return (r, g, b)
 
-    def generate_diff(self,
-                     actual: Image.Image,
-                     expected: Image.Image,
-                     mode: DiffMode = DiffMode.HIGHLIGHT,
-                     **kwargs) -> Image.Image:
+    def generate_diff(
+        self,
+        actual: Image.Image,
+        expected: Image.Image,
+        mode: DiffMode = DiffMode.HIGHLIGHT,
+        **kwargs,
+    ) -> Image.Image:
         """
         Generate visual diff using specified mode.
 
@@ -278,10 +289,9 @@ class DiffGenerator:
             # Default to highlight
             return self.generate_highlight_diff(actual, expected, **kwargs)
 
-    def generate_comprehensive_diff(self,
-                                   actual: Image.Image,
-                                   expected: Image.Image,
-                                   difference_percentage: float) -> Image.Image:
+    def generate_comprehensive_diff(
+        self, actual: Image.Image, expected: Image.Image, difference_percentage: float
+    ) -> Image.Image:
         """
         Generate comprehensive diff with multiple views.
 
@@ -303,7 +313,7 @@ class DiffGenerator:
         height = highlight.height + side_by_side.height + heatmap.height + 100  # Extra for text
 
         # Create comprehensive result
-        result = Image.new('RGB', (width, height), (255, 255, 255))
+        result = Image.new("RGB", (width, height), (255, 255, 255))
 
         # Paste components
         y_offset = 0

@@ -49,38 +49,29 @@ def demonstrate_theme_creation():
             "background": "#1e1e1e",
             "foreground": "#ffffff",
             "accent": "@primary",  # Reference to primary
-            "editor.background": "#2d2d30"
+            "editor.background": "#2d2d30",
         },
         styles={
             "font-family": "Consolas, monospace",
             "font-size": "14px",
             "border-radius": "4px",
             "header-font": "@font-family",  # Reference to font-family
-            "computed-margin": "calc(10px + 5px)"  # Computed property
+            "computed-margin": "calc(10px + 5px)",  # Computed property
         },
         metadata={
             "author": "VFWidgets Team",
             "description": "A demo theme showcasing all features",
             "homepage": "https://vfwidgets.dev",
-            "tags": ["dark", "modern", "demo"]
+            "tags": ["dark", "modern", "demo"],
         },
         token_colors=[
             {
                 "name": "Comments",
                 "scope": "comment",
-                "settings": {
-                    "foreground": "#6A9955",
-                    "fontStyle": "italic"
-                }
+                "settings": {"foreground": "#6A9955", "fontStyle": "italic"},
             },
-            {
-                "name": "Keywords",
-                "scope": "keyword",
-                "settings": {
-                    "foreground": "#569cd6"
-                }
-            }
-        ]
+            {"name": "Keywords", "scope": "keyword", "settings": {"foreground": "#569cd6"}},
+        ],
     )
 
     print(f"Created theme: {theme.name} v{theme.version}")
@@ -121,7 +112,7 @@ def demonstrate_theme_builder():
     base_theme = Theme(
         name="Base Theme",
         colors={"primary": "#ff0000", "secondary": "#00ff00"},
-        styles={"font-size": "12px", "margin": "5px"}
+        styles={"font-size": "12px", "margin": "5px"},
     )
     print(f"Base theme: {base_theme.name}")
     print(f"Base colors: {base_theme.colors}")
@@ -132,11 +123,9 @@ def demonstrate_theme_builder():
 
     # Make modifications
     print("Making modifications...")
-    builder.set_name("Modified Theme") \
-           .add_color("accent", "#0000ff") \
-           .add_color("primary", "#cc0000") \
-           .add_style("font-size", "14px") \
-           .add_metadata("modified", True)
+    builder.set_name("Modified Theme").add_color("accent", "#0000ff").add_color(
+        "primary", "#cc0000"
+    ).add_style("font-size", "14px").add_metadata("modified", True)
 
     # Create checkpoint before risky operation
     print("Creating checkpoint...")
@@ -181,19 +170,12 @@ def demonstrate_theme_validation():
             "primary": "#007acc",
             "secondary": "rgb(255, 0, 0)",
             "tertiary": "hsl(120, 100%, 50%)",
-            "reference": "@primary"
+            "reference": "@primary",
         },
-        "styles": {
-            "font-family": "Arial",
-            "background": "#ffffff"
-        },
+        "styles": {"font-family": "Arial", "background": "#ffffff"},
         "tokenColors": [
-            {
-                "name": "Comment",
-                "scope": "comment",
-                "settings": {"foreground": "#008000"}
-            }
-        ]
+            {"name": "Comment", "scope": "comment", "settings": {"foreground": "#008000"}}
+        ],
     }
 
     print("Validating valid theme...")
@@ -207,14 +189,10 @@ def demonstrate_theme_validation():
         "version": "1.0",  # Invalid: not semantic version
         "colours": {  # Typo: should be "colors"
             "primary": "#gggggg",  # Invalid: bad hex color
-            123: "red"  # Invalid: non-string key
+            123: "red",  # Invalid: non-string key
         },
-        "styles": {
-            "font": "Arial"
-        },
-        "tokenColors": [
-            {"scope": "comment"}  # Invalid: missing settings
-        ]
+        "styles": {"font": "Arial"},
+        "tokenColors": [{"scope": "comment"}],  # Invalid: missing settings
     }
 
     print("\nValidating invalid theme...")
@@ -237,29 +215,16 @@ def demonstrate_theme_composition():
     # Create base themes
     light_base = Theme(
         name="Light Base",
-        colors={
-            "background": "#ffffff",
-            "foreground": "#000000",
-            "primary": "#007acc"
-        },
-        styles={
-            "font-family": "Arial",
-            "font-size": "12px"
-        },
-        metadata={"priority": 1}
+        colors={"background": "#ffffff", "foreground": "#000000", "primary": "#007acc"},
+        styles={"font-family": "Arial", "font-size": "12px"},
+        metadata={"priority": 1},
     )
 
     dark_override = Theme(
         name="Dark Override",
-        colors={
-            "background": "#1e1e1e",
-            "foreground": "#ffffff",
-            "accent": "#ff6b35"  # New color
-        },
-        styles={
-            "font-size": "14px"  # Override font size
-        },
-        metadata={"priority": 2}
+        colors={"background": "#1e1e1e", "foreground": "#ffffff", "accent": "#ff6b35"},  # New color
+        styles={"font-size": "14px"},  # Override font size
+        metadata={"priority": 2},
     )
 
     print(f"Base theme colors: {light_base.colors}")
@@ -279,7 +244,7 @@ def demonstrate_theme_composition():
     extra_theme = Theme(
         name="Extra",
         colors={"special": "#800080"},  # Valid hex color for purple
-        metadata={"priority": 3}
+        metadata={"priority": 3},
     )
 
     chain_result = composer.compose_chain([light_base, dark_override, extra_theme])
@@ -287,8 +252,7 @@ def demonstrate_theme_composition():
 
     # Test priority-based composition
     priority_result = composer.compose_with_strategy(
-        [light_base, dark_override, extra_theme],
-        strategy="priority"
+        [light_base, dark_override, extra_theme], strategy="priority"
     )
     print(f"Priority-based composition: {priority_result.name}")
 
@@ -307,17 +271,15 @@ def demonstrate_property_resolution():
             "secondary": "#ff6b35",
             "accent": "@primary",  # Simple reference
             "derived": "@colors.secondary",  # Path reference
-            "background": "#1e1e1e"
+            "background": "#1e1e1e",
         },
         styles={
             "base-font": "Consolas",
             "header-font": "@base-font",  # Reference to style
             "computed-size": "calc(@base-size + 4px)",  # Computed property
-            "margin": "10px"
+            "margin": "10px",
         },
-        metadata={
-            "base-size": "12px"
-        }
+        metadata={"base-size": "12px"},
     )
 
     resolver = PropertyResolver(theme)
@@ -344,13 +306,13 @@ def demonstrate_property_resolution():
     # First access (uncached)
     start_time = time.perf_counter()
     for _ in range(1000):
-        resolver.get_color('accent')  # Requires reference resolution
+        resolver.get_color("accent")  # Requires reference resolution
     uncached_time = time.perf_counter() - start_time
 
     # Second access (cached)
     start_time = time.perf_counter()
     for _ in range(1000):
-        resolver.get_color('accent')  # Should be from cache
+        resolver.get_color("accent")  # Should be from cache
     cached_time = time.perf_counter() - start_time
 
     print(f"1000 uncached accesses: {uncached_time:.6f}s ({uncached_time*1000:.3f}μs per access)")
@@ -360,12 +322,7 @@ def demonstrate_property_resolution():
     # Test circular reference detection
     print("\nCircular reference detection:")
     circular_theme = Theme(
-        name="Circular",
-        colors={
-            "a": "@b",
-            "b": "@c",
-            "c": "@a"  # Creates circular reference
-        }
+        name="Circular", colors={"a": "@b", "b": "@c", "c": "@a"}  # Creates circular reference
     )
 
     circular_resolver = PropertyResolver(circular_theme)
@@ -387,19 +344,9 @@ def demonstrate_file_operations():
         name="File Demo Theme",
         version="1.0.0",
         type="dark",
-        colors={
-            "primary": "#007acc",
-            "background": "#1e1e1e",
-            "foreground": "#ffffff"
-        },
-        styles={
-            "font-family": "Consolas",
-            "font-size": "14px"
-        },
-        metadata={
-            "author": "Demo",
-            "created": "2024-01-01"
-        }
+        colors={"primary": "#007acc", "background": "#1e1e1e", "foreground": "#ffffff"},
+        styles={"font-family": "Consolas", "font-size": "14px"},
+        metadata={"author": "Demo", "created": "2024-01-01"},
     )
 
     # Save to file
@@ -437,7 +384,7 @@ def demonstrate_performance_requirements():
         "version": "1.0.0",
         "colors": {f"color_{i}": f"#{i:06x}" for i in range(500)},
         "styles": {f"style_{i}": f"value_{i}" for i in range(500)},
-        "metadata": {f"meta_{i}": f"data_{i}" for i in range(100)}
+        "metadata": {f"meta_{i}": f"data_{i}" for i in range(100)},
     }
 
     # Test theme loading performance (< 50ms requirement)
@@ -489,12 +436,12 @@ def demonstrate_performance_requirements():
     base_theme = Theme(
         name="base",
         colors={f"color_{i}": f"#{i:06x}" for i in range(250)},
-        styles={f"style_{i}": f"value_{i}" for i in range(250)}
+        styles={f"style_{i}": f"value_{i}" for i in range(250)},
     )
     override_theme = Theme(
         name="override",
         colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(125)},
-        styles={f"style_{i}": f"new_value_{i}" for i in range(125)}
+        styles={f"style_{i}": f"new_value_{i}" for i in range(125)},
     )
 
     composer = ThemeComposer()
@@ -540,6 +487,7 @@ def main():
     except Exception as e:
         print(f"\n❌ ERROR during demonstration: {e}")
         import traceback
+
         traceback.print_exc()
 
 

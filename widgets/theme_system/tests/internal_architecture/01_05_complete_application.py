@@ -60,46 +60,113 @@ try:
         QVBoxLayout,
         QWidget,
     )
+
     QT_AVAILABLE = True
 except ImportError:
-    print("PySide6 not available. This example will demonstrate the architecture without full Qt functionality.")
+    print(
+        "PySide6 not available. This example will demonstrate the architecture without full Qt functionality."
+    )
     QT_AVAILABLE = False
 
     # Fallback implementations for architectural demonstration
-    class QMainWindow: pass
-    class QWidget: pass
-    class QVBoxLayout: pass
-    class QHBoxLayout: pass
-    class QGridLayout: pass
+    class QMainWindow:
+        pass
+
+    class QWidget:
+        pass
+
+    class QVBoxLayout:
+        pass
+
+    class QHBoxLayout:
+        pass
+
+    class QGridLayout:
+        pass
+
     class QPushButton:
-        def __init__(self, text=""): self.text = text
+        def __init__(self, text=""):
+            self.text = text
+
     class QLabel:
-        def __init__(self, text=""): self.text = text
-    class QTextEdit: pass
-    class QSlider: pass
-    class QProgressBar: pass
-    class QMenuBar: pass
-    class QMenu: pass
-    class QStatusBar: pass
-    class QTabWidget: pass
-    class QGroupBox: pass
-    class QCheckBox: pass
-    class QComboBox: pass
-    class QSpinBox: pass
-    class QLineEdit: pass
-    class QTableWidget: pass
-    class QTableWidgetItem: pass
-    class QSplitter: pass
-    class QFrame: pass
-    class QScrollArea: pass
-    class QTimer: pass
-    class QThread: pass
-    class QAction: pass
-    class QPainter: pass
-    class QColor: pass
-    class QFont: pass
-    def pyqtSignal(*args): pass
-    class Qt: pass
+        def __init__(self, text=""):
+            self.text = text
+
+    class QTextEdit:
+        pass
+
+    class QSlider:
+        pass
+
+    class QProgressBar:
+        pass
+
+    class QMenuBar:
+        pass
+
+    class QMenu:
+        pass
+
+    class QStatusBar:
+        pass
+
+    class QTabWidget:
+        pass
+
+    class QGroupBox:
+        pass
+
+    class QCheckBox:
+        pass
+
+    class QComboBox:
+        pass
+
+    class QSpinBox:
+        pass
+
+    class QLineEdit:
+        pass
+
+    class QTableWidget:
+        pass
+
+    class QTableWidgetItem:
+        pass
+
+    class QSplitter:
+        pass
+
+    class QFrame:
+        pass
+
+    class QScrollArea:
+        pass
+
+    class QTimer:
+        pass
+
+    class QThread:
+        pass
+
+    class QAction:
+        pass
+
+    class QPainter:
+        pass
+
+    class QColor:
+        pass
+
+    class QFont:
+        pass
+
+    def pyqtSignal(*args):
+        pass
+
+    class Qt:
+        pass
+
 
 from vfwidgets_theme.core.theme import ThemeBuilder
 from vfwidgets_theme.testing import MemoryProfiler
@@ -111,6 +178,7 @@ from vfwidgets_theme.widgets.mixins import ThemeableMixin
 @dataclass
 class ApplicationStats:
     """Application statistics for monitoring."""
+
     widgets_created: int = 0
     theme_switches: int = 0
     memory_usage: float = 0.0
@@ -123,11 +191,13 @@ class ThemedMenuBar(QMenuBar, ThemeableMixin):
 
     def __init__(self):
         super().__init__()
-        self.setup_theming({
-            'background': 'menubar.background',
-            'color': 'menubar.foreground',
-            'selection': 'menubar.selection'
-        })
+        self.setup_theming(
+            {
+                "background": "menubar.background",
+                "color": "menubar.foreground",
+                "selection": "menubar.selection",
+            }
+        )
 
     def on_theme_changed(self):
         """Handle theme changes for menu bar."""
@@ -139,11 +209,13 @@ class ThemedStatusBar(QStatusBar, ThemeableMixin):
 
     def __init__(self):
         super().__init__()
-        self.setup_theming({
-            'background': 'statusbar.background',
-            'color': 'statusbar.foreground',
-            'border': 'statusbar.border'
-        })
+        self.setup_theming(
+            {
+                "background": "statusbar.background",
+                "color": "statusbar.foreground",
+                "border": "statusbar.border",
+            }
+        )
 
         self._status_labels = {}
         self._setup_status_widgets()
@@ -159,9 +231,11 @@ class ThemedStatusBar(QStatusBar, ThemeableMixin):
 
     def update_stats(self, stats: ApplicationStats):
         """Update status bar with application statistics."""
-        status_text = f"Widgets: {stats.widgets_created} | " \
-                     f"Memory: {stats.memory_usage:.1f}KB | " \
-                     f"Uptime: {stats.uptime:.1f}s"
+        status_text = (
+            f"Widgets: {stats.widgets_created} | "
+            f"Memory: {stats.memory_usage:.1f}KB | "
+            f"Uptime: {stats.uptime:.1f}s"
+        )
         self.showMessage(status_text)
 
 
@@ -169,12 +243,12 @@ class PerformanceMonitorWidget(ThemedWidget):
     """Widget for monitoring application performance."""
 
     theme_config = {
-        'panel_bg': 'panel.background',
-        'panel_border': 'panel.border',
-        'text_color': 'panel.foreground',
-        'success_color': 'status.success',
-        'warning_color': 'status.warning',
-        'error_color': 'status.error'
+        "panel_bg": "panel.background",
+        "panel_border": "panel.border",
+        "text_color": "panel.foreground",
+        "success_color": "status.success",
+        "warning_color": "status.warning",
+        "error_color": "status.error",
     }
 
     def __init__(self, parent=None):
@@ -224,9 +298,9 @@ class PerformanceMonitorWidget(ThemedWidget):
         if not QT_AVAILABLE:
             return
 
-        bg = self.theme.get('panel_bg', '#ffffff')
-        border = self.theme.get('panel_border', '#cccccc')
-        text_color = self.theme.get('text_color', '#000000')
+        bg = self.theme.get("panel_bg", "#ffffff")
+        border = self.theme.get("panel_border", "#cccccc")
+        text_color = self.theme.get("text_color", "#000000")
 
         style = f"""
         QTextEdit {{
@@ -235,7 +309,7 @@ class PerformanceMonitorWidget(ThemedWidget):
             color: {text_color};
         }}
         """
-        if hasattr(self, 'stats_display'):
+        if hasattr(self, "stats_display"):
             self.stats_display.setStyleSheet(style)
 
     def _update_stats(self):
@@ -251,7 +325,7 @@ class PerformanceMonitorWidget(ThemedWidget):
 
     def _display_stats(self, stats: Dict[str, Any]):
         """Display performance statistics."""
-        if not QT_AVAILABLE or not hasattr(self, 'stats_display'):
+        if not QT_AVAILABLE or not hasattr(self, "stats_display"):
             return
 
         # Format statistics for display
@@ -273,10 +347,10 @@ class ThemeGalleryWidget(ThemedWidget):
     """Widget showing available themes with preview."""
 
     theme_config = {
-        'gallery_bg': 'gallery.background',
-        'card_bg': 'gallery.card.background',
-        'card_border': 'gallery.card.border',
-        'card_hover': 'gallery.card.hover'
+        "gallery_bg": "gallery.background",
+        "card_bg": "gallery.card.background",
+        "card_border": "gallery.card.border",
+        "card_hover": "gallery.card.hover",
     }
 
     def __init__(self, parent=None):
@@ -321,7 +395,7 @@ class ThemeGalleryWidget(ThemedWidget):
 
             for i, theme in enumerate(themes):
                 card = self._create_theme_card(theme, theme == current_theme)
-                if QT_AVAILABLE and hasattr(self, 'grid_layout'):
+                if QT_AVAILABLE and hasattr(self, "grid_layout"):
                     row = i // 3
                     col = i % 3
                     self.grid_layout.addWidget(card, row, col)
@@ -337,7 +411,7 @@ class ThemeGalleryWidget(ThemedWidget):
             return QWidget()
 
         card = QGroupBox()
-        if hasattr(theme, 'name'):
+        if hasattr(theme, "name"):
             title = f"{theme.name} {'(Current)' if is_current else ''}"
         else:
             title = f"{str(theme)} {'(Current)' if is_current else ''}"
@@ -355,7 +429,7 @@ class ThemeGalleryWidget(ThemedWidget):
 
         # Apply button
         apply_btn = QPushButton("Apply Theme")
-        if hasattr(theme, 'name'):
+        if hasattr(theme, "name"):
             apply_btn.clicked.connect(lambda: self._apply_theme(theme.name))
         layout.addWidget(apply_btn)
 
@@ -375,7 +449,7 @@ class ThemeGalleryWidget(ThemedWidget):
         """Refresh the theme gallery."""
         # Clear existing cards
         for card in self._theme_cards:
-            if hasattr(card, 'deleteLater'):
+            if hasattr(card, "deleteLater"):
                 card.deleteLater()
 
         self._theme_cards.clear()
@@ -394,10 +468,10 @@ class ContentWidget(ThemedWidget):
     """Main content widget with multiple tabs."""
 
     theme_config = {
-        'content_bg': 'content.background',
-        'tab_bg': 'tab.background',
-        'tab_active': 'tab.active',
-        'text_color': 'content.foreground'
+        "content_bg": "content.background",
+        "tab_bg": "tab.background",
+        "tab_active": "tab.active",
+        "text_color": "content.foreground",
     }
 
     def __init__(self, parent=None):
@@ -467,10 +541,7 @@ class MainWindow(QMainWindow, ThemeableMixin):
 
     def __init__(self):
         super().__init__()
-        self.setup_theming({
-            'window_bg': 'window.background',
-            'window_fg': 'window.foreground'
-        })
+        self.setup_theming({"window_bg": "window.background", "window_fg": "window.foreground"})
 
         self._stats = ApplicationStats()
         self._start_time = time.time()
@@ -531,7 +602,7 @@ class MainWindow(QMainWindow, ThemeableMixin):
         if app:
             themes = app.get_available_themes()
             for theme in themes[:5]:  # Limit menu items
-                theme_name = theme.name if hasattr(theme, 'name') else str(theme)
+                theme_name = theme.name if hasattr(theme, "name") else str(theme)
                 action = QAction(theme_name, self)
                 action.triggered.connect(lambda checked, name=theme_name: self._switch_theme(name))
                 theme_menu.addAction(action)
@@ -570,12 +641,12 @@ class MainWindow(QMainWindow, ThemeableMixin):
             "colors": {
                 "editor.background": "#1e1e1e",
                 "editor.foreground": "#d4d4d4",
-                "activityBar.background": "#333333"
-            }
+                "activityBar.background": "#333333",
+            },
         }
 
         # Save to temporary file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(sample_vscode_theme, f)
             temp_file = f.name
 
@@ -612,7 +683,7 @@ class MainWindow(QMainWindow, ThemeableMixin):
         self._stats.memory_usage = profiler.get_memory_usage() / 1024  # KB
 
         # Update status bar
-        if hasattr(self, 'status_bar'):
+        if hasattr(self, "status_bar"):
             self.status_bar.update_stats(self._stats)
 
     def on_theme_changed(self):
@@ -625,7 +696,7 @@ class MainWindow(QMainWindow, ThemeableMixin):
         print("🚪 Application closing...")
 
         # Clean up theming
-        if hasattr(self, 'cleanup_theming'):
+        if hasattr(self, "cleanup_theming"):
             self.cleanup_theming()
 
         event.accept()
@@ -637,18 +708,18 @@ class CompleteApplication:
     def __init__(self):
         """Initialize the complete application."""
         print("🚀 Starting Complete Themed Application")
-        print("="*60)
+        print("=" * 60)
 
         # Initialize themed application with full configuration
         self.app = ThemedApplication(
             [],  # Command line args
             theme_config={
-                'default_theme': 'default',
-                'auto_detect_system': True,
-                'persist_theme': True,
-                'vscode_integration': True,
-                'performance_monitoring': True
-            }
+                "default_theme": "default",
+                "auto_detect_system": True,
+                "persist_theme": True,
+                "vscode_integration": True,
+                "performance_monitoring": True,
+            },
         )
 
         # Enable system theme monitoring
@@ -670,46 +741,50 @@ class CompleteApplication:
         # Create application-specific theme
         builder = ThemeBuilder()
 
-        app_theme = (builder
-            .set_name("application_theme")
+        app_theme = (
+            builder.set_name("application_theme")
             .set_description("Custom theme for complete application")
-
             # Window colors
             .add_color("window_bg", "#f8f9fa")
             .add_color("window_fg", "#212529")
-
             # UI component colors
             .add_color("panel_bg", "#ffffff")
             .add_color("panel_border", "#dee2e6")
             .add_color("button_primary", "#007bff")
             .add_color("button_success", "#28a745")
-
             # Status colors
             .add_color("status_success", "#28a745")
             .add_color("status_warning", "#ffc107")
             .add_color("status_error", "#dc3545")
-
             # Component styles
-            .add_style("window", {
-                "background-color": "@colors.window_bg",
-                "color": "@colors.window_fg"
-            })
-            .add_style("panel", {
-                "background-color": "@colors.panel_bg",
-                "border": "1px solid @colors.panel_border"
-            })
-            .add_style("menubar", {
-                "background-color": "@colors.panel_bg",
-                "color": "@colors.window_fg",
-                "selection": "@colors.button_primary"
-            })
-            .add_style("statusbar", {
-                "background-color": "@colors.panel_bg",
-                "color": "@colors.window_fg",
-                "border": "1px solid @colors.panel_border"
-            })
-
-            .build())
+            .add_style(
+                "window", {"background-color": "@colors.window_bg", "color": "@colors.window_fg"}
+            )
+            .add_style(
+                "panel",
+                {
+                    "background-color": "@colors.panel_bg",
+                    "border": "1px solid @colors.panel_border",
+                },
+            )
+            .add_style(
+                "menubar",
+                {
+                    "background-color": "@colors.panel_bg",
+                    "color": "@colors.window_fg",
+                    "selection": "@colors.button_primary",
+                },
+            )
+            .add_style(
+                "statusbar",
+                {
+                    "background-color": "@colors.panel_bg",
+                    "color": "@colors.window_fg",
+                    "border": "1px solid @colors.panel_border",
+                },
+            )
+            .build()
+        )
 
         # Apply the custom theme
         success = self.app.set_theme(app_theme)
@@ -723,7 +798,7 @@ class CompleteApplication:
         themes = self.app.get_available_themes()
         print(f"📋 Available themes: {len(themes)}")
         for theme in themes:
-            name = theme.name if hasattr(theme, 'name') else str(theme)
+            name = theme.name if hasattr(theme, "name") else str(theme)
             print(f"   - {name}")
 
         # Show performance stats
@@ -732,9 +807,9 @@ class CompleteApplication:
 
         # Demonstrate theme switching
         print("🔄 Demonstrating theme switching...")
-        test_themes = ['dark', 'light', 'application_theme']
+        test_themes = ["dark", "light", "application_theme"]
         for theme_name in test_themes:
-            if any(getattr(t, 'name', str(t)) == theme_name for t in themes):
+            if any(getattr(t, "name", str(t)) == theme_name for t in themes):
                 success = self.app.set_theme(theme_name)
                 print(f"   - Switched to '{theme_name}': {success}")
                 time.sleep(0.1)  # Brief pause
@@ -760,7 +835,7 @@ class CompleteApplication:
                 print("💡 Application architecture demonstrated without Qt")
 
             print("\n🎉 Complete Application Demo Successful!")
-            print("="*50)
+            print("=" * 50)
             print("\nApplication Features Demonstrated:")
             print("1. Complete themed application with ThemedApplication")
             print("2. Multiple themed windows and widgets")
@@ -778,6 +853,7 @@ class CompleteApplication:
         except Exception as e:
             print(f"❌ Application error: {e}")
             import traceback
+
             traceback.print_exc()
             return 1
 
@@ -789,7 +865,7 @@ class CompleteApplication:
         print("\n🧹 Cleaning up application...")
 
         # Cleanup main window
-        if hasattr(self.main_window, 'cleanup_theming'):
+        if hasattr(self.main_window, "cleanup_theming"):
             self.main_window.cleanup_theming()
 
         # Cleanup application
@@ -811,6 +887,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Fatal error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

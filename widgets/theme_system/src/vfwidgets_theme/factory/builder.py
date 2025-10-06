@@ -42,7 +42,7 @@ class ThemeTemplate:
     metadata: Dict[str, Any] = field(default_factory=dict)
     variants: List[str] = field(default_factory=list)  # e.g., ['light', 'dark']
 
-    def apply_to_builder(self, builder: 'ThemeBuilder') -> 'ThemeBuilder':
+    def apply_to_builder(self, builder: "ThemeBuilder") -> "ThemeBuilder":
         """Apply this template to a theme builder."""
         # Add base colors
         for color_key, color_value in self.base_colors.items():
@@ -94,7 +94,7 @@ class ThemeBuilder:
 
         logger.debug(f"Created ThemeBuilder for: {name}")
 
-    def add_color(self, key: str, value: ColorValue) -> 'ThemeBuilder':
+    def add_color(self, key: str, value: ColorValue) -> "ThemeBuilder":
         """Add a color to the theme.
 
         Args:
@@ -112,7 +112,7 @@ class ThemeBuilder:
         logger.debug(f"Added color {key}: {value}")
         return self
 
-    def add_colors(self, colors: Dict[str, ColorValue]) -> 'ThemeBuilder':
+    def add_colors(self, colors: Dict[str, ColorValue]) -> "ThemeBuilder":
         """Add multiple colors at once.
 
         Args:
@@ -126,7 +126,7 @@ class ThemeBuilder:
             self.add_color(key, value)
         return self
 
-    def add_style(self, selector: str, properties: Dict[str, Any]) -> 'ThemeBuilder':
+    def add_style(self, selector: str, properties: Dict[str, Any]) -> "ThemeBuilder":
         """Add a style rule to the theme.
 
         Args:
@@ -144,7 +144,7 @@ class ThemeBuilder:
         logger.debug(f"Added style {selector}: {properties}")
         return self
 
-    def add_styles(self, styles: Dict[str, Dict[str, Any]]) -> 'ThemeBuilder':
+    def add_styles(self, styles: Dict[str, Dict[str, Any]]) -> "ThemeBuilder":
         """Add multiple style rules at once.
 
         Args:
@@ -158,7 +158,7 @@ class ThemeBuilder:
             self.add_style(selector, properties)
         return self
 
-    def add_metadata(self, key: str, value: Any) -> 'ThemeBuilder':
+    def add_metadata(self, key: str, value: Any) -> "ThemeBuilder":
         """Add metadata to the theme.
 
         Args:
@@ -173,7 +173,7 @@ class ThemeBuilder:
         logger.debug(f"Added metadata {key}: {value}")
         return self
 
-    def set_description(self, description: str) -> 'ThemeBuilder':
+    def set_description(self, description: str) -> "ThemeBuilder":
         """Set theme description.
 
         Args:
@@ -186,7 +186,7 @@ class ThemeBuilder:
         self._description = description
         return self
 
-    def set_type(self, theme_type: str) -> 'ThemeBuilder':
+    def set_type(self, theme_type: str) -> "ThemeBuilder":
         """Set theme type (light, dark, etc.).
 
         Args:
@@ -202,7 +202,7 @@ class ThemeBuilder:
         self._type = theme_type
         return self
 
-    def inherit_from(self, parent_theme: Theme) -> 'ThemeBuilder':
+    def inherit_from(self, parent_theme: Theme) -> "ThemeBuilder":
         """Inherit properties from a parent theme.
 
         Args:
@@ -215,16 +215,16 @@ class ThemeBuilder:
         self._parent_theme = parent_theme
 
         # Copy parent colors and styles as base
-        if hasattr(parent_theme, 'colors'):
+        if hasattr(parent_theme, "colors"):
             self._colors.update(parent_theme.colors)
 
-        if hasattr(parent_theme, 'styles'):
+        if hasattr(parent_theme, "styles"):
             for selector, properties in parent_theme.styles.items():
                 # Deep copy to avoid reference issues
                 self._styles[selector] = copy.deepcopy(properties)
 
         # Copy metadata (but allow overriding)
-        if hasattr(parent_theme, 'metadata'):
+        if hasattr(parent_theme, "metadata"):
             for key, value in parent_theme.metadata.items():
                 if key not in self._metadata:
                     self._metadata[key] = value
@@ -232,7 +232,7 @@ class ThemeBuilder:
         logger.debug(f"Inheriting from theme: {parent_theme.name}")
         return self
 
-    def apply_template(self, template: ThemeTemplate) -> 'ThemeBuilder':
+    def apply_template(self, template: ThemeTemplate) -> "ThemeBuilder":
         """Apply a theme template.
 
         Args:
@@ -244,7 +244,7 @@ class ThemeBuilder:
         """
         return template.apply_to_builder(self)
 
-    def enable_validation(self, enabled: bool = True) -> 'ThemeBuilder':
+    def enable_validation(self, enabled: bool = True) -> "ThemeBuilder":
         """Enable or disable validation during building.
 
         Args:
@@ -257,7 +257,7 @@ class ThemeBuilder:
         self._validation_enabled = enabled
         return self
 
-    def clone(self) -> 'ThemeBuilder':
+    def clone(self) -> "ThemeBuilder":
         """Create a copy of this builder.
 
         Returns:
@@ -295,10 +295,10 @@ class ThemeBuilder:
             # Add construction metadata
             build_metadata = {
                 **self._metadata,
-                'builder_created_at': self._created_at,
-                'builder_built_at': time.time(),
-                'builder_type': 'ThemeBuilder',
-                'parent_theme': self._parent_theme.name if self._parent_theme else None
+                "builder_created_at": self._created_at,
+                "builder_built_at": time.time(),
+                "builder_type": "ThemeBuilder",
+                "parent_theme": self._parent_theme.name if self._parent_theme else None,
             }
 
             # Create theme using core theme builder
@@ -342,37 +342,63 @@ class ThemeBuilder:
     def _validate_color(self, key: str, value: ColorValue):
         """Validate a color value."""
         if not key:
-            raise ThemeValidationError("validation", ["Color key cannot be empty"], "Color key cannot be empty")
+            raise ThemeValidationError(
+                "validation", ["Color key cannot be empty"], "Color key cannot be empty"
+            )
 
         if not value:
-            raise ThemeValidationError("validation", [f"Color value for '{key}' cannot be empty"], f"Color value for '{key}' cannot be empty")
+            raise ThemeValidationError(
+                "validation",
+                [f"Color value for '{key}' cannot be empty"],
+                f"Color value for '{key}' cannot be empty",
+            )
 
         # Basic color format validation
         color_str = str(value)
-        if color_str.startswith('#'):
+        if color_str.startswith("#"):
             if len(color_str) not in [4, 7]:  # #rgb or #rrggbb
-                raise ThemeValidationError("validation", [f"Invalid hex color format: {color_str}"], f"Invalid hex color format: {color_str}")
+                raise ThemeValidationError(
+                    "validation",
+                    [f"Invalid hex color format: {color_str}"],
+                    f"Invalid hex color format: {color_str}",
+                )
 
     def _validate_style(self, selector: str, properties: Dict[str, Any]):
         """Validate a style rule."""
         if not selector:
-            raise ThemeValidationError("validation", ["Style selector cannot be empty"], "Style selector cannot be empty")
+            raise ThemeValidationError(
+                "validation", ["Style selector cannot be empty"], "Style selector cannot be empty"
+            )
 
         if not properties:
-            raise ThemeValidationError("validation", [f"Style properties for '{selector}' cannot be empty"], f"Style properties for '{selector}' cannot be empty")
+            raise ThemeValidationError(
+                "validation",
+                [f"Style properties for '{selector}' cannot be empty"],
+                f"Style properties for '{selector}' cannot be empty",
+            )
 
         # Validate property keys
         for prop_key in properties.keys():
             if not isinstance(prop_key, str) or not prop_key:
-                raise ThemeValidationError("validation", [f"Invalid property key: {prop_key}"], f"Invalid property key: {prop_key}")
+                raise ThemeValidationError(
+                    "validation",
+                    [f"Invalid property key: {prop_key}"],
+                    f"Invalid property key: {prop_key}",
+                )
 
     def _validate_complete_theme(self):
         """Validate the complete theme before building."""
         if not self._name:
-            raise ThemeValidationError("validation", ["Theme name cannot be empty"], "Theme name cannot be empty")
+            raise ThemeValidationError(
+                "validation", ["Theme name cannot be empty"], "Theme name cannot be empty"
+            )
 
         if not self._colors and not self._styles:
-            raise ThemeValidationError("validation", ["Theme must have at least colors or styles"], "Theme must have at least colors or styles")
+            raise ThemeValidationError(
+                "validation",
+                ["Theme must have at least colors or styles"],
+                "Theme must have at least colors or styles",
+            )
 
 
 class ThemeComposer:
@@ -396,7 +422,7 @@ class ThemeComposer:
         self._merge_strategy = "override"  # or "blend"
         logger.debug("Created ThemeComposer")
 
-    def add_theme(self, theme: Theme, priority: int = 100) -> 'ThemeComposer':
+    def add_theme(self, theme: Theme, priority: int = 100) -> "ThemeComposer":
         """Add a theme to the composition.
 
         Args:
@@ -414,7 +440,7 @@ class ThemeComposer:
         logger.debug(f"Added theme {theme.name} with priority {priority}")
         return self
 
-    def set_merge_strategy(self, strategy: str) -> 'ThemeComposer':
+    def set_merge_strategy(self, strategy: str) -> "ThemeComposer":
         """Set merge strategy for conflicting properties.
 
         Args:
@@ -456,14 +482,14 @@ class ThemeComposer:
             logger.debug(f"Merging theme {theme.name} (priority {priority})")
 
             # Merge colors
-            if hasattr(theme, 'colors'):
+            if hasattr(theme, "colors"):
                 for key, value in theme.colors.items():
                     if self._merge_strategy == "override" or key not in builder._colors:
                         builder.add_color(key, value)
                     # For "blend" strategy, could implement color blending here
 
             # Merge styles
-            if hasattr(theme, 'styles'):
+            if hasattr(theme, "styles"):
                 for selector, properties in theme.styles.items():
                     if self._merge_strategy == "override" or selector not in builder._styles:
                         builder.add_style(selector, properties)
@@ -474,10 +500,10 @@ class ThemeComposer:
                         builder.add_style(selector, merged_properties)
 
             # Merge metadata (always additive)
-            if hasattr(theme, 'metadata'):
+            if hasattr(theme, "metadata"):
                 for key, value in theme.metadata.items():
                     # Avoid overriding important metadata
-                    if key not in ['name', 'version', 'created_at']:
+                    if key not in ["name", "version", "created_at"]:
                         builder.add_metadata(f"source_{theme.name}_{key}", value)
 
         # Add composition metadata
@@ -488,7 +514,9 @@ class ThemeComposer:
         composed_theme = builder.build()
 
         compose_time = (time.perf_counter() - start_time) * 1000
-        logger.debug(f"Composed theme '{name}' from {len(self._themes)} themes in {compose_time:.2f}ms")
+        logger.debug(
+            f"Composed theme '{name}' from {len(self._themes)} themes in {compose_time:.2f}ms"
+        )
 
         return composed_theme
 
@@ -561,20 +589,20 @@ class ThemeVariantGenerator:
         builder.set_description(f"{variant_type.title()} variant of {base_theme.name}")
 
         # Transform colors
-        if hasattr(base_theme, 'colors'):
+        if hasattr(base_theme, "colors"):
             for key, value in base_theme.colors.items():
                 transformed_color = self._transform_color(key, value, variant_type)
                 builder.add_color(key, transformed_color)
 
         # Copy styles (they usually don't need transformation)
-        if hasattr(base_theme, 'styles'):
+        if hasattr(base_theme, "styles"):
             for selector, properties in base_theme.styles.items():
                 builder.add_style(selector, properties)
 
         # Copy metadata with variant info
-        if hasattr(base_theme, 'metadata'):
+        if hasattr(base_theme, "metadata"):
             for key, value in base_theme.metadata.items():
-                if key not in ['name', 'version', 'created_at', 'variant_of']:
+                if key not in ["name", "version", "created_at", "variant_of"]:
                     builder.add_metadata(key, value)
 
         builder.add_metadata("variant_of", base_theme.name)
@@ -588,7 +616,9 @@ class ThemeVariantGenerator:
 
         return variant_theme
 
-    def _transform_color(self, color_key: str, color_value: ColorValue, variant_type: str) -> ColorValue:
+    def _transform_color(
+        self, color_key: str, color_value: ColorValue, variant_type: str
+    ) -> ColorValue:
         """Transform a color for the variant."""
         # Use custom transformer if available
         if color_key in self._color_transformers:
@@ -599,12 +629,21 @@ class ThemeVariantGenerator:
 
         # Simple transformation logic - in practice, this would be more sophisticated
         if variant_type == "dark":
-            return self._lighten_color(color_str) if self._is_light_color(color_str) else self._darken_color(color_str)
+            return (
+                self._lighten_color(color_str)
+                if self._is_light_color(color_str)
+                else self._darken_color(color_str)
+            )
         else:  # light variant
-            return self._darken_color(color_str) if self._is_light_color(color_str) else self._lighten_color(color_str)
+            return (
+                self._darken_color(color_str)
+                if self._is_light_color(color_str)
+                else self._lighten_color(color_str)
+            )
 
     def _setup_default_transformers(self):
         """Setup default color transformers."""
+
         # Example transformers for common color keys
         def background_transformer(color: str) -> str:
             # Backgrounds need significant contrast changes
@@ -628,7 +667,7 @@ class ThemeVariantGenerator:
 
     def _is_light_color(self, color: str) -> bool:
         """Simple check if color is light (would need proper color space conversion)."""
-        if color.startswith('#'):
+        if color.startswith("#"):
             if len(color) == 7:  # #rrggbb
                 r = int(color[1:3], 16)
                 g = int(color[3:5], 16)
@@ -642,7 +681,7 @@ class ThemeVariantGenerator:
 
     def _lighten_color(self, color: str) -> str:
         """Lighten a color (simplified implementation)."""
-        if color.startswith('#') and len(color) == 7:
+        if color.startswith("#") and len(color) == 7:
             r = min(255, int(color[1:3], 16) + 40)
             g = min(255, int(color[3:5], 16) + 40)
             b = min(255, int(color[5:7], 16) + 40)
@@ -651,7 +690,7 @@ class ThemeVariantGenerator:
 
     def _darken_color(self, color: str) -> str:
         """Darken a color (simplified implementation)."""
-        if color.startswith('#') and len(color) == 7:
+        if color.startswith("#") and len(color) == 7:
             r = max(0, int(color[1:3], 16) - 40)
             g = max(0, int(color[3:5], 16) - 40)
             b = max(0, int(color[5:7], 16) - 40)
@@ -762,7 +801,9 @@ class ThemeFactory:
 
         return builder
 
-    def create_variant(self, base_theme: Theme, variant_type: str, name_suffix: str = None) -> Theme:
+    def create_variant(
+        self, base_theme: Theme, variant_type: str, name_suffix: str = None
+    ) -> Theme:
         """Create a variant of an existing theme.
 
         Args:
@@ -784,7 +825,9 @@ class ThemeFactory:
         else:
             raise ThemeError(f"Unknown variant type: {variant_type}")
 
-    def compose_themes(self, *themes: Union[Theme, tuple[Theme, int]], name: str, description: str = "") -> Theme:
+    def compose_themes(
+        self, *themes: Union[Theme, tuple[Theme, int]], name: str, description: str = ""
+    ) -> Theme:
         """Compose multiple themes together.
 
         Args:
@@ -819,16 +862,26 @@ class ThemeFactory:
             Minimal theme
 
         """
-        return (self.create_builder(name)
-               .add_color("primary", primary_color)
-               .add_color("background", background_color)
-               .add_color("foreground", "#ffffff" if self._variant_generator._is_light_color(background_color) else "#000000")
-               .add_style("window", {
-                   "background-color": "@colors.background",
-                   "color": "@colors.foreground"
-               })
-               .set_description(f"Minimal theme with {primary_color} primary and {background_color} background")
-               .build())
+        return (
+            self.create_builder(name)
+            .add_color("primary", primary_color)
+            .add_color("background", background_color)
+            .add_color(
+                "foreground",
+                (
+                    "#ffffff"
+                    if self._variant_generator._is_light_color(background_color)
+                    else "#000000"
+                ),
+            )
+            .add_style(
+                "window", {"background-color": "@colors.background", "color": "@colors.foreground"}
+            )
+            .set_description(
+                f"Minimal theme with {primary_color} primary and {background_color} background"
+            )
+            .build()
+        )
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get factory usage statistics.
@@ -840,7 +893,7 @@ class ThemeFactory:
         return {
             "templates_registered": len(self._templates),
             "available_templates": list(self._templates.keys()),
-            "factory_initialized": True
+            "factory_initialized": True,
         }
 
     def _setup_default_templates(self):
@@ -859,29 +912,29 @@ class ThemeFactory:
                 "light": "#f8f9fa",
                 "dark": "#343a40",
                 "background": "#ffffff",
-                "foreground": "#212529"
+                "foreground": "#212529",
             },
             base_styles={
                 "window": {
                     "background-color": "@colors.background",
                     "color": "@colors.foreground",
                     "font-family": "Arial, sans-serif",
-                    "font-size": "14px"
+                    "font-size": "14px",
                 },
                 "button": {
                     "background-color": "@colors.primary",
                     "color": "@colors.light",
                     "border": "1px solid @colors.primary",
                     "padding": "8px 16px",
-                    "border-radius": "4px"
-                }
+                    "border-radius": "4px",
+                },
             },
             metadata={
                 "category": "application",
                 "usage": "web applications",
-                "author": "VFWidgets"
+                "author": "VFWidgets",
             },
-            variants=["light", "dark"]
+            variants=["light", "dark"],
         )
 
         # Material design template
@@ -900,34 +953,34 @@ class ThemeFactory:
                 "on_secondary": "#000000",
                 "on_background": "#000000",
                 "on_surface": "#000000",
-                "on_error": "#FFFFFF"
+                "on_error": "#FFFFFF",
             },
             base_styles={
                 "window": {
                     "background-color": "@colors.background",
                     "color": "@colors.on_background",
-                    "font-family": "Roboto, sans-serif"
+                    "font-family": "Roboto, sans-serif",
                 },
                 "card": {
                     "background-color": "@colors.surface",
                     "color": "@colors.on_surface",
                     "border-radius": "8px",
-                    "box-shadow": "0 2px 4px rgba(0,0,0,0.1)"
+                    "box-shadow": "0 2px 4px rgba(0,0,0,0.1)",
                 },
                 "button.primary": {
                     "background-color": "@colors.primary",
                     "color": "@colors.on_primary",
                     "border-radius": "4px",
-                    "text-transform": "uppercase"
-                }
+                    "text-transform": "uppercase",
+                },
             },
             metadata={
                 "category": "design_system",
                 "usage": "material design applications",
                 "author": "VFWidgets",
-                "reference": "Material Design 3"
+                "reference": "Material Design 3",
             },
-            variants=["light", "dark"]
+            variants=["light", "dark"],
         )
 
         # Dark theme template
@@ -941,29 +994,26 @@ class ThemeFactory:
                 "secondary": "#404040",
                 "accent": "#007acc",
                 "border": "#404040",
-                "hover": "#2d2d2d"
+                "hover": "#2d2d2d",
             },
             base_styles={
-                "window": {
-                    "background-color": "@colors.background",
-                    "color": "@colors.foreground"
-                },
+                "window": {"background-color": "@colors.background", "color": "@colors.foreground"},
                 "button": {
                     "background-color": "@colors.primary",
                     "color": "@colors.foreground",
-                    "border": "1px solid @colors.border"
+                    "border": "1px solid @colors.border",
                 },
                 "input": {
                     "background-color": "@colors.secondary",
                     "color": "@colors.foreground",
-                    "border": "1px solid @colors.border"
-                }
+                    "border": "1px solid @colors.border",
+                },
             },
             metadata={
                 "category": "theme_type",
                 "usage": "dark mode applications",
-                "author": "VFWidgets"
-            }
+                "author": "VFWidgets",
+            },
         )
 
         # Register all default templates

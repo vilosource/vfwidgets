@@ -73,16 +73,16 @@ class ExtensionSystem:
 
     # Standard extension hooks
     STANDARD_HOOKS = {
-        'on_theme_loaded',      # Called when theme is loaded
-        'on_theme_applied',     # Called when theme is applied
-        'on_theme_changed',     # Called when theme changes
-        'transform_theme',      # Transform theme data
-        'provide_widgets',      # Provide custom widgets
-        'customize_colors',     # Customize color palette
-        'add_properties',       # Add theme properties
-        'validate_theme',       # Validate theme data
-        'on_extension_loaded',  # Called when extension loads
-        'on_extension_unloaded' # Called when extension unloads
+        "on_theme_loaded",  # Called when theme is loaded
+        "on_theme_applied",  # Called when theme is applied
+        "on_theme_changed",  # Called when theme changes
+        "transform_theme",  # Transform theme data
+        "provide_widgets",  # Provide custom widgets
+        "customize_colors",  # Customize color palette
+        "add_properties",  # Add theme properties
+        "validate_theme",  # Validate theme data
+        "on_extension_loaded",  # Called when extension loads
+        "on_extension_unloaded",  # Called when extension unloads
     }
 
     def __init__(self, extensions_dir: Optional[Path] = None):
@@ -133,7 +133,7 @@ class ExtensionSystem:
 
         # Look for Python files and directories with __init__.py
         for item in self.extensions_dir.iterdir():
-            if item.is_file() and item.suffix == '.py':
+            if item.is_file() and item.suffix == ".py":
                 extension_paths.append(item)
             elif item.is_dir() and (item / "__init__.py").exists():
                 extension_paths.append(item / "__init__.py")
@@ -182,10 +182,9 @@ class ExtensionSystem:
             self._register_extension_hooks(extension)
 
             # Call extension initialization
-            if extension.has_hook('on_extension_loaded'):
+            if extension.has_hook("on_extension_loaded"):
                 self.sandbox.execute_safely(
-                    extension,
-                    lambda: extension.call_hook('on_extension_loaded')
+                    extension, lambda: extension.call_hook("on_extension_loaded")
                 )
 
             # Start monitoring for changes if hot reload enabled
@@ -215,10 +214,9 @@ class ExtensionSystem:
 
         try:
             # Call extension cleanup
-            if extension.has_hook('on_extension_unloaded'):
+            if extension.has_hook("on_extension_unloaded"):
                 self.sandbox.execute_safely(
-                    extension,
-                    lambda: extension.call_hook('on_extension_unloaded')
+                    extension, lambda: extension.call_hook("on_extension_unloaded")
                 )
 
             # Unregister hooks
@@ -313,8 +311,7 @@ class ExtensionSystem:
             if extension and extension.enabled and extension.has_hook(hook_name):
                 try:
                     result = self.sandbox.execute_safely(
-                        extension,
-                        lambda: extension.call_hook(hook_name, *args, **kwargs)
+                        extension, lambda: extension.call_hook(hook_name, *args, **kwargs)
                     )
                     results.append(result)
 
@@ -344,9 +341,7 @@ class ExtensionSystem:
 
         # Start monitoring thread
         self._monitor_thread = threading.Thread(
-            target=self._monitor_files,
-            daemon=True,
-            name="ExtensionMonitor"
+            target=self._monitor_files, daemon=True, name="ExtensionMonitor"
         )
         self._monitor_thread.start()
 
@@ -374,7 +369,7 @@ class ExtensionSystem:
             raise ExtensionError("Extension must have a version")
 
         # Check for required module attributes
-        if not hasattr(extension.module, '__extension_info__'):
+        if not hasattr(extension.module, "__extension_info__"):
             logger.warning(f"Extension {extension.name} missing __extension_info__")
 
         # Validate hook functions

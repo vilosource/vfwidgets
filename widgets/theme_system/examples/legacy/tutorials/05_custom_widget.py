@@ -38,15 +38,15 @@ class ThemedGauge(ThemedWidget):
     value_changed = Signal(float)
 
     theme_config = {
-        'bg': 'gauge.background',
-        'fg': 'gauge.foreground',
-        'needle': 'gauge.needle',
-        'scale': 'gauge.scale',
-        'value_bg': 'gauge.value.background',
-        'value_fg': 'gauge.value.foreground',
-        'danger': 'gauge.danger',
-        'warning': 'gauge.warning',
-        'safe': 'gauge.safe'
+        "bg": "gauge.background",
+        "fg": "gauge.foreground",
+        "needle": "gauge.needle",
+        "scale": "gauge.scale",
+        "value_bg": "gauge.value.background",
+        "value_fg": "gauge.value.foreground",
+        "danger": "gauge.danger",
+        "warning": "gauge.warning",
+        "safe": "gauge.safe",
     }
 
     def __init__(self, min_value=0, max_value=100, parent=None):
@@ -93,15 +93,15 @@ class ThemedGauge(ThemedWidget):
         painter.setRenderHint(QPainter.Antialiasing)
 
         # Get theme colors
-        bg_color = QColor(self.theme.get('bg', '#ffffff'))
-        fg_color = QColor(self.theme.get('fg', '#000000'))
-        needle_color = QColor(self.theme.get('needle', '#ff0000'))
-        scale_color = QColor(self.theme.get('scale', '#666666'))
-        value_bg = QColor(self.theme.get('value_bg', '#f0f0f0'))
-        value_fg = QColor(self.theme.get('value_fg', '#000000'))
-        danger_color = QColor(self.theme.get('danger', '#ff0000'))
-        warning_color = QColor(self.theme.get('warning', '#ffaa00'))
-        safe_color = QColor(self.theme.get('safe', '#00aa00'))
+        bg_color = QColor(self.theme.get("bg", "#ffffff"))
+        fg_color = QColor(self.theme.get("fg", "#000000"))
+        needle_color = QColor(self.theme.get("needle", "#ff0000"))
+        scale_color = QColor(self.theme.get("scale", "#666666"))
+        value_bg = QColor(self.theme.get("value_bg", "#f0f0f0"))
+        value_fg = QColor(self.theme.get("value_fg", "#000000"))
+        danger_color = QColor(self.theme.get("danger", "#ff0000"))
+        warning_color = QColor(self.theme.get("warning", "#ffaa00"))
+        safe_color = QColor(self.theme.get("safe", "#00aa00"))
 
         # Calculate dimensions
         rect = self.rect()
@@ -120,8 +120,12 @@ class ThemedGauge(ThemedWidget):
 
         # Draw colored zones
         zone_width = 8
-        zone_rect = QRect(center_x - radius + zone_width, center_y - radius + zone_width,
-                         size - 2 * zone_width, size - 2 * zone_width)
+        zone_rect = QRect(
+            center_x - radius + zone_width,
+            center_y - radius + zone_width,
+            size - 2 * zone_width,
+            size - 2 * zone_width,
+        )
 
         # Safe zone (green)
         painter.setPen(QPen(safe_color, zone_width))
@@ -191,10 +195,10 @@ class ThemedProgressRing(ThemedWidget):
     """A circular progress ring widget."""
 
     theme_config = {
-        'bg': 'progress.background',
-        'fg': 'progress.foreground',
-        'fill': 'progress.fill',
-        'text': 'progress.text'
+        "bg": "progress.background",
+        "fg": "progress.foreground",
+        "fill": "progress.fill",
+        "text": "progress.text",
     }
 
     def __init__(self, parent=None):
@@ -223,10 +227,10 @@ class ThemedProgressRing(ThemedWidget):
         painter.setRenderHint(QPainter.Antialiasing)
 
         # Get theme colors
-        bg_color = QColor(self.theme.get('bg', '#f0f0f0'))
-        fg_color = QColor(self.theme.get('fg', '#333333'))
-        fill_color = QColor(self.theme.get('fill', '#007bff'))
-        text_color = QColor(self.theme.get('text', '#000000'))
+        bg_color = QColor(self.theme.get("bg", "#f0f0f0"))
+        fg_color = QColor(self.theme.get("fg", "#333333"))
+        fill_color = QColor(self.theme.get("fill", "#007bff"))
+        text_color = QColor(self.theme.get("text", "#000000"))
 
         # Calculate dimensions
         rect = self.rect()
@@ -309,7 +313,7 @@ class CustomWidgetDemo(ThemedWidget):
         self.progress_slider.setRange(0, 100)
         self.progress_slider.setValue(65)
         self.progress_slider.valueChanged.connect(
-            lambda v: setattr(self.progress_ring, 'progress', v / 100.0)
+            lambda v: setattr(self.progress_ring, "progress", v / 100.0)
         )
         progress_controls.addWidget(QLabel("Progress:"))
         progress_controls.addWidget(self.progress_slider)
@@ -328,11 +332,11 @@ class CustomWidgetDemo(ThemedWidget):
 
         # Theme controls
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         anim_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         anim_layout.addWidget(dark_btn)
 
         layout.addLayout(anim_layout)
@@ -386,48 +390,48 @@ def main():
 
     # Define themes with custom widget properties
     light_theme = {
-        'name': 'light',
-        'gauge': {
-            'background': '#ffffff',
-            'foreground': '#333333',
-            'needle': '#ff0000',
-            'scale': '#666666',
-            'value': {'background': '#f0f0f0', 'foreground': '#000000'},
-            'danger': '#ff0000',
-            'warning': '#ffaa00',
-            'safe': '#00aa00'
+        "name": "light",
+        "gauge": {
+            "background": "#ffffff",
+            "foreground": "#333333",
+            "needle": "#ff0000",
+            "scale": "#666666",
+            "value": {"background": "#f0f0f0", "foreground": "#000000"},
+            "danger": "#ff0000",
+            "warning": "#ffaa00",
+            "safe": "#00aa00",
         },
-        'progress': {
-            'background': '#e0e0e0',
-            'foreground': '#333333',
-            'fill': '#007bff',
-            'text': '#000000'
-        }
+        "progress": {
+            "background": "#e0e0e0",
+            "foreground": "#333333",
+            "fill": "#007bff",
+            "text": "#000000",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'gauge': {
-            'background': '#2d2d2d',
-            'foreground': '#ffffff',
-            'needle': '#ff6666',
-            'scale': '#aaaaaa',
-            'value': {'background': '#3a3a3a', 'foreground': '#ffffff'},
-            'danger': '#ff6666',
-            'warning': '#ffcc66',
-            'safe': '#66ff66'
+        "name": "dark",
+        "gauge": {
+            "background": "#2d2d2d",
+            "foreground": "#ffffff",
+            "needle": "#ff6666",
+            "scale": "#aaaaaa",
+            "value": {"background": "#3a3a3a", "foreground": "#ffffff"},
+            "danger": "#ff6666",
+            "warning": "#ffcc66",
+            "safe": "#66ff66",
         },
-        'progress': {
-            'background': '#555555',
-            'foreground': '#ffffff',
-            'fill': '#66aaff',
-            'text': '#ffffff'
-        }
+        "progress": {
+            "background": "#555555",
+            "foreground": "#ffffff",
+            "fill": "#66aaff",
+            "text": "#ffffff",
+        },
     }
 
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.set_theme('light')
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.set_theme("light")
 
     # Create and show demo
     widget = CustomWidgetDemo()
@@ -443,5 +447,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

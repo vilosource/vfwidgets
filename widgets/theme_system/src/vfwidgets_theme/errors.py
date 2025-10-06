@@ -66,7 +66,12 @@ class ThemeLoadError(ThemeError):
 
     """
 
-    def __init__(self, message: str, file_path: Optional[str] = None, original_error: Optional[Exception] = None):
+    def __init__(
+        self,
+        message: str,
+        file_path: Optional[str] = None,
+        original_error: Optional[Exception] = None,
+    ):
         self.file_path = file_path
         self.original_error = original_error
         super().__init__(message)
@@ -141,7 +146,9 @@ class ThemeApplicationError(ThemeError):
     def __init__(self, widget_type: str, theme_name: str, message: Optional[str] = None):
         self.widget_type = widget_type
         self.theme_name = theme_name
-        super().__init__(message or f"Failed to apply theme '{theme_name}' to widget '{widget_type}'")
+        super().__init__(
+            message or f"Failed to apply theme '{theme_name}' to widget '{widget_type}'"
+        )
 
 
 class ThemeValidationError(ThemeError):
@@ -160,7 +167,9 @@ class ThemeValidationError(ThemeError):
     def __init__(self, theme_name: str, validation_errors: list, message: Optional[str] = None):
         self.theme_name = theme_name
         self.validation_errors = validation_errors
-        super().__init__(message or f"Theme '{theme_name}' validation failed: {len(validation_errors)} errors")
+        super().__init__(
+            message or f"Theme '{theme_name}' validation failed: {len(validation_errors)} errors"
+        )
 
 
 class ThemeNotificationError(ThemeError):
@@ -223,9 +232,9 @@ class ErrorRecoveryManager:
             from . import logging as theme_logging
 
             self._fallback_functions = {
-                'get_fallback_theme': fallbacks.get_fallback_theme,
-                'get_fallback_color': fallbacks.get_fallback_color,
-                'get_fallback_property': fallbacks.get_fallback_property,
+                "get_fallback_theme": fallbacks.get_fallback_theme,
+                "get_fallback_color": fallbacks.get_fallback_color,
+                "get_fallback_property": fallbacks.get_fallback_property,
             }
             self._logger = theme_logging.create_theme_logger("error_recovery")
 
@@ -236,7 +245,7 @@ class ErrorRecoveryManager:
         context: Optional[Dict[str, Any]] = None,
         fallback_data: Optional[Any] = None,
         notify_user: bool = False,
-        log_error: bool = True
+        log_error: bool = True,
     ) -> Any:
         """Recover from a theme error with appropriate fallback.
 
@@ -278,7 +287,7 @@ class ErrorRecoveryManager:
         error: ThemeError,
         operation: str,
         context: Optional[Dict[str, Any]],
-        fallback_data: Optional[Any]
+        fallback_data: Optional[Any],
     ) -> Any:
         """Get appropriate fallback value for specific error type."""
         if fallback_data is not None:
@@ -286,27 +295,25 @@ class ErrorRecoveryManager:
 
         if isinstance(error, (ThemeNotFoundError, ThemeLoadError, ThemeSystemNotInitializedError)):
             # Return minimal theme for theme-level errors
-            return self._fallback_functions['get_fallback_theme']()
+            return self._fallback_functions["get_fallback_theme"]()
 
         elif isinstance(error, PropertyNotFoundError):
             # Return fallback property value
-            if context and 'property_key' in context:
-                return self._fallback_functions['get_fallback_property'](
-                    context['property_key']
-                )
+            if context and "property_key" in context:
+                return self._fallback_functions["get_fallback_property"](context["property_key"])
             return None
 
         elif isinstance(error, InvalidThemeFormatError):
             # Return corrected theme data
-            return self.apply_graceful_degradation(
-                getattr(error, 'invalid_data', {}), operation
-            )
+            return self.apply_graceful_degradation(getattr(error, "invalid_data", {}), operation)
 
         else:
             # Generic fallback for unknown errors
-            return self._fallback_functions['get_fallback_theme']()
+            return self._fallback_functions["get_fallback_theme"]()
 
-    def apply_graceful_degradation(self, theme_data: Dict[str, Any], operation: str) -> Dict[str, Any]:
+    def apply_graceful_degradation(
+        self, theme_data: Dict[str, Any], operation: str
+    ) -> Dict[str, Any]:
         """Apply graceful degradation to partially invalid theme data.
 
         Args:
@@ -320,51 +327,51 @@ class ErrorRecoveryManager:
 
         """
         if not isinstance(theme_data, dict):
-            return self._fallback_functions['get_fallback_theme']()
+            return self._fallback_functions["get_fallback_theme"]()
 
         corrected_theme = theme_data.copy()
 
         # Ensure required sections exist
-        if 'colors' not in corrected_theme:
-            corrected_theme['colors'] = {}
+        if "colors" not in corrected_theme:
+            corrected_theme["colors"] = {}
 
-        if 'fonts' not in corrected_theme:
-            corrected_theme['fonts'] = {}
+        if "fonts" not in corrected_theme:
+            corrected_theme["fonts"] = {}
 
-        if 'spacing' not in corrected_theme:
-            corrected_theme['spacing'] = {}
+        if "spacing" not in corrected_theme:
+            corrected_theme["spacing"] = {}
 
         # Validate and fix colors
-        self._fix_colors(corrected_theme['colors'])
+        self._fix_colors(corrected_theme["colors"])
 
         # Validate and fix fonts
-        self._fix_fonts(corrected_theme['fonts'])
+        self._fix_fonts(corrected_theme["fonts"])
 
         # Validate and fix spacing
-        self._fix_spacing(corrected_theme['spacing'])
+        self._fix_spacing(corrected_theme["spacing"])
 
         return corrected_theme
 
     def _fix_colors(self, colors: Dict[str, Any]) -> None:
         """Fix invalid color values in place."""
-        required_colors = ['primary', 'background', 'text', 'border']
+        required_colors = ["primary", "background", "text", "border"]
 
         for color_key in required_colors:
             if color_key not in colors or not self._is_valid_color(colors[color_key]):
-                colors[color_key] = self._fallback_functions['get_fallback_color'](color_key)
+                colors[color_key] = self._fallback_functions["get_fallback_color"](color_key)
 
     def _fix_fonts(self, fonts: Dict[str, Any]) -> None:
         """Fix invalid font values in place."""
-        if 'default' not in fonts or not isinstance(fonts['default'], str):
-            fonts['default'] = "Arial, sans-serif"
+        if "default" not in fonts or not isinstance(fonts["default"], str):
+            fonts["default"] = "Arial, sans-serif"
 
-        if 'size' not in fonts or not isinstance(fonts['size'], (int, str)):
-            fonts['size'] = 12
+        if "size" not in fonts or not isinstance(fonts["size"], (int, str)):
+            fonts["size"] = 12
 
     def _fix_spacing(self, spacing: Dict[str, Any]) -> None:
         """Fix invalid spacing values in place."""
-        if 'default' not in spacing or not isinstance(spacing['default'], (int, float)):
-            spacing['default'] = 8
+        if "default" not in spacing or not isinstance(spacing["default"], (int, float)):
+            spacing["default"] = 8
 
     def _is_valid_color(self, color: Any) -> bool:
         """Check if color value is valid."""
@@ -372,33 +379,45 @@ class ErrorRecoveryManager:
             return False
 
         # Check hex colors
-        if color.startswith('#'):
-            return len(color) in [4, 7] and all(c in '0123456789abcdefABCDEF' for c in color[1:])
+        if color.startswith("#"):
+            return len(color) in [4, 7] and all(c in "0123456789abcdefABCDEF" for c in color[1:])
 
         # Check rgb/rgba colors
-        if color.startswith(('rgb(', 'rgba(')):
+        if color.startswith(("rgb(", "rgba(")):
             return True  # Basic check - could be more thorough
 
         # Check named colors (basic list)
-        named_colors = {'red', 'green', 'blue', 'black', 'white', 'gray', 'yellow', 'orange', 'purple'}
+        named_colors = {
+            "red",
+            "green",
+            "blue",
+            "black",
+            "white",
+            "gray",
+            "yellow",
+            "orange",
+            "purple",
+        }
         return color.lower() in named_colors
 
-    def _log_error(self, error: ThemeError, operation: str, context: Optional[Dict[str, Any]]) -> None:
+    def _log_error(
+        self, error: ThemeError, operation: str, context: Optional[Dict[str, Any]]
+    ) -> None:
         """Log error with structured information."""
         log_data = {
-            'error_type': type(error).__name__,
-            'operation': operation,
-            'message': str(error),
-            'context': context or {}
+            "error_type": type(error).__name__,
+            "operation": operation,
+            "message": str(error),
+            "context": context or {},
         }
 
         # Add error-specific data
-        if hasattr(error, 'theme_name'):
-            log_data['theme_name'] = error.theme_name
-        if hasattr(error, 'property_key'):
-            log_data['property_key'] = error.property_key
-        if hasattr(error, 'file_path'):
-            log_data['file_path'] = error.file_path
+        if hasattr(error, "theme_name"):
+            log_data["theme_name"] = error.theme_name
+        if hasattr(error, "property_key"):
+            log_data["property_key"] = error.property_key
+        if hasattr(error, "file_path"):
+            log_data["file_path"] = error.file_path
 
         self._logger.warning(f"Theme error recovered: {error}", extra=log_data)
 
@@ -432,12 +451,12 @@ class ErrorRecoveryManager:
         with self._lock:
             stats = {}
             for error_key, count in self._error_counts.items():
-                error_type, operation = error_key.split(':', 1)
+                error_type, operation = error_key.split(":", 1)
                 stats[error_key] = {
-                    'error_type': error_type,
-                    'operation': operation,
-                    'count': count,
-                    'last_occurrence': self._last_error_time.get(error_key, 0)
+                    "error_type": error_type,
+                    "operation": operation,
+                    "count": count,
+                    "last_occurrence": self._last_error_time.get(error_key, 0),
                 }
             return stats
 
@@ -447,7 +466,9 @@ class ErrorRecoveryManager:
             self._error_counts.clear()
             self._last_error_time.clear()
 
-    def handle_error(self, error: Exception, operation: str, context: Optional[Dict[str, Any]] = None) -> Any:
+    def handle_error(
+        self, error: Exception, operation: str, context: Optional[Dict[str, Any]] = None
+    ) -> Any:
         """Handle any error (not just ThemeError) with appropriate fallback.
 
         This method is called by ThemedApplication for generic error handling.
@@ -464,8 +485,7 @@ class ErrorRecoveryManager:
         if isinstance(error, ThemeError):
             # Use existing recovery mechanism for theme errors
             return self.recover_from_error(
-                error, operation, context,
-                notify_user=False, log_error=True
+                error, operation, context, notify_user=False, log_error=True
             )
         else:
             # For non-theme errors, log and re-raise
@@ -542,13 +562,11 @@ __all__ = [
     "PropertyNotFoundError",
     "InvalidThemeFormatError",
     "ThemeSystemNotInitializedError",
-
     # Error recovery
     "ErrorRecoveryManager",
     "create_error_recovery_manager",
     "get_global_error_recovery_manager",
     "reset_global_error_recovery_manager",
-
     # Utilities
     "notify_user",
 ]

@@ -10,9 +10,9 @@ from .svg_handler import SVGIconHandler
 from .theme import IconProvider, IconTheme
 
 __all__ = [
-    'IconTheme',
-    'IconProvider',
-    'IconFontLoader',
-    'SVGIconHandler',
-    'FileAssociationManager'
+    "IconTheme",
+    "IconProvider",
+    "IconFontLoader",
+    "SVGIconHandler",
+    "FileAssociationManager",
 ]

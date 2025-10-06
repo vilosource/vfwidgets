@@ -34,16 +34,16 @@ class ThemeSwitcherWidget(ThemedWidget):
     """Advanced theme switching widget with animations."""
 
     theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground',
-        'accent': 'accent.primary',
-        'card_bg': 'card.background',
-        'card_border': 'card.border'
+        "bg": "window.background",
+        "fg": "window.foreground",
+        "accent": "accent.primary",
+        "card_bg": "card.background",
+        "card_border": "card.border",
     }
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.current_theme = 'light'
+        self.current_theme = "light"
         self.animation_enabled = True
         self.setup_ui()
 
@@ -62,7 +62,7 @@ class ThemeSwitcherWidget(ThemedWidget):
 
         # Theme dropdown
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(['light', 'dark', 'blue', 'green', 'purple'])
+        self.theme_combo.addItems(["light", "dark", "blue", "green", "purple"])
         self.theme_combo.currentTextChanged.connect(self.on_theme_selected)
         theme_layout.addRow("Theme:", self.theme_combo)
 
@@ -78,7 +78,7 @@ class ThemeSwitcherWidget(ThemedWidget):
         quick_group = QGroupBox("Quick Switch")
         quick_layout = QHBoxLayout(quick_group)
 
-        themes = ['light', 'dark', 'blue', 'green', 'purple']
+        themes = ["light", "dark", "blue", "green", "purple"]
         self.quick_buttons = {}
 
         for theme in themes:
@@ -172,7 +172,7 @@ class ThemeSwitcherWidget(ThemedWidget):
         new_window.show()
 
         # Store reference to prevent garbage collection
-        if not hasattr(self, 'child_windows'):
+        if not hasattr(self, "child_windows"):
             self.child_windows = []
         self.child_windows.append(new_window)
 
@@ -183,14 +183,15 @@ class ThemeSwitcherWidget(ThemedWidget):
 
     def update_styling(self):
         """Apply current theme styling."""
-        bg = self.theme.get('bg', '#ffffff')
-        fg = self.theme.get('fg', '#000000')
-        accent = self.theme.get('accent', '#0066cc')
-        card_bg = self.theme.get('card_bg', '#f8f8f8')
-        card_border = self.theme.get('card_border', '#dddddd')
+        bg = self.theme.get("bg", "#ffffff")
+        fg = self.theme.get("fg", "#000000")
+        accent = self.theme.get("accent", "#0066cc")
+        card_bg = self.theme.get("card_bg", "#f8f8f8")
+        card_border = self.theme.get("card_border", "#dddddd")
 
         # Main widget styling
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         ThemeSwitcherWidget {{
             background-color: {bg};
             color: {fg};
@@ -209,10 +210,12 @@ class ThemeSwitcherWidget(ThemedWidget):
             left: 10px;
             padding: 0 5px 0 5px;
         }}
-        """)
+        """
+        )
 
         # Preview area styling
-        self.preview_area.setStyleSheet(f"""
+        self.preview_area.setStyleSheet(
+            f"""
         QWidget {{
             background-color: {card_bg};
             border: 2px solid {accent};
@@ -220,62 +223,67 @@ class ThemeSwitcherWidget(ThemedWidget):
             padding: 10px;
             margin: 5px;
         }}
-        """)
+        """
+        )
 
-        self.preview_label.setStyleSheet(f"""
+        self.preview_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {accent};
             font-size: 16px;
             font-weight: bold;
         }}
-        """)
+        """
+        )
 
     def update_color_display(self):
         """Update the color display with current theme colors."""
-        bg = self.theme.get('bg', '#ffffff')
-        fg = self.theme.get('fg', '#000000')
-        accent = self.theme.get('accent', '#0066cc')
+        bg = self.theme.get("bg", "#ffffff")
+        fg = self.theme.get("fg", "#000000")
+        accent = self.theme.get("accent", "#0066cc")
 
-        self.color_display.setText(f"""
+        self.color_display.setText(
+            f"""
         Background: {bg}
         Foreground: {fg}
         Accent: {accent}
-        """)
+        """
+        )
 
 
 def create_theme_variants():
     """Create multiple theme variants for switching demo."""
     themes = {
-        'light': {
-            'name': 'light',
-            'window': {'background': '#ffffff', 'foreground': '#333333'},
-            'card': {'background': '#f8f8f8', 'border': '#dddddd'},
-            'accent': {'primary': '#007bff'}
+        "light": {
+            "name": "light",
+            "window": {"background": "#ffffff", "foreground": "#333333"},
+            "card": {"background": "#f8f8f8", "border": "#dddddd"},
+            "accent": {"primary": "#007bff"},
         },
-        'dark': {
-            'name': 'dark',
-            'window': {'background': '#2d2d2d', 'foreground': '#ffffff'},
-            'card': {'background': '#3a3a3a', 'border': '#555555'},
-            'accent': {'primary': '#66aaff'}
+        "dark": {
+            "name": "dark",
+            "window": {"background": "#2d2d2d", "foreground": "#ffffff"},
+            "card": {"background": "#3a3a3a", "border": "#555555"},
+            "accent": {"primary": "#66aaff"},
         },
-        'blue': {
-            'name': 'blue',
-            'window': {'background': '#e3f2fd', 'foreground': '#0d47a1'},
-            'card': {'background': '#ffffff', 'border': '#90caf9'},
-            'accent': {'primary': '#1976d2'}
+        "blue": {
+            "name": "blue",
+            "window": {"background": "#e3f2fd", "foreground": "#0d47a1"},
+            "card": {"background": "#ffffff", "border": "#90caf9"},
+            "accent": {"primary": "#1976d2"},
         },
-        'green': {
-            'name': 'green',
-            'window': {'background': '#e8f5e8', 'foreground': '#1b5e20'},
-            'card': {'background': '#ffffff', 'border': '#a5d6a7'},
-            'accent': {'primary': '#388e3c'}
+        "green": {
+            "name": "green",
+            "window": {"background": "#e8f5e8", "foreground": "#1b5e20"},
+            "card": {"background": "#ffffff", "border": "#a5d6a7"},
+            "accent": {"primary": "#388e3c"},
         },
-        'purple': {
-            'name': 'purple',
-            'window': {'background': '#f3e5f5', 'foreground': '#4a148c'},
-            'card': {'background': '#ffffff', 'border': '#ce93d8'},
-            'accent': {'primary': '#7b1fa2'}
-        }
+        "purple": {
+            "name": "purple",
+            "window": {"background": "#f3e5f5", "foreground": "#4a148c"},
+            "card": {"background": "#ffffff", "border": "#ce93d8"},
+            "accent": {"primary": "#7b1fa2"},
+        },
     }
     return themes
 
@@ -294,7 +302,7 @@ def main():
         print(f"Registered theme: {name}")
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create main widget
     widget = ThemeSwitcherWidget()
@@ -310,5 +318,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

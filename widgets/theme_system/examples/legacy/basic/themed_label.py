@@ -27,11 +27,11 @@ class ThemedLabel(ThemedWidget, QLabel):
     """A themed label that adapts to the current theme."""
 
     theme_config = {
-        'color': 'text.primary',
-        'background': 'surface.primary',
-        'font': 'text.font',
-        'font_size': 'text.size',
-        'font_weight': 'text.weight'
+        "color": "text.primary",
+        "background": "surface.primary",
+        "font": "text.font",
+        "font_size": "text.size",
+        "font_weight": "text.weight",
     }
 
     def __init__(self, text="", label_type="body", parent=None):
@@ -49,31 +49,31 @@ class ThemedLabel(ThemedWidget, QLabel):
     def update_styling(self):
         """Update label styling based on theme and type."""
         # Base theme properties
-        base_color = self.theme.get('color', '#000000')
-        bg_color = self.theme.get('background', 'transparent')
-        font_family = self.theme.get('font', 'Arial, sans-serif')
+        base_color = self.theme.get("color", "#000000")
+        bg_color = self.theme.get("background", "transparent")
+        font_family = self.theme.get("font", "Arial, sans-serif")
 
         # Type-specific styling
-        if self._label_type == 'title':
-            color = self.theme.get('text.title.color', base_color)
-            font_size = self.theme.get('text.title.size', '18px')
-            font_weight = self.theme.get('text.title.weight', 'bold')
-        elif self._label_type == 'subtitle':
-            color = self.theme.get('text.subtitle.color', base_color)
-            font_size = self.theme.get('text.subtitle.size', '14px')
-            font_weight = self.theme.get('text.subtitle.weight', 'normal')
-        elif self._label_type == 'caption':
-            color = self.theme.get('text.caption.color', '#666666')
-            font_size = self.theme.get('text.caption.size', '10px')
-            font_weight = self.theme.get('text.caption.weight', 'normal')
-        elif self._label_type == 'accent':
-            color = self.theme.get('accent.primary', '#0066cc')
-            font_size = self.theme.get('text.body.size', '12px')
-            font_weight = self.theme.get('text.body.weight', 'normal')
+        if self._label_type == "title":
+            color = self.theme.get("text.title.color", base_color)
+            font_size = self.theme.get("text.title.size", "18px")
+            font_weight = self.theme.get("text.title.weight", "bold")
+        elif self._label_type == "subtitle":
+            color = self.theme.get("text.subtitle.color", base_color)
+            font_size = self.theme.get("text.subtitle.size", "14px")
+            font_weight = self.theme.get("text.subtitle.weight", "normal")
+        elif self._label_type == "caption":
+            color = self.theme.get("text.caption.color", "#666666")
+            font_size = self.theme.get("text.caption.size", "10px")
+            font_weight = self.theme.get("text.caption.weight", "normal")
+        elif self._label_type == "accent":
+            color = self.theme.get("accent.primary", "#0066cc")
+            font_size = self.theme.get("text.body.size", "12px")
+            font_weight = self.theme.get("text.body.weight", "normal")
         else:  # body
             color = base_color
-            font_size = self.theme.get('text.body.size', '12px')
-            font_weight = self.theme.get('text.body.weight', 'normal')
+            font_size = self.theme.get("text.body.size", "12px")
+            font_weight = self.theme.get("text.body.weight", "normal")
 
         # Generate stylesheet
         stylesheet = f"""
@@ -156,15 +156,15 @@ class LabelDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = ThemedButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = ThemedButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         blue_btn = ThemedButton("Blue Theme")
-        blue_btn.clicked.connect(lambda: self.switch_theme('blue'))
+        blue_btn.clicked.connect(lambda: self.switch_theme("blue"))
         controls_layout.addWidget(blue_btn)
 
         layout.addLayout(controls_layout)
@@ -187,135 +187,78 @@ def main():
 
     # Register themes with different text styling
     light_theme = {
-        'name': 'light',
-        'text': {
-            'primary': '#333333',
-            'font': 'Arial, sans-serif',
-            'title': {
-                'color': '#000000',
-                'size': '20px',
-                'weight': 'bold'
-            },
-            'subtitle': {
-                'color': '#444444',
-                'size': '16px',
-                'weight': '600'
-            },
-            'body': {
-                'size': '13px',
-                'weight': 'normal'
-            },
-            'caption': {
-                'color': '#888888',
-                'size': '11px',
-                'weight': 'normal'
-            }
+        "name": "light",
+        "text": {
+            "primary": "#333333",
+            "font": "Arial, sans-serif",
+            "title": {"color": "#000000", "size": "20px", "weight": "bold"},
+            "subtitle": {"color": "#444444", "size": "16px", "weight": "600"},
+            "body": {"size": "13px", "weight": "normal"},
+            "caption": {"color": "#888888", "size": "11px", "weight": "normal"},
         },
-        'surface': {
-            'primary': '#ffffff'
+        "surface": {"primary": "#ffffff"},
+        "accent": {"primary": "#0066cc"},
+        "button": {
+            "background": "#f0f0f0",
+            "foreground": "#333333",
+            "border": "#cccccc",
+            "hover": {"background": "#e0e0e0"},
+            "pressed": {"background": "#d0d0d0"},
+            "font": "Arial, sans-serif",
         },
-        'accent': {
-            'primary': '#0066cc'
-        },
-        'button': {
-            'background': '#f0f0f0',
-            'foreground': '#333333',
-            'border': '#cccccc',
-            'hover': {'background': '#e0e0e0'},
-            'pressed': {'background': '#d0d0d0'},
-            'font': 'Arial, sans-serif'
-        }
     }
 
     dark_theme = {
-        'name': 'dark',
-        'text': {
-            'primary': '#ffffff',
-            'font': 'Arial, sans-serif',
-            'title': {
-                'color': '#ffffff',
-                'size': '20px',
-                'weight': 'bold'
-            },
-            'subtitle': {
-                'color': '#cccccc',
-                'size': '16px',
-                'weight': '600'
-            },
-            'body': {
-                'size': '13px',
-                'weight': 'normal'
-            },
-            'caption': {
-                'color': '#888888',
-                'size': '11px',
-                'weight': 'normal'
-            }
+        "name": "dark",
+        "text": {
+            "primary": "#ffffff",
+            "font": "Arial, sans-serif",
+            "title": {"color": "#ffffff", "size": "20px", "weight": "bold"},
+            "subtitle": {"color": "#cccccc", "size": "16px", "weight": "600"},
+            "body": {"size": "13px", "weight": "normal"},
+            "caption": {"color": "#888888", "size": "11px", "weight": "normal"},
         },
-        'surface': {
-            'primary': '#2d2d2d'
+        "surface": {"primary": "#2d2d2d"},
+        "accent": {"primary": "#66aaff"},
+        "button": {
+            "background": "#555555",
+            "foreground": "#ffffff",
+            "border": "#777777",
+            "hover": {"background": "#666666"},
+            "pressed": {"background": "#444444"},
+            "font": "Arial, sans-serif",
         },
-        'accent': {
-            'primary': '#66aaff'
-        },
-        'button': {
-            'background': '#555555',
-            'foreground': '#ffffff',
-            'border': '#777777',
-            'hover': {'background': '#666666'},
-            'pressed': {'background': '#444444'},
-            'font': 'Arial, sans-serif'
-        }
     }
 
     blue_theme = {
-        'name': 'blue',
-        'text': {
-            'primary': '#1a1a1a',
-            'font': 'Arial, sans-serif',
-            'title': {
-                'color': '#003366',
-                'size': '20px',
-                'weight': 'bold'
-            },
-            'subtitle': {
-                'color': '#004488',
-                'size': '16px',
-                'weight': '600'
-            },
-            'body': {
-                'size': '13px',
-                'weight': 'normal'
-            },
-            'caption': {
-                'color': '#666666',
-                'size': '11px',
-                'weight': 'normal'
-            }
+        "name": "blue",
+        "text": {
+            "primary": "#1a1a1a",
+            "font": "Arial, sans-serif",
+            "title": {"color": "#003366", "size": "20px", "weight": "bold"},
+            "subtitle": {"color": "#004488", "size": "16px", "weight": "600"},
+            "body": {"size": "13px", "weight": "normal"},
+            "caption": {"color": "#666666", "size": "11px", "weight": "normal"},
         },
-        'surface': {
-            'primary': '#f0f6ff'
+        "surface": {"primary": "#f0f6ff"},
+        "accent": {"primary": "#0088cc"},
+        "button": {
+            "background": "#e6f2ff",
+            "foreground": "#003366",
+            "border": "#b3d9ff",
+            "hover": {"background": "#cce6ff"},
+            "pressed": {"background": "#b3d9ff"},
+            "font": "Arial, sans-serif",
         },
-        'accent': {
-            'primary': '#0088cc'
-        },
-        'button': {
-            'background': '#e6f2ff',
-            'foreground': '#003366',
-            'border': '#b3d9ff',
-            'hover': {'background': '#cce6ff'},
-            'pressed': {'background': '#b3d9ff'},
-            'font': 'Arial, sans-serif'
-        }
     }
 
     # Register themes
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.register_theme('blue', blue_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.register_theme("blue", blue_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = LabelDemo()
@@ -324,5 +267,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

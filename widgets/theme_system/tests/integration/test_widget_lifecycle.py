@@ -4,6 +4,7 @@ Integration tests for widget lifecycle management.
 Tests the complete lifecycle from widget creation to cleanup,
 including theme registration, updates, and memory management.
 """
+
 import gc
 import threading
 import time
@@ -23,12 +24,12 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
     def setUp(self):
         """Set up test environment."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test environment."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -51,7 +52,7 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
         # Phase 3: Theme Change
         # Change theme and verify widget receives update
         old_theme_name = self.app.get_current_theme().name
-        self.app.set_theme('dark')
+        self.app.set_theme("dark")
         new_theme_name = self.app.get_current_theme().name
 
         # Widget should have received update
@@ -88,7 +89,7 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
         self.assertTrue(registry.is_registered(child2_id))
 
         # Change theme - all should receive updates
-        self.app.set_theme('light')
+        self.app.set_theme("light")
 
         # All should have theme properties
         self.assertIsNotNone(parent.theme.background)
@@ -134,7 +135,7 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
             self.assertIsNotNone(widget.theme.background)
 
         # Change theme multiple times
-        themes = ['dark', 'light', 'default']
+        themes = ["dark", "light", "default"]
         for theme_name in themes:
             self.app.set_theme(theme_name)
 
@@ -175,7 +176,7 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
     def test_widget_lifecycle_under_theme_changes(self):
         """Test widget lifecycle under frequent theme changes."""
         widgets = [ThemedWidget() for _ in range(10)]
-        themes = ['default', 'dark', 'light', 'minimal']
+        themes = ["default", "dark", "light", "minimal"]
 
         # Rapidly change themes while widgets exist
         for theme_name in themes:
@@ -205,12 +206,12 @@ class TestWidgetLifecyclePerformance(ThemedTestCase):
     def setUp(self):
         """Set up test environment."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test environment."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -244,7 +245,7 @@ class TestWidgetLifecyclePerformance(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def theme_update():
-            self.app.set_theme('dark')
+            self.app.set_theme("dark")
 
         # Measure theme update time
         update_time = benchmark.measure_time(theme_update)
@@ -302,13 +303,13 @@ class TestWidgetLifecycleMemoryManagement(ThemedTestCase):
     def setUp(self):
         """Set up test environment."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
         self.profiler = MemoryProfiler()
 
     def tearDown(self):
         """Clean up test environment."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -336,7 +337,7 @@ class TestWidgetLifecycleMemoryManagement(ThemedTestCase):
 
             # Use widget
             _ = widget.theme.background
-            self.app.set_theme('dark' if i % 2 else 'light')
+            self.app.set_theme("dark" if i % 2 else "light")
             _ = widget.theme.color
 
             # Cleanup
@@ -403,12 +404,12 @@ class TestWidgetLifecycleThreadSafety(ThemedTestCase):
     def setUp(self):
         """Set up test environment."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test environment."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -463,7 +464,7 @@ class TestWidgetLifecycleThreadSafety(ThemedTestCase):
 
         def theme_update_thread():
             try:
-                themes = ['dark', 'light', 'default', 'minimal']
+                themes = ["dark", "light", "default", "minimal"]
                 for theme_name in themes:
                     self.app.set_theme(theme_name)
                     time.sleep(0.001)
@@ -532,10 +533,7 @@ class TestWidgetLifecycleThreadSafety(ThemedTestCase):
             if i == thread_count - 1:  # Last thread gets remainder
                 end_idx = len(widgets)
 
-            thread = threading.Thread(
-                target=cleanup_thread,
-                args=(widgets[start_idx:end_idx],)
-            )
+            thread = threading.Thread(target=cleanup_thread, args=(widgets[start_idx:end_idx],))
             threads.append(thread)
 
         # Run concurrent cleanup
@@ -559,12 +557,12 @@ class TestWidgetLifecycleStressTest(ThemedTestCase):
     def setUp(self):
         """Set up test environment."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test environment."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -578,7 +576,7 @@ class TestWidgetLifecycleStressTest(ThemedTestCase):
             widgets = [ThemedWidget() for _ in range(batch_size)]
 
             # Use widgets
-            theme_name = 'dark' if batch % 2 else 'light'
+            theme_name = "dark" if batch % 2 else "light"
             self.app.set_theme(theme_name)
 
             for widget in widgets:
@@ -597,7 +595,7 @@ class TestWidgetLifecycleStressTest(ThemedTestCase):
     def test_rapid_theme_switching_stress(self):
         """Test rapid theme switching stress test."""
         widgets = [ThemedWidget() for _ in range(50)]
-        themes = ['default', 'dark', 'light', 'minimal']
+        themes = ["default", "dark", "light", "minimal"]
 
         # Rapid theme switching
         for i in range(200):
@@ -621,7 +619,7 @@ class TestWidgetLifecycleStressTest(ThemedTestCase):
     def test_mixed_operations_stress(self):
         """Test mixed operations stress test."""
         widgets = []
-        themes = ['default', 'dark', 'light']
+        themes = ["default", "dark", "light"]
 
         for i in range(500):
             # Mixed operations
@@ -651,5 +649,5 @@ class TestWidgetLifecycleStressTest(ThemedTestCase):
         # System should remain stable
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

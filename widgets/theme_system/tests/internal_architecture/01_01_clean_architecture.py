@@ -34,6 +34,7 @@ def demo_primary_api():
         print("🎯 Importing primary API...")
         start = time.time()
         from vfwidgets_theme import ThemedApplication, ThemedWidget
+
         import_time = time.time() - start
 
         print(f"✓ Primary imports successful in {import_time*1000:.2f}ms")
@@ -74,6 +75,7 @@ def demo_advanced_api():
             ThemeProvider,
             get_global_error_recovery_manager,
         )
+
         import_time = time.time() - start
 
         print(f"✓ Advanced imports successful in {import_time*1000:.2f}ms")
@@ -153,7 +155,7 @@ def demo_performance_validation():
         times = []
         for i in range(5):
             # Clear modules to test fresh import
-            modules_to_clear = [mod for mod in sys.modules.keys() if 'vfwidgets_theme' in mod]
+            modules_to_clear = [mod for mod in sys.modules.keys() if "vfwidgets_theme" in mod]
             for mod in modules_to_clear:
                 del sys.modules[mod]
 
@@ -194,9 +196,13 @@ def demo_api_simplicity():
 
         # Show that ThemedWidget has the expected simple interface
         print("\n🔍 ThemedWidget interface validation:")
-        widget_attrs = [attr for attr in dir(ThemedWidget) if not attr.startswith('_')]
-        public_methods = [attr for attr in widget_attrs if callable(getattr(ThemedWidget, attr, None))]
-        properties = [attr for attr in widget_attrs if not callable(getattr(ThemedWidget, attr, None))]
+        widget_attrs = [attr for attr in dir(ThemedWidget) if not attr.startswith("_")]
+        public_methods = [
+            attr for attr in widget_attrs if callable(getattr(ThemedWidget, attr, None))
+        ]
+        properties = [
+            attr for attr in widget_attrs if not callable(getattr(ThemedWidget, attr, None))
+        ]
 
         print(f"✓ Public methods: {len(public_methods)}")
         for method in sorted(public_methods):

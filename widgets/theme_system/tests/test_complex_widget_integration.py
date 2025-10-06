@@ -13,11 +13,11 @@ class CustomRenderer:
     @staticmethod
     def draw(painter, rect, theme):
         """Draw using theme colors."""
-        if theme and hasattr(theme, 'colors'):
-            bg_color = theme.colors.get('tab.activeBackground', '#ffffff')
+        if theme and hasattr(theme, "colors"):
+            bg_color = theme.colors.get("tab.activeBackground", "#ffffff")
             painter.fillRect(rect, QColor(bg_color))
         else:
-            painter.fillRect(rect, QColor('#ffffff'))
+            painter.fillRect(rect, QColor("#ffffff"))
 
 
 class ChildWidget(QWidget):
@@ -27,7 +27,7 @@ class ChildWidget(QWidget):
         """Get theme by traversing parent chain."""
         parent = self.parent()
         while parent:
-            if hasattr(parent, 'get_current_theme'):
+            if hasattr(parent, "get_current_theme"):
                 return parent.get_current_theme()
             parent = parent.parent()
         return None
@@ -35,10 +35,10 @@ class ChildWidget(QWidget):
     def get_theme_colors(self):
         """Public method to get colors for testing."""
         theme = self._get_theme_from_parent()
-        if theme and hasattr(theme, 'colors'):
+        if theme and hasattr(theme, "colors"):
             return {
-                'active': theme.colors.get('tab.activeBackground'),
-                'inactive': theme.colors.get('tab.inactiveBackground'),
+                "active": theme.colors.get("tab.activeBackground"),
+                "inactive": theme.colors.get("tab.inactiveBackground"),
             }
         return None
 
@@ -59,7 +59,7 @@ class ComplexWidget(ThemedWidget, QWidget):
 def test_complex_widget_has_get_current_theme(qapp):
     """Test that complex widget has get_current_theme method."""
     widget = ComplexWidget()
-    assert hasattr(widget, 'get_current_theme')
+    assert hasattr(widget, "get_current_theme")
     assert callable(widget.get_current_theme)
 
 
@@ -73,7 +73,7 @@ def test_get_current_theme_returns_theme_object(qapp):
     # Manually create a theme and inject it via _theme_manager
     # (simulating what ThemedApplication does)
     repo = ThemeRepository()
-    theme = repo.get_theme('dark')
+    theme = repo.get_theme("dark")
 
     # Create a minimal theme manager mock
     class MockThemeManager:
@@ -86,16 +86,16 @@ def test_get_current_theme_returns_theme_object(qapp):
     theme_obj = widget.get_current_theme()
 
     assert theme_obj is not None
-    assert hasattr(theme_obj, 'colors')
-    assert hasattr(theme_obj, 'name')
-    assert theme_obj.name == 'dark'
+    assert hasattr(theme_obj, "colors")
+    assert hasattr(theme_obj, "name")
+    assert theme_obj.name == "dark"
 
 
 def test_child_widget_can_access_parent_theme(qapp):
     """Test that child widget can get theme from parent."""
     from vfwidgets_theme.widgets.application import set_global_theme
 
-    set_global_theme('dark')
+    set_global_theme("dark")
 
     parent_widget = ComplexWidget()
     child_widget = parent_widget.child_widget
@@ -103,7 +103,7 @@ def test_child_widget_can_access_parent_theme(qapp):
     # Child should be able to get theme from parent
     theme = child_widget._get_theme_from_parent()
     assert theme is not None
-    assert hasattr(theme, 'colors')
+    assert hasattr(theme, "colors")
 
 
 def test_child_widget_gets_vs_code_tokens(qapp):
@@ -115,7 +115,7 @@ def test_child_widget_gets_vs_code_tokens(qapp):
 
     # Manually create a theme and inject it
     repo = ThemeRepository()
-    theme = repo.get_theme('dark')
+    theme = repo.get_theme("dark")
 
     # Create a minimal theme manager mock
     class MockThemeManager:
@@ -128,28 +128,29 @@ def test_child_widget_gets_vs_code_tokens(qapp):
 
     colors = child_widget.get_theme_colors()
     assert colors is not None
-    assert 'active' in colors
-    assert 'inactive' in colors
+    assert "active" in colors
+    assert "inactive" in colors
     # Should have actual values (not fallback to None)
-    assert colors['active'] is not None
-    assert colors['inactive'] is not None
+    assert colors["active"] is not None
+    assert colors["inactive"] is not None
 
 
 def test_renderer_receives_theme_object(qapp):
     """Test that renderer can receive theme object."""
     from vfwidgets_theme.widgets.application import set_global_theme
 
-    set_global_theme('dark')
+    set_global_theme("dark")
 
     widget = ComplexWidget()
     theme = widget.get_current_theme()
 
     # Renderer should be able to use theme
     assert theme is not None
-    assert hasattr(theme, 'colors')
+    assert hasattr(theme, "colors")
 
     # Simulate drawing
     from PySide6.QtGui import QPixmap
+
     pixmap = QPixmap(100, 100)
     painter = QPainter(pixmap)
     widget.renderer.draw(painter, QRect(0, 0, 100, 100), theme)
@@ -166,7 +167,7 @@ def test_theme_changes_propagate_to_children(qapp):
 
     # Manually inject theme manager with dark theme
     repo = ThemeRepository()
-    dark_theme = repo.get_theme('dark')
+    dark_theme = repo.get_theme("dark")
     parent_widget._theme_manager = ThemeManager(dark_theme)
 
     child_widget = parent_widget.child_widget
@@ -174,17 +175,17 @@ def test_theme_changes_propagate_to_children(qapp):
     # Get initial colors
     colors_dark = child_widget.get_theme_colors()
     if colors_dark:
-        assert colors_dark['active'] is not None
+        assert colors_dark["active"] is not None
 
         # Change theme to light
-        light_theme = repo.get_theme('light')
+        light_theme = repo.get_theme("light")
         parent_widget._theme_manager = ThemeManager(light_theme)
 
         # Child should see new theme
         colors_light = child_widget.get_theme_colors()
-        assert colors_light['active'] is not None
+        assert colors_light["active"] is not None
         # Light theme should have different colors than dark
-        assert colors_light['active'] != colors_dark['active']
+        assert colors_light["active"] != colors_dark["active"]
 
 
 def test_fallback_when_no_theme(qapp):
@@ -200,4 +201,4 @@ def test_fallback_when_no_theme(qapp):
         assert True
     else:
         # Has fallback theme
-        assert hasattr(theme, 'colors')
+        assert hasattr(theme, "colors")

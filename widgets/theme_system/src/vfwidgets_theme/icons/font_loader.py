@@ -71,11 +71,9 @@ class IconFontLoader:
             logger.error(f"Error loading font {font_path}: {e}")
             return None
 
-    def create_icon_from_font(self,
-                             font_family: str,
-                             character: str,
-                             size: QSize,
-                             color: Optional[str] = None) -> Optional[QIcon]:
+    def create_icon_from_font(
+        self, font_family: str, character: str, size: QSize, color: Optional[str] = None
+    ) -> Optional[QIcon]:
         """Create QIcon from font character.
 
         Args:
@@ -90,10 +88,10 @@ class IconFontLoader:
         """
         try:
             # Parse character
-            if character.startswith('\\u') or character.startswith('\\x'):
+            if character.startswith("\\u") or character.startswith("\\x"):
                 # Handle unicode escapes
-                char = character.encode().decode('unicode_escape')
-            elif character.startswith('0x'):
+                char = character.encode().decode("unicode_escape")
+            elif character.startswith("0x"):
                 # Handle hex codes
                 char = chr(int(character, 16))
             else:
@@ -139,20 +137,25 @@ class IconFontLoader:
 
     def _parse_color(self, color_str: str) -> QColor:
         """Parse color string to QColor."""
-        if color_str.startswith('#'):
+        if color_str.startswith("#"):
             return QColor(color_str)
-        elif color_str.startswith('rgb('):
+        elif color_str.startswith("rgb("):
             # Parse rgb(r, g, b) format
             rgb_str = color_str[4:-1]  # Remove 'rgb(' and ')'
-            components = [int(x.strip()) for x in rgb_str.split(',')]
+            components = [int(x.strip()) for x in rgb_str.split(",")]
             if len(components) >= 3:
                 return QColor(components[0], components[1], components[2])
-        elif color_str.startswith('rgba('):
+        elif color_str.startswith("rgba("):
             # Parse rgba(r, g, b, a) format
             rgba_str = color_str[5:-1]  # Remove 'rgba(' and ')'
-            components = [float(x.strip()) for x in rgba_str.split(',')]
+            components = [float(x.strip()) for x in rgba_str.split(",")]
             if len(components) >= 4:
-                return QColor(int(components[0]), int(components[1]), int(components[2]), int(components[3] * 255))
+                return QColor(
+                    int(components[0]),
+                    int(components[1]),
+                    int(components[2]),
+                    int(components[3] * 255),
+                )
 
         # Try named colors or fallback to black
         color = QColor(color_str)
@@ -195,7 +198,9 @@ class IconFontLoader:
             logger.error(f"Error unloading font {font_path}: {e}")
             return False
 
-    def create_preview_icon(self, font_family: str, sample_chars: str = "Aa", size: QSize = None) -> Optional[QIcon]:
+    def create_preview_icon(
+        self, font_family: str, sample_chars: str = "Aa", size: QSize = None
+    ) -> Optional[QIcon]:
         """Create preview icon showing font sample.
 
         Args:
@@ -261,15 +266,15 @@ class IconFontLoader:
             font_info = QFontDatabase().font(font_family, "Regular", 12)
 
             return {
-                'family': font_family,
-                'style_hint': font.styleHint(),
-                'weight': font.weight(),
-                'italic': font.italic(),
-                'point_size': font.pointSize(),
-                'pixel_size': font.pixelSize(),
-                'exact_match': QFontDatabase().exactMatch(font_family, "Regular", 12),
-                'writing_systems': QFontDatabase().writingSystems(font_family),
-                'styles': QFontDatabase().styles(font_family),
+                "family": font_family,
+                "style_hint": font.styleHint(),
+                "weight": font.weight(),
+                "italic": font.italic(),
+                "point_size": font.pointSize(),
+                "pixel_size": font.pixelSize(),
+                "exact_match": QFontDatabase().exactMatch(font_family, "Regular", 12),
+                "writing_systems": QFontDatabase().writingSystems(font_family),
+                "styles": QFontDatabase().styles(font_family),
             }
 
         except Exception as e:
@@ -291,9 +296,9 @@ class IconFontLoader:
             font = QFont(font_family)
 
             # Parse character like in create_icon_from_font
-            if character.startswith('\\u') or character.startswith('\\x'):
-                char = character.encode().decode('unicode_escape')
-            elif character.startswith('0x'):
+            if character.startswith("\\u") or character.startswith("\\x"):
+                char = character.encode().decode("unicode_escape")
+            elif character.startswith("0x"):
                 char = chr(int(character, 16))
             else:
                 char = character

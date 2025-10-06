@@ -23,18 +23,22 @@ class TestThemeInheritance:
     def test_extend_from_theme_instance(self):
         """Test extending from a Theme instance."""
         # Create parent theme
-        parent = (ThemeBuilder("parent")
+        parent = (
+            ThemeBuilder("parent")
             .set_type("dark")
             .add_color("colors.background", "#1e1e1e")
             .add_color("colors.foreground", "#d4d4d4")
             .add_color("button.background", "#0e639c")
-            .build())
+            .build()
+        )
 
         # Create child theme extending parent
-        child = (ThemeBuilder("child")
+        child = (
+            ThemeBuilder("child")
             .extend(parent)
             .add_color("button.background", "#ff0000")  # Override
-            .build())
+            .build()
+        )
 
         # Child inherits parent's colors
         assert child.colors["colors.background"] == "#1e1e1e"
@@ -48,30 +52,30 @@ class TestThemeInheritance:
 
     def test_extend_preserves_child_values_set_before(self):
         """Test that values set before extend() are not overridden."""
-        parent = (ThemeBuilder("parent")
-            .add_color("colors.primary", "#007acc")
-            .build())
+        parent = ThemeBuilder("parent").add_color("colors.primary", "#007acc").build()
 
         # Set value BEFORE extend
-        child = (ThemeBuilder("child")
+        child = (
+            ThemeBuilder("child")
             .add_color("colors.primary", "#ff0000")  # Set first
-            .extend(parent)                          # Then extend
-            .build())
+            .extend(parent)  # Then extend
+            .build()
+        )
 
         # Child's value should be preserved (not overridden by parent)
         assert child.colors["colors.primary"] == "#ff0000"
 
     def test_extend_inherits_styles_and_metadata(self):
         """Test that styles and metadata are inherited."""
-        parent = (ThemeBuilder("parent")
+        parent = (
+            ThemeBuilder("parent")
             .add_style("font.family", "Consolas")
             .add_metadata("author", "Test Author")
             .add_metadata("description", "Parent theme")
-            .build())
+            .build()
+        )
 
-        child = (ThemeBuilder("child")
-            .extend(parent)
-            .build())
+        child = ThemeBuilder("child").extend(parent).build()
 
         # Styles inherited
         assert child.styles["font.family"] == "Consolas"
@@ -85,15 +89,19 @@ class TestThemeInheritance:
 
     def test_extend_inherits_token_colors(self):
         """Test that token colors are inherited."""
-        parent = (ThemeBuilder("parent")
+        parent = (
+            ThemeBuilder("parent")
             .add_token_color("comment", {"foreground": "#608b4e"}, "Comments")
             .add_token_color("keyword", {"foreground": "#569cd6"}, "Keywords")
-            .build())
+            .build()
+        )
 
-        child = (ThemeBuilder("child")
+        child = (
+            ThemeBuilder("child")
             .extend(parent)
             .add_token_color("string", {"foreground": "#ce9178"}, "Strings")
-            .build())
+            .build()
+        )
 
         # Child has parent's token colors plus its own
         assert len(child.token_colors) == 3
@@ -103,20 +111,23 @@ class TestThemeInheritance:
 
     def test_extend_chain(self):
         """Test extending from a theme that already extends another."""
-        grandparent = (ThemeBuilder("grandparent")
+        grandparent = (
+            ThemeBuilder("grandparent")
             .add_color("colors.background", "#000000")
             .add_color("colors.foreground", "#ffffff")
-            .build())
+            .build()
+        )
 
-        parent = (ThemeBuilder("parent")
+        parent = (
+            ThemeBuilder("parent")
             .extend(grandparent)
             .add_color("button.background", "#0e639c")
-            .build())
+            .build()
+        )
 
-        child = (ThemeBuilder("child")
-            .extend(parent)
-            .add_color("button.foreground", "#ffffff")
-            .build())
+        child = (
+            ThemeBuilder("child").extend(parent).add_color("button.foreground", "#ffffff").build()
+        )
 
         # Child inherits from entire chain
         assert child.colors["colors.background"] == "#000000"  # From grandparent
@@ -144,14 +155,14 @@ class TestThemeComposition:
 
     def test_compose_two_themes_basic(self):
         """Test basic composition of two themes."""
-        theme1 = (ThemeBuilder("theme1")
+        theme1 = (
+            ThemeBuilder("theme1")
             .add_color("colors.background", "#ffffff")
             .add_color("colors.foreground", "#000000")
-            .build())
+            .build()
+        )
 
-        theme2 = (ThemeBuilder("theme2")
-            .add_color("button.background", "#0e639c")
-            .build())
+        theme2 = ThemeBuilder("theme2").add_color("button.background", "#0e639c").build()
 
         composer = ThemeComposer()
         composed = composer.compose(theme1, theme2)
@@ -163,13 +174,9 @@ class TestThemeComposition:
 
     def test_compose_override_priority(self):
         """Test that later theme overrides earlier theme."""
-        theme1 = (ThemeBuilder("theme1")
-            .add_color("colors.primary", "#111111")
-            .build())
+        theme1 = ThemeBuilder("theme1").add_color("colors.primary", "#111111").build()
 
-        theme2 = (ThemeBuilder("theme2")
-            .add_color("colors.primary", "#222222")
-            .build())
+        theme2 = ThemeBuilder("theme2").add_color("colors.primary", "#222222").build()
 
         composer = ThemeComposer()
         composed = composer.compose(theme1, theme2)
@@ -179,17 +186,11 @@ class TestThemeComposition:
 
     def test_compose_chain_multiple_themes(self):
         """Test composing a chain of multiple themes."""
-        theme1 = (ThemeBuilder("t1")
-            .add_color("colors.background", "#ffffff")
-            .build())
+        theme1 = ThemeBuilder("t1").add_color("colors.background", "#ffffff").build()
 
-        theme2 = (ThemeBuilder("t2")
-            .add_color("button.background", "#0e639c")
-            .build())
+        theme2 = ThemeBuilder("t2").add_color("button.background", "#0e639c").build()
 
-        theme3 = (ThemeBuilder("t3")
-            .add_color("input.background", "#3c3c3c")
-            .build())
+        theme3 = ThemeBuilder("t3").add_color("input.background", "#3c3c3c").build()
 
         composer = ThemeComposer()
         composed = composer.compose_chain([theme1, theme2, theme3])
@@ -242,10 +243,12 @@ class TestAccessibilityValidation:
 
     def test_validate_good_contrast(self):
         """Test validation passes for good contrast."""
-        theme = (ThemeBuilder("good-contrast")
+        theme = (
+            ThemeBuilder("good-contrast")
             .add_color("colors.background", "#ffffff")
             .add_color("colors.foreground", "#000000")
-            .build())
+            .build()
+        )
 
         validator = ThemeValidator()
         result = validator.validate_accessibility(theme)
@@ -256,10 +259,12 @@ class TestAccessibilityValidation:
 
     def test_validate_poor_contrast_fails(self):
         """Test validation fails for poor contrast."""
-        theme = (ThemeBuilder("poor-contrast")
+        theme = (
+            ThemeBuilder("poor-contrast")
             .add_color("colors.background", "#ffffff")
             .add_color("colors.foreground", "#eeeeee")  # Very low contrast
-            .build())
+            .build()
+        )
 
         validator = ThemeValidator()
         result = validator.validate_accessibility(theme)
@@ -269,10 +274,12 @@ class TestAccessibilityValidation:
 
     def test_validate_button_contrast(self):
         """Test validation checks button contrast."""
-        theme = (ThemeBuilder("button-contrast")
+        theme = (
+            ThemeBuilder("button-contrast")
             .add_color("button.background", "#ffffff")
             .add_color("button.foreground", "#f0f0f0")  # Low contrast
-            .build())
+            .build()
+        )
 
         validator = ThemeValidator()
         result = validator.validate_accessibility(theme)

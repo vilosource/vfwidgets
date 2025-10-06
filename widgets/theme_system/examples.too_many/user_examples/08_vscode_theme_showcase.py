@@ -141,7 +141,9 @@ class VSCodeShowcaseWindow(ThemedMainWindow):
         editor_layout = QVBoxLayout()
 
         editor = QTextEdit()
-        editor.setPlaceholderText("# Write your code here...\ndef hello_world():\n    print('Hello from VS Code theme!')")
+        editor.setPlaceholderText(
+            "# Write your code here...\ndef hello_world():\n    print('Hello from VS Code theme!')"
+        )
         editor.setMinimumHeight(150)
         editor_layout.addWidget(editor)
 

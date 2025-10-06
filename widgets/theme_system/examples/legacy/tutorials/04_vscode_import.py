@@ -49,39 +49,37 @@ class VSCodeThemeImporter:
                 return None
 
         # Extract relevant colors from VSCode theme
-        colors = theme_data.get('colors', {})
-        token_colors = theme_data.get('tokenColors', [])
+        colors = theme_data.get("colors", {})
+        token_colors = theme_data.get("tokenColors", [])
 
         # Map VSCode colors to VFWidgets structure
         vf_theme = {
-            'name': theme_data.get('name', 'imported'),
-            'window': {
-                'background': colors.get('editor.background', '#ffffff'),
-                'foreground': colors.get('editor.foreground', '#000000')
+            "name": theme_data.get("name", "imported"),
+            "window": {
+                "background": colors.get("editor.background", "#ffffff"),
+                "foreground": colors.get("editor.foreground", "#000000"),
             },
-            'editor': {
-                'background': colors.get('editor.background', '#ffffff'),
-                'foreground': colors.get('editor.foreground', '#000000'),
-                'selection': colors.get('editor.selectionBackground', '#add6ff'),
-                'line_highlight': colors.get('editor.lineHighlightBackground', '#f5f5f5')
+            "editor": {
+                "background": colors.get("editor.background", "#ffffff"),
+                "foreground": colors.get("editor.foreground", "#000000"),
+                "selection": colors.get("editor.selectionBackground", "#add6ff"),
+                "line_highlight": colors.get("editor.lineHighlightBackground", "#f5f5f5"),
             },
-            'sidebar': {
-                'background': colors.get('sideBar.background', '#f3f3f3'),
-                'foreground': colors.get('sideBar.foreground', '#333333')
+            "sidebar": {
+                "background": colors.get("sideBar.background", "#f3f3f3"),
+                "foreground": colors.get("sideBar.foreground", "#333333"),
             },
-            'statusbar': {
-                'background': colors.get('statusBar.background', '#007acc'),
-                'foreground': colors.get('statusBar.foreground', '#ffffff')
+            "statusbar": {
+                "background": colors.get("statusBar.background", "#007acc"),
+                "foreground": colors.get("statusBar.foreground", "#ffffff"),
             },
-            'button': {
-                'background': colors.get('button.background', '#0e639c'),
-                'foreground': colors.get('button.foreground', '#ffffff'),
-                'hover': {'background': colors.get('button.hoverBackground', '#1177bb')},
-                'border': colors.get('button.background', '#0e639c')
+            "button": {
+                "background": colors.get("button.background", "#0e639c"),
+                "foreground": colors.get("button.foreground", "#ffffff"),
+                "hover": {"background": colors.get("button.hoverBackground", "#1177bb")},
+                "border": colors.get("button.background", "#0e639c"),
             },
-            'accent': {
-                'primary': colors.get('focusBorder', '#007fd4')
-            }
+            "accent": {"primary": colors.get("focusBorder", "#007fd4")},
         }
 
         return vf_theme
@@ -103,8 +101,8 @@ class VSCodeThemeImporter:
                 "button.background": "#66d9ef",
                 "button.foreground": "#272822",
                 "button.hoverBackground": "#a6e22e",
-                "focusBorder": "#f92672"
-            }
+                "focusBorder": "#f92672",
+            },
         }
 
         one_dark = {
@@ -121,8 +119,8 @@ class VSCodeThemeImporter:
                 "button.background": "#61afef",
                 "button.foreground": "#ffffff",
                 "button.hoverBackground": "#528bff",
-                "focusBorder": "#61afef"
-            }
+                "focusBorder": "#61afef",
+            },
         }
 
         github_light = {
@@ -139,8 +137,8 @@ class VSCodeThemeImporter:
                 "button.background": "#28a745",
                 "button.foreground": "#ffffff",
                 "button.hoverBackground": "#269f42",
-                "focusBorder": "#0366d6"
-            }
+                "focusBorder": "#0366d6",
+            },
         }
 
         return [monokai, one_dark, github_light]
@@ -150,10 +148,10 @@ class CodeEditorWidget(ThemedWidget):
     """A simple code editor widget that demonstrates VSCode theme usage."""
 
     theme_config = {
-        'editor_bg': 'editor.background',
-        'editor_fg': 'editor.foreground',
-        'selection_bg': 'editor.selection',
-        'line_highlight': 'editor.line_highlight'
+        "editor_bg": "editor.background",
+        "editor_fg": "editor.foreground",
+        "selection_bg": "editor.selection",
+        "line_highlight": "editor.line_highlight",
     }
 
     def __init__(self, parent=None):
@@ -167,7 +165,8 @@ class CodeEditorWidget(ThemedWidget):
         # Editor
         self.editor = QTextEdit()
         self.editor.setFont(QFont("Courier New", 10))
-        self.editor.setPlainText("""# Sample Python Code
+        self.editor.setPlainText(
+            """# Sample Python Code
 def hello_world():
     \"\"\"A simple greeting function.\"\"\"
     message = "Hello, World!"
@@ -186,7 +185,8 @@ if __name__ == "__main__":
     demo = ThemeDemo("monokai")
     demo.apply_theme()
     hello_world()
-""")
+"""
+        )
         layout.addWidget(self.editor)
 
     def on_theme_changed(self):
@@ -195,18 +195,20 @@ if __name__ == "__main__":
 
     def update_styling(self):
         """Update editor styling based on theme."""
-        bg = self.theme.get('editor_bg', '#ffffff')
-        fg = self.theme.get('editor_fg', '#000000')
-        selection_bg = self.theme.get('selection_bg', '#add6ff')
+        bg = self.theme.get("editor_bg", "#ffffff")
+        fg = self.theme.get("editor_fg", "#000000")
+        selection_bg = self.theme.get("selection_bg", "#add6ff")
 
-        self.editor.setStyleSheet(f"""
+        self.editor.setStyleSheet(
+            f"""
         QTextEdit {{
             background-color: {bg};
             color: {fg};
             border: none;
             selection-background-color: {selection_bg};
         }}
-        """)
+        """
+        )
 
 
 class VSCodeImportDemo(ThemedWidget):
@@ -282,16 +284,16 @@ class VSCodeImportDemo(ThemedWidget):
             vf_theme = VSCodeThemeImporter.import_theme(vscode_theme)
 
             if vf_theme:
-                theme_name = vf_theme['name'].lower().replace(' ', '_')
+                theme_name = vf_theme["name"].lower().replace(" ", "_")
 
                 # Register with application
                 app.register_theme(theme_name, vf_theme)
 
                 # Add to combo box
-                self.theme_combo.addItem(vf_theme['name'])
+                self.theme_combo.addItem(vf_theme["name"])
 
                 # Store for reference
-                self.imported_themes[vf_theme['name']] = vf_theme
+                self.imported_themes[vf_theme["name"]] = vf_theme
 
                 print(f"Imported theme: {vf_theme['name']}")
 
@@ -302,10 +304,7 @@ class VSCodeImportDemo(ThemedWidget):
         # In a real implementation, this would open a file dialog
         # and load a .json theme file
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Import VSCode Theme",
-            "",
-            "JSON Files (*.json);;All Files (*)"
+            self, "Import VSCode Theme", "", "JSON Files (*.json);;All Files (*)"
         )
 
         if file_path:
@@ -317,17 +316,17 @@ class VSCodeImportDemo(ThemedWidget):
                 vf_theme = VSCodeThemeImporter.import_theme(theme_data)
 
                 if vf_theme:
-                    theme_name = vf_theme['name'].lower().replace(' ', '_')
+                    theme_name = vf_theme["name"].lower().replace(" ", "_")
 
                     # Register with application
                     app = ThemedApplication.instance()
                     app.register_theme(theme_name, vf_theme)
 
                     # Add to combo box
-                    self.theme_combo.addItem(vf_theme['name'])
+                    self.theme_combo.addItem(vf_theme["name"])
 
                     # Store for reference
-                    self.imported_themes[vf_theme['name']] = vf_theme
+                    self.imported_themes[vf_theme["name"]] = vf_theme
 
                     self.info_label.setText(f"Imported theme: {vf_theme['name']}")
                     print(f"Imported theme from file: {vf_theme['name']}")
@@ -343,7 +342,7 @@ class VSCodeImportDemo(ThemedWidget):
         if theme_name in self.imported_themes:
             # Apply the selected theme
             app = ThemedApplication.instance()
-            theme_id = theme_name.lower().replace(' ', '_')
+            theme_id = theme_name.lower().replace(" ", "_")
 
             try:
                 app.set_theme(theme_id)
@@ -362,25 +361,25 @@ def main():
 
     # Register a default light theme
     light_theme = {
-        'name': 'light',
-        'window': {'background': '#ffffff', 'foreground': '#000000'},
-        'editor': {
-            'background': '#ffffff',
-            'foreground': '#000000',
-            'selection': '#add6ff',
-            'line_highlight': '#f5f5f5'
+        "name": "light",
+        "window": {"background": "#ffffff", "foreground": "#000000"},
+        "editor": {
+            "background": "#ffffff",
+            "foreground": "#000000",
+            "selection": "#add6ff",
+            "line_highlight": "#f5f5f5",
         },
-        'button': {
-            'background': '#e0e0e0',
-            'foreground': '#000000',
-            'hover': {'background': '#d0d0d0'},
-            'border': '#cccccc'
+        "button": {
+            "background": "#e0e0e0",
+            "foreground": "#000000",
+            "hover": {"background": "#d0d0d0"},
+            "border": "#cccccc",
         },
-        'accent': {'primary': '#007bff'}
+        "accent": {"primary": "#007bff"},
     }
 
-    app.register_theme('light', light_theme)
-    app.set_theme('light')
+    app.register_theme("light", light_theme)
+    app.set_theme("light")
 
     # Create and show demo
     widget = VSCodeImportDemo()
@@ -396,5 +395,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

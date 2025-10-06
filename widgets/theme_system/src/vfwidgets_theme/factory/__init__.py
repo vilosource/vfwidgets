@@ -9,9 +9,4 @@ This module provides flexible theme construction and composition tools:
 
 from .builder import ThemeBuilder, ThemeComposer, ThemeFactory, ThemeVariantGenerator
 
-__all__ = [
-    'ThemeFactory',
-    'ThemeBuilder',
-    'ThemeComposer',
-    'ThemeVariantGenerator'
-]
+__all__ = ["ThemeFactory", "ThemeBuilder", "ThemeComposer", "ThemeVariantGenerator"]

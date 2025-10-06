@@ -144,7 +144,7 @@ class TestEnhancedWidgetRegistration:
                 raise RuntimeError("Temporary failure")
             return original_validate(w)
 
-        with patch.object(registry, '_validate_widget', side_effect=mock_validate):
+        with patch.object(registry, "_validate_widget", side_effect=mock_validate):
             registry.register(widget)
 
         # Should succeed after retry
@@ -177,8 +177,8 @@ class TestEnhancedWidgetRegistration:
         # Verify lifecycle events (should have both REGISTERED and UNREGISTERED)
         # Note: events are cleaned up on unregistration, but we can check statistics
         stats = registry.get_statistics()
-        assert stats['total_registrations'] == 1
-        assert stats['total_unregistrations'] == 1
+        assert stats["total_registrations"] == 1
+        assert stats["total_unregistrations"] == 1
 
 
 class TestBulkOperations:
@@ -193,9 +193,9 @@ class TestBulkOperations:
         result = registry.bulk_register(widgets)
 
         # Verify results
-        assert result['successful'] == 10
-        assert result['failed'] == 0
-        assert result['duration_ms'] > 0
+        assert result["successful"] == 10
+        assert result["failed"] == 0
+        assert result["duration_ms"] > 0
 
         # Verify all widgets registered
         for widget in widgets:
@@ -209,8 +209,8 @@ class TestBulkOperations:
 
         result = registry.bulk_register(widgets, metadata_list)
 
-        assert result['successful'] == 5
-        assert result['failed'] == 0
+        assert result["successful"] == 5
+        assert result["failed"] == 0
 
         # Verify metadata stored correctly
         for i, widget in enumerate(widgets):
@@ -242,10 +242,12 @@ class TestBulkOperations:
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         # Should be under 1ms per 100 widgets
-        assert duration_ms < 10, f"Bulk registration took {duration_ms:.2f}ms (target: <1ms for 100 widgets)"
+        assert (
+            duration_ms < 10
+        ), f"Bulk registration took {duration_ms:.2f}ms (target: <1ms for 100 widgets)"
 
         # Verify per-widget performance
-        per_widget_us = result['per_widget_us']
+        per_widget_us = result["per_widget_us"]
         assert per_widget_us < 10, f"Per-widget time: {per_widget_us:.2f}μs (target: <10μs)"
 
     def test_bulk_unregister(self):
@@ -259,8 +261,8 @@ class TestBulkOperations:
         # Bulk unregister
         result = registry.bulk_unregister(widgets)
 
-        assert result['successful'] == 10
-        assert result['failed'] == 0
+        assert result["successful"] == 10
+        assert result["failed"] == 0
 
         # Verify all widgets unregistered
         for widget in widgets:
@@ -277,8 +279,8 @@ class TestBulkOperations:
         # Try to unregister all widgets
         result = registry.bulk_unregister(widgets)
 
-        assert result['successful'] == 5  # Only 5 were actually registered
-        assert result['failed'] == 5
+        assert result["successful"] == 5  # Only 5 were actually registered
+        assert result["failed"] == 5
 
     def test_empty_bulk_operations(self):
         """Test bulk operations with empty lists."""
@@ -286,15 +288,15 @@ class TestBulkOperations:
 
         # Empty bulk register
         result = registry.bulk_register([])
-        assert result['successful'] == 0
-        assert result['failed'] == 0
-        assert result['duration_ms'] == 0.0
+        assert result["successful"] == 0
+        assert result["failed"] == 0
+        assert result["duration_ms"] == 0.0
 
         # Empty bulk unregister
         result = registry.bulk_unregister([])
-        assert result['successful'] == 0
-        assert result['failed'] == 0
-        assert result['duration_ms'] == 0.0
+        assert result["successful"] == 0
+        assert result["failed"] == 0
+        assert result["duration_ms"] == 0.0
 
 
 class TestLifecycleTracking:
@@ -307,6 +309,7 @@ class TestLifecycleTracking:
 
         # Create lifecycle callback to capture events
         events_captured = []
+
         def capture_event(event):
             events_captured.append(event)
 
@@ -402,6 +405,7 @@ class TestRegistrationDecorators:
 
     def test_auto_register_with_no_registry(self):
         """Test auto_register decorator with no registry (should handle gracefully)."""
+
         @auto_register()  # No registry provided
         class AutoRegisteredWidget:
             def __init__(self, name):
@@ -426,7 +430,7 @@ class TestRegistrationDecorators:
         registry.register(widget)
 
         # Should have lifecycle tracking method
-        assert hasattr(widget, 'track_lifecycle')
+        assert hasattr(widget, "track_lifecycle")
 
         # Test tracking a lifecycle event
         widget.track_lifecycle(WidgetLifecycleState.UPDATED, {"action": "theme_change"})
@@ -458,13 +462,13 @@ class TestRegistryValidationAndStatistics:
         # Get statistics
         stats = registry.get_statistics()
 
-        assert stats['total_registrations'] == 5
-        assert stats['total_unregistrations'] == 1
-        assert stats['active_widgets'] == 4
-        assert stats['bulk_operations'] == 1
-        assert stats['lifecycle_events'] >= 6  # 5 registrations + 1 unregistration
-        assert stats['uptime_seconds'] > 0
-        assert stats['memory_overhead_bytes'] > 0
+        assert stats["total_registrations"] == 5
+        assert stats["total_unregistrations"] == 1
+        assert stats["active_widgets"] == 4
+        assert stats["bulk_operations"] == 1
+        assert stats["lifecycle_events"] >= 6  # 5 registrations + 1 unregistration
+        assert stats["uptime_seconds"] > 0
+        assert stats["memory_overhead_bytes"] > 0
 
     def test_registry_integrity_validation(self):
         """Test registry integrity validation."""
@@ -476,10 +480,10 @@ class TestRegistryValidationAndStatistics:
 
         # Validate integrity
         validation = registry.validate_integrity()
-        assert validation['is_valid']
-        assert len(validation['issues']) == 0
-        assert validation['total_widgets'] == 1
-        assert validation['dead_references'] == 0
+        assert validation["is_valid"]
+        assert len(validation["issues"]) == 0
+        assert validation["total_widgets"] == 1
+        assert validation["dead_references"] == 0
 
     def test_registry_integrity_with_orphaned_data(self):
         """Test integrity validation detects orphaned data."""
@@ -494,8 +498,8 @@ class TestRegistryValidationAndStatistics:
         registry._lifecycle_events[9998] = []
 
         validation = registry.validate_integrity()
-        assert not validation['is_valid']
-        assert len(validation['issues']) >= 2  # Should detect orphaned metadata and events
+        assert not validation["is_valid"]
+        assert len(validation["issues"]) >= 2  # Should detect orphaned metadata and events
 
     def test_memory_overhead_estimation(self):
         """Test memory overhead estimation."""
@@ -507,7 +511,7 @@ class TestRegistryValidationAndStatistics:
         registry.bulk_register(widgets, metadata_list)
 
         stats = registry.get_statistics()
-        overhead = stats['memory_overhead_bytes']
+        overhead = stats["memory_overhead_bytes"]
 
         # Should have reasonable memory overhead (less than 1KB per widget)
         assert overhead > 0
@@ -532,7 +536,7 @@ class TestRegistryValidationAndStatistics:
         # Check for dead references
         validation = registry.validate_integrity()
         # After cleanup, there should be no dead references
-        assert validation['dead_references'] == 0
+        assert validation["dead_references"] == 0
 
 
 class TestThreadSafety:
@@ -545,8 +549,10 @@ class TestThreadSafety:
         num_threads = 4
 
         def register_widgets(thread_id):
-            widgets = [MockThemedWidget(f"thread_{thread_id}_widget_{i}")
-                      for i in range(widgets_per_thread)]
+            widgets = [
+                MockThemedWidget(f"thread_{thread_id}_widget_{i}")
+                for i in range(widgets_per_thread)
+            ]
             try:
                 registry.bulk_register(widgets)
                 return len(widgets)
@@ -597,18 +603,17 @@ class TestThreadSafety:
 
         # Registry should be in consistent state
         validation = registry.validate_integrity()
-        assert validation['is_valid']
+        assert validation["is_valid"]
 
     def test_concurrent_bulk_operations(self):
         """Test concurrent bulk operations."""
         registry = WidgetRegistry()
 
         def bulk_register_thread(thread_id):
-            widgets = [MockThemedWidget(f"bulk_thread_{thread_id}_widget_{i}")
-                      for i in range(25)]
+            widgets = [MockThemedWidget(f"bulk_thread_{thread_id}_widget_{i}") for i in range(25)]
             try:
                 result = registry.bulk_register(widgets)
-                return result['successful']
+                return result["successful"]
             except BulkOperationError as e:
                 return e.successful_count
             except Exception:
@@ -631,7 +636,9 @@ class TestThreadSafety:
         def stress_test_operations():
             for i in range(100):
                 try:
-                    widget = MockThemedWidget(f"stress_widget_{threading.current_thread().ident}_{i}")
+                    widget = MockThemedWidget(
+                        f"stress_widget_{threading.current_thread().ident}_{i}"
+                    )
                     registry.register(widget)
 
                     if i % 2 == 0:
@@ -663,7 +670,7 @@ class TestThreadSafety:
 
         # Registry should be in valid state after stress test
         validation = registry.validate_integrity()
-        assert validation['is_valid']
+        assert validation["is_valid"]
 
 
 class TestPerformanceRequirements:
@@ -698,8 +705,9 @@ class TestPerformanceRequirements:
 
         # Test different batch sizes
         for batch_size in [10, 50, 100, 200]:
-            widgets = [MockThemedWidget(f"batch_{batch_size}_widget_{i}")
-                      for i in range(batch_size)]
+            widgets = [
+                MockThemedWidget(f"batch_{batch_size}_widget_{i}") for i in range(batch_size)
+            ]
 
             start_time = time.perf_counter()
             result = registry.bulk_register(widgets)
@@ -707,8 +715,9 @@ class TestPerformanceRequirements:
 
             # Should be under 1ms per 100 widgets (scaled)
             expected_max_ms = (batch_size / 100) * 1
-            assert duration_ms < expected_max_ms * 5, \
-                f"Batch size {batch_size} took {duration_ms:.2f}ms (expected: <{expected_max_ms:.2f}ms)"
+            assert (
+                duration_ms < expected_max_ms * 5
+            ), f"Batch size {batch_size} took {duration_ms:.2f}ms (expected: <{expected_max_ms:.2f}ms)"
 
             # Cleanup for next iteration
             registry.bulk_unregister(widgets)
@@ -719,7 +728,7 @@ class TestPerformanceRequirements:
 
         # Get baseline memory
         stats_baseline = registry.get_statistics()
-        baseline_memory = stats_baseline['memory_overhead_bytes']
+        baseline_memory = stats_baseline["memory_overhead_bytes"]
 
         # Register widgets and measure memory growth
         widget_counts = [10, 50, 100]
@@ -730,7 +739,7 @@ class TestPerformanceRequirements:
             registry.bulk_register(widgets)
 
             stats = registry.get_statistics()
-            total_memory = stats['memory_overhead_bytes'] - baseline_memory
+            total_memory = stats["memory_overhead_bytes"] - baseline_memory
             memory_per_widget.append(total_memory / count)
 
             # Cleanup
@@ -738,8 +747,9 @@ class TestPerformanceRequirements:
 
         # Average memory per widget should be under 1KB
         avg_memory_per_widget = sum(memory_per_widget) / len(memory_per_widget)
-        assert avg_memory_per_widget < 1024, \
-            f"Average memory per widget: {avg_memory_per_widget:.0f} bytes (target: <1KB)"
+        assert (
+            avg_memory_per_widget < 1024
+        ), f"Average memory per widget: {avg_memory_per_widget:.0f} bytes (target: <1KB)"
 
     def test_cleanup_performance(self):
         """Test cleanup performance with many widgets."""
@@ -760,8 +770,9 @@ class TestPerformanceRequirements:
         cleanup_duration_us = (time.perf_counter() - start_time) * 1_000_000
 
         # Should be under 100μs for 1000 widgets cleanup
-        assert cleanup_duration_us < 1000, \
-            f"Cleanup took {cleanup_duration_us:.0f}μs (target: <100μs for 1000 widgets)"
+        assert (
+            cleanup_duration_us < 1000
+        ), f"Cleanup took {cleanup_duration_us:.0f}μs (target: <100μs for 1000 widgets)"
         assert final_count == 0
 
 
@@ -836,9 +847,9 @@ class TestContextManagers:
         metrics = context.get_metrics()
 
         # Should have captured performance metrics
-        assert 'execution_time' in metrics
-        assert 'memory_usage' in metrics
-        assert metrics['execution_time'] > 0
+        assert "execution_time" in metrics
+        assert "memory_usage" in metrics
+        assert metrics["execution_time"] > 0
 
 
 if __name__ == "__main__":

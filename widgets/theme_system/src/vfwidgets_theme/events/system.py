@@ -14,9 +14,11 @@ from typing import Any, Dict, List, Optional, Set
 try:
     from PySide6.QtCore import QObject, QTimer, Signal, Slot
     from PySide6.QtWidgets import QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Mock Qt classes for environments without PySide6
     class QObject:
         def __init__(self, parent=None):
@@ -52,6 +54,7 @@ except ImportError:
             class TimeoutSignal:
                 def connect(self, func):
                     pass
+
             return TimeoutSignal()
 
         def start(self, msec=None):
@@ -69,6 +72,7 @@ except ImportError:
     def Slot(*args):
         def decorator(func):
             return func
+
         return decorator
 
 
@@ -98,16 +102,20 @@ class ThemeEventSystem(QObject):
 
     # Global theme signals
     theme_changing = Signal(str)  # theme_name - Before change
-    theme_changed = Signal(str)   # theme_name - After change
+    theme_changed = Signal(str)  # theme_name - After change
     theme_load_failed = Signal(str, str)  # theme_name, error_message
 
     # Property-specific signals
-    property_changing = Signal(str, str, object, object)  # widget_id, property, old, new - Before change
-    property_changed = Signal(str, str, object, object)   # widget_id, property, old, new - After change
+    property_changing = Signal(
+        str, str, object, object
+    )  # widget_id, property, old, new - Before change
+    property_changed = Signal(
+        str, str, object, object
+    )  # widget_id, property, old, new - After change
     property_validation_failed = Signal(str, str, object, str)  # widget_id, property, value, error
 
     # Widget lifecycle signals
-    widget_registered = Signal(str)    # widget_id
+    widget_registered = Signal(str)  # widget_id
     widget_unregistered = Signal(str)  # widget_id
     widget_theme_applied = Signal(str, str)  # widget_id, theme_name
 
@@ -129,8 +137,8 @@ class ThemeEventSystem(QObject):
 
         # Event filtering
         self._filtered_properties: Set[str] = set()  # Properties to ignore
-        self._filtered_widgets: Set[str] = set()     # Widgets to ignore
-        self._max_events_per_cycle = 100            # Max events to process per debounce cycle
+        self._filtered_widgets: Set[str] = set()  # Widgets to ignore
+        self._max_events_per_cycle = 100  # Max events to process per debounce cycle
 
         # Event replay for testing
         self._recording_enabled = False
@@ -216,11 +224,12 @@ class ThemeEventSystem(QObject):
         self._filtered_widgets.clear()
         self._logger.info("Cleared all event filters")
 
-    def register_widget(self, widget_id: str, widget: 'QWidget') -> None:
+    def register_widget(self, widget_id: str, widget: "QWidget") -> None:
         """Register a widget for event tracking."""
         # Store weak reference to widget
-        self._widget_refs[widget_id] = weakref.ref(widget,
-                                                  lambda ref: self._cleanup_widget(widget_id))
+        self._widget_refs[widget_id] = weakref.ref(
+            widget, lambda ref: self._cleanup_widget(widget_id)
+        )
 
         # Record and emit registration
         self._record_event("widget_registered", widget_id=widget_id)
@@ -260,13 +269,19 @@ class ThemeEventSystem(QObject):
 
     def notify_theme_load_failed(self, theme_name: str, error_message: str) -> None:
         """Notify that theme loading failed."""
-        self._record_event("theme_load_failed",
-                          data={"theme_name": theme_name, "error": error_message})
+        self._record_event(
+            "theme_load_failed", data={"theme_name": theme_name, "error": error_message}
+        )
         self.theme_load_failed.emit(theme_name, error_message)
 
-    def notify_property_changing(self, widget_id: str, property_name: str,
-                                old_value: Any, new_value: Any,
-                                debounce: bool = True) -> None:
+    def notify_property_changing(
+        self,
+        widget_id: str,
+        property_name: str,
+        old_value: Any,
+        new_value: Any,
+        debounce: bool = True,
+    ) -> None:
         """Notify that a property is about to change."""
         # Apply filters
         if self._is_filtered(widget_id, property_name):
@@ -278,7 +293,7 @@ class ThemeEventSystem(QObject):
             widget_id=widget_id,
             property_name=property_name,
             old_value=old_value,
-            new_value=new_value
+            new_value=new_value,
         )
 
         if debounce:
@@ -286,9 +301,14 @@ class ThemeEventSystem(QObject):
         else:
             self._emit_property_changing(event)
 
-    def notify_property_changed(self, widget_id: str, property_name: str,
-                               old_value: Any, new_value: Any,
-                               debounce: bool = True) -> None:
+    def notify_property_changed(
+        self,
+        widget_id: str,
+        property_name: str,
+        old_value: Any,
+        new_value: Any,
+        debounce: bool = True,
+    ) -> None:
         """Notify that a property has changed."""
         # Apply filters
         if self._is_filtered(widget_id, property_name):
@@ -300,7 +320,7 @@ class ThemeEventSystem(QObject):
             widget_id=widget_id,
             property_name=property_name,
             old_value=old_value,
-            new_value=new_value
+            new_value=new_value,
         )
 
         if debounce:
@@ -308,13 +328,16 @@ class ThemeEventSystem(QObject):
         else:
             self._emit_property_changed(event)
 
-    def notify_property_validation_failed(self, widget_id: str, property_name: str,
-                                        invalid_value: Any, error_message: str) -> None:
+    def notify_property_validation_failed(
+        self, widget_id: str, property_name: str, invalid_value: Any, error_message: str
+    ) -> None:
         """Notify that property validation failed."""
-        self._record_event("property_validation_failed",
-                          widget_id=widget_id,
-                          property_name=property_name,
-                          data={"invalid_value": invalid_value, "error": error_message})
+        self._record_event(
+            "property_validation_failed",
+            widget_id=widget_id,
+            property_name=property_name,
+            data={"invalid_value": invalid_value, "error": error_message},
+        )
         self.property_validation_failed.emit(widget_id, property_name, invalid_value, error_message)
 
     def notify_widget_theme_applied(self, widget_id: str, theme_name: str) -> None:
@@ -322,9 +345,9 @@ class ThemeEventSystem(QObject):
         if widget_id in self._filtered_widgets:
             return
 
-        self._record_event("widget_theme_applied",
-                          widget_id=widget_id,
-                          data={"theme_name": theme_name})
+        self._record_event(
+            "widget_theme_applied", widget_id=widget_id, data={"theme_name": theme_name}
+        )
         self.widget_theme_applied.emit(widget_id, theme_name)
 
     def get_statistics(self) -> Dict[str, Any]:
@@ -337,15 +360,14 @@ class ThemeEventSystem(QObject):
             "recorded_events": len(self._event_history),
             "recording_enabled": self._recording_enabled,
             "registered_widgets": len(self._widget_refs),
-            "performance_threshold_ms": self._performance_threshold_ms
+            "performance_threshold_ms": self._performance_threshold_ms,
         }
 
     # Private methods
 
     def _is_filtered(self, widget_id: str, property_name: str) -> bool:
         """Check if event should be filtered out."""
-        return (widget_id in self._filtered_widgets or
-                property_name in self._filtered_properties)
+        return widget_id in self._filtered_widgets or property_name in self._filtered_properties
 
     def _queue_event(self, event: EventRecord) -> None:
         """Queue event for debounced processing."""
@@ -362,8 +384,8 @@ class ThemeEventSystem(QObject):
         start_time = time.perf_counter()
 
         with self._pending_lock:
-            events_to_process = self._pending_events[:self._max_events_per_cycle]
-            self._pending_events = self._pending_events[self._max_events_per_cycle:]
+            events_to_process = self._pending_events[: self._max_events_per_cycle]
+            self._pending_events = self._pending_events[self._max_events_per_cycle :]
 
             # If more events remain, restart timer
             if self._pending_events:
@@ -379,24 +401,29 @@ class ThemeEventSystem(QObject):
             except Exception as e:
                 self._logger.error(f"Error processing event {event.event_type}: {e}")
 
-        self._check_performance("flush_pending_events", start_time,
-                               len(events_to_process))
+        self._check_performance("flush_pending_events", start_time, len(events_to_process))
 
     def _emit_property_changing(self, event: EventRecord) -> None:
         """Emit property_changing signal."""
         self._record_event_if_enabled(event)
-        self.property_changing.emit(event.widget_id, event.property_name,
-                                   event.old_value, event.new_value)
+        self.property_changing.emit(
+            event.widget_id, event.property_name, event.old_value, event.new_value
+        )
 
     def _emit_property_changed(self, event: EventRecord) -> None:
         """Emit property_changed signal."""
         self._record_event_if_enabled(event)
-        self.property_changed.emit(event.widget_id, event.property_name,
-                                  event.old_value, event.new_value)
+        self.property_changed.emit(
+            event.widget_id, event.property_name, event.old_value, event.new_value
+        )
 
-    def _record_event(self, event_type: str, widget_id: Optional[str] = None,
-                     property_name: Optional[str] = None,
-                     data: Optional[Dict[str, Any]] = None) -> None:
+    def _record_event(
+        self,
+        event_type: str,
+        widget_id: Optional[str] = None,
+        property_name: Optional[str] = None,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """Record an event for replay/debugging."""
         if not self._recording_enabled:
             return
@@ -406,7 +433,7 @@ class ThemeEventSystem(QObject):
             event_type=event_type,
             widget_id=widget_id,
             property_name=property_name,
-            data=data or {}
+            data=data or {},
         )
 
         self._record_event_if_enabled(event)
@@ -420,16 +447,18 @@ class ThemeEventSystem(QObject):
 
         # Trim history if too large
         if len(self._event_history) > self._max_history_size:
-            self._event_history = self._event_history[-self._max_history_size:]
+            self._event_history = self._event_history[-self._max_history_size :]
 
     def _replay_single_event(self, event: EventRecord) -> None:
         """Replay a single recorded event."""
         if event.event_type == "property_changing":
-            self.property_changing.emit(event.widget_id, event.property_name,
-                                       event.old_value, event.new_value)
+            self.property_changing.emit(
+                event.widget_id, event.property_name, event.old_value, event.new_value
+            )
         elif event.event_type == "property_changed":
-            self.property_changed.emit(event.widget_id, event.property_name,
-                                      event.old_value, event.new_value)
+            self.property_changed.emit(
+                event.widget_id, event.property_name, event.old_value, event.new_value
+            )
         elif event.event_type == "theme_changing":
             self.theme_changing.emit(event.data.get("theme_name", ""))
         elif event.event_type == "theme_changed":
@@ -440,14 +469,17 @@ class ThemeEventSystem(QObject):
         """Clean up when widget is garbage collected."""
         self.unregister_widget(widget_id)
 
-    def _check_performance(self, operation: str, start_time: float,
-                          count: Optional[int] = None) -> None:
+    def _check_performance(
+        self, operation: str, start_time: float, count: Optional[int] = None
+    ) -> None:
         """Check if operation exceeded performance threshold."""
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         if duration_ms > self._performance_threshold_ms:
             context = f" (processed {count} events)" if count else ""
-            self._logger.warning(f"Performance warning: {operation} took {duration_ms:.2f}ms{context}")
+            self._logger.warning(
+                f"Performance warning: {operation} took {duration_ms:.2f}ms{context}"
+            )
             self.performance_warning.emit(operation, duration_ms)
 
 

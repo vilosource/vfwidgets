@@ -13,8 +13,4 @@ from .results import BenchmarkResults
 from .runner import BenchmarkRunner
 from .suite import BenchmarkSuite
 
-__all__ = [
-    "BenchmarkSuite",
-    "BenchmarkRunner",
-    "BenchmarkResults"
-]
+__all__ = ["BenchmarkSuite", "BenchmarkRunner", "BenchmarkResults"]

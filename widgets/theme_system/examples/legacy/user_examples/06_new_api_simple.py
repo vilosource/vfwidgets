@@ -40,7 +40,8 @@ class SimpleThemedButton(ThemedQWidget, QPushButton):
         fg = self.theme.fg
         hover_bg = self.theme.hover_bg
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {bg};
                 color: {fg};
@@ -52,7 +53,8 @@ class SimpleThemedButton(ThemedQWidget, QPushButton):
             QPushButton:hover {{
                 background-color: {hover_bg};
             }}
-        """)
+        """
+        )
 
     def on_theme_changed(self):
         """Called automatically when theme changes."""

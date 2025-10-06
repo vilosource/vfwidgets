@@ -217,7 +217,7 @@ class IconTheme:
             raise ThemeSystemError(f"Icon theme path not found: {theme_path}")
 
         try:
-            if theme_path.is_file() and theme_path.suffix == '.json':
+            if theme_path.is_file() and theme_path.suffix == ".json":
                 self._load_from_json(theme_path)
             elif theme_path.is_dir():
                 self._load_from_directory(theme_path)
@@ -232,7 +232,7 @@ class IconTheme:
 
     def _load_from_json(self, json_path: Path) -> None:
         """Load icon theme from JSON file."""
-        with open(json_path, encoding='utf-8') as f:
+        with open(json_path, encoding="utf-8") as f:
             theme_data = json.load(f)
 
         self._parse_theme_data(theme_data, json_path.parent)
@@ -240,7 +240,7 @@ class IconTheme:
     def _load_from_directory(self, theme_dir: Path) -> None:
         """Load icon theme from directory."""
         # Look for theme definition file
-        theme_files = ['iconTheme.json', 'icon-theme.json', 'theme.json']
+        theme_files = ["iconTheme.json", "icon-theme.json", "theme.json"]
         theme_file = None
 
         for filename in theme_files:
@@ -257,9 +257,9 @@ class IconTheme:
     def _parse_theme_data(self, theme_data: Dict[str, Any], base_path: Path) -> None:
         """Parse theme data from JSON."""
         # Basic theme info
-        self.name = theme_data.get('name', 'Unnamed Icon Theme')
-        self.version = theme_data.get('version', '1.0.0')
-        self.description = theme_data.get('description', '')
+        self.name = theme_data.get("name", "Unnamed Icon Theme")
+        self.version = theme_data.get("version", "1.0.0")
+        self.description = theme_data.get("description", "")
 
         # Parse icon definitions
         self._parse_icon_definitions(theme_data, base_path)
@@ -270,70 +270,69 @@ class IconTheme:
     def _parse_icon_definitions(self, theme_data: Dict[str, Any], base_path: Path) -> None:
         """Parse icon definitions from theme data."""
         # File icons
-        file_icons = theme_data.get('fileIcons', {})
+        file_icons = theme_data.get("fileIcons", {})
         for name, icon_def in file_icons.items():
             self.file_icons[name] = self._create_icon_definition(name, icon_def, base_path)
 
         # Folder icons
-        folder_icons = theme_data.get('folderIcons', {})
+        folder_icons = theme_data.get("folderIcons", {})
         for name, icon_def in folder_icons.items():
             self.folder_icons[name] = self._create_icon_definition(name, icon_def, base_path)
 
         # Language icons
-        language_icons = theme_data.get('languageIcons', {})
+        language_icons = theme_data.get("languageIcons", {})
         for name, icon_def in language_icons.items():
             self.language_icons[name] = self._create_icon_definition(name, icon_def, base_path)
 
         # Default icons
-        if 'defaultFile' in theme_data:
+        if "defaultFile" in theme_data:
             self.default_file_icon = self._create_icon_definition(
-                'default_file', theme_data['defaultFile'], base_path
+                "default_file", theme_data["defaultFile"], base_path
             )
 
-        if 'defaultFolder' in theme_data:
+        if "defaultFolder" in theme_data:
             self.default_folder_icon = self._create_icon_definition(
-                'default_folder', theme_data['defaultFolder'], base_path
+                "default_folder", theme_data["defaultFolder"], base_path
             )
 
         # File associations
-        file_extensions = theme_data.get('fileExtensions', {})
+        file_extensions = theme_data.get("fileExtensions", {})
         for ext, icon_name in file_extensions.items():
             self.file_associations.add_extension_mapping(ext, icon_name)
 
-        file_names = theme_data.get('fileNames', {})
+        file_names = theme_data.get("fileNames", {})
         for name, icon_name in file_names.items():
             self.file_associations.add_filename_mapping(name, icon_name)
 
-    def _create_icon_definition(self, name: str, icon_data: Union[str, Dict], base_path: Path) -> IconDefinition:
+    def _create_icon_definition(
+        self, name: str, icon_data: Union[str, Dict], base_path: Path
+    ) -> IconDefinition:
         """Create icon definition from data."""
         if isinstance(icon_data, str):
             # Simple path reference
-            return IconDefinition(
-                name=name,
-                path=str(base_path / icon_data)
-            )
+            return IconDefinition(name=name, path=str(base_path / icon_data))
 
         # Complex definition
         icon_def = IconDefinition(name=name)
 
-        if 'path' in icon_data:
-            icon_def.path = str(base_path / icon_data['path'])
+        if "path" in icon_data:
+            icon_def.path = str(base_path / icon_data["path"])
 
-        if 'fontCharacter' in icon_data:
-            icon_def.font_character = icon_data['fontCharacter']
+        if "fontCharacter" in icon_data:
+            icon_def.font_character = icon_data["fontCharacter"]
 
-        if 'fontFamily' in icon_data:
-            icon_def.font_family = icon_data['fontFamily']
+        if "fontFamily" in icon_data:
+            icon_def.font_family = icon_data["fontFamily"]
 
-        if 'color' in icon_data:
-            icon_def.color = icon_data['color']
+        if "color" in icon_data:
+            icon_def.color = icon_data["color"]
 
         return icon_def
 
     def _setup_providers(self, base_path: Path) -> None:
         """Setup icon providers based on theme content."""
         # SVG provider for icon directories
-        svg_dirs = ['icons', 'svg', 'images']
+        svg_dirs = ["icons", "svg", "images"]
         for dir_name in svg_dirs:
             svg_dir = base_path / dir_name
             if svg_dir.exists():
@@ -341,10 +340,14 @@ class IconTheme:
                 self.providers.append(provider)
 
         # Font provider if font files exist
-        font_files = list(base_path.glob('*.ttf')) + list(base_path.glob('*.woff')) + list(base_path.glob('*.woff2'))
+        font_files = (
+            list(base_path.glob("*.ttf"))
+            + list(base_path.glob("*.woff"))
+            + list(base_path.glob("*.woff2"))
+        )
         for font_file in font_files:
             # Look for character map
-            char_map_file = font_file.with_suffix('.json')
+            char_map_file = font_file.with_suffix(".json")
             if char_map_file.exists():
                 try:
                     with open(char_map_file) as f:
@@ -403,7 +406,7 @@ class IconTheme:
 
         # Check extension mapping
         if not icon_name:
-            icon_name = self.file_associations.get_icon_for_extension(file_path.suffix.lstrip('.'))
+            icon_name = self.file_associations.get_icon_for_extension(file_path.suffix.lstrip("."))
 
         # Check language mapping
         if not icon_name:
@@ -420,15 +423,15 @@ class IconTheme:
 
         # Common folder mappings
         folder_mappings = {
-            '.git': 'folder-git',
-            '.vscode': 'folder-vscode',
-            'node_modules': 'folder-node',
-            'src': 'folder-src',
-            'tests': 'folder-test',
-            'test': 'folder-test',
-            'docs': 'folder-docs',
-            'images': 'folder-images',
-            'assets': 'folder-assets',
+            ".git": "folder-git",
+            ".vscode": "folder-vscode",
+            "node_modules": "folder-node",
+            "src": "folder-src",
+            "tests": "folder-test",
+            "test": "folder-test",
+            "docs": "folder-docs",
+            "images": "folder-images",
+            "assets": "folder-assets",
         }
 
         icon_name = folder_mappings.get(folder_name)
@@ -478,24 +481,25 @@ class IconTheme:
                 # SVG or image file
                 icon_path = Path(icon_def.path)
                 if icon_path.exists():
-                    if icon_path.suffix.lower() == '.svg':
+                    if icon_path.suffix.lower() == ".svg":
                         svg_handler = SVGIconHandler()
                         return svg_handler.load_svg_icon(icon_path, size, icon_def.color)
                     else:
                         # Raster image
                         pixmap = QPixmap(str(icon_path))
                         if not pixmap.isNull():
-                            scaled_pixmap = pixmap.scaled(size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                            scaled_pixmap = pixmap.scaled(
+                                size,
+                                Qt.AspectRatioMode.KeepAspectRatio,
+                                Qt.TransformationMode.SmoothTransformation,
+                            )
                             return QIcon(scaled_pixmap)
 
             elif icon_def.font_character and icon_def.font_family:
                 # Font-based icon
                 font_loader = IconFontLoader()
                 return font_loader.create_icon_from_font(
-                    icon_def.font_family,
-                    icon_def.font_character,
-                    size,
-                    icon_def.color
+                    icon_def.font_family, icon_def.font_character, size, icon_def.color
                 )
 
         except Exception as e:
@@ -508,49 +512,49 @@ class IconTheme:
         ext = file_path.suffix.lower()
 
         language_map = {
-            '.py': 'python',
-            '.js': 'javascript',
-            '.ts': 'typescript',
-            '.jsx': 'react',
-            '.tsx': 'react',
-            '.vue': 'vue',
-            '.html': 'html',
-            '.css': 'css',
-            '.scss': 'sass',
-            '.sass': 'sass',
-            '.less': 'less',
-            '.json': 'json',
-            '.xml': 'xml',
-            '.yaml': 'yaml',
-            '.yml': 'yaml',
-            '.toml': 'toml',
-            '.ini': 'settings',
-            '.cfg': 'settings',
-            '.conf': 'settings',
-            '.md': 'markdown',
-            '.rst': 'text',
-            '.txt': 'text',
-            '.java': 'java',
-            '.kt': 'kotlin',
-            '.scala': 'scala',
-            '.go': 'go',
-            '.rs': 'rust',
-            '.cpp': 'cpp',
-            '.c': 'c',
-            '.h': 'c',
-            '.hpp': 'cpp',
-            '.cs': 'csharp',
-            '.php': 'php',
-            '.rb': 'ruby',
-            '.sh': 'shell',
-            '.bash': 'shell',
-            '.zsh': 'shell',
-            '.fish': 'shell',
-            '.ps1': 'powershell',
-            '.sql': 'sql',
-            '.r': 'r',
-            '.m': 'matlab',
-            '.swift': 'swift',
+            ".py": "python",
+            ".js": "javascript",
+            ".ts": "typescript",
+            ".jsx": "react",
+            ".tsx": "react",
+            ".vue": "vue",
+            ".html": "html",
+            ".css": "css",
+            ".scss": "sass",
+            ".sass": "sass",
+            ".less": "less",
+            ".json": "json",
+            ".xml": "xml",
+            ".yaml": "yaml",
+            ".yml": "yaml",
+            ".toml": "toml",
+            ".ini": "settings",
+            ".cfg": "settings",
+            ".conf": "settings",
+            ".md": "markdown",
+            ".rst": "text",
+            ".txt": "text",
+            ".java": "java",
+            ".kt": "kotlin",
+            ".scala": "scala",
+            ".go": "go",
+            ".rs": "rust",
+            ".cpp": "cpp",
+            ".c": "c",
+            ".h": "c",
+            ".hpp": "cpp",
+            ".cs": "csharp",
+            ".php": "php",
+            ".rb": "ruby",
+            ".sh": "shell",
+            ".bash": "shell",
+            ".zsh": "shell",
+            ".fish": "shell",
+            ".ps1": "powershell",
+            ".sql": "sql",
+            ".r": "r",
+            ".m": "matlab",
+            ".swift": "swift",
         }
 
         return language_map.get(ext)
@@ -595,14 +599,14 @@ class IconTheme:
     def export_theme_info(self) -> Dict[str, Any]:
         """Export theme information."""
         return {
-            'name': self.name,
-            'version': self.version,
-            'description': self.description,
-            'file_icons_count': len(self.file_icons),
-            'folder_icons_count': len(self.folder_icons),
-            'language_icons_count': len(self.language_icons),
-            'providers_count': len(self.providers),
-            'available_icons': len(self.get_available_icons()),
-            'has_default_file_icon': self.default_file_icon is not None,
-            'has_default_folder_icon': self.default_folder_icon is not None,
+            "name": self.name,
+            "version": self.version,
+            "description": self.description,
+            "file_icons_count": len(self.file_icons),
+            "folder_icons_count": len(self.folder_icons),
+            "language_icons_count": len(self.language_icons),
+            "providers_count": len(self.providers),
+            "available_icons": len(self.get_available_icons()),
+            "has_default_file_icon": self.default_file_icon is not None,
+            "has_default_folder_icon": self.default_folder_icon is not None,
         }

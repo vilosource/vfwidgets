@@ -60,27 +60,15 @@ class IntegratedThemedWidget:
         # Define theme properties using PropertyDescriptor
         # These integrate with the event system automatically
         self.theme_color = PropertyDescriptor(
-            "theme_color",
-            str,
-            validator=color_validator(),
-            default="#000000",
-            debug=True
+            "theme_color", str, validator=color_validator(), default="#000000", debug=True
         )
 
         self.theme_background = PropertyDescriptor(
-            "theme_background",
-            str,
-            validator=color_validator(),
-            default="#ffffff",
-            debug=True
+            "theme_background", str, validator=color_validator(), default="#ffffff", debug=True
         )
 
         self.theme_font_size = PropertyDescriptor(
-            "theme_font_size",
-            int,
-            validator=min_max_validator(8, 72),
-            default=12,
-            debug=True
+            "theme_font_size", int, validator=min_max_validator(8, 72), default=12, debug=True
         )
 
         self.theme_variant = PropertyDescriptor(
@@ -88,7 +76,7 @@ class IntegratedThemedWidget:
             str,
             validator=enum_validator(["light", "dark", "auto"]),
             default="light",
-            debug=True
+            debug=True,
         )
 
         print(f"IntegratedThemedWidget created: {widget_id}")
@@ -207,13 +195,11 @@ def demonstrate_individual_systems():
     mapping.add_rule(
         id_selector("demo-widget"),
         {"theme_color": "#0066cc", "theme_font_size": 14},
-        name="Demo Widget Rule"
+        name="Demo Widget Rule",
     )
 
     mapping.add_rule(
-        type_selector("IntegratedWidget"),
-        {"theme_background": "#f8f9fa"},
-        name="Widget Type Rule"
+        type_selector("IntegratedWidget"), {"theme_background": "#f8f9fa"}, name="Widget Type Rule"
     )
 
     print("✓ CSS selector mapping:")
@@ -243,14 +229,14 @@ def demonstrate_integration():
         class_selector("button"),
         {"theme_background": "#e9ecef", "theme_font_size": 14, "theme_color": "#495057"},
         priority=MappingPriority.NORMAL,
-        name="Base Button Style"
+        name="Base Button Style",
     )
 
     mapping.add_rule(
         class_selector("primary"),
         {"theme_background": "#007bff", "theme_color": "#ffffff"},
         priority=MappingPriority.HIGH,
-        name="Primary Button Style"
+        name="Primary Button Style",
     )
 
     # Form input rules
@@ -258,7 +244,7 @@ def demonstrate_integration():
         class_selector("input"),
         {"theme_background": "#ffffff", "theme_color": "#495057", "theme_font_size": 12},
         priority=MappingPriority.NORMAL,
-        name="Base Input Style"
+        name="Base Input Style",
     )
 
     # Focus state rules (conditional)
@@ -270,7 +256,7 @@ def demonstrate_integration():
         {"theme_color": "#0056b3"},
         conditions=[focused_condition],
         priority=MappingPriority.HIGH,
-        name="Focus State Rule"
+        name="Focus State Rule",
     )
 
     # Dark theme variant
@@ -278,7 +264,7 @@ def demonstrate_integration():
         "[theme_variant='dark']",
         {"theme_background": "#343a40", "theme_color": "#ffffff"},
         priority=MappingPriority.HIGHEST,
-        name="Dark Theme Override"
+        name="Dark Theme Override",
     )
 
     print(f"Created {mapping.get_statistics()['active_rules']} mapping rules")
@@ -287,26 +273,32 @@ def demonstrate_integration():
     print("\n--- Creating Themed Widgets ---")
 
     # Primary button
-    primary_button = (IntegratedThemedWidget("primary-btn", "Button")
-                     .add_class("button")
-                     .add_class("primary")
-                     .add_class("focusable"))
+    primary_button = (
+        IntegratedThemedWidget("primary-btn", "Button")
+        .add_class("button")
+        .add_class("primary")
+        .add_class("focusable")
+    )
 
     # Secondary button
-    secondary_button = (IntegratedThemedWidget("secondary-btn", "Button")
-                       .add_class("button")
-                       .add_class("focusable"))
+    secondary_button = (
+        IntegratedThemedWidget("secondary-btn", "Button").add_class("button").add_class("focusable")
+    )
 
     # Form input
-    text_input = (IntegratedThemedWidget("email-input", "Input")
-                 .add_class("input")
-                 .add_class("focusable")
-                 .set_attribute("type", "email"))
+    text_input = (
+        IntegratedThemedWidget("email-input", "Input")
+        .add_class("input")
+        .add_class("focusable")
+        .set_attribute("type", "email")
+    )
 
     # Dark themed widget
-    dark_widget = (IntegratedThemedWidget("dark-panel", "Panel")
-                  .add_class("panel")
-                  .set_attribute("theme_variant", "dark"))
+    dark_widget = (
+        IntegratedThemedWidget("dark-panel", "Panel")
+        .add_class("panel")
+        .set_attribute("theme_variant", "dark")
+    )
 
     widgets = [primary_button, secondary_button, text_input, dark_widget]
 
@@ -336,7 +328,9 @@ def demonstrate_integration():
 
     # Explain color property
     color_explanation = visualizer.explain_property_source(primary_button, "theme_color")
-    print(f"Primary button color source: {color_explanation['final_value']} from rule '{color_explanation['contributing_rules'][0]['name']}'")
+    print(
+        f"Primary button color source: {color_explanation['final_value']} from rule '{color_explanation['contributing_rules'][0]['name']}'"
+    )
 
     # Show event statistics
     print("\n--- Event System Statistics ---")
@@ -366,7 +360,9 @@ def demonstrate_integration():
 
     # Show mapping statistics
     stats = mapping.get_statistics()
-    print(f"Mapping cache hit rate: {stats['performance_stats']['cache_hits'] / (stats['performance_stats']['cache_hits'] + stats['performance_stats']['cache_misses']) * 100:.1f}%")
+    print(
+        f"Mapping cache hit rate: {stats['performance_stats']['cache_hits'] / (stats['performance_stats']['cache_hits'] + stats['performance_stats']['cache_misses']) * 100:.1f}%"
+    )
 
     print("\n--- Integration Complete ---")
     print("✓ PropertyDescriptor: Type-safe properties with validation and caching")
@@ -396,7 +392,9 @@ def demonstrate_error_recovery():
         mapping.add_rule("", {"invalid": "rule"})  # Invalid selector
     except Exception as e:
         print(f"✓ Mapping validation caught error: {e}")
-        print(f"  Mapping system still functional: {mapping.get_statistics()['active_rules']} rules")
+        print(
+            f"  Mapping system still functional: {mapping.get_statistics()['active_rules']} rules"
+        )
 
     print("\n--- Event System Error Recovery ---")
     get_global_event_system()

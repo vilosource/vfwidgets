@@ -34,11 +34,7 @@ from vfwidgets_theme import ThemedApplication, ThemedWidget
 class ThemedStackedWidget(ThemedWidget, QStackedWidget):
     """A themed stacked widget."""
 
-    theme_config = {
-        'bg': 'stack.background',
-        'fg': 'stack.foreground',
-        'border': 'stack.border'
-    }
+    theme_config = {"bg": "stack.background", "fg": "stack.foreground", "border": "stack.border"}
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,27 +46,26 @@ class ThemedStackedWidget(ThemedWidget, QStackedWidget):
 
     def update_styling(self):
         """Update stack styling."""
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QStackedWidget {{
             background-color: {bg_color};
             color: {fg_color};
             border: 1px solid {border_color};
             border-radius: 4px;
         }}
-        """)
+        """
+        )
 
 
 class StackPage(ThemedWidget):
     """Base class for stack pages."""
 
-    theme_config = {
-        'bg': 'page.background',
-        'fg': 'page.foreground'
-    }
+    theme_config = {"bg": "page.background", "fg": "page.foreground"}
 
     def __init__(self, title="Page", parent=None):
         super().__init__(parent)
@@ -82,15 +77,17 @@ class StackPage(ThemedWidget):
 
     def update_styling(self):
         """Update page styling."""
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QWidget {{
             background-color: {bg_color};
             color: {fg_color};
         }}
-        """)
+        """
+        )
 
     def get_title(self):
         """Get page title."""
@@ -219,7 +216,8 @@ class AboutPage(StackPage):
         layout.addWidget(title)
 
         content = QTextEdit()
-        content.setHtml("""
+        content.setHtml(
+            """
         <h3>Themed Stacked Widget Demo</h3>
         <p>This demonstration shows how to create a stacked widget that
         responds to theme changes.</p>
@@ -234,7 +232,8 @@ class AboutPage(StackPage):
 
         <p>Each page is a separate widget that can contain any content
         while maintaining theme consistency.</p>
-        """)
+        """
+        )
         content.setReadOnly(True)
         layout.addWidget(content)
 
@@ -269,7 +268,7 @@ class StackedDemo(ThemedWidget):
             ("Welcome", WelcomePage()),
             ("Settings", SettingsPage()),
             ("Data", DataPage()),
-            ("About", AboutPage())
+            ("About", AboutPage()),
         ]
 
         # Stacked widget
@@ -332,11 +331,11 @@ class StackedDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         layout.addLayout(controls_layout)
@@ -365,34 +364,20 @@ def main():
     app = ThemedApplication(sys.argv)
 
     light_theme = {
-        'name': 'light',
-        'stack': {
-            'background': '#ffffff',
-            'foreground': '#000000',
-            'border': '#cccccc'
-        },
-        'page': {
-            'background': '#ffffff',
-            'foreground': '#000000'
-        }
+        "name": "light",
+        "stack": {"background": "#ffffff", "foreground": "#000000", "border": "#cccccc"},
+        "page": {"background": "#ffffff", "foreground": "#000000"},
     }
 
     dark_theme = {
-        'name': 'dark',
-        'stack': {
-            'background': '#3a3a3a',
-            'foreground': '#ffffff',
-            'border': '#555555'
-        },
-        'page': {
-            'background': '#3a3a3a',
-            'foreground': '#ffffff'
-        }
+        "name": "dark",
+        "stack": {"background": "#3a3a3a", "foreground": "#ffffff", "border": "#555555"},
+        "page": {"background": "#3a3a3a", "foreground": "#ffffff"},
     }
 
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.set_theme('light')
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.set_theme("light")
 
     demo = StackedDemo()
     demo.show()
@@ -400,5 +385,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

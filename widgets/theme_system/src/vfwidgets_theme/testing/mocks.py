@@ -249,7 +249,7 @@ class MockThemeableWidget:
                 result = self._theme_provider.get_property(key)
 
             # Validate it's a color-like value
-            if isinstance(result, str) and (result.startswith('#') or result.startswith('rgb')):
+            if isinstance(result, str) and (result.startswith("#") or result.startswith("rgb")):
                 return result
             else:
                 return default
@@ -374,11 +374,11 @@ class MockColorProvider:
             result = self._validation_cache[color]
         else:
             # Simple validation logic for testing
-            result = (
-                isinstance(color, str) and
-                (color.startswith('#') and len(color) in [4, 7] or
-                 color.startswith('rgb') or
-                 color in ['red', 'green', 'blue', 'black', 'white'])
+            result = isinstance(color, str) and (
+                color.startswith("#")
+                and len(color) in [4, 7]
+                or color.startswith("rgb")
+                or color in ["red", "green", "blue", "black", "white"]
             )
             self._validation_cache[color] = result
 
@@ -450,7 +450,7 @@ class MockStyleGenerator:
         self._generation_count += 1
 
         # Simple QSS generation for testing
-        widget_type = getattr(widget, 'widget_type', 'generic')
+        widget_type = getattr(widget, "widget_type", "generic")
         selector = self._widget_selectors.get(widget_type, "QWidget")
 
         styles = []
@@ -573,7 +573,7 @@ class MockWidget:
         """Get a dynamic property from the widget."""
         return self._properties.get(name, default)
 
-    def setParent(self, parent: Optional['MockWidget']) -> None:
+    def setParent(self, parent: Optional["MockWidget"]) -> None:
         """Set the widget's parent."""
         if self._parent:
             self._parent._children.remove(self)
@@ -581,11 +581,11 @@ class MockWidget:
         if parent:
             parent._children.append(self)
 
-    def parent(self) -> Optional['MockWidget']:
+    def parent(self) -> Optional["MockWidget"]:
         """Get the widget's parent."""
         return self._parent
 
-    def children(self) -> List['MockWidget']:
+    def children(self) -> List["MockWidget"]:
         """Get the widget's children."""
         return self._children.copy()
 
@@ -668,7 +668,7 @@ class MockApplication:
         """Notify all registered components of theme change."""
         # Notify widgets
         for widget in list(self._widgets):
-            if hasattr(widget, 'on_theme_changed'):
+            if hasattr(widget, "on_theme_changed"):
                 widget.on_theme_changed()
 
         # Notify callbacks
@@ -723,37 +723,43 @@ class MockPainter:
 
     def drawRect(self, x: int, y: int, width: int, height: int) -> None:
         """Draw a rectangle."""
-        self.draw_operations.append({
-            "type": "rect",
-            "x": x,
-            "y": y,
-            "width": width,
-            "height": height,
-            "pen": self.pen_color,
-            "brush": self.brush_color,
-        })
+        self.draw_operations.append(
+            {
+                "type": "rect",
+                "x": x,
+                "y": y,
+                "width": width,
+                "height": height,
+                "pen": self.pen_color,
+                "brush": self.brush_color,
+            }
+        )
 
     def drawText(self, x: int, y: int, text: str) -> None:
         """Draw text."""
-        self.draw_operations.append({
-            "type": "text",
-            "x": x,
-            "y": y,
-            "text": text,
-            "pen": self.pen_color,
-            "font": self.font,
-        })
+        self.draw_operations.append(
+            {
+                "type": "text",
+                "x": x,
+                "y": y,
+                "text": text,
+                "pen": self.pen_color,
+                "font": self.font,
+            }
+        )
 
     def drawLine(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Draw a line."""
-        self.draw_operations.append({
-            "type": "line",
-            "x1": x1,
-            "y1": y1,
-            "x2": x2,
-            "y2": y2,
-            "pen": self.pen_color,
-        })
+        self.draw_operations.append(
+            {
+                "type": "line",
+                "x1": x1,
+                "y1": y1,
+                "x2": x2,
+                "y2": y2,
+                "pen": self.pen_color,
+            }
+        )
 
     def clear_operations(self) -> None:
         """Clear all recorded draw operations."""
@@ -767,6 +773,7 @@ class MockPainter:
 
 
 # Utility functions for creating configured mocks
+
 
 def create_mock_theme_provider(theme_name: str = "default") -> MockThemeProvider:
     """Create a pre-configured mock theme provider.

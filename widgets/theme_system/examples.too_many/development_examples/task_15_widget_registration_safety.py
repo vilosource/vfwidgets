@@ -30,7 +30,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
 # Add src to path for imports
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 from vfwidgets_theme.lifecycle import (
     BulkOperationError,
@@ -97,18 +97,21 @@ class RegistrationSafetyDemo:
 
     def _setup_lifecycle_callbacks(self):
         """Set up lifecycle event callbacks for monitoring."""
+
         def on_lifecycle_event(event: WidgetLifecycleEvent):
             widget_id_short = str(event.widget_id)[-6:]  # Last 6 digits for readability
             metadata_str = f" (metadata: {event.metadata})" if event.metadata else ""
-            print(f"  Lifecycle Event: Widget {widget_id_short} -> {event.state.name}{metadata_str}")
+            print(
+                f"  Lifecycle Event: Widget {widget_id_short} -> {event.state.name}{metadata_str}"
+            )
 
         self.registry.add_lifecycle_callback(on_lifecycle_event)
 
     def demonstrate_basic_safety_features(self):
         """Demonstrate basic registration safety and validation."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("1. BASIC SAFETY FEATURES")
-        print("="*60)
+        print("=" * 60)
 
         print("\n1.1 Safe Registration with Validation")
         print("-" * 40)
@@ -117,17 +120,16 @@ class RegistrationSafetyDemo:
         widgets = [
             DemoWidget("Button1", "button"),
             DemoWidget("Label1", "label"),
-            DemoWidget("Input1", "input")
+            DemoWidget("Input1", "input"),
         ]
 
         # Register widgets safely
         for widget in widgets:
             try:
-                self.registry.register(widget, {
-                    "type": widget.widget_type,
-                    "created_at": time.time(),
-                    "version": "1.0"
-                })
+                self.registry.register(
+                    widget,
+                    {"type": widget.widget_type, "created_at": time.time(), "version": "1.0"},
+                )
                 print(f"  ✓ Successfully registered {widget.name}")
             except Exception as e:
                 print(f"  ✗ Failed to register {widget.name}: {e}")
@@ -161,9 +163,9 @@ class RegistrationSafetyDemo:
 
     def demonstrate_lifecycle_tracking(self, widgets: list[DemoWidget]):
         """Demonstrate complete widget lifecycle tracking."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("2. LIFECYCLE TRACKING")
-        print("="*60)
+        print("=" * 60)
 
         print("\n2.1 Widget Lifecycle States")
         print("-" * 40)
@@ -188,7 +190,7 @@ class RegistrationSafetyDemo:
             self.registry._update_lifecycle_state(
                 widget_id,
                 WidgetLifecycleState.UPDATED,
-                {"action": "theme_change", "theme": theme.name}
+                {"action": "theme_change", "theme": theme.name},
             )
 
         print("\n2.3 Lifecycle Events History")
@@ -198,15 +200,15 @@ class RegistrationSafetyDemo:
             events = self.registry.get_lifecycle_events(widget)
             print(f"  {widget.name} lifecycle history:")
             for event in events:
-                timestamp = time.strftime('%H:%M:%S', time.localtime(event.timestamp))
+                timestamp = time.strftime("%H:%M:%S", time.localtime(event.timestamp))
                 metadata_str = f" - {event.metadata}" if event.metadata else ""
                 print(f"    {timestamp}: {event.state.name}{metadata_str}")
 
     def demonstrate_bulk_operations(self):
         """Demonstrate high-performance bulk operations."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("3. BULK OPERATIONS")
-        print("="*60)
+        print("=" * 60)
 
         print("\n3.1 Bulk Registration Performance")
         print("-" * 40)
@@ -218,11 +220,9 @@ class RegistrationSafetyDemo:
         for i in range(100):
             widget = DemoWidget(f"BulkWidget_{i:03d}", "bulk")
             bulk_widgets.append(widget)
-            metadata_list.append({
-                "batch": "performance_test",
-                "index": i,
-                "category": "bulk_operation"
-            })
+            metadata_list.append(
+                {"batch": "performance_test", "index": i, "category": "bulk_operation"}
+            )
 
         # Measure bulk registration performance
         print(f"  Registering {len(bulk_widgets)} widgets in bulk...")
@@ -238,7 +238,7 @@ class RegistrationSafetyDemo:
             print(f"    - Duration: {duration_ms:.2f}ms")
             print(f"    - Per widget: {result['per_widget_us']:.2f}μs")
 
-            if result['per_widget_us'] < 10:
+            if result["per_widget_us"] < 10:
                 print("    ✓ Performance target met (<10μs per widget)")
             else:
                 print("    ⚠ Performance target missed (target: <10μs per widget)")
@@ -268,9 +268,9 @@ class RegistrationSafetyDemo:
 
     def demonstrate_decorators(self):
         """Demonstrate registration decorators for easy use."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("4. REGISTRATION DECORATORS")
-        print("="*60)
+        print("=" * 60)
 
         print("\n4.1 Auto-Registration Decorator")
         print("-" * 40)
@@ -310,10 +310,13 @@ class RegistrationSafetyDemo:
             tracked_widgets.append(widget)
 
             # Use the lifecycle tracking feature
-            widget.track_lifecycle(WidgetLifecycleState.UPDATED, {
-                "action": "initialization_complete",
-                "features_enabled": ["lifecycle_tracking", "auto_decoration"]
-            })
+            widget.track_lifecycle(
+                WidgetLifecycleState.UPDATED,
+                {
+                    "action": "initialization_complete",
+                    "features_enabled": ["lifecycle_tracking", "auto_decoration"],
+                },
+            )
 
         print(f"  Created {len(tracked_widgets)} lifecycle-tracked widgets")
 
@@ -321,9 +324,9 @@ class RegistrationSafetyDemo:
 
     def demonstrate_thread_safety(self):
         """Demonstrate thread-safe operations under concurrent load."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("5. THREAD SAFETY")
-        print("="*60)
+        print("=" * 60)
 
         print("\n5.1 Concurrent Registration")
         print("-" * 40)
@@ -334,11 +337,9 @@ class RegistrationSafetyDemo:
             for i in range(count):
                 try:
                     widget = DemoWidget(f"Thread{thread_id}_Widget_{i}", "concurrent")
-                    self.registry.register(widget, {
-                        "thread_id": thread_id,
-                        "index": i,
-                        "test": "thread_safety"
-                    })
+                    self.registry.register(
+                        widget, {"thread_id": thread_id, "index": i, "test": "thread_safety"}
+                    )
                     registered_count += 1
                 except Exception as e:
                     print(f"      Thread {thread_id} registration failed: {e}")
@@ -372,9 +373,9 @@ class RegistrationSafetyDemo:
 
     def demonstrate_performance_monitoring(self):
         """Demonstrate comprehensive performance monitoring."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("6. PERFORMANCE MONITORING")
-        print("="*60)
+        print("=" * 60)
 
         print("\n6.1 Context Manager Performance Tracking")
         print("-" * 40)
@@ -414,8 +415,8 @@ class RegistrationSafetyDemo:
         print(f"    - Bulk operations: {stats['bulk_operations']}")
 
         # Performance analysis
-        if stats['active_widgets'] > 0:
-            memory_per_widget = stats['memory_overhead_bytes'] / stats['active_widgets']
+        if stats["active_widgets"] > 0:
+            memory_per_widget = stats["memory_overhead_bytes"] / stats["active_widgets"]
             print(f"    - Memory per widget: {memory_per_widget:.1f} bytes")
 
             if memory_per_widget < 100:
@@ -427,9 +428,9 @@ class RegistrationSafetyDemo:
 
     def demonstrate_memory_leak_prevention(self, test_widgets: list[DemoWidget]):
         """Demonstrate zero memory leak guarantee."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("7. MEMORY LEAK PREVENTION")
-        print("="*60)
+        print("=" * 60)
 
         print("\n7.1 Before Cleanup")
         print("-" * 40)
@@ -470,19 +471,19 @@ class RegistrationSafetyDemo:
         print(f"  Memory overhead: {final_stats['memory_overhead_bytes']} bytes")
 
         # Memory leak verification
-        memory_freed = initial_stats['memory_overhead_bytes'] - final_stats['memory_overhead_bytes']
+        memory_freed = initial_stats["memory_overhead_bytes"] - final_stats["memory_overhead_bytes"]
         print(f"  Memory freed: {memory_freed} bytes")
 
-        if final_stats['active_widgets'] < initial_stats['active_widgets'] / 2:
+        if final_stats["active_widgets"] < initial_stats["active_widgets"] / 2:
             print("  ✓ Significant cleanup occurred - no memory leaks detected")
         else:
             print("  ⚠ Cleanup may be incomplete - check for memory leaks")
 
     def demonstrate_validation_and_integrity(self):
         """Demonstrate registry validation and integrity checking."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("8. VALIDATION & INTEGRITY")
-        print("="*60)
+        print("=" * 60)
 
         print("\n8.1 Registry Integrity Check")
         print("-" * 40)
@@ -493,9 +494,9 @@ class RegistrationSafetyDemo:
         print(f"    - Total widgets: {validation['total_widgets']}")
         print(f"    - Dead references: {validation['dead_references']}")
 
-        if validation['issues']:
+        if validation["issues"]:
             print("    - Issues found:")
-            for issue in validation['issues']:
+            for issue in validation["issues"]:
                 print(f"      • {issue}")
         else:
             print("    - No integrity issues found")
@@ -553,9 +554,9 @@ class RegistrationSafetyDemo:
             self.demonstrate_validation_and_integrity()
 
             # Final summary
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("DEMONSTRATION COMPLETE")
-            print("="*60)
+            print("=" * 60)
 
             final_stats = self.registry.get_statistics()
             print("\nFinal Registry State:")
@@ -567,17 +568,23 @@ class RegistrationSafetyDemo:
             print(f"  • System uptime: {final_stats['uptime_seconds']:.2f} seconds")
 
             print("\nPerformance Achievements:")
-            if final_stats['active_widgets'] > 0:
-                memory_per_widget = final_stats['memory_overhead_bytes'] / final_stats['active_widgets']
+            if final_stats["active_widgets"] > 0:
+                memory_per_widget = (
+                    final_stats["memory_overhead_bytes"] / final_stats["active_widgets"]
+                )
                 print(f"  • Memory per widget: {memory_per_widget:.1f} bytes")
-                print(f"  • Memory efficiency: {'✓ PASSED' if memory_per_widget < 100 else '✗ FAILED'}")
+                print(
+                    f"  • Memory efficiency: {'✓ PASSED' if memory_per_widget < 100 else '✗ FAILED'}"
+                )
 
             print("  • Thread safety: ✓ PASSED (no deadlocks)")
             print("  • Memory leaks: ✓ PREVENTED (WeakReference system)")
             print("  • Atomic operations: ✓ IMPLEMENTED (bulk safety)")
 
             validation = self.registry.validate_integrity()
-            print(f"  • Registry integrity: {'✓ VALID' if validation['is_valid'] else '✗ ISSUES FOUND'}")
+            print(
+                f"  • Registry integrity: {'✓ VALID' if validation['is_valid'] else '✗ ISSUES FOUND'}"
+            )
 
             print("\n🎉 Task 15 implementation successfully demonstrates:")
             print("   - Enhanced safety with retry logic and validation")
@@ -590,6 +597,7 @@ class RegistrationSafetyDemo:
         except Exception as e:
             print(f"\n❌ Demonstration failed with error: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

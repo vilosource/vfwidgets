@@ -6,7 +6,4 @@ including type-safe descriptors, validation, and caching.
 
 from .descriptors import PropertyDescriptor, ValidationError
 
-__all__ = [
-    "PropertyDescriptor",
-    "ValidationError"
-]
+__all__ = ["PropertyDescriptor", "ValidationError"]

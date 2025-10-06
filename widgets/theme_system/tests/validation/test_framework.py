@@ -114,20 +114,14 @@ class TestValidationFramework:
                 self.name = "test"
 
         obj = TestObject()
-        expected_state = {
-            "value": 42,
-            "name": "test"
-        }
+        expected_state = {"value": 42, "name": "test"}
 
         result = framework.validate_runtime_state(obj, expected_state)
         assert result.passed
         assert not result.has_errors
 
         # Test with validation function
-        expected_state_func = {
-            "value": lambda x: x > 0,
-            "name": lambda x: isinstance(x, str)
-        }
+        expected_state_func = {"value": lambda x: x > 0, "name": lambda x: isinstance(x, str)}
 
         result = framework.validate_runtime_state(obj, expected_state_func)
         assert result.passed
@@ -166,7 +160,7 @@ class TestValidationFramework:
         framework = ValidationFramework(ValidationMode.DEBUG)
 
         def custom_validator(theme, result):
-            if not hasattr(theme, 'custom_property'):
+            if not hasattr(theme, "custom_property"):
                 result.add_error("Missing custom property")
 
         framework.register_validator(ValidationType.SCHEMA, custom_validator)
@@ -227,7 +221,7 @@ class TestSchemaValidation:
         valid_data = {
             "name": "test_theme",
             "colors": {"primary": "#007acc"},
-            "styles": {"font_size": "12px"}
+            "styles": {"font_size": "12px"},
         }
 
         result = schema.validate(valid_data)
@@ -237,7 +231,7 @@ class TestSchemaValidation:
         # Invalid theme data
         invalid_data = {
             "colors": {"primary": "#007acc"},
-            "styles": {"font_size": "12px"}
+            "styles": {"font_size": "12px"},
             # Missing required 'name'
         }
 
@@ -251,6 +245,7 @@ class TestContractValidation:
 
     def test_theme_protocol_validation(self):
         """Test theme protocol validation."""
+
         # Create mock theme that implements protocol
         class MockTheme:
             def __init__(self):

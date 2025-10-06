@@ -38,9 +38,11 @@ if TYPE_CHECKING:
 # Import Qt for signal support
 try:
     from PySide6.QtCore import QObject, Signal
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     class QObject:
         pass
 
@@ -63,6 +65,7 @@ except ImportError:
                 self._callbacks.clear()
             elif callback in self._callbacks:
                 self._callbacks.remove(callback)
+
 
 from ..errors import ThemeError
 from ..logging import get_debug_logger
@@ -122,7 +125,7 @@ class MinMaxRule(ValidationRule):
 class RegexRule(ValidationRule):
     """Validation rule using regular expressions."""
 
-    pattern: Union[str, Pattern] = r'.*'
+    pattern: Union[str, Pattern] = r".*"
 
     def __post_init__(self):
         if isinstance(self.pattern, str):
@@ -247,21 +250,20 @@ class PropertyCache:
         """Get cache statistics."""
         with self._lock:
             return {
-                'size': len(self._cache),
-                'max_size': self._max_size,
-                'hits': self._hits,
-                'misses': self._misses,
-                'hit_rate': self.hit_rate
+                "size": len(self._cache),
+                "max_size": self._max_size,
+                "hits": self._hits,
+                "misses": self._misses,
+                "hit_rate": self.hit_rate,
             }
 
 
 class ComputedProperty:
     """Represents a computed property with dependency tracking and caching."""
 
-    def __init__(self,
-                 compute_func: Callable,
-                 dependencies: List[str] = None,
-                 cache_enabled: bool = True):
+    def __init__(
+        self, compute_func: Callable, dependencies: List[str] = None, cache_enabled: bool = True
+    ):
         self.compute_func = compute_func
         self.dependencies = dependencies or []
         self.cache_enabled = cache_enabled
@@ -269,7 +271,7 @@ class ComputedProperty:
         self._cache_valid = False
         self._lock = threading.RLock()
 
-    def compute(self, obj: 'ThemedWidget') -> Any:
+    def compute(self, obj: "ThemedWidget") -> Any:
         """Compute the property value."""
         with self._lock:
             if self.cache_enabled and self._cache_valid:
@@ -307,16 +309,18 @@ class PropertyDescriptor:
     # Class-level cache shared across all descriptors
     _global_cache = PropertyCache(max_size=10000)
 
-    def __init__(self,
-                 name: str,
-                 type_hint: Type,
-                 *,
-                 validator: Optional[Union[ValidationRule, Callable, List[ValidationRule]]] = None,
-                 default: Any = None,
-                 computed: Optional[ComputedProperty] = None,
-                 cache_enabled: bool = True,
-                 inherit_from: Optional[str] = None,
-                 debug: bool = False):
+    def __init__(
+        self,
+        name: str,
+        type_hint: Type,
+        *,
+        validator: Optional[Union[ValidationRule, Callable, List[ValidationRule]]] = None,
+        default: Any = None,
+        computed: Optional[ComputedProperty] = None,
+        cache_enabled: bool = True,
+        inherit_from: Optional[str] = None,
+        debug: bool = False,
+    ):
         """Initialize property descriptor.
 
         Args:
@@ -362,7 +366,7 @@ class PropertyDescriptor:
         if self.debug:
             logger.debug(f"PropertyDescriptor bound: {owner.__name__}.{name}")
 
-    def __get__(self, obj: Optional['ThemedWidget'], objtype: Type = None):
+    def __get__(self, obj: Optional["ThemedWidget"], objtype: Type = None):
         """Get property value with type checking and caching."""
         # Return descriptor itself when accessed from class
         if obj is None:
@@ -421,7 +425,7 @@ class PropertyDescriptor:
                 self._validation_failures += 1
             return self.default
 
-    def __set__(self, obj: 'ThemedWidget', value: Any):
+    def __set__(self, obj: "ThemedWidget", value: Any):
         """Set property value with validation and cache invalidation."""
         # Get current value for event notification
         old_value = None
@@ -436,7 +440,7 @@ class PropertyDescriptor:
 
         try:
             # Get widget_id for event system
-            widget_id = getattr(obj, '_widget_id', f'widget_{id(obj)}')
+            widget_id = getattr(obj, "_widget_id", f"widget_{id(obj)}")
 
             # Notify event system that property is changing
             self._notify_property_changing(widget_id, old_value, value)
@@ -454,7 +458,7 @@ class PropertyDescriptor:
             self._notify_property_changed(widget_id, old_value, validated_value)
 
             # Notify widget of property change if it supports it
-            if hasattr(obj, '_on_property_changed'):
+            if hasattr(obj, "_on_property_changed"):
                 obj._on_property_changed(self.name, validated_value)
 
             if self.debug:
@@ -465,7 +469,7 @@ class PropertyDescriptor:
                 self._validation_failures += 1
 
             # Notify event system of validation failure
-            widget_id = getattr(obj, '_widget_id', f'widget_{id(obj)}')
+            widget_id = getattr(obj, "_widget_id", f"widget_{id(obj)}")
             self._notify_validation_failed(widget_id, value, str(e))
 
             logger.error(f"Cannot set {self.name}: {e}")
@@ -495,17 +499,17 @@ class PropertyDescriptor:
 
         return validators
 
-    def _resolve_value(self, obj: 'ThemedWidget') -> Any:
+    def _resolve_value(self, obj: "ThemedWidget") -> Any:
         """Resolve property value from theme system or inheritance."""
         # Try to get from current theme
-        if hasattr(obj, '_get_theme_property'):
+        if hasattr(obj, "_get_theme_property"):
             value = obj._get_theme_property(self.name)
             if value is not None:
                 return value
 
         # Try inheritance if specified
         if self.inherit_from:
-            if hasattr(obj, '_get_theme_property'):
+            if hasattr(obj, "_get_theme_property"):
                 inherited_value = obj._get_theme_property(self.inherit_from)
                 if inherited_value is not None:
                     return inherited_value
@@ -567,7 +571,7 @@ class PropertyDescriptor:
             return float(value)
         elif self.type_hint == bool:
             if isinstance(value, str):
-                return value.lower() in ('true', '1', 'yes', 'on')
+                return value.lower() in ("true", "1", "yes", "on")
             return bool(value)
         else:
             # Try direct conversion
@@ -580,7 +584,7 @@ class PropertyDescriptor:
             return self.default
         return value
 
-    def invalidate_cache(self, obj: Optional['ThemedWidget'] = None):
+    def invalidate_cache(self, obj: Optional["ThemedWidget"] = None):
         """Invalidate cached values."""
         if obj is not None:
             cache_key = f"{id(obj)}.{self.name}"
@@ -588,8 +592,9 @@ class PropertyDescriptor:
         else:
             # Invalidate all cache entries for this property
             # This is expensive but thorough
-            keys_to_remove = [k for k in self._global_cache._cache.keys()
-                            if k.endswith(f".{self.name}")]
+            keys_to_remove = [
+                k for k in self._global_cache._cache.keys() if k.endswith(f".{self.name}")
+            ]
             for key in keys_to_remove:
                 self._global_cache.invalidate(key)
 
@@ -602,21 +607,22 @@ class PropertyDescriptor:
         """Get performance and usage statistics."""
         with self._lock:
             return {
-                'name': self.name,
-                'type_hint': str(self.type_hint),
-                'access_count': self._access_count,
-                'validation_failures': self._validation_failures,
-                'last_access_time': self._last_access_time,
-                'cache_enabled': self.cache_enabled,
-                'validators_count': len(self.validators),
-                'is_computed': self.computed is not None,
-                'inherit_from': self.inherit_from
+                "name": self.name,
+                "type_hint": str(self.type_hint),
+                "access_count": self._access_count,
+                "validation_failures": self._validation_failures,
+                "last_access_time": self._last_access_time,
+                "cache_enabled": self.cache_enabled,
+                "validators_count": len(self.validators),
+                "is_computed": self.computed is not None,
+                "inherit_from": self.inherit_from,
             }
 
     def _notify_property_changing(self, widget_id: str, old_value: Any, new_value: Any):
         """Notify event system that property is about to change."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
             event_system.notify_property_changing(widget_id, self.name, old_value, new_value)
         except Exception as e:
@@ -628,6 +634,7 @@ class PropertyDescriptor:
         """Notify event system that property has changed."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
             event_system.notify_property_changed(widget_id, self.name, old_value, new_value)
         except Exception as e:
@@ -639,8 +646,11 @@ class PropertyDescriptor:
         """Notify event system that property validation failed."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
-            event_system.notify_property_validation_failed(widget_id, self.name, invalid_value, error_message)
+            event_system.notify_property_validation_failed(
+                widget_id, self.name, invalid_value, error_message
+            )
         except Exception as e:
             # Don't let event system errors break validation failure reporting
             if self.debug:
@@ -658,14 +668,14 @@ class PropertyDescriptor:
 
 
 # Utility functions for common validation rules
-def min_max_validator(min_val: Optional[Union[int, float]] = None,
-                     max_val: Optional[Union[int, float]] = None) -> MinMaxRule:
+def min_max_validator(
+    min_val: Optional[Union[int, float]] = None, max_val: Optional[Union[int, float]] = None
+) -> MinMaxRule:
     """Create a min/max validation rule."""
     return MinMaxRule(name="min_max", min_value=min_val, max_value=max_val)
 
 
-def regex_validator(pattern: Union[str, Pattern],
-                   error_msg: str = None) -> RegexRule:
+def regex_validator(pattern: Union[str, Pattern], error_msg: str = None) -> RegexRule:
     """Create a regex validation rule."""
     rule = RegexRule(name="regex", pattern=pattern)
     if error_msg:
@@ -673,8 +683,7 @@ def regex_validator(pattern: Union[str, Pattern],
     return rule
 
 
-def enum_validator(allowed_values: List[Any],
-                  error_msg: str = None) -> EnumRule:
+def enum_validator(allowed_values: List[Any], error_msg: str = None) -> EnumRule:
     """Create an enum validation rule."""
     rule = EnumRule(name="enum", allowed_values=allowed_values)
     if error_msg:
@@ -684,22 +693,20 @@ def enum_validator(allowed_values: List[Any],
 
 def color_validator() -> RegexRule:
     """Create a validator for CSS color values."""
-    color_pattern = r'^(#[0-9a-fA-F]{3,6}|rgb\(\d+,\s*\d+,\s*\d+\)|rgba\(\d+,\s*\d+,\s*\d+,\s*[\d.]+\)|[a-zA-Z]+)$'
+    color_pattern = r"^(#[0-9a-fA-F]{3,6}|rgb\(\d+,\s*\d+,\s*\d+\)|rgba\(\d+,\s*\d+,\s*\d+,\s*[\d.]+\)|[a-zA-Z]+)$"
     return regex_validator(color_pattern, "Must be a valid CSS color")
 
 
-def computed_property(dependencies: List[str] = None,
-                     cache: bool = True):
+def computed_property(dependencies: List[str] = None, cache: bool = True):
     """Decorator for creating computed properties."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
         wrapper._computed_property = ComputedProperty(
-            compute_func=func,
-            dependencies=dependencies or [],
-            cache_enabled=cache
+            compute_func=func, dependencies=dependencies or [], cache_enabled=cache
         )
         return wrapper
 
@@ -720,5 +727,5 @@ __all__ = [
     "regex_validator",
     "enum_validator",
     "color_validator",
-    "computed_property"
+    "computed_property",
 ]

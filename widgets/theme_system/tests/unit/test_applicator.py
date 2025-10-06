@@ -22,24 +22,48 @@ try:
     from PySide6.QtCore import QObject, QTimer, Signal
     from PySide6.QtGui import QPalette
     from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Create mock classes for headless testing
     class QObject:
-        def __init__(self): pass
+        def __init__(self):
+            pass
+
     class QWidget(QObject):
-        def __init__(self, parent=None): super().__init__()
-        def setStyleSheet(self, stylesheet): pass
-        def styleSheet(self): return ""
+        def __init__(self, parent=None):
+            super().__init__()
+
+        def setStyleSheet(self, stylesheet):
+            pass
+
+        def styleSheet(self):
+            return ""
+
     class QApplication(QObject):
-        def __init__(self): super().__init__()
-        def setStyleSheet(self, stylesheet): pass
-        def styleSheet(self): return ""
-    class QPushButton(QWidget): pass
-    class QLabel(QWidget): pass
-    class QPalette: pass
-    class Signal: pass
+        def __init__(self):
+            super().__init__()
+
+        def setStyleSheet(self, stylesheet):
+            pass
+
+        def styleSheet(self):
+            return ""
+
+    class QPushButton(QWidget):
+        pass
+
+    class QLabel(QWidget):
+        pass
+
+    class QPalette:
+        pass
+
+    class Signal:
+        pass
+
 
 # Import the modules under test
 from vfwidgets_theme.core.applicator import (
@@ -90,19 +114,17 @@ class TestThemeApplicator(ThemedTestCase):
         self.applicator = ThemeApplicator(registry=self.registry)
 
         # Create sample theme
-        self.sample_theme = Theme.from_dict({
-            "name": "test-theme",
-            "version": "1.0.0",
-            "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff",
-                "background": "#f5f5f5"
-            },
-            "styles": {
-                "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
-                "QLabel": "color: @colors.primary; background-color: @colors.background;"
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "test-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc", "secondary": "#ffffff", "background": "#f5f5f5"},
+                "styles": {
+                    "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
+                    "QLabel": "color: @colors.primary; background-color: @colors.background;",
+                },
             }
-        })
+        )
 
     def test_applicator_initialization(self):
         """Test applicator initialization with default settings."""
@@ -117,10 +139,7 @@ class TestThemeApplicator(ThemedTestCase):
         custom_registry = ThemeWidgetRegistry()
         widget_applicator = WidgetThemeApplicator(custom_registry)
 
-        applicator = ThemeApplicator(
-            registry=custom_registry,
-            widget_applicator=widget_applicator
-        )
+        applicator = ThemeApplicator(registry=custom_registry, widget_applicator=widget_applicator)
 
         self.assertIs(applicator._registry, custom_registry)
         self.assertIs(applicator._widget_applicator, widget_applicator)
@@ -159,7 +178,7 @@ class TestThemeApplicator(ThemedTestCase):
 
     def test_apply_theme_to_application(self):
         """Test applying theme at application level."""
-        with patch('vfwidgets_theme.core.applicator.QApplication.instance') as mock_instance:
+        with patch("vfwidgets_theme.core.applicator.QApplication.instance") as mock_instance:
             mock_app = Mock()
             mock_instance.return_value = mock_app
 
@@ -239,12 +258,14 @@ class TestWidgetThemeApplicator(ThemedTestCase):
         self.registry = ThemeWidgetRegistry()
         self.applicator = WidgetThemeApplicator(self.registry)
 
-        self.sample_theme = Theme.from_dict({
-            "name": "widget-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "widget-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
     def test_apply_to_single_widget(self):
         """Test applying theme to single widget."""
@@ -291,18 +312,17 @@ class TestWidgetThemeApplicator(ThemedTestCase):
 
     def test_style_generation(self):
         """Test CSS style generation from theme."""
-        theme_with_references = Theme.from_dict({
-            "name": "reference-theme",
-            "version": "1.0.0",
-            "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff"
-            },
-            "styles": {
-                "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
-                "QLabel": "color: @colors.primary;"
+        theme_with_references = Theme.from_dict(
+            {
+                "name": "reference-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc", "secondary": "#ffffff"},
+                "styles": {
+                    "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
+                    "QLabel": "color: @colors.primary;",
+                },
             }
-        })
+        )
 
         widget = MockWidget()
         self.applicator.apply_theme(widget, theme_with_references)
@@ -321,15 +341,17 @@ class TestWidgetThemeApplicator(ThemedTestCase):
         label = MockWidget()
         label.__class__.__name__ = "QLabel"
 
-        theme = Theme.from_dict({
-            "name": "specific-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {
-                "QPushButton": "background-color: @colors.primary;",
-                "QLabel": "font-weight: bold;"
+        theme = Theme.from_dict(
+            {
+                "name": "specific-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {
+                    "QPushButton": "background-color: @colors.primary;",
+                    "QLabel": "font-weight: bold;",
+                },
             }
-        })
+        )
 
         self.applicator.apply_theme(button, theme)
         self.applicator.apply_theme(label, theme)
@@ -351,17 +373,19 @@ class TestApplicationThemeApplicator(ThemedTestCase):
         super().setUp()
         self.applicator = ApplicationThemeApplicator()
 
-        self.sample_theme = Theme.from_dict({
-            "name": "app-theme",
-            "version": "1.0.0",
-            "colors": {"background": "#f0f0f0"},
-            "styles": {
-                "QMainWindow": "background-color: @colors.background;",
-                "*": "font-family: 'Segoe UI';"
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "app-theme",
+                "version": "1.0.0",
+                "colors": {"background": "#f0f0f0"},
+                "styles": {
+                    "QMainWindow": "background-color: @colors.background;",
+                    "*": "font-family: 'Segoe UI';",
+                },
             }
-        })
+        )
 
-    @patch('vfwidgets_theme.core.applicator.QApplication.instance')
+    @patch("vfwidgets_theme.core.applicator.QApplication.instance")
     def test_apply_global_stylesheet(self, mock_instance):
         """Test applying global application stylesheet."""
         mock_app = Mock()
@@ -377,7 +401,7 @@ class TestApplicationThemeApplicator(ThemedTestCase):
         self.assertIn("background-color: #f0f0f0", call_args)
         self.assertIn("font-family: 'Segoe UI'", call_args)
 
-    @patch('vfwidgets_theme.core.applicator.QApplication.instance')
+    @patch("vfwidgets_theme.core.applicator.QApplication.instance")
     def test_apply_with_no_application(self, mock_instance):
         """Test applying theme with no QApplication instance."""
         mock_instance.return_value = None
@@ -386,7 +410,7 @@ class TestApplicationThemeApplicator(ThemedTestCase):
 
         self.assertFalse(success)
 
-    @patch('vfwidgets_theme.core.applicator.QApplication.instance')
+    @patch("vfwidgets_theme.core.applicator.QApplication.instance")
     def test_clear_application_stylesheet(self, mock_instance):
         """Test clearing application stylesheet."""
         mock_app = Mock()
@@ -396,7 +420,7 @@ class TestApplicationThemeApplicator(ThemedTestCase):
 
         mock_app.setStyleSheet.assert_called_once_with("")
 
-    @patch('vfwidgets_theme.core.applicator.QApplication.instance')
+    @patch("vfwidgets_theme.core.applicator.QApplication.instance")
     def test_get_current_stylesheet(self, mock_instance):
         """Test getting current application stylesheet."""
         mock_app = Mock()
@@ -418,12 +442,14 @@ class TestBatchThemeUpdater(ThemedTestCase):
         self.registry = ThemeWidgetRegistry()
         self.updater = BatchThemeUpdater(self.registry)
 
-        self.sample_theme = Theme.from_dict({
-            "name": "batch-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "batch-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
     def test_batch_update_performance(self):
         """Test batch update performance optimization."""
@@ -461,7 +487,7 @@ class TestBatchThemeUpdater(ThemedTestCase):
         widget_ids = [self.registry.register_widget(w) for w in widgets]
 
         # Mock one widget to raise exception
-        with patch.object(self.updater._widget_applicator, 'apply_theme_by_id') as mock_apply:
+        with patch.object(self.updater._widget_applicator, "apply_theme_by_id") as mock_apply:
             # First call raises exception, rest succeed
             mock_apply.side_effect = [Exception("Test error"), True, True, True, True]
 
@@ -484,7 +510,7 @@ class TestBatchThemeUpdater(ThemedTestCase):
         def batch_worker(worker_id: int):
             """Worker function for concurrent batch updates."""
             try:
-                worker_ids = widget_ids[worker_id*5:(worker_id+1)*5]  # 5 widgets per worker
+                worker_ids = widget_ids[worker_id * 5 : (worker_id + 1) * 5]  # 5 widgets per worker
                 worker_results = self.updater.update_widgets(worker_ids, self.sample_theme)
                 results.extend(worker_results.values())
             except Exception as e:
@@ -561,12 +587,14 @@ class TestAsyncThemeApplicator(ThemedTestCase):
         self.registry = ThemeWidgetRegistry()
         self.async_applicator = AsyncThemeApplicator(self.registry)
 
-        self.sample_theme = Theme.from_dict({
-            "name": "async-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "async-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
     def test_async_apply_theme(self):
         """Test asynchronous theme application."""
@@ -647,12 +675,14 @@ class TestPlatformThemeAdapter(ThemedTestCase):
 
     def test_platform_specific_colors(self):
         """Test platform-specific color adaptations."""
-        base_theme = Theme.from_dict({
-            "name": "platform-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        base_theme = Theme.from_dict(
+            {
+                "name": "platform-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         adapted_theme = self.adapter.adapt_theme_for_platform(base_theme)
 
@@ -663,14 +693,16 @@ class TestPlatformThemeAdapter(ThemedTestCase):
 
     def test_platform_specific_fonts(self):
         """Test platform-specific font adaptations."""
-        theme_with_fonts = Theme.from_dict({
-            "name": "font-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {
-                "QPushButton": "font-family: 'System Font'; background-color: @colors.primary;"
+        theme_with_fonts = Theme.from_dict(
+            {
+                "name": "font-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {
+                    "QPushButton": "font-family: 'System Font'; background-color: @colors.primary;"
+                },
             }
-        })
+        )
 
         adapted_theme = self.adapter.adapt_theme_for_platform(theme_with_fonts)
 
@@ -678,51 +710,57 @@ class TestPlatformThemeAdapter(ThemedTestCase):
         button_style = adapted_theme.styles.get("QPushButton", "")
         self.assertIn("font-family:", button_style)
 
-    @patch('platform.system')
+    @patch("platform.system")
     def test_windows_specific_adaptations(self, mock_system):
         """Test Windows-specific theme adaptations."""
         mock_system.return_value = "Windows"
 
-        theme = Theme.from_dict({
-            "name": "windows-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "windows-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         adapted_theme = self.adapter.adapt_theme_for_platform(theme)
 
         # Should have Windows-specific adaptations
         self.assertIsNotNone(adapted_theme)
 
-    @patch('platform.system')
+    @patch("platform.system")
     def test_macos_specific_adaptations(self, mock_system):
         """Test macOS-specific theme adaptations."""
         mock_system.return_value = "Darwin"
 
-        theme = Theme.from_dict({
-            "name": "macos-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "macos-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         adapted_theme = self.adapter.adapt_theme_for_platform(theme)
 
         # Should have macOS-specific adaptations
         self.assertIsNotNone(adapted_theme)
 
-    @patch('platform.system')
+    @patch("platform.system")
     def test_linux_specific_adaptations(self, mock_system):
         """Test Linux-specific theme adaptations."""
         mock_system.return_value = "Linux"
 
-        theme = Theme.from_dict({
-            "name": "linux-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "linux-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         adapted_theme = self.adapter.adapt_theme_for_platform(theme)
 
@@ -740,15 +778,17 @@ class TestApplicatorIntegration(ThemedTestCase):
         applicator = create_theme_applicator(registry)
 
         # Create theme and widgets
-        theme = Theme.from_dict({
-            "name": "integration-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc", "secondary": "#ffffff"},
-            "styles": {
-                "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
-                "QLabel": "color: @colors.primary;"
+        theme = Theme.from_dict(
+            {
+                "name": "integration-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc", "secondary": "#ffffff"},
+                "styles": {
+                    "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
+                    "QLabel": "color: @colors.primary;",
+                },
             }
-        })
+        )
 
         widgets = [MockWidget() for _ in range(10)]
         widget_ids = [registry.register_widget(w) for w in widgets]
@@ -769,12 +809,14 @@ class TestApplicatorIntegration(ThemedTestCase):
         registry = ThemeWidgetRegistry()
         applicator = create_theme_applicator(registry)
 
-        theme = Theme.from_dict({
-            "name": "performance-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "performance-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         # Create 100 widgets for performance test
         widgets = [MockWidget() for _ in range(100)]
@@ -797,12 +839,14 @@ class TestApplicatorIntegration(ThemedTestCase):
         registry = ThemeWidgetRegistry()
         applicator = create_theme_applicator(registry)
 
-        theme = Theme.from_dict({
-            "name": "memory-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "memory-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
         # Create widgets and measure memory
         initial_objects = len(gc.get_objects())

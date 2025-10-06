@@ -115,15 +115,11 @@ class ExtensionAPI:
                     type=base_theme.type,
                     description=f"Extension theme based on {base_theme.name}",
                     colors=ThemeColors(**base_theme.colors.__dict__),
-                    properties=base_theme.properties.__class__(**base_theme.properties.__dict__)
+                    properties=base_theme.properties.__class__(**base_theme.properties.__dict__),
                 )
             else:
                 # Create minimal theme
-                theme = Theme(
-                    name=name,
-                    type="dark",
-                    description="Extension-created theme"
-                )
+                theme = Theme(name=name, type="dark", description="Extension-created theme")
 
             return theme
 
@@ -151,7 +147,7 @@ class ExtensionAPI:
                 type=theme.type,
                 description=f"Modified {theme.description}",
                 colors=ThemeColors(**theme.colors.__dict__),
-                properties=theme.properties.__class__(**theme.properties.__dict__)
+                properties=theme.properties.__class__(**theme.properties.__dict__),
             )
 
             # Apply color changes
@@ -251,7 +247,7 @@ class ExtensionAPI:
 
     def _parse_hex_color(self, color: str) -> tuple:
         """Parse hex color string to RGB values."""
-        if not color.startswith('#') or len(color) != 7:
+        if not color.startswith("#") or len(color) != 7:
             raise ValueError(f"Invalid hex color: {color}")
 
         r = int(color[1:3], 16)
@@ -319,7 +315,7 @@ class ExtensionAPI:
             raise ExtensionError(f"Access to file path not allowed: {file_path}")
 
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 return f.read()
         except Exception as e:
             raise ExtensionError(f"Failed to read file {file_path}: {e}")
@@ -395,13 +391,13 @@ class ExtensionAPI:
         if not theme.type:
             issues.append("Theme must have a type")
 
-        if theme.type not in ['light', 'dark']:
+        if theme.type not in ["light", "dark"]:
             issues.append("Theme type must be 'light' or 'dark'")
 
         # Color validation
         if theme.colors:
             for attr_name in dir(theme.colors):
-                if not attr_name.startswith('_'):
+                if not attr_name.startswith("_"):
                     color_value = getattr(theme.colors, attr_name)
                     if color_value and not self._is_valid_color(color_value):
                         issues.append(f"Invalid color value for {attr_name}: {color_value}")
@@ -413,7 +409,7 @@ class ExtensionAPI:
         if not isinstance(color, str):
             return False
 
-        if color.startswith('#'):
+        if color.startswith("#"):
             # Hex color
             hex_part = color[1:]
             if len(hex_part) in [3, 6, 8]:  # RGB, RRGGBB, RRGGBBAA

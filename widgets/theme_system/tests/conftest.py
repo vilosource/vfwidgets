@@ -37,6 +37,7 @@ from src.vfwidgets_theme.testing.mocks import (
 
 # Theme Data Fixtures
 
+
 @pytest.fixture
 def default_theme() -> Dict[str, Any]:
     """Default theme configuration for testing.
@@ -189,6 +190,7 @@ def invalid_theme() -> Dict[str, Any]:
 
 # Mock Object Fixtures
 
+
 @pytest.fixture
 def mock_theme_provider(default_theme) -> MockThemeProvider:
     """Mock theme provider with default theme data.
@@ -271,6 +273,7 @@ def widget_hierarchy() -> MockWidget:
 
 # Performance Testing Fixtures
 
+
 @pytest.fixture
 def performance_timer():
     """Performance timing context manager for testing.
@@ -284,8 +287,9 @@ def performance_timer():
             result = some_operation()
         assert timer.elapsed < 0.001
     """
+
     class PerformanceTimer:
-        def __init__(self, max_time: float = float('inf')):
+        def __init__(self, max_time: float = float("inf")):
             self.max_time = max_time
             self.start_time = 0.0
             self.end_time = 0.0
@@ -301,9 +305,9 @@ def performance_timer():
 
         def assert_within_limit(self):
             """Assert that elapsed time is within the specified limit."""
-            assert self.elapsed < self.max_time, (
-                f"Operation took {self.elapsed:.6f}s, expected < {self.max_time:.6f}s"
-            )
+            assert (
+                self.elapsed < self.max_time
+            ), f"Operation took {self.elapsed:.6f}s, expected < {self.max_time:.6f}s"
 
     return PerformanceTimer
 
@@ -315,6 +319,7 @@ def theme_switch_benchmark():
     Provides a function that measures theme switching performance
     across multiple widgets and validates against requirements.
     """
+
     def benchmark(widgets: List[Any], iterations: int = 100) -> Dict[str, float]:
         """Benchmark theme switching performance.
 
@@ -332,19 +337,19 @@ def theme_switch_benchmark():
 
             # Simulate theme switch
             for widget in widgets:
-                if hasattr(widget, 'on_theme_changed'):
+                if hasattr(widget, "on_theme_changed"):
                     widget.on_theme_changed()
 
             end_time = time.perf_counter()
             times.append(end_time - start_time)
 
         return {
-            'total_time': sum(times),
-            'average_time': sum(times) / len(times),
-            'min_time': min(times),
-            'max_time': max(times),
-            'widget_count': len(widgets),
-            'iterations': iterations,
+            "total_time": sum(times),
+            "average_time": sum(times) / len(times),
+            "min_time": min(times),
+            "max_time": max(times),
+            "widget_count": len(widgets),
+            "iterations": iterations,
         }
 
     return benchmark
@@ -353,6 +358,7 @@ def theme_switch_benchmark():
 @pytest.fixture
 def property_access_benchmark():
     """Benchmark fixture for property access performance."""
+
     def benchmark(provider: Any, properties: List[str], iterations: int = 1000) -> Dict[str, float]:
         """Benchmark property access performance.
 
@@ -379,17 +385,18 @@ def property_access_benchmark():
                 times.append(end_time - start_time)
 
         return {
-            'total_time': sum(times),
-            'average_time': sum(times) / len(times),
-            'min_time': min(times),
-            'max_time': max(times),
-            'operations': len(times),
+            "total_time": sum(times),
+            "average_time": sum(times) / len(times),
+            "min_time": min(times),
+            "max_time": max(times),
+            "operations": len(times),
         }
 
     return benchmark
 
 
 # Memory Testing Fixtures
+
 
 @pytest.fixture
 def memory_tracker():
@@ -398,6 +405,7 @@ def memory_tracker():
     Provides utilities for tracking memory usage and detecting
     potential memory leaks during theme operations.
     """
+
     class MemoryTracker:
         def __init__(self):
             self.initial_objects = {}
@@ -408,16 +416,14 @@ def memory_tracker():
             """Start memory tracking."""
             gc.collect()  # Clean up before tracking
             self.initial_objects = {
-                obj_type: len(objects)
-                for obj_type, objects in self._get_object_counts().items()
+                obj_type: len(objects) for obj_type, objects in self._get_object_counts().items()
             }
 
         def stop_tracking(self):
             """Stop memory tracking and collect final counts."""
             gc.collect()  # Clean up before final count
             self.final_objects = {
-                obj_type: len(objects)
-                for obj_type, objects in self._get_object_counts().items()
+                obj_type: len(objects) for obj_type, objects in self._get_object_counts().items()
             }
 
         def _get_object_counts(self):
@@ -451,9 +457,7 @@ def memory_tracker():
                 if count_change > 0 and obj_type not in allowed_types:
                     # Allow some increase for legitimate objects
                     if count_change > 10:  # Threshold for considering a leak
-                        pytest.fail(
-                            f"Potential memory leak: {count_change} new {obj_type} objects"
-                        )
+                        pytest.fail(f"Potential memory leak: {count_change} new {obj_type} objects")
 
         def track_object(self, obj):
             """Track a specific object with weak reference."""
@@ -471,6 +475,7 @@ def memory_tracker():
 @pytest.fixture
 def widget_lifecycle_tracker():
     """Widget lifecycle tracking for memory validation."""
+
     class WidgetLifecycleTracker:
         def __init__(self):
             self.created_widgets = []
@@ -484,7 +489,7 @@ def widget_lifecycle_tracker():
             """Simulate widget destruction."""
             self.destroyed_widgets.append(id(widget))
             # Remove from parent if it has one
-            if hasattr(widget, 'setParent'):
+            if hasattr(widget, "setParent"):
                 widget.setParent(None)
 
         def get_live_widgets(self):
@@ -502,9 +507,11 @@ def widget_lifecycle_tracker():
 
 # Utility Fixtures
 
+
 @pytest.fixture
 def theme_validator():
     """Theme validation fixture for testing theme data integrity."""
+
     def validate(theme_data: Dict[str, Any]) -> Dict[str, List[str]]:
         """Validate theme data and return any issues found.
 
@@ -518,7 +525,11 @@ def theme_validator():
         warnings = []
 
         required_properties = [
-            'primary_color', 'background', 'foreground', 'font_family', 'font_size'
+            "primary_color",
+            "background",
+            "foreground",
+            "font_family",
+            "font_size",
         ]
 
         # Check required properties
@@ -528,8 +539,13 @@ def theme_validator():
 
         # Validate color properties
         color_properties = [
-            'primary_color', 'secondary_color', 'background', 'foreground',
-            'success_color', 'warning_color', 'error_color'
+            "primary_color",
+            "secondary_color",
+            "background",
+            "foreground",
+            "success_color",
+            "warning_color",
+            "error_color",
         ]
 
         for prop in color_properties:
@@ -537,19 +553,22 @@ def theme_validator():
                 value = theme_data[prop]
                 if not isinstance(value, str):
                     errors.append(f"Color property '{prop}' must be string, got {type(value)}")
-                elif not (value.startswith('#') or value.startswith('rgb') or
-                         value in ['red', 'green', 'blue', 'black', 'white']):
+                elif not (
+                    value.startswith("#")
+                    or value.startswith("rgb")
+                    or value in ["red", "green", "blue", "black", "white"]
+                ):
                     warnings.append(f"Color property '{prop}' has suspicious value: {value}")
 
         # Validate size properties
-        size_properties = ['font_size', 'border_width', 'padding', 'margin']
+        size_properties = ["font_size", "border_width", "padding", "margin"]
         for prop in size_properties:
             if prop in theme_data:
                 value = theme_data[prop]
                 if isinstance(value, (int, float)) and value < 0:
                     errors.append(f"Size property '{prop}' cannot be negative: {value}")
 
-        return {'errors': errors, 'warnings': warnings}
+        return {"errors": errors, "warnings": warnings}
 
     return validate
 
@@ -557,27 +576,29 @@ def theme_validator():
 @pytest.fixture
 def error_injection_helper():
     """Helper for injecting errors into mock objects for testing error recovery."""
+
     class ErrorInjectionHelper:
         def __init__(self):
             self.injected_errors = {}
 
         def inject_theme_provider_error(self, provider, method: str, error: Exception):
             """Inject error into theme provider method."""
-            if hasattr(provider, 'inject_error'):
+            if hasattr(provider, "inject_error"):
                 provider.inject_error(method, error)
 
         def inject_random_errors(self, obj, methods: List[str], error_rate: float = 0.1):
             """Inject random errors into object methods."""
             import random
+
             for method in methods:
                 if random.random() < error_rate:
                     error = Exception(f"Random error in {method}")
-                    if hasattr(obj, 'inject_error'):
+                    if hasattr(obj, "inject_error"):
                         obj.inject_error(method, error)
 
         def clear_all_errors(self, obj):
             """Clear all injected errors from an object."""
-            if hasattr(obj, '_injected_errors'):
+            if hasattr(obj, "_injected_errors"):
                 obj._injected_errors.clear()
 
     return ErrorInjectionHelper
@@ -585,7 +606,8 @@ def error_injection_helper():
 
 # Parametrized Fixtures for Testing Multiple Scenarios
 
-@pytest.fixture(params=['default', 'dark', 'light', 'high-contrast'])
+
+@pytest.fixture(params=["default", "dark", "light", "high-contrast"])
 def any_theme(request, default_theme, dark_theme, light_theme, high_contrast_theme):
     """Parametrized fixture that provides all theme types.
 
@@ -593,15 +615,15 @@ def any_theme(request, default_theme, dark_theme, light_theme, high_contrast_the
     ensuring compatibility across all supported themes.
     """
     themes = {
-        'default': default_theme,
-        'dark': dark_theme,
-        'light': light_theme,
-        'high-contrast': high_contrast_theme,
+        "default": default_theme,
+        "dark": dark_theme,
+        "light": light_theme,
+        "high-contrast": high_contrast_theme,
     }
     return themes[request.param]
 
 
-@pytest.fixture(params=['button', 'label', 'edit', 'text', 'combo'])
+@pytest.fixture(params=["button", "label", "edit", "text", "combo"])
 def any_widget_type(request):
     """Parametrized fixture that provides different widget types.
 
@@ -612,6 +634,7 @@ def any_widget_type(request):
 
 
 # Integration Test Fixtures
+
 
 @pytest.fixture
 def themed_application_setup(mock_application):
@@ -635,13 +658,14 @@ def themed_application_setup(mock_application):
         app.register_widget(child)
 
     return {
-        'app': app,
-        'root_widget': root_widget,
-        'widgets': [root_widget] + root_widget.children(),
+        "app": app,
+        "root_widget": root_widget,
+        "widgets": [root_widget] + root_widget.children(),
     }
 
 
 # Cleanup and Teardown
+
 
 @pytest.fixture(autouse=True)
 def cleanup_after_test():
@@ -661,6 +685,7 @@ def cleanup_after_test():
 
 # Performance Validation Fixtures
 
+
 @pytest.fixture
 def performance_requirements():
     """Performance requirements for validation.
@@ -669,12 +694,12 @@ def performance_requirements():
     must meet, suitable for automated validation.
     """
     return {
-        'theme_switch_time': 0.1,  # < 100ms for 100 widgets
-        'property_access_time': 0.000001,  # < 1μs
-        'memory_overhead_per_widget': 1024,  # < 1KB
-        'cache_hit_rate': 0.9,  # > 90%
-        'callback_registration_time': 0.00001,  # < 10μs
-        'style_generation_time': 0.01,  # < 10ms
+        "theme_switch_time": 0.1,  # < 100ms for 100 widgets
+        "property_access_time": 0.000001,  # < 1μs
+        "memory_overhead_per_widget": 1024,  # < 1KB
+        "cache_hit_rate": 0.9,  # > 90%
+        "callback_registration_time": 0.00001,  # < 10μs
+        "style_generation_time": 0.01,  # < 10ms
     }
 
 
@@ -685,6 +710,7 @@ def performance_validator(performance_requirements):
     Provides utilities for validating that implementations
     meet the strict performance requirements.
     """
+
     def validate_timing(operation_name: str, measured_time: float) -> bool:
         """Validate that an operation meets timing requirements.
 
@@ -699,18 +725,17 @@ def performance_validator(performance_requirements):
             AssertionError: If requirements are not met.
         """
         requirement_map = {
-            'theme_switch': 'theme_switch_time',
-            'property_access': 'property_access_time',
-            'callback_registration': 'callback_registration_time',
-            'style_generation': 'style_generation_time',
+            "theme_switch": "theme_switch_time",
+            "property_access": "property_access_time",
+            "callback_registration": "callback_registration_time",
+            "style_generation": "style_generation_time",
         }
 
         requirement_key = requirement_map.get(operation_name)
         if requirement_key and requirement_key in performance_requirements:
             max_time = performance_requirements[requirement_key]
             assert measured_time < max_time, (
-                f"{operation_name} took {measured_time:.6f}s, "
-                f"requirement is < {max_time:.6f}s"
+                f"{operation_name} took {measured_time:.6f}s, " f"requirement is < {max_time:.6f}s"
             )
             return True
 

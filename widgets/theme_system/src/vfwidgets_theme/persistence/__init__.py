@@ -17,9 +17,9 @@ from .storage import (
 )
 
 __all__ = [
-    'ThemePersistence',
-    'ThemeValidationResult',
-    'PersistenceError',
-    'ThemeFormatError',
-    'BackupManager',
+    "ThemePersistence",
+    "ThemeValidationResult",
+    "PersistenceError",
+    "ThemeFormatError",
+    "BackupManager",
 ]

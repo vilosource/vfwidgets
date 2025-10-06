@@ -51,7 +51,7 @@ class DebugWindow(QMainWindow):
 
     def update_status(self):
         current = self.app.current_theme_name
-        combo_text = self.combo.currentText() if hasattr(self, 'combo') else "N/A"
+        combo_text = self.combo.currentText() if hasattr(self, "combo") else "N/A"
         self.status_label.setText(
             f"App theme: {current}\n"
             f"Combo shows: {combo_text}\n"

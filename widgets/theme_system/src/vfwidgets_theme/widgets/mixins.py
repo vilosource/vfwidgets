@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set
 try:
     from PySide6.QtCore import QObject, Signal, pyqtSignal
     from PySide6.QtWidgets import QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
@@ -154,11 +155,14 @@ class ThemeableMixin:
             error_manager = get_global_error_recovery_manager()
             error_manager.handle_error(
                 ThemeError(f"Themeable mixin setup failed: {e}"),
-                context={"widget_type": type(self).__name__, "widget_id": getattr(self, '_themeable_widget_id', None)}
+                context={
+                    "widget_type": type(self).__name__,
+                    "widget_id": getattr(self, "_themeable_widget_id", None),
+                },
             )
 
     @property
-    def theme(self) -> Optional['ThemeAccess']:
+    def theme(self) -> Optional["ThemeAccess"]:
         """Get theme property access object."""
         return self._themeable_access
 
@@ -189,20 +193,20 @@ class ThemeableMixin:
                 self._themeable_properties.invalidate_cache()
 
             # Call user-defined handler if it exists
-            if hasattr(self, 'on_theme_changed') and callable(self.on_theme_changed):
+            if hasattr(self, "on_theme_changed") and callable(self.on_theme_changed):
                 try:
                     self.on_theme_changed()
                 except Exception as e:
                     logger.error(f"Error in user theme change handler: {e}")
 
             # Update widget if it has styling methods
-            if hasattr(self, 'setStyleSheet'):
+            if hasattr(self, "setStyleSheet"):
                 stylesheet = self._generate_themeable_stylesheet()
                 if stylesheet:
                     self.setStyleSheet(stylesheet)
 
             # Update widget if it has update method
-            if hasattr(self, 'update'):
+            if hasattr(self, "update"):
                 self.update()
 
             logger.debug(f"Theme changed for themeable mixin widget {self._themeable_widget_id}")
@@ -217,8 +221,8 @@ class ThemeableMixin:
                 return ""
 
             # Get basic theme properties
-            background = self._themeable_access.get('background', '#ffffff')
-            color = self._themeable_access.get('color', '#000000')
+            background = self._themeable_access.get("background", "#ffffff")
+            color = self._themeable_access.get("color", "#000000")
 
             # Generate basic stylesheet
             stylesheet = f"""
@@ -241,7 +245,9 @@ class ThemeableMixin:
                 # Disconnect signals
                 if self._themeable_manager:
                     try:
-                        self._themeable_manager.theme_changed.disconnect(self._on_themeable_theme_changed)
+                        self._themeable_manager.theme_changed.disconnect(
+                            self._on_themeable_theme_changed
+                        )
                     except Exception:
                         pass  # May already be disconnected
 
@@ -257,7 +263,9 @@ class ThemeableMixin:
             self._themeable_properties = None
             self._themeable_access = None
 
-            logger.debug(f"Themeable mixin cleanup completed for widget {self._themeable_widget_id}")
+            logger.debug(
+                f"Themeable mixin cleanup completed for widget {self._themeable_widget_id}"
+            )
 
         except Exception as e:
             logger.error(f"Error during themeable mixin cleanup: {e}")
@@ -291,7 +299,7 @@ class PropertyMixin:
             logger.error(f"Error setting up property access: {e}")
 
     @property
-    def properties(self) -> Optional['ThemeAccess']:
+    def properties(self) -> Optional["ThemeAccess"]:
         """Get property access object."""
         return self._property_access
 
@@ -319,14 +327,14 @@ class NotificationMixin:
 
         # Create Qt signals if available
         if QT_AVAILABLE:
-            if not hasattr(self, 'theme_changed'):
+            if not hasattr(self, "theme_changed"):
                 self.theme_changed = pyqtSignal(str)
-            if not hasattr(self, 'theme_applied'):
+            if not hasattr(self, "theme_applied"):
                 self.theme_applied = pyqtSignal()
         else:
-            if not hasattr(self, 'theme_changed'):
+            if not hasattr(self, "theme_changed"):
                 self.theme_changed = Signal(str)
-            if not hasattr(self, 'theme_applied'):
+            if not hasattr(self, "theme_applied"):
                 self.theme_applied = Signal()
 
         self._notification_manager: Optional[ThemeManager] = None
@@ -339,7 +347,9 @@ class NotificationMixin:
 
             if self._notification_manager:
                 try:
-                    self._notification_manager.theme_changed.connect(self._on_notification_theme_changed)
+                    self._notification_manager.theme_changed.connect(
+                        self._on_notification_theme_changed
+                    )
                 except Exception as e:
                     logger.warning(f"Could not connect notification signal: {e}")
 
@@ -360,9 +370,9 @@ class NotificationMixin:
         """Handle theme change notifications."""
         try:
             # Emit Qt signals
-            if hasattr(self, 'theme_changed'):
+            if hasattr(self, "theme_changed"):
                 self.theme_changed.emit(theme.name)
-            if hasattr(self, 'theme_applied'):
+            if hasattr(self, "theme_applied"):
                 self.theme_applied.emit()
 
             # Call registered callbacks
@@ -373,7 +383,7 @@ class NotificationMixin:
                     logger.error(f"Error in theme change callback: {e}")
 
             # Call user-defined handler if it exists
-            if hasattr(self, 'on_theme_changed') and callable(self.on_theme_changed):
+            if hasattr(self, "on_theme_changed") and callable(self.on_theme_changed):
                 try:
                     self.on_theme_changed()
                 except Exception as e:
@@ -431,10 +441,10 @@ class CacheMixin:
     def get_cache_statistics(self) -> Dict[str, Any]:
         """Get cache statistics."""
         return {
-            'cache_size': len(self._cache),
-            'cache_hits': self._cache_hits,
-            'cache_misses': self._cache_misses,
-            'hit_rate': self.cache_hit_rate
+            "cache_size": len(self._cache),
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
+            "hit_rate": self.cache_hit_rate,
         }
 
 
@@ -553,15 +563,13 @@ def add_theming_to_widget(widget: QWidget, theme_config: Optional[Dict[str, str]
     """
     try:
         # Check if widget already has theming
-        if hasattr(widget, '_is_themeable_ready') and widget._is_themeable_ready:
+        if hasattr(widget, "_is_themeable_ready") and widget._is_themeable_ready:
             return True
 
         # Add themeable mixin functionality dynamically
         # This is a bit hacky but provides flexibility
         widget.__class__ = type(
-            widget.__class__.__name__ + 'WithTheming',
-            (widget.__class__, ThemeableMixin),
-            {}
+            widget.__class__.__name__ + "WithTheming", (widget.__class__, ThemeableMixin), {}
         )
 
         # Initialize themeable mixin
@@ -588,13 +596,17 @@ def remove_theming_from_widget(widget: QWidget) -> bool:
     """
     try:
         # Clean up theming if present
-        if hasattr(widget, 'cleanup_theming'):
+        if hasattr(widget, "cleanup_theming"):
             widget.cleanup_theming()
 
         # Remove theming attributes
         theming_attrs = [
-            '_themeable_widget_id', '_themeable_manager', '_themeable_properties',
-            '_themeable_access', '_is_themeable_registered', '_is_themeable_ready'
+            "_themeable_widget_id",
+            "_themeable_manager",
+            "_themeable_properties",
+            "_themeable_access",
+            "_is_themeable_registered",
+            "_is_themeable_ready",
         ]
 
         for attr in theming_attrs:
@@ -618,12 +630,13 @@ def themeable(theme_config: Optional[Dict[str, str]] = None):
         class MyWidget(QWidget, ThemeableMixin):
             pass
     """
+
     def decorator(cls):
         original_init = cls.__init__
 
         def new_init(self, *args, **kwargs):
             original_init(self, *args, **kwargs)
-            if hasattr(self, 'setup_theming'):
+            if hasattr(self, "setup_theming"):
                 self.setup_theming(theme_config)
 
         cls.__init__ = new_init

@@ -214,20 +214,20 @@ def demonstrate_performance_monitoring():
     metrics = monitor.get_metrics()
     print("\nPerformance Metrics:")
     for operation, data in metrics.items():
-        duration_ms = data['duration']['avg'] * 1000
+        duration_ms = data["duration"]["avg"] * 1000
         print(f"  {operation}:")
         print(f"    Average duration: {duration_ms:.3f}ms")
         print(f"    Operations count: {data['count']}")
         print(f"    Memory impact: {data['memory']['avg']:,.0f} bytes")
 
     # Validate performance requirements
-    registration_time = metrics.get('widget_registration', {}).get('duration', {}).get('avg', 0)
+    registration_time = metrics.get("widget_registration", {}).get("duration", {}).get("avg", 0)
     if registration_time * 1_000_000 < 10:  # Convert to microseconds
         print("✓ Widget registration performance requirement met (<10μs)")
     else:
         print(f"⚠ Widget registration took {registration_time * 1_000_000:.1f}μs (target: <10μs)")
 
-    cleanup_time = metrics.get('cleanup', {}).get('duration', {}).get('avg', 0)
+    cleanup_time = metrics.get("cleanup", {}).get("duration", {}).get("avg", 0)
     if cleanup_time * 1000 < 100:  # Convert to milliseconds
         print("✓ Cleanup performance requirement met (<100ms for 100 widgets)")
     else:
@@ -274,8 +274,7 @@ def demonstrate_thread_safety():
     print("Starting 8 worker threads...")
     for i in range(8):
         thread = threading.Thread(
-            target=worker_thread,
-            args=(i, 25)  # Each thread manages 25 widgets
+            target=worker_thread, args=(i, 25)  # Each thread manages 25 widgets
         )
         threads.append(thread)
         thread.start()
@@ -340,7 +339,7 @@ def demonstrate_stress_test():
         # Check for leaks periodically
         if cycle % 3 == 0:
             gc_stats = detector.force_gc_and_check()
-            if gc_stats['potential_leaks'] > 10:
+            if gc_stats["potential_leaks"] > 10:
                 print(f"⚠ Potential memory leaks detected: {gc_stats['potential_leaks']}")
 
     end_time = time.perf_counter()
@@ -436,6 +435,7 @@ def run_all_demonstrations():
     except Exception as e:
         print(f"\n❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

@@ -68,6 +68,7 @@ def teardown_test_environment():
     current_memory = get_memory_usage()
     if test_memory_baseline and current_memory > test_memory_baseline * 1.5:
         import warnings
+
         warnings.warn(f"Potential memory leak: {current_memory - test_memory_baseline} MB increase")
 
     # Cleanup widgets
@@ -123,16 +124,18 @@ def test_setup_teardown():
     teardown_test_environment()
 
 
-@given(st.dictionaries(
-    st.text(min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz_"),
-    st.one_of(
-        st.text(min_size=1, max_size=50),
-        st.integers(min_value=0, max_value=1000),
-        st.floats(min_value=0.0, max_value=1.0, allow_nan=False)
-    ),
-    min_size=1,
-    max_size=10
-))
+@given(
+    st.dictionaries(
+        st.text(min_size=1, max_size=20, alphabet="abcdefghijklmnopqrstuvwxyz_"),
+        st.one_of(
+            st.text(min_size=1, max_size=50),
+            st.integers(min_value=0, max_value=1000),
+            st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+        ),
+        min_size=1,
+        max_size=10,
+    )
+)
 @settings(max_examples=20, deadline=5000, suppress_health_check=[HealthCheck.too_slow])
 def test_theme_properties_invariants(props: Dict[str, Any]):
     """Test that theme properties maintain invariants."""
@@ -140,16 +143,20 @@ def test_theme_properties_invariants(props: Dict[str, Any]):
         # Create theme with random properties
         theme = Theme(
             name="test_theme",
-            colors={key: str(value) for key, value in props.items() if isinstance(value, str) and key.endswith('_color')},
-            styles={key: value for key, value in props.items() if not key.endswith('_color')}
+            colors={
+                key: str(value)
+                for key, value in props.items()
+                if isinstance(value, str) and key.endswith("_color")
+            },
+            styles={key: value for key, value in props.items() if not key.endswith("_color")},
         )
 
         # Invariant 1: Theme should always have a name
         assert theme.name == "test_theme"
 
         # Invariant 2: Theme should have proper structure
-        assert hasattr(theme, 'colors')
-        assert hasattr(theme, 'styles')
+        assert hasattr(theme, "colors")
+        assert hasattr(theme, "styles")
         assert isinstance(theme.colors, dict)
         assert isinstance(theme.styles, dict)
 
@@ -168,10 +175,7 @@ def test_theme_properties_invariants(props: Dict[str, Any]):
 def test_theme_name_handling(theme_name: str):
     """Test theme name handling with various inputs."""
     try:
-        theme = Theme(
-            name=theme_name,
-            colors={"primary_color": "#ffffff"}
-        )
+        theme = Theme(name=theme_name, colors={"primary_color": "#ffffff"})
 
         # Invariant: Theme name should be preserved
         assert theme.name == theme_name
@@ -181,16 +185,18 @@ def test_theme_name_handling(theme_name: str):
         pass
 
 
-@given(st.lists(
-    st.dictionaries(
-        st.text(min_size=1, max_size=10, alphabet="abcdefghijklmnopqrstuvwxyz"),
-        st.text(min_size=1, max_size=20),
+@given(
+    st.lists(
+        st.dictionaries(
+            st.text(min_size=1, max_size=10, alphabet="abcdefghijklmnopqrstuvwxyz"),
+            st.text(min_size=1, max_size=20),
+            min_size=1,
+            max_size=3,
+        ),
         min_size=1,
-        max_size=3
-    ),
-    min_size=1,
-    max_size=10
-))
+        max_size=10,
+    )
+)
 @settings(max_examples=10, deadline=5000)
 def test_widget_creation_invariants(widget_configs: List[Dict[str, str]]):
     """Test widget creation invariants with multiple widgets."""
@@ -203,13 +209,13 @@ def test_widget_creation_invariants(widget_configs: List[Dict[str, str]]):
             widgets.append(widget)
 
             # Invariant: Widget should be properly themed
-            assert hasattr(widget, '_theme_registry')
+            assert hasattr(widget, "_theme_registry")
             assert widget._theme_registry is not None
 
         # Invariant: All widgets should be registered
         # Note: We'll check this through widget properties instead
         for widget in widgets:
-            assert hasattr(widget, '_theme_registry')
+            assert hasattr(widget, "_theme_registry")
             assert widget._theme_registry is not None
 
     except Exception as e:
@@ -232,14 +238,14 @@ def test_malformed_json_theme_data(malformed_data: str):
         # Try to parse as JSON
         try:
             data = json.loads(malformed_data)
-            if isinstance(data, dict) and 'name' in data:
+            if isinstance(data, dict) and "name" in data:
                 # Extract name and other properties appropriately
-                name = data.get('name', 'test_theme')
-                colors = data.get('colors', {})
-                styles = data.get('styles', {})
+                name = data.get("name", "test_theme")
+                colors = data.get("colors", {})
+                styles = data.get("styles", {})
                 theme = Theme(name=name, colors=colors, styles=styles)
                 # If it succeeds, ensure basic properties
-                assert hasattr(theme, 'name')
+                assert hasattr(theme, "name")
         except (json.JSONDecodeError, ThemeError, ThemeValidationError):
             # Expected for malformed data
             pass
@@ -255,13 +261,13 @@ def test_binary_data_handling(binary_data: bytes):
     try:
         # Try to decode and parse
         try:
-            text_data = binary_data.decode('utf-8', errors='ignore')
+            text_data = binary_data.decode("utf-8", errors="ignore")
             if text_data.strip():
                 data = json.loads(text_data)
-                if isinstance(data, dict) and 'name' in data:
-                    name = data.get('name', 'binary_test')
-                    colors = data.get('colors', {})
-                    styles = data.get('styles', {})
+                if isinstance(data, dict) and "name" in data:
+                    name = data.get("name", "binary_test")
+                    colors = data.get("colors", {})
+                    styles = data.get("styles", {})
                     theme = Theme(name=name, colors=colors, styles=styles)
         except (UnicodeDecodeError, json.JSONDecodeError, ThemeError, ThemeValidationError):
             # Expected for invalid data
@@ -271,16 +277,18 @@ def test_binary_data_handling(binary_data: bytes):
         pytest.fail(f"Unexpected exception with binary data: {e}")
 
 
-@given(st.dictionaries(
-    st.text(min_size=0, max_size=20),
-    st.one_of(
-        st.none(),
-        st.booleans(),
-        st.lists(st.integers(), max_size=5),
-        st.dictionaries(st.text(max_size=10), st.integers(), max_size=3)
-    ),
-    max_size=10
-))
+@given(
+    st.dictionaries(
+        st.text(min_size=0, max_size=20),
+        st.one_of(
+            st.none(),
+            st.booleans(),
+            st.lists(st.integers(), max_size=5),
+            st.dictionaries(st.text(max_size=10), st.integers(), max_size=3),
+        ),
+        max_size=10,
+    )
+)
 @settings(max_examples=15, deadline=4000)
 def test_unexpected_data_types(weird_data: Dict[str, Any]):
     """Test theme system with unexpected data types."""
@@ -289,23 +297,19 @@ def test_unexpected_data_types(weird_data: Dict[str, Any]):
         colors = {}
         styles = {}
         for key, value in weird_data.items():
-            if isinstance(key, str) and key.endswith('_color') and isinstance(value, str):
+            if isinstance(key, str) and key.endswith("_color") and isinstance(value, str):
                 colors[key] = value
             else:
                 styles[key] = value
 
-        theme = Theme(
-            name="fuzz_theme",
-            colors=colors,
-            styles=styles
-        )
+        theme = Theme(name="fuzz_theme", colors=colors, styles=styles)
 
         # Ensure basic functionality still works
         assert theme.name == "fuzz_theme"
 
         # Verify basic theme structure
-        assert hasattr(theme, 'colors')
-        assert hasattr(theme, 'styles')
+        assert hasattr(theme, "colors")
+        assert hasattr(theme, "styles")
         assert theme.colors == colors
         assert theme.styles == styles
 
@@ -359,10 +363,7 @@ def test_theme_switching_memory_leaks():
     for i in range(20):
         theme = Theme(
             name=f"test_theme_{i}",
-            colors={
-                "background_color": f"#{i:02x}{i:02x}{i:02x}",
-                "text_color": "#ffffff"
-            }
+            colors={"background_color": f"#{i:02x}{i:02x}{i:02x}", "text_color": "#ffffff"},
         )
         if test_app:
             test_app.set_theme(theme)
@@ -441,7 +442,7 @@ def test_concurrent_theme_switching():
         try:
             theme = Theme(
                 name=f"concurrent_theme_{theme_id}",
-                colors={"primary_color": f"#{theme_id:02x}0000"}
+                colors={"primary_color": f"#{theme_id:02x}0000"},
             )
             test_app.set_theme(theme)
             time.sleep(0.01)
@@ -495,10 +496,7 @@ def test_theme_switching_performance():
     start_time = time.time()
 
     for i in range(5):
-        theme = Theme(
-            name=f"perf_theme_{i}",
-            colors={"primary_color": f"#{i:02x}0000"}
-        )
+        theme = Theme(name=f"perf_theme_{i}", colors={"primary_color": f"#{i:02x}0000"})
         test_app.set_theme(theme)
 
     switching_time = time.time() - start_time
@@ -512,7 +510,7 @@ def test_property_access_performance():
     theme = Theme(
         name="perf_test",
         colors={f"color_{i}": f"#ff{i:02x}00" for i in range(25)},
-        styles={f"prop_{i}": f"value_{i}" for i in range(25)}
+        styles={f"prop_{i}": f"value_{i}" for i in range(25)},
     )
 
     start_time = time.time()
@@ -546,11 +544,7 @@ def test_comprehensive_suite_integration():
 
     # Apply a theme
     theme = Theme(
-        name="integration_test",
-        colors={
-            "background_color": "#ff0000",
-            "text_color": "#ffffff"
-        }
+        name="integration_test", colors={"background_color": "#ff0000", "text_color": "#ffffff"}
     )
 
     if test_app:
@@ -558,7 +552,7 @@ def test_comprehensive_suite_integration():
 
     # Verify integration
     assert widget is not None
-    assert hasattr(widget, '_theme_registry')
+    assert hasattr(widget, "_theme_registry")
 
     # Test passes if no exceptions thrown
     assert True
@@ -566,10 +560,12 @@ def test_comprehensive_suite_integration():
 
 if __name__ == "__main__":
     # Run tests if executed directly
-    pytest.main([
-        __file__,
-        "-v",
-        "--cov=vfwidgets_theme",
-        "--cov-report=html:htmlcov/comprehensive",
-        "--cov-report=term-missing"
-    ])
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "--cov=vfwidgets_theme",
+            "--cov-report=html:htmlcov/comprehensive",
+            "--cov-report=term-missing",
+        ]
+    )

@@ -34,7 +34,7 @@ ColorValue: TypeAlias = str
 StyleCallback: TypeAlias = Callable[[str], None]
 """Type alias for theme change callback functions."""
 
-ThemeChangeCallback: TypeAlias = Callable[['ThemeData'], None]
+ThemeChangeCallback: TypeAlias = Callable[["ThemeData"], None]
 """Type alias for theme change callback functions that receive theme data."""
 
 PropertyKey: TypeAlias = str
@@ -498,20 +498,17 @@ __all__ = [
     "PropertyKey",
     "PropertyValue",
     "QSSStyle",
-
     # Exception Hierarchy
     "ThemeError",
     "ThemeValidationError",
     "ColorResolveError",
     "StyleGenerationError",
     "ThemePropertyError",
-
     # Core Protocols
     "ThemeProvider",
     "ThemeableWidget",
     "ColorProvider",
     "StyleGenerator",
-
     # Utilities
     "validate_performance_requirements",
     "get_protocol_version",

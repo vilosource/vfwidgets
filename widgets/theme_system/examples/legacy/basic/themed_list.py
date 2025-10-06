@@ -36,15 +36,15 @@ class ThemedListWidget(ThemedWidget, QListWidget):
     """A themed list widget with alternating rows and selection styling."""
 
     theme_config = {
-        'bg': 'list.background',
-        'fg': 'list.foreground',
-        'border': 'list.border',
-        'alternate_bg': 'list.alternate.background',
-        'selection_bg': 'list.selection.background',
-        'selection_fg': 'list.selection.foreground',
-        'hover_bg': 'list.hover.background',
-        'hover_fg': 'list.hover.foreground',
-        'font': 'list.font'
+        "bg": "list.background",
+        "fg": "list.foreground",
+        "border": "list.border",
+        "alternate_bg": "list.alternate.background",
+        "selection_bg": "list.selection.background",
+        "selection_fg": "list.selection.foreground",
+        "hover_bg": "list.hover.background",
+        "hover_fg": "list.hover.foreground",
+        "font": "list.font",
     }
 
     def __init__(self, parent=None):
@@ -61,15 +61,15 @@ class ThemedListWidget(ThemedWidget, QListWidget):
     def update_styling(self):
         """Update list styling based on current theme."""
         # Get theme colors
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
-        alternate_bg = self.theme.get('alternate_bg', '#f8f8f8')
-        selection_bg = self.theme.get('selection_bg', '#0066cc')
-        selection_fg = self.theme.get('selection_fg', '#ffffff')
-        hover_bg = self.theme.get('hover_bg', '#e6f2ff')
-        hover_fg = self.theme.get('hover_fg', '#000000')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
+        alternate_bg = self.theme.get("alternate_bg", "#f8f8f8")
+        selection_bg = self.theme.get("selection_bg", "#0066cc")
+        selection_fg = self.theme.get("selection_fg", "#ffffff")
+        hover_bg = self.theme.get("hover_bg", "#e6f2ff")
+        hover_fg = self.theme.get("hover_fg", "#000000")
+        font = self.theme.get("font", "Arial, sans-serif")
 
         # Generate stylesheet
         stylesheet = f"""
@@ -111,7 +111,7 @@ class ThemedListWidget(ThemedWidget, QListWidget):
 
         self.setStyleSheet(stylesheet)
 
-    def add_themed_item(self, text, item_type='normal'):
+    def add_themed_item(self, text, item_type="normal"):
         """Add an item with specific styling based on type."""
         item = QListWidgetItem(text)
 
@@ -119,13 +119,13 @@ class ThemedListWidget(ThemedWidget, QListWidget):
         item.setData(Qt.UserRole, item_type)
 
         # Add custom styling based on type
-        if item_type == 'header':
+        if item_type == "header":
             font = item.font()
             font.setBold(True)
             item.setFont(font)
-        elif item_type == 'disabled':
+        elif item_type == "disabled":
             item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
-        elif item_type == 'important':
+        elif item_type == "important":
             font = item.font()
             font.setItalic(True)
             item.setFont(font)
@@ -179,8 +179,8 @@ class FilterableList(ThemedWidget):
         displayed_items = self.get_filtered_items()
         for item_data in displayed_items:
             if isinstance(item_data, dict):
-                text = item_data.get('text', '')
-                item_type = item_data.get('type', 'normal')
+                text = item_data.get("text", "")
+                item_type = item_data.get("type", "normal")
                 self.list_widget.add_themed_item(text, item_type)
             else:
                 self.list_widget.add_themed_item(str(item_data))
@@ -197,7 +197,7 @@ class FilterableList(ThemedWidget):
         filtered = []
         for item in self._all_items:
             if isinstance(item, dict):
-                text = item.get('text', '').lower()
+                text = item.get("text", "").lower()
             else:
                 text = str(item).lower()
 
@@ -209,7 +209,7 @@ class FilterableList(ThemedWidget):
     def filter_items(self):
         """Filter items based on input text."""
         # Use a timer to avoid filtering on every keystroke
-        if hasattr(self, '_filter_timer'):
+        if hasattr(self, "_filter_timer"):
             self._filter_timer.stop()
 
         self._filter_timer = QTimer()
@@ -356,7 +356,8 @@ class ListDemo(ThemedWidget):
     def add_simple_item(self, list_widget):
         """Add a new item to simple list."""
         import random
-        item_types = ['normal', 'important']
+
+        item_types = ["normal", "important"]
         item_type = random.choice(item_types)
         item_text = f"New Item {list_widget.count() + 1}"
 
@@ -376,15 +377,15 @@ class ListDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = ThemedButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = ThemedButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         colorful_btn = ThemedButton("Colorful Theme")
-        colorful_btn.clicked.connect(lambda: self.switch_theme('colorful'))
+        colorful_btn.clicked.connect(lambda: self.switch_theme("colorful"))
         controls_layout.addWidget(colorful_btn)
 
         layout.addLayout(controls_layout)
@@ -407,75 +408,75 @@ def main():
 
     # Define themes with list styling
     light_theme = {
-        'name': 'light',
-        'list': {
-            'background': '#ffffff',
-            'foreground': '#333333',
-            'border': '#cccccc',
-            'alternate': {'background': '#f8f8f8'},
-            'selection': {'background': '#0066cc', 'foreground': '#ffffff'},
-            'hover': {'background': '#e6f2ff', 'foreground': '#000000'},
-            'font': 'Arial, sans-serif'
+        "name": "light",
+        "list": {
+            "background": "#ffffff",
+            "foreground": "#333333",
+            "border": "#cccccc",
+            "alternate": {"background": "#f8f8f8"},
+            "selection": {"background": "#0066cc", "foreground": "#ffffff"},
+            "hover": {"background": "#e6f2ff", "foreground": "#000000"},
+            "font": "Arial, sans-serif",
         },
-        'button': {
-            'background': '#f0f0f0',
-            'foreground': '#333333',
-            'border': '#cccccc',
-            'hover': {'background': '#e0e0e0'},
-            'pressed': {'background': '#d0d0d0'},
-            'font': 'Arial, sans-serif'
-        }
+        "button": {
+            "background": "#f0f0f0",
+            "foreground": "#333333",
+            "border": "#cccccc",
+            "hover": {"background": "#e0e0e0"},
+            "pressed": {"background": "#d0d0d0"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'list': {
-            'background': '#2d2d2d',
-            'foreground': '#ffffff',
-            'border': '#555555',
-            'alternate': {'background': '#3a3a3a'},
-            'selection': {'background': '#66aaff', 'foreground': '#000000'},
-            'hover': {'background': '#404040', 'foreground': '#ffffff'},
-            'font': 'Arial, sans-serif'
+        "name": "dark",
+        "list": {
+            "background": "#2d2d2d",
+            "foreground": "#ffffff",
+            "border": "#555555",
+            "alternate": {"background": "#3a3a3a"},
+            "selection": {"background": "#66aaff", "foreground": "#000000"},
+            "hover": {"background": "#404040", "foreground": "#ffffff"},
+            "font": "Arial, sans-serif",
         },
-        'button': {
-            'background': '#555555',
-            'foreground': '#ffffff',
-            'border': '#777777',
-            'hover': {'background': '#666666'},
-            'pressed': {'background': '#444444'},
-            'font': 'Arial, sans-serif'
-        }
+        "button": {
+            "background": "#555555",
+            "foreground": "#ffffff",
+            "border": "#777777",
+            "hover": {"background": "#666666"},
+            "pressed": {"background": "#444444"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     colorful_theme = {
-        'name': 'colorful',
-        'list': {
-            'background': '#fff5f5',
-            'foreground': '#2d1b30',
-            'border': '#d68e8e',
-            'alternate': {'background': '#ffe6e6'},
-            'selection': {'background': '#ff6b9d', 'foreground': '#ffffff'},
-            'hover': {'background': '#ffcccb', 'foreground': '#2d1b30'},
-            'font': 'Arial, sans-serif'
+        "name": "colorful",
+        "list": {
+            "background": "#fff5f5",
+            "foreground": "#2d1b30",
+            "border": "#d68e8e",
+            "alternate": {"background": "#ffe6e6"},
+            "selection": {"background": "#ff6b9d", "foreground": "#ffffff"},
+            "hover": {"background": "#ffcccb", "foreground": "#2d1b30"},
+            "font": "Arial, sans-serif",
         },
-        'button': {
-            'background': '#ffb3ba',
-            'foreground': '#2d1b30',
-            'border': '#ff8a95',
-            'hover': {'background': '#ff9aa3'},
-            'pressed': {'background': '#ff7a85'},
-            'font': 'Arial, sans-serif'
-        }
+        "button": {
+            "background": "#ffb3ba",
+            "foreground": "#2d1b30",
+            "border": "#ff8a95",
+            "hover": {"background": "#ff9aa3"},
+            "pressed": {"background": "#ff7a85"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     # Register themes
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.register_theme('colorful', colorful_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.register_theme("colorful", colorful_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = ListDemo()
@@ -484,5 +485,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

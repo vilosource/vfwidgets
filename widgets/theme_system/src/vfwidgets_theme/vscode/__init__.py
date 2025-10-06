@@ -7,8 +7,4 @@ allowing users to import and use VSCode themes directly.
 from .importer import VSCodeThemeImporter
 from .marketplace import MarketplaceClient, ThemeExtension
 
-__all__ = [
-    'MarketplaceClient',
-    'ThemeExtension',
-    'VSCodeThemeImporter'
-]
+__all__ = ["MarketplaceClient", "ThemeExtension", "VSCodeThemeImporter"]

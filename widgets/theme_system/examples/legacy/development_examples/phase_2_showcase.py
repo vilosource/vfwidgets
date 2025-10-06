@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 # Add src to path for imports
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 
 from vfwidgets_theme.matching.pattern_matcher import PatternMatcher
 
@@ -47,6 +47,7 @@ from vfwidgets_theme.properties.descriptors import PropertyDescriptor
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for benchmarking."""
+
     operation: str
     count: int
     total_time: float
@@ -80,7 +81,7 @@ class Phase2ShowcaseWidget:
             type_hint=str,
             default="#000000",
             validator=self._validate_color,
-            description="Primary color for the widget"
+            description="Primary color for the widget",
         )
 
         self.theme_background = PropertyDescriptor(
@@ -88,7 +89,7 @@ class Phase2ShowcaseWidget:
             type_hint=str,
             default="#ffffff",
             validator=self._validate_color,
-            description="Background color for the widget"
+            description="Background color for the widget",
         )
 
         self.theme_font_size = PropertyDescriptor(
@@ -96,7 +97,7 @@ class Phase2ShowcaseWidget:
             type_hint=int,
             default=12,
             validator=lambda x: 6 <= x <= 72,
-            description="Font size in points"
+            description="Font size in points",
         )
 
         self.theme_opacity = PropertyDescriptor(
@@ -104,12 +105,12 @@ class Phase2ShowcaseWidget:
             type_hint=float,
             default=1.0,
             validator=lambda x: 0.0 <= x <= 1.0,
-            description="Widget opacity"
+            description="Widget opacity",
         )
 
         # Initialize property values
         self._property_values = {}
-        for prop_name in ['theme_color', 'theme_background', 'theme_font_size', 'theme_opacity']:
+        for prop_name in ["theme_color", "theme_background", "theme_font_size", "theme_opacity"]:
             prop = getattr(self, prop_name)
             self._property_values[prop_name] = prop.default
 
@@ -123,16 +124,19 @@ class Phase2ShowcaseWidget:
         """Validate color format."""
         if not isinstance(color, str):
             return False
-        return color.startswith('#') and len(color) in [4, 7] and all(
-            c in '0123456789ABCDEFabcdef' for c in color[1:]
+        return (
+            color.startswith("#")
+            and len(color) in [4, 7]
+            and all(c in "0123456789ABCDEFabcdef" for c in color[1:])
         )
 
     def _setup_event_handlers(self):
         """Set up event system handlers."""
+
         def on_theme_change(event):
             print(f"    Theme change event: {event.property_name} = {event.new_value}")
 
-        self._event_system.subscribe('theme_change', on_theme_change)
+        self._event_system.subscribe("theme_change", on_theme_change)
 
     # Task 11: Property access with caching and validation
     def __getattr__(self, name: str):
@@ -144,7 +148,7 @@ class Phase2ShowcaseWidget:
     def __setattr__(self, name: str, value: Any):
         """Set property value with validation and events."""
         # Allow setting internal attributes normally
-        if name.startswith('_') or name in ['name', 'widget_type', 'classes', 'attributes']:
+        if name.startswith("_") or name in ["name", "widget_type", "classes", "attributes"]:
             super().__setattr__(name, value)
             return
 
@@ -157,20 +161,23 @@ class Phase2ShowcaseWidget:
                 raise ValueError(f"Invalid value for {name}: {value}")
 
             # Store the value
-            if not hasattr(self, '_property_values'):
+            if not hasattr(self, "_property_values"):
                 self._property_values = {}
 
             old_value = self._property_values.get(name)
             self._property_values[name] = value
 
             # Emit change event if event system is available
-            if hasattr(self, '_event_system') and old_value != value:
-                self._event_system.emit('theme_change', {
-                    'widget_id': id(self),
-                    'property_name': name,
-                    'old_value': old_value,
-                    'new_value': value
-                })
+            if hasattr(self, "_event_system") and old_value != value:
+                self._event_system.emit(
+                    "theme_change",
+                    {
+                        "widget_id": id(self),
+                        "property_name": name,
+                        "old_value": old_value,
+                        "new_value": value,
+                    },
+                )
         else:
             super().__setattr__(name, value)
 
@@ -193,13 +200,13 @@ class Phase2ShowcaseWidget:
     def matches_selector(self, selector: str) -> bool:
         """Check if widget matches CSS selector."""
         # Simple selector matching for showcase
-        if selector.startswith('.'):
+        if selector.startswith("."):
             return selector[1:] in self.classes
-        elif selector.startswith('[') and selector.endswith(']'):
+        elif selector.startswith("[") and selector.endswith("]"):
             attr_selector = selector[1:-1]
-            if '=' in attr_selector:
-                attr_name, attr_value = attr_selector.split('=', 1)
-                attr_value = attr_value.strip('\'"')
+            if "=" in attr_selector:
+                attr_name, attr_value = attr_selector.split("=", 1)
+                attr_value = attr_value.strip("'\"")
                 return self.attributes.get(attr_name) == attr_value
             else:
                 return attr_selector in self.attributes
@@ -264,13 +271,15 @@ class Phase2Showcase:
             total_time=total_time,
             per_operation_us=per_operation_us,
             memory_used=memory_used,
-            target_met=target_met
+            target_met=target_met,
         )
 
         self.performance_metrics.append(metric)
 
         status = "✓ PASS" if target_met else "✗ FAIL"
-        print(f"  {status} {operation}: {per_operation_us:.2f}μs (target: <{target_us}μs, count: {count})")
+        print(
+            f"  {status} {operation}: {per_operation_us:.2f}μs (target: <{target_us}μs, count: {count})"
+        )
 
     def _get_memory_usage(self) -> int:
         """Get current memory usage."""
@@ -278,6 +287,7 @@ class Phase2Showcase:
             import os
 
             import psutil
+
             process = psutil.Process(os.getpid())
             return process.memory_info().rss
         except ImportError:
@@ -285,9 +295,9 @@ class Phase2Showcase:
 
     def demonstrate_task_11_properties(self):
         """Demonstrate Task 11: PropertyDescriptor system."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TASK 11: PropertyDescriptor System")
-        print("="*60)
+        print("=" * 60)
 
         print("\n11.1 Type-Safe Property Creation")
         print("-" * 40)
@@ -298,8 +308,8 @@ class Phase2Showcase:
         try:
             with self.measure_performance("Property validation", 1.0):
                 widget.theme_color = "#ff0000"  # Valid color
-                widget.theme_font_size = 16     # Valid size
-                widget.theme_opacity = 0.8      # Valid opacity
+                widget.theme_font_size = 16  # Valid size
+                widget.theme_opacity = 0.8  # Valid opacity
 
             print("  ✓ Properties set successfully:")
             print(f"    color: {widget.theme_color}")
@@ -314,9 +324,9 @@ class Phase2Showcase:
 
         # Test validation failures
         test_cases = [
-            ("Invalid color", lambda: setattr(widget, 'theme_color', 'not-a-color')),
-            ("Invalid font size", lambda: setattr(widget, 'theme_font_size', 100)),
-            ("Invalid opacity", lambda: setattr(widget, 'theme_opacity', 2.0))
+            ("Invalid color", lambda: setattr(widget, "theme_color", "not-a-color")),
+            ("Invalid font size", lambda: setattr(widget, "theme_font_size", 100)),
+            ("Invalid opacity", lambda: setattr(widget, "theme_opacity", 2.0)),
         ]
 
         for test_name, test_func in test_cases:
@@ -337,9 +347,9 @@ class Phase2Showcase:
 
     def demonstrate_task_12_events(self):
         """Demonstrate Task 12: ThemeEventSystem."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TASK 12: ThemeEventSystem")
-        print("="*60)
+        print("=" * 60)
 
         print("\n12.1 Event Generation and Handling")
         print("-" * 40)
@@ -350,7 +360,7 @@ class Phase2Showcase:
         def capture_events(event_data):
             events_captured.append(event_data)
 
-        widget._event_system.subscribe('theme_change', capture_events)
+        widget._event_system.subscribe("theme_change", capture_events)
 
         # Generate theme change events
         with self.measure_performance("Event generation", 10.0, 100):
@@ -380,31 +390,23 @@ class Phase2Showcase:
 
     def demonstrate_task_13_mapping(self):
         """Demonstrate Task 13: ThemeMapping system."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TASK 13: ThemeMapping System")
-        print("="*60)
+        print("=" * 60)
 
         print("\n13.1 CSS Selector Mapping")
         print("-" * 40)
 
         # Create theme mapping rules
         mapping_rules = {
-            '.button': {
-                'theme_color': '#007acc',
-                'theme_background': '#f0f0f0',
-                'theme_font_size': 14
+            ".button": {
+                "theme_color": "#007acc",
+                "theme_background": "#f0f0f0",
+                "theme_font_size": 14,
             },
-            '.primary': {
-                'theme_color': '#ffffff',
-                'theme_background': '#007acc'
-            },
-            '[role="input"]': {
-                'theme_background': '#ffffff',
-                'theme_font_size': 12
-            },
-            '.large': {
-                'theme_font_size': 18
-            }
+            ".primary": {"theme_color": "#ffffff", "theme_background": "#007acc"},
+            '[role="input"]': {"theme_background": "#ffffff", "theme_font_size": 12},
+            ".large": {"theme_font_size": 18},
         }
 
         print(f"  Created {len(mapping_rules)} mapping rules")
@@ -417,7 +419,7 @@ class Phase2Showcase:
             Phase2ShowcaseWidget("btn1", "button").add_class("button"),
             Phase2ShowcaseWidget("btn2", "button").add_class("button").add_class("primary"),
             Phase2ShowcaseWidget("input1", "input").set_attribute("role", "input"),
-            Phase2ShowcaseWidget("title", "heading").add_class("large")
+            Phase2ShowcaseWidget("title", "heading").add_class("large"),
         ]
 
         # Apply mappings
@@ -445,13 +447,15 @@ class Phase2Showcase:
                 print(f"    Applying {selector}: {properties}")
                 cascade_widget.apply_theme_mapping(properties)
 
-        print(f"    Final state: color={cascade_widget.theme_color}, bg={cascade_widget.theme_background}")
+        print(
+            f"    Final state: color={cascade_widget.theme_color}, bg={cascade_widget.theme_background}"
+        )
 
     def demonstrate_task_14_pattern_matching(self):
         """Demonstrate Task 14: PatternMatcher with caching."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TASK 14: PatternMatcher with Caching")
-        print("="*60)
+        print("=" * 60)
 
         print("\n14.1 Pattern Compilation and Caching")
         print("-" * 40)
@@ -460,9 +464,9 @@ class Phase2Showcase:
         patterns = [
             '.button.primary[role="submit"]',
             '.input:focus[type="text"]',
-            '.card > .header .title',
+            ".card > .header .title",
             '[data-theme="dark"] .content',
-            '.form .field.required input'
+            ".form .field.required input",
         ]
 
         print(f"  Testing {len(patterns)} complex patterns")
@@ -480,12 +484,13 @@ class Phase2Showcase:
         # Create widgets to test against patterns
         test_widgets = [
             Phase2ShowcaseWidget("submit-btn", "button")
-                .add_class("button").add_class("primary")
-                .set_attribute("role", "submit"),
+            .add_class("button")
+            .add_class("primary")
+            .set_attribute("role", "submit"),
             Phase2ShowcaseWidget("text-input", "input")
-                .add_class("input").set_attribute("type", "text"),
-            Phase2ShowcaseWidget("card-title", "heading")
-                .add_class("title")
+            .add_class("input")
+            .set_attribute("type", "text"),
+            Phase2ShowcaseWidget("card-title", "heading").add_class("title"),
         ]
 
         # Test pattern matching performance
@@ -513,38 +518,42 @@ class Phase2Showcase:
                 for widget in test_widgets:
                     for pattern in patterns:
                         # Simulate cached lookup
-                        if hasattr(self.pattern_matcher, '_cache'):
+                        if hasattr(self.pattern_matcher, "_cache"):
                             cache_hits += 1
                         else:
                             cache_misses += 1
 
-        hit_rate = (cache_hits / (cache_hits + cache_misses)) * 100 if (cache_hits + cache_misses) > 0 else 0
+        hit_rate = (
+            (cache_hits / (cache_hits + cache_misses)) * 100
+            if (cache_hits + cache_misses) > 0
+            else 0
+        )
         print(f"  Cache hit rate: {hit_rate:.1f}% (target: >90%)")
 
     def _simple_pattern_match(self, widget: Phase2ShowcaseWidget, pattern: str) -> bool:
         """Simple pattern matching for demonstration."""
         # This is a simplified implementation for showcase purposes
-        parts = pattern.split('[')[0].split('.')  # Get class parts before attributes
+        parts = pattern.split("[")[0].split(".")  # Get class parts before attributes
 
         for part in parts[1:]:  # Skip empty first part
             if part not in widget.classes:
                 return False
 
         # Check attributes in pattern
-        if '[' in pattern and ']' in pattern:
-            attr_part = pattern[pattern.find('[')+1:pattern.find(']')]
-            if '=' in attr_part:
-                attr_name, attr_value = attr_part.split('=', 1)
-                attr_value = attr_value.strip('\'"')
+        if "[" in pattern and "]" in pattern:
+            attr_part = pattern[pattern.find("[") + 1 : pattern.find("]")]
+            if "=" in attr_part:
+                attr_name, attr_value = attr_part.split("=", 1)
+                attr_value = attr_value.strip("'\"")
                 return widget.attributes.get(attr_name) == attr_value
 
         return True
 
     def demonstrate_task_15_registry(self):
         """Demonstrate Task 15: WidgetRegistry safety."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("TASK 15: WidgetRegistry Safety")
-        print("="*60)
+        print("=" * 60)
 
         print("\n15.1 Safe Widget Registration")
         print("-" * 40)
@@ -554,11 +563,10 @@ class Phase2Showcase:
         # Test individual registration performance
         with self.measure_performance("Widget registration", 10.0, len(widgets)):
             for widget in widgets:
-                self.widget_registry.register(widget, {
-                    'name': widget.name,
-                    'type': widget.widget_type,
-                    'created_at': time.time()
-                })
+                self.widget_registry.register(
+                    widget,
+                    {"name": widget.name, "type": widget.widget_type, "created_at": time.time()},
+                )
 
         print(f"  ✓ Registered {self.widget_registry.count()} widgets")
 
@@ -570,7 +578,9 @@ class Phase2Showcase:
         with self.measure_performance("Bulk registration", 1.0, len(bulk_widgets)):
             result = self.widget_registry.bulk_register(bulk_widgets)
 
-        print(f"  ✓ Bulk registered {result['successful']} widgets in {result['duration_ms']:.2f}ms")
+        print(
+            f"  ✓ Bulk registered {result['successful']} widgets in {result['duration_ms']:.2f}ms"
+        )
 
         print("\n15.3 Lifecycle Tracking")
         print("-" * 40)
@@ -579,15 +589,17 @@ class Phase2Showcase:
         self.widget_registry.register(test_widget)
 
         # Simulate lifecycle events
-        lifecycle_events = ['CREATED', 'REGISTERED', 'UPDATED', 'UPDATED', 'UNREGISTERED']
+        lifecycle_events = ["CREATED", "REGISTERED", "UPDATED", "UPDATED", "UNREGISTERED"]
 
         for state in lifecycle_events:
-            if state == 'UNREGISTERED':
+            if state == "UNREGISTERED":
                 self.widget_registry.unregister(test_widget)
                 break
-            elif state == 'UPDATED':
+            elif state == "UPDATED":
                 # Simulate theme update
-                test_widget.theme_color = '#ff0000' if test_widget.theme_color == '#000000' else '#000000'
+                test_widget.theme_color = (
+                    "#ff0000" if test_widget.theme_color == "#000000" else "#000000"
+                )
 
         events = self.widget_registry.get_lifecycle_events(test_widget)
         print(f"  ✓ Tracked {len(events)} lifecycle events")
@@ -617,9 +629,9 @@ class Phase2Showcase:
 
     def demonstrate_integration(self):
         """Demonstrate all Phase 2 systems working together."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("INTEGRATED PHASE 2 DEMONSTRATION")
-        print("="*60)
+        print("=" * 60)
 
         print("\n Integration: All Systems Working Together")
         print("-" * 40)
@@ -633,10 +645,10 @@ class Phase2Showcase:
 
         # Create theme mapping system
         integration_mapping = {
-            '.primary': {'theme_color': '#ffffff', 'theme_background': '#007acc'},
-            '.secondary': {'theme_color': '#333333', 'theme_background': '#f8f9fa'},
-            '.large': {'theme_font_size': 18},
-            '[role="button"]': {'theme_font_size': 14}
+            ".primary": {"theme_color": "#ffffff", "theme_background": "#007acc"},
+            ".secondary": {"theme_color": "#333333", "theme_background": "#f8f9fa"},
+            ".large": {"theme_font_size": 18},
+            '[role="button"]': {"theme_font_size": 14},
         }
 
         # Create integrated widgets
@@ -679,21 +691,33 @@ class Phase2Showcase:
 
     def run_performance_benchmarks(self):
         """Run comprehensive performance benchmarks for all Phase 2 systems."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("PHASE 2 PERFORMANCE BENCHMARKS")
-        print("="*60)
+        print("=" * 60)
 
         print("\n Performance Summary")
         print("-" * 40)
 
         # Group metrics by task
         task_metrics = {
-            'Task 11 (Properties)': [m for m in self.performance_metrics if 'Property' in m.operation],
-            'Task 12 (Events)': [m for m in self.performance_metrics if 'Event' in m.operation],
-            'Task 13 (Mapping)': [m for m in self.performance_metrics if 'mapping' in m.operation.lower()],
-            'Task 14 (Patterns)': [m for m in self.performance_metrics if 'Pattern' in m.operation or 'matching' in m.operation.lower()],
-            'Task 15 (Registry)': [m for m in self.performance_metrics if any(x in m.operation.lower() for x in ['registration', 'bulk', 'widget'])],
-            'Integration': [m for m in self.performance_metrics if 'Integrated' in m.operation]
+            "Task 11 (Properties)": [
+                m for m in self.performance_metrics if "Property" in m.operation
+            ],
+            "Task 12 (Events)": [m for m in self.performance_metrics if "Event" in m.operation],
+            "Task 13 (Mapping)": [
+                m for m in self.performance_metrics if "mapping" in m.operation.lower()
+            ],
+            "Task 14 (Patterns)": [
+                m
+                for m in self.performance_metrics
+                if "Pattern" in m.operation or "matching" in m.operation.lower()
+            ],
+            "Task 15 (Registry)": [
+                m
+                for m in self.performance_metrics
+                if any(x in m.operation.lower() for x in ["registration", "bulk", "widget"])
+            ],
+            "Integration": [m for m in self.performance_metrics if "Integrated" in m.operation],
         }
 
         all_passed = True
@@ -728,7 +752,7 @@ class Phase2Showcase:
         total_widgets = self.widget_registry.count()
         if total_widgets > 0:
             registry_stats = self.widget_registry.get_statistics()
-            memory_per_widget = registry_stats['memory_overhead_bytes'] / total_widgets
+            memory_per_widget = registry_stats["memory_overhead_bytes"] / total_widgets
 
             print("\n Memory Efficiency:")
             print(f"  Memory per widget: {memory_per_widget:.1f} bytes")
@@ -763,9 +787,9 @@ class Phase2Showcase:
             # Run performance benchmarks
             self.run_performance_benchmarks()
 
-            print("\n" + "="*60)
+            print("\n" + "=" * 60)
             print("PHASE 2 SHOWCASE COMPLETE")
-            print("="*60)
+            print("=" * 60)
 
             print("\n🎉 Phase 2 Implementation Summary:")
             print("   ✓ Type-safe properties with validation and caching")
@@ -781,6 +805,7 @@ class Phase2Showcase:
         except Exception as e:
             print(f"\n❌ Phase 2 showcase failed: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 

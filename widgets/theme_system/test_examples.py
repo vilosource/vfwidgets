@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Test script to validate Phase 5 examples work correctly.
-"""
+"""Test script to validate Phase 5 examples work correctly."""
 
 import json
 import sys
@@ -13,11 +12,13 @@ def test_basic_imports():
     print("Testing basic imports...")
     try:
         from src.vfwidgets_theme import ThemedApplication, ThemedWidget
+
         print("✓ Core imports successful")
         return True
     except ImportError as e:
         print(f"✗ Import error: {e}")
         return False
+
 
 def test_widget_creation():
     """Test ThemedWidget creation."""
@@ -32,14 +33,11 @@ def test_widget_creation():
 
         # Create test widget
         class TestWidget(ThemedWidget, QLabel):
-            theme_config = {
-                'bg': 'window.background',
-                'fg': 'window.foreground'
-            }
+            theme_config = {"bg": "window.background", "fg": "window.foreground"}
 
             def on_theme_changed(self):
-                bg = self.theme.get('bg', '#ffffff')
-                fg = self.theme.get('fg', '#000000')
+                bg = self.theme.get("bg", "#ffffff")
+                fg = self.theme.get("fg", "#000000")
                 self.setStyleSheet(f"background-color: {bg}; color: {fg};")
 
         widget = TestWidget()
@@ -50,6 +48,7 @@ def test_widget_creation():
     except Exception as e:
         print(f"✗ Widget creation error: {e}")
         return False
+
 
 def test_theme_switching():
     """Test theme switching with built-in themes."""
@@ -77,6 +76,7 @@ def test_theme_switching():
         print(f"✗ Theme switching error: {e}")
         return False
 
+
 def test_theme_file_loading():
     """Test loading themes from files."""
     print("Testing theme file loading...")
@@ -90,19 +90,13 @@ def test_theme_file_loading():
             "name": "test_theme",
             "version": "1.0.0",
             "colors": {
-                "window": {
-                    "background": "#ffffff",
-                    "foreground": "#000000"
-                },
-                "button": {
-                    "background": "#e0e0e0",
-                    "foreground": "#333333"
-                }
-            }
+                "window": {"background": "#ffffff", "foreground": "#000000"},
+                "button": {"background": "#e0e0e0", "foreground": "#333333"},
+            },
         }
 
         # Save to temp file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(test_theme, f)
             temp_file = f.name
 
@@ -121,6 +115,7 @@ def test_theme_file_loading():
     except Exception as e:
         print(f"✗ Theme file loading error: {e}")
         return False
+
 
 def test_example_structure():
     """Test that example files exist and have correct structure."""
@@ -144,7 +139,7 @@ def test_example_structure():
             "layouts/grid_layout.py",
             "tutorials/01_hello_theme.py",
             "phase_5_living_example.py",
-            "README.md"
+            "README.md",
         ]
 
         for file_path in key_files:
@@ -161,6 +156,7 @@ def test_example_structure():
         print(f"✗ Example structure error: {e}")
         return False
 
+
 def main():
     """Run all tests."""
     print("Phase 5 Examples Test Suite")
@@ -171,7 +167,7 @@ def main():
         test_widget_creation,
         test_theme_switching,
         test_theme_file_loading,
-        test_example_structure
+        test_example_structure,
     ]
 
     passed = 0
@@ -196,5 +192,6 @@ def main():
         print("⚠️  Some tests failed. Check the output above.")
         return 1
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

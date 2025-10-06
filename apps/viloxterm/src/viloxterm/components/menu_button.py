@@ -57,11 +57,21 @@ class MenuButton(WindowControlButton):
             if "tab.close" in keybinding_actions:
                 self._menu.addAction(keybinding_actions["tab.close"])
 
-        # Separator
+        # Separator - Appearance section
         self._menu.addSeparator()
 
+        # Add keybinding-managed appearance actions
+        if keybinding_actions:
+            # Terminal preferences (Ctrl+,)
+            if "appearance.terminal_preferences" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["appearance.terminal_preferences"])
+
+            # Terminal theme customization (Ctrl+Shift+,)
+            if "appearance.terminal_theme" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["appearance.terminal_theme"])
+
         # Add "Change Theme" action (not managed by keybindings)
-        change_theme_action = self._menu.addAction("Change Theme...")
+        change_theme_action = self._menu.addAction("Change App Theme...")
         change_theme_action.triggered.connect(self.change_theme_requested.emit)
 
     def mousePressEvent(self, event) -> None:
@@ -81,7 +91,12 @@ class MenuButton(WindowControlButton):
             painter: QPainter for drawing
         """
         colors = self._get_theme_colors()
-        painter.setPen(QPen(colors["icon"], 2, Qt.PenStyle.SolidLine))
+
+        # Use hover icon color when hovered/pressed for proper contrast
+        icon_color = (
+            colors["hover_icon"] if (self._is_hovered or self._is_pressed) else colors["icon"]
+        )
+        painter.setPen(QPen(icon_color, 2, Qt.PenStyle.SolidLine))
 
         # Calculate positions
         center_x = self.width() // 2

@@ -19,7 +19,7 @@ import sys
 import time
 import traceback
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 try:
     from PySide6.QtCore import QTimer
@@ -32,6 +32,7 @@ try:
         QVBoxLayout,
         QWidget,
     )
+
     QT_AVAILABLE = True
 except ImportError:
     print("PySide6 not available, running in mock mode")
@@ -63,9 +64,9 @@ from vfwidgets_theme.widgets.base import ThemedWidget
 
 def print_section(title: str):
     """Print a formatted section header."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"  {title}")
-    print("="*60)
+    print("=" * 60)
 
 
 def print_subsection(title: str):
@@ -89,42 +90,33 @@ class ValidatedWidget(ThemedWidget):
         str,
         validator=color_validator(),
         default="#ffffff",
-        debug=False  # Set to True to see debug output
+        debug=False,  # Set to True to see debug output
     )
 
     text_color = PropertyDescriptor(
-        "window.foreground",
-        str,
-        validator=color_validator(),
-        default="#000000"
+        "window.foreground", str, validator=color_validator(), default="#000000"
     )
 
     font_size = PropertyDescriptor(
-        "text.font_size",
-        int,
-        validator=min_max_validator(8, 72),
-        default=12
+        "text.font_size", int, validator=min_max_validator(8, 72), default=12
     )
 
     border_width = PropertyDescriptor(
-        "border.width",
-        int,
-        validator=min_max_validator(0, 10),
-        default=1
+        "border.width", int, validator=min_max_validator(0, 10), default=1
     )
 
     theme_variant = PropertyDescriptor(
-        "theme.variant",
-        str,
-        validator=enum_validator(["light", "dark", "auto"]),
-        default="light"
+        "theme.variant", str, validator=enum_validator(["light", "dark", "auto"]), default="light"
     )
 
     window_title = PropertyDescriptor(
         "window.title",
         str,
-        validator=regex_validator(r'^[a-zA-Z0-9\s\-_]+$', "Title must contain only alphanumeric characters, spaces, hyphens, and underscores"),
-        default="Themed Window"
+        validator=regex_validator(
+            r"^[a-zA-Z0-9\s\-_]+$",
+            "Title must contain only alphanumeric characters, spaces, hyphens, and underscores",
+        ),
+        default="Themed Window",
     )
 
     # Computed property example using PropertyDescriptor with computed
@@ -135,17 +127,13 @@ class ValidatedWidget(ThemedWidget):
         text = self.text_color
 
         # Very basic contrast calculation (real implementation would be more complex)
-        bg_brightness = 0.5 if bg.startswith('#') else 0.3
-        text_brightness = 0.2 if text.startswith('#') else 0.7
+        bg_brightness = 0.5 if bg.startswith("#") else 0.3
+        text_brightness = 0.2 if text.startswith("#") else 0.7
 
         return abs(bg_brightness - text_brightness) * 10  # Scale for readability
 
     # Note: The computed property will be set up in __init__ since it needs self reference
-    contrast_ratio = PropertyDescriptor(
-        "computed.contrast_ratio",
-        float,
-        default=5.0
-    )
+    contrast_ratio = PropertyDescriptor("computed.contrast_ratio", float, default=5.0)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -153,7 +141,7 @@ class ValidatedWidget(ThemedWidget):
         # Set up computed property with proper self reference
         ValidatedWidget.contrast_ratio.computed = ComputedProperty(
             lambda widget: self._compute_contrast_ratio(),
-            dependencies=["background_color", "text_color"]
+            dependencies=["background_color", "text_color"],
         )
 
         self._setup_widget()
@@ -226,7 +214,7 @@ class ValidatedWidget(ThemedWidget):
 
         # 5. Property statistics
         print("\n5. Property statistics:")
-        for prop_name in ['background_color', 'font_size', 'theme_variant']:
+        for prop_name in ["background_color", "font_size", "theme_variant"]:
             descriptor = getattr(ValidatedWidget, prop_name)
             stats = descriptor.statistics
             print(f"   {prop_name}:")
@@ -246,7 +234,9 @@ class ValidatedWidget(ThemedWidget):
         avg_time_ns = (end_time - start_time) * 1_000_000_000 / iterations
 
         print(f"   {iterations} cached property accesses took {avg_time_ns:.1f}ns average")
-        print(f"   {'✓ PASS' if avg_time_ns < 1000 else '✗ FAIL'}: Performance requirement (<1000ns)")
+        print(
+            f"   {'✓ PASS' if avg_time_ns < 1000 else '✗ FAIL'}: Performance requirement (<1000ns)"
+        )
 
 
 class EventAwareWidget(ThemedWidget):
@@ -260,24 +250,14 @@ class EventAwareWidget(ThemedWidget):
     """
 
     # Properties that emit events when changed
-    title = PropertyDescriptor(
-        "window.title",
-        str,
-        default="Event Demo"
-    )
+    title = PropertyDescriptor("window.title", str, default="Event Demo")
 
     color = PropertyDescriptor(
-        "window.background",
-        str,
-        validator=color_validator(),
-        default="#ffffff"
+        "window.background", str, validator=color_validator(), default="#ffffff"
     )
 
     size = PropertyDescriptor(
-        "window.size",
-        int,
-        validator=min_max_validator(10, 1000),
-        default=100
+        "window.size", int, validator=min_max_validator(10, 1000), default=100
     )
 
     def __init__(self, parent=None):
@@ -300,35 +280,35 @@ class EventAwareWidget(ThemedWidget):
 
     def on_property_changing(self, widget_id, property_name, old_value, new_value):
         """Handle property changing events."""
-        if widget_id == getattr(self, '_widget_id', f'widget_{id(self)}'):
+        if widget_id == getattr(self, "_widget_id", f"widget_{id(self)}"):
             event_info = f"Property '{property_name}' changing: {old_value} -> {new_value}"
-            self.events_received.append(('property_changing', event_info))
+            self.events_received.append(("property_changing", event_info))
             print(f"  🔄 {event_info}")
 
     def on_property_changed(self, widget_id, property_name, old_value, new_value):
         """Handle property changed events."""
-        if widget_id == getattr(self, '_widget_id', f'widget_{id(self)}'):
+        if widget_id == getattr(self, "_widget_id", f"widget_{id(self)}"):
             event_info = f"Property '{property_name}' changed: {old_value} -> {new_value}"
-            self.events_received.append(('property_changed', event_info))
+            self.events_received.append(("property_changed", event_info))
             print(f"  ✅ {event_info}")
 
     def on_validation_failed(self, widget_id, property_name, invalid_value, error):
         """Handle validation failure events."""
-        if widget_id == getattr(self, '_widget_id', f'widget_{id(self)}'):
+        if widget_id == getattr(self, "_widget_id", f"widget_{id(self)}"):
             event_info = f"Validation failed for '{property_name}': {invalid_value} - {error}"
-            self.events_received.append(('validation_failed', event_info))
+            self.events_received.append(("validation_failed", event_info))
             print(f"  ❌ {event_info}")
 
     def on_theme_changed(self, theme_name):
         """Handle theme change events."""
         event_info = f"Theme changed to: {theme_name}"
-        self.events_received.append(('theme_changed', event_info))
+        self.events_received.append(("theme_changed", event_info))
         print(f"  🎨 {event_info}")
 
     def on_performance_warning(self, operation, duration_ms):
         """Handle performance warning events."""
         event_info = f"Performance warning: {operation} took {duration_ms:.2f}ms"
-        self.events_received.append(('performance_warning', event_info))
+        self.events_received.append(("performance_warning", event_info))
         print(f"  ⚠️ {event_info}")
 
     def clear_events(self):
@@ -358,13 +338,13 @@ def demonstrate_validation_rules():
 
     # Regex validation
     print_subsection("Regex Validation")
-    email_rule = regex_validator(r'^[\w\.-]+@[\w\.-]+\.\w+$', "Must be a valid email")
+    email_rule = regex_validator(r"^[\w\.-]+@[\w\.-]+\.\w+$", "Must be a valid email")
     test_emails = [
         "user@example.com",
         "test.user@domain.co.uk",
         "invalid-email",
         "missing@domain",
-        "@example.com"
+        "@example.com",
     ]
 
     for email in test_emails:
@@ -384,13 +364,13 @@ def demonstrate_validation_rules():
     print_subsection("Color Validation")
     color_rule = color_validator()
     test_colors = [
-        "#ff0000",           # Hex
-        "#f00",              # Short hex
-        "rgb(255, 0, 0)",    # RGB
+        "#ff0000",  # Hex
+        "#f00",  # Short hex
+        "rgb(255, 0, 0)",  # RGB
         "rgba(255, 0, 0, 0.5)",  # RGBA
-        "red",               # Named
-        "not-a-color",       # Invalid
-        "#gggggg"            # Invalid hex
+        "red",  # Named
+        "not-a-color",  # Invalid
+        "#gggggg",  # Invalid hex
     ]
 
     for color in test_colors:
@@ -469,10 +449,10 @@ def demonstrate_performance_benchmarks():
     # 2. Different property types
     print("\n2. Different property types:")
     properties = [
-        ('background_color', lambda: widget.background_color),
-        ('font_size', lambda: widget.font_size),
-        ('theme_variant', lambda: widget.theme_variant),
-        ('contrast_ratio', lambda: widget.contrast_ratio)  # Computed property
+        ("background_color", lambda: widget.background_color),
+        ("font_size", lambda: widget.font_size),
+        ("theme_variant", lambda: widget.theme_variant),
+        ("contrast_ratio", lambda: widget.contrast_ratio),  # Computed property
     ]
 
     for prop_name, accessor in properties:
@@ -487,6 +467,7 @@ def demonstrate_performance_benchmarks():
     # 3. Global cache statistics
     print_subsection("Global Cache Statistics")
     from vfwidgets_theme.properties.descriptors import PropertyDescriptor
+
     stats = PropertyDescriptor.get_global_cache_stats()
 
     for key, value in stats.items():
@@ -580,11 +561,11 @@ def demonstrate_event_system():
     for i in range(5):
         # Set with debouncing enabled (default)
         event_system.notify_property_changed(
-            getattr(widget, '_widget_id', f'widget_{id(widget)}'),
-            'rapid_property',
-            f'old_{i}',
-            f'new_{i}',
-            debounce=True
+            getattr(widget, "_widget_id", f"widget_{id(widget)}"),
+            "rapid_property",
+            f"old_{i}",
+            f"new_{i}",
+            debounce=True,
         )
 
     # Wait a moment for debounced events to be processed
@@ -605,7 +586,7 @@ def demonstrate_event_system():
     event_system.notify_theme_changed("performance_test_theme")
 
     # Check for performance warnings
-    perf_warnings = [e for e in widget.events_received if e[0] == 'performance_warning']
+    perf_warnings = [e for e in widget.events_received if e[0] == "performance_warning"]
     if perf_warnings:
         print(f"   Generated {len(perf_warnings)} performance warnings")
     else:
@@ -644,10 +625,16 @@ def demonstrate_event_integration():
     print(f"   Widget1 received {len(widget1.events_received)} events")
 
     # Show that events are widget-specific
-    widget1_events = [e for e in widget1.events_received
-                     if getattr(widget1, '_widget_id', f'widget_{id(widget1)}') in str(e)]
-    widget2_events = [e for e in widget1.events_received
-                     if getattr(widget2, '_widget_id', f'widget_{id(widget2)}') in str(e)]
+    widget1_events = [
+        e
+        for e in widget1.events_received
+        if getattr(widget1, "_widget_id", f"widget_{id(widget1)}") in str(e)
+    ]
+    widget2_events = [
+        e
+        for e in widget1.events_received
+        if getattr(widget2, "_widget_id", f"widget_{id(widget2)}") in str(e)
+    ]
 
     print(f"   Widget1-specific events: {len(widget1_events)}")
     print(f"   Widget2-specific events: {len(widget2_events)}")
@@ -656,11 +643,12 @@ def demonstrate_event_integration():
     event_system = get_global_event_system()
 
     # Register widgets explicitly
-    widget1_id = getattr(widget1, '_widget_id', f'widget_{id(widget1)}')
-    widget2_id = getattr(widget2, '_widget_id', f'widget_{id(widget2)}')
+    widget1_id = getattr(widget1, "_widget_id", f"widget_{id(widget1)}")
+    widget2_id = getattr(widget2, "_widget_id", f"widget_{id(widget2)}")
 
     if QT_AVAILABLE:
         from PySide6.QtWidgets import QWidget
+
         mock_qwidget1 = QWidget()
         mock_qwidget2 = QWidget()
         event_system.register_widget(widget1_id, mock_qwidget1)
@@ -688,16 +676,24 @@ def demonstrate_pattern_matching():
     matcher.add_pattern("*Widget", PatternType.GLOB, PatternPriority.NORMAL, "All Widgets")
     matcher.add_pattern("*Button*", PatternType.GLOB, PatternPriority.HIGH, "All Buttons")
     matcher.add_pattern(r"test_\d+", PatternType.REGEX, PatternPriority.NORMAL, "Test with Numbers")
-    matcher.add_pattern(r"^Custom.*Dialog$", PatternType.REGEX, PatternPriority.HIGH, "Custom Dialogs")
+    matcher.add_pattern(
+        r"^Custom.*Dialog$", PatternType.REGEX, PatternPriority.HIGH, "Custom Dialogs"
+    )
 
     # Custom pattern function
     def starts_with_main(target, widget):
         from vfwidgets_theme.patterns.matcher import MatchResult
+
         matched = target.startswith("main")
         return MatchResult(matched, 0.9 if matched else 0.0)
 
-    matcher.add_pattern("main_pattern", PatternType.CUSTOM, PatternPriority.HIGH,
-                       "Main Pattern", custom_function=starts_with_main)
+    matcher.add_pattern(
+        "main_pattern",
+        PatternType.CUSTOM,
+        PatternPriority.HIGH,
+        "Main Pattern",
+        custom_function=starts_with_main,
+    )
 
     print(f"Added {len(matcher._patterns)} patterns")
 
@@ -708,12 +704,12 @@ def demonstrate_pattern_matching():
 
     # Test different targets
     test_targets = [
-        "TestWidget",           # Should match *Widget
-        "MainButton",          # Should match *Widget and *Button*
-        "test_123",            # Should match test_\d+
-        "CustomLoginDialog",   # Should match Custom.*Dialog$
-        "main_window",         # Should match main pattern (custom)
-        "NoMatchWidget",       # Should match *Widget only
+        "TestWidget",  # Should match *Widget
+        "MainButton",  # Should match *Widget and *Button*
+        "test_123",  # Should match test_\d+
+        "CustomLoginDialog",  # Should match Custom.*Dialog$
+        "main_window",  # Should match main pattern (custom)
+        "NoMatchWidget",  # Should match *Widget only
     ]
 
     for target in test_targets:
@@ -723,12 +719,16 @@ def demonstrate_pattern_matching():
         if matches:
             print(f"  Found {len(matches)} matches:")
             for i, (_idx, pattern, result) in enumerate(matches):
-                print(f"    {i+1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}")
+                print(
+                    f"    {i+1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}"
+                )
 
             # Get best match
             best = matcher.get_best_match(target, test_widget)
             if best:
-                print(f"  Best match: {best[1].name} (priority={best[1].priority.value}, score={best[2].score:.2f})")
+                print(
+                    f"  Best match: {best[1].name} (priority={best[1].priority.value}, score={best[2].score:.2f})"
+                )
         else:
             print("  No matches found")
 
@@ -742,10 +742,16 @@ def demonstrate_pattern_matching():
     matcher.add_plugin(hierarchy_plugin)
 
     # Add plugin patterns
-    matcher.add_pattern("enabled", PatternType.PLUGIN, PatternPriority.NORMAL,
-                       "Enabled State", plugin_name="state")
-    matcher.add_pattern("Dialog.Button", PatternType.PLUGIN, PatternPriority.HIGH,
-                       "Dialog Button Hierarchy", plugin_name="hierarchy")
+    matcher.add_pattern(
+        "enabled", PatternType.PLUGIN, PatternPriority.NORMAL, "Enabled State", plugin_name="state"
+    )
+    matcher.add_pattern(
+        "Dialog.Button",
+        PatternType.PLUGIN,
+        PatternPriority.HIGH,
+        "Dialog Button Hierarchy",
+        plugin_name="hierarchy",
+    )
 
     print("Added plugin patterns for state and hierarchy matching")
 
@@ -792,7 +798,9 @@ def demonstrate_pattern_matching():
     print(f"  Total time: {benchmark_results['total_time_ms']:.2f}ms")
     print(f"  Average per match: {benchmark_results['average_time_ms']:.3f}ms")
     print(f"  Patterns per second: {benchmark_results['patterns_per_second']:.0f}")
-    print(f"  Requirement (<1ms for 100 patterns): {'✓ PASS' if benchmark_results['average_time_ms'] < 1.0 else '✗ FAIL'}")
+    print(
+        f"  Requirement (<1ms for 100 patterns): {'✓ PASS' if benchmark_results['average_time_ms'] < 1.0 else '✗ FAIL'}"
+    )
 
     print_subsection("5. Caching Performance")
 
@@ -821,7 +829,7 @@ def demonstrate_pattern_matching():
 
     # Get cache statistics
     stats = matcher.get_statistics()
-    cache_stats = stats['match_cache_stats']
+    cache_stats = stats["match_cache_stats"]
     print(f"  Cache hit rate: {cache_stats['hit_rate']:.1%}")
     print(f"  Requirement (>90%): {'✓ PASS' if cache_stats['hit_rate'] > 0.9 else '✗ FAIL'}")
 
@@ -834,15 +842,15 @@ def demonstrate_pattern_matching():
 
     # Example integration scenario
     css_like_targets = [
-        "#main-button",        # CSS-style ID
-        ".primary-button",     # CSS-style class
-        "QPushButton",         # Widget type
+        "#main-button",  # CSS-style ID
+        ".primary-button",  # CSS-style class
+        "QPushButton",  # Widget type
     ]
 
     pattern_like_targets = [
-        "*main*",             # Glob pattern
-        "primary_*",          # Glob pattern
-        r"Q\w+Button",        # Regex pattern
+        "*main*",  # Glob pattern
+        "primary_*",  # Glob pattern
+        r"Q\w+Button",  # Regex pattern
     ]
 
     print("\nCSS-style targets that could be handled by CSS selectors:")

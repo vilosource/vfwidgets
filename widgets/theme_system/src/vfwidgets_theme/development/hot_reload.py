@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, Optional, Set
 
 try:
     from PySide6.QtCore import QFileSystemWatcher, QObject, QTimer, Signal
+
     QT_AVAILABLE = True
 except ImportError:
     # Mock classes for testing without Qt
@@ -71,7 +72,7 @@ except ImportError:
             self._func = func
 
         def emit(self, *args):
-            if hasattr(self, '_func'):
+            if hasattr(self, "_func"):
                 self._func(*args)
 
     QT_AVAILABLE = False
@@ -101,7 +102,7 @@ class HotReloader(QObject):
 
     # Signals
     theme_reloaded = Signal(str, bool)  # (file_path, success)
-    reload_error = Signal(str, str)     # (file_path, error_message)
+    reload_error = Signal(str, str)  # (file_path, error_message)
 
     def __init__(self, debounce_ms: int = 100):
         """Initialize hot reloader.
@@ -229,7 +230,9 @@ class HotReloader(QObject):
             self.logger.info(f"Now watching directory: {directory_path}")
 
             # Also watch existing theme files in the directory
-            theme_files = list(directory_path.glob("*.json")) + list(directory_path.glob("*.vftheme"))
+            theme_files = list(directory_path.glob("*.json")) + list(
+                directory_path.glob("*.vftheme")
+            )
             for theme_file in theme_files:
                 self.watch_file(theme_file)
         else:
@@ -322,7 +325,7 @@ class HotReloader(QObject):
             return
 
         # Check if this is a theme file
-        if path_obj.suffix not in ['.json', '.vftheme']:
+        if path_obj.suffix not in [".json", ".vftheme"]:
             self.logger.debug(f"Ignoring non-theme file: {path_obj}")
             return
 
@@ -419,7 +422,7 @@ class HotReloader(QObject):
             timestamp=time.time(),
             success=success,
             error=error_msg,
-            reload_time_ms=reload_time_ms
+            reload_time_ms=reload_time_ms,
         )
         self.reload_events.append(event)
 
@@ -440,25 +443,31 @@ class HotReloader(QObject):
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get hot reload statistics."""
-        success_rate = (self.successful_reloads / self.total_reloads * 100) if self.total_reloads > 0 else 0
+        success_rate = (
+            (self.successful_reloads / self.total_reloads * 100) if self.total_reloads > 0 else 0
+        )
 
-        recent_events = [e for e in self.reload_events if e.timestamp > time.time() - 300]  # Last 5 minutes
+        recent_events = [
+            e for e in self.reload_events if e.timestamp > time.time() - 300
+        ]  # Last 5 minutes
         avg_reload_time = 0.0
         if recent_events:
             reload_times = [e.reload_time_ms for e in recent_events if e.reload_time_ms is not None]
             avg_reload_time = sum(reload_times) / len(reload_times) if reload_times else 0.0
 
         return {
-            'enabled': self.enabled,
-            'total_reloads': self.total_reloads,
-            'successful_reloads': self.successful_reloads,
-            'success_rate': success_rate,
-            'watched_files': len(self.watched_files),
-            'watched_directories': len(self.watched_directories),
-            'debounce_ms': self.debounce_ms,
-            'recent_events_count': len(recent_events),
-            'avg_reload_time_ms': avg_reload_time,
-            'last_reload_time': max(self.last_reload_times.values()) if self.last_reload_times else None
+            "enabled": self.enabled,
+            "total_reloads": self.total_reloads,
+            "successful_reloads": self.successful_reloads,
+            "success_rate": success_rate,
+            "watched_files": len(self.watched_files),
+            "watched_directories": len(self.watched_directories),
+            "debounce_ms": self.debounce_ms,
+            "recent_events_count": len(recent_events),
+            "avg_reload_time_ms": avg_reload_time,
+            "last_reload_time": (
+                max(self.last_reload_times.values()) if self.last_reload_times else None
+            ),
         }
 
     def get_recent_events(self, limit: int = 10) -> list[ReloadEvent]:
@@ -473,6 +482,7 @@ def debounced(wait_ms: int):
         wait_ms: Wait time in milliseconds
 
     """
+
     def decorator(func):
         last_called = [0.0]
 
@@ -483,6 +493,7 @@ def debounced(wait_ms: int):
                 return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -502,7 +513,12 @@ class DevModeManager:
     def is_dev_mode(cls) -> bool:
         """Check if development mode is enabled."""
         # Check environment variable
-        env_dev_mode = os.environ.get('VFWIDGETS_DEV_MODE', '').lower() in ('1', 'true', 'yes', 'on')
+        env_dev_mode = os.environ.get("VFWIDGETS_DEV_MODE", "").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
 
         # Use class variable if set, otherwise use environment
         return cls._dev_mode or env_dev_mode

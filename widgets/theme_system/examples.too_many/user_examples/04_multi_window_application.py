@@ -17,7 +17,7 @@ What this demonstrates:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction
@@ -44,9 +44,9 @@ class ThemedDialog(ThemedWidget, QDialog):
     """A themed dialog window."""
 
     theme_config = {
-        'dialog_bg': 'colors.background',
-        'dialog_fg': 'colors.foreground',
-        'dialog_accent': 'colors.accent'
+        "dialog_bg": "colors.background",
+        "dialog_fg": "colors.foreground",
+        "dialog_accent": "colors.accent",
     }
 
     def __init__(self, parent=None):
@@ -86,9 +86,7 @@ class ThemedDialog(ThemedWidget, QDialog):
         layout.addWidget(self.preview)
 
         # Buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -97,11 +95,12 @@ class ThemedDialog(ThemedWidget, QDialog):
 
     def on_theme_changed(self):
         """Update dialog styling."""
-        bg = getattr(self.theme, 'dialog_bg', '#ffffff')
-        fg = getattr(self.theme, 'dialog_fg', '#000000')
-        accent = getattr(self.theme, 'dialog_accent', '#0066cc')
+        bg = getattr(self.theme, "dialog_bg", "#ffffff")
+        fg = getattr(self.theme, "dialog_fg", "#000000")
+        accent = getattr(self.theme, "dialog_accent", "#0066cc")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             ThemedDialog {{
                 background-color: {bg};
                 color: {fg};
@@ -120,7 +119,8 @@ class ThemedDialog(ThemedWidget, QDialog):
                 color: {fg};
                 border: 1px solid {accent};
             }}
-        """)
+        """
+        )
 
     def get_selected_theme(self):
         return self.theme_combo.currentText()
@@ -130,9 +130,9 @@ class SidePanel(ThemedWidget, QWidget):
     """A side panel with file tree."""
 
     theme_config = {
-        'panel_bg': 'colors.background',
-        'panel_fg': 'colors.foreground',
-        'panel_border': 'colors.border'
+        "panel_bg": "colors.background",
+        "panel_fg": "colors.foreground",
+        "panel_border": "colors.border",
     }
 
     def __init__(self):
@@ -163,11 +163,12 @@ class SidePanel(ThemedWidget, QWidget):
 
     def on_theme_changed(self):
         """Update panel styling."""
-        bg = getattr(self.theme, 'panel_bg', '#ffffff')
-        fg = getattr(self.theme, 'panel_fg', '#000000')
-        border = getattr(self.theme, 'panel_border', '#cccccc')
+        bg = getattr(self.theme, "panel_bg", "#ffffff")
+        fg = getattr(self.theme, "panel_fg", "#000000")
+        border = getattr(self.theme, "panel_border", "#cccccc")
 
-        self.tree.setStyleSheet(f"""
+        self.tree.setStyleSheet(
+            f"""
             QTreeWidget {{
                 background-color: {bg};
                 color: {fg};
@@ -176,17 +177,18 @@ class SidePanel(ThemedWidget, QWidget):
             QTreeWidget::item:selected {{
                 background-color: {border};
             }}
-        """)
+        """
+        )
 
 
 class EditorWindow(ThemedWidget, QMainWindow):
     """A themed editor window."""
 
     theme_config = {
-        'window_bg': 'colors.background',
-        'window_fg': 'colors.foreground',
-        'editor_bg': 'colors.background',
-        'editor_fg': 'colors.foreground'
+        "window_bg": "colors.background",
+        "window_fg": "colors.foreground",
+        "editor_bg": "colors.background",
+        "editor_fg": "colors.foreground",
     }
 
     def __init__(self, window_number=1):
@@ -293,12 +295,13 @@ class EditorWindow(ThemedWidget, QMainWindow):
 
     def on_theme_changed(self):
         """Update window styling."""
-        bg = getattr(self.theme, 'window_bg', '#ffffff')
-        fg = getattr(self.theme, 'window_fg', '#000000')
-        editor_bg = getattr(self.theme, 'editor_bg', '#ffffff')
-        editor_fg = getattr(self.theme, 'editor_fg', '#000000')
+        bg = getattr(self.theme, "window_bg", "#ffffff")
+        fg = getattr(self.theme, "window_fg", "#000000")
+        editor_bg = getattr(self.theme, "editor_bg", "#ffffff")
+        editor_fg = getattr(self.theme, "editor_fg", "#000000")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QMainWindow {{
                 background-color: {bg};
             }}
@@ -322,9 +325,11 @@ class EditorWindow(ThemedWidget, QMainWindow):
                 background-color: {bg};
                 color: {fg};
             }}
-        """)
+        """
+        )
 
-        self.editor.setStyleSheet(f"""
+        self.editor.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {editor_bg};
                 color: {editor_fg};
@@ -332,7 +337,8 @@ class EditorWindow(ThemedWidget, QMainWindow):
                 font-family: 'Courier New', monospace;
                 font-size: 14px;
             }}
-        """)
+        """
+        )
 
 
 def main():
@@ -348,5 +354,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

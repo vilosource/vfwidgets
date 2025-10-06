@@ -130,20 +130,18 @@ class ThemeProperty:
         # Access from instance - get theme value
         try:
             # Check if widget has theme properties manager
-            if hasattr(obj, '_theme_properties'):
+            if hasattr(obj, "_theme_properties"):
                 # Get value through theme properties manager
                 value = obj._theme_properties.get_property(self.token, self.default)
                 return value
 
             # Fallback: try legacy theme access
-            if hasattr(obj, 'theme'):
+            if hasattr(obj, "theme"):
                 value = obj.theme.get(self.token, self.default)
                 return value
 
             # No theme system available - return default
-            logger.debug(
-                f"Widget has no theme system, returning default for '{self._attr_name}'"
-            )
+            logger.debug(f"Widget has no theme system, returning default for '{self._attr_name}'")
             return self.default
 
         except PropertyNotFoundError:
@@ -197,7 +195,7 @@ class ColorProperty(ThemeProperty):
 
     """
 
-    def __init__(self, token: str, default: str = '#000000'):
+    def __init__(self, token: str, default: str = "#000000"):
         """Initialize color property descriptor.
 
         Args:
@@ -274,7 +272,7 @@ class FontProperty(ThemeProperty):
 
     """
 
-    def __init__(self, token: str, default: str = 'Arial, 12px'):
+    def __init__(self, token: str, default: str = "Arial, 12px"):
         """Initialize font property descriptor.
 
         Args:
@@ -333,9 +331,9 @@ class FontProperty(ThemeProperty):
         """
         try:
             # Split by comma
-            parts = [p.strip() for p in font_string.split(',')]
+            parts = [p.strip() for p in font_string.split(",")]
 
-            family = 'Arial'  # Default
+            family = "Arial"  # Default
             size = 12  # Default size in points
 
             # Extract family (first part)
@@ -345,9 +343,9 @@ class FontProperty(ThemeProperty):
             # Extract size (look for number with 'px' or 'pt')
             for part in parts:
                 part_lower = part.lower()
-                if 'px' in part_lower or 'pt' in part_lower:
+                if "px" in part_lower or "pt" in part_lower:
                     # Extract numeric part
-                    size_str = ''.join(c for c in part if c.isdigit() or c == '.')
+                    size_str = "".join(c for c in part if c.isdigit() or c == ".")
                     if size_str:
                         size = int(float(size_str))
                         break
@@ -359,11 +357,11 @@ class FontProperty(ThemeProperty):
         except Exception as e:
             logger.error(f"Error parsing font string '{font_string}': {e}")
             # Return safe default
-            return QFont('Arial', 12)
+            return QFont("Arial", 12)
 
 
 __all__ = [
-    'ThemeProperty',
-    'ColorProperty',
-    'FontProperty',
+    "ThemeProperty",
+    "ColorProperty",
+    "FontProperty",
 ]

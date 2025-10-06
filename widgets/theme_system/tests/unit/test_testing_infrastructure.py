@@ -47,11 +47,9 @@ class TestMockObjects(ThemedTestCase):
 
     def test_mock_theme_provider_basic_functionality(self):
         """Test that MockThemeProvider implements the protocol correctly."""
-        provider = MockThemeProvider({
-            "primary_color": "#007acc",
-            "background": "#ffffff",
-            "font_size": "12px"
-        })
+        provider = MockThemeProvider(
+            {"primary_color": "#007acc", "background": "#ffffff", "font_size": "12px"}
+        )
 
         # Test property access
         self.assertEqual(provider.get_property("primary_color"), "#007acc")
@@ -93,6 +91,7 @@ class TestMockObjects(ThemedTestCase):
 
         # Inject error
         from src.vfwidgets_theme.protocols import ThemePropertyError
+
         provider.inject_error("get_property", ThemePropertyError("Test error"))
 
         # Should raise the injected error
@@ -338,9 +337,7 @@ class TestPerformanceBenchmarking(ThemedTestCase):
         provider = MockThemeProvider()
 
         result = self.benchmark.benchmark_property_access(
-            provider,
-            properties=["primary_color", "background"],
-            iterations=100
+            provider, properties=["primary_color", "background"], iterations=100
         )
 
         # Validate result structure
@@ -349,17 +346,18 @@ class TestPerformanceBenchmarking(ThemedTestCase):
         self.assertGreater(result.operations_per_second, 0)
 
         # Should meet reasonable performance requirement for test environment
-        self.assertLess(result.average_time, 0.0001)  # < 100μs (more realistic for test environment)
+        self.assertLess(
+            result.average_time, 0.0001
+        )  # < 100μs (more realistic for test environment)
 
     def test_memory_usage_benchmark(self):
         """Test memory usage benchmark."""
+
         def widget_factory():
             return self.create_test_widget()
 
         result = self.benchmark.benchmark_memory_usage(
-            widget_factory,
-            widget_count=10,
-            theme_switches=3
+            widget_factory, widget_count=10, theme_switches=3
         )
 
         # Validate result structure
@@ -372,9 +370,7 @@ class TestPerformanceBenchmarking(ThemedTestCase):
         provider = MockThemeProvider()
 
         result = self.benchmark.benchmark_callback_registration(
-            provider,
-            callback_count=10,
-            iterations=5
+            provider, callback_count=10, iterations=5
         )
 
         # Validate result structure
@@ -388,10 +384,7 @@ class TestPerformanceBenchmarking(ThemedTestCase):
         theme_data = self.default_theme_data
 
         result = self.benchmark.benchmark_style_generation(
-            generator,
-            theme_data,
-            widget_types=["button", "label"],
-            iterations=10
+            generator, theme_data, widget_types=["button", "label"], iterations=10
         )
 
         # Validate result structure
@@ -404,16 +397,14 @@ class TestPerformanceBenchmarking(ThemedTestCase):
         provider = MockThemeProvider()
 
         result = self.benchmark.benchmark_concurrent_access(
-            provider,
-            thread_count=5,
-            operations_per_thread=20
+            provider, thread_count=5, operations_per_thread=20
         )
 
         # Validate result structure
         self.assertIsNotNone(result.operation_name)
         self.assertEqual(result.iterations, 100)  # 5 threads * 20 operations
         self.assertGreater(result.operations_per_second, 0)
-        self.assertEqual(result.metadata['thread_count'], 5)
+        self.assertEqual(result.metadata["thread_count"], 5)
 
     def test_benchmark_result_validation(self):
         """Test benchmark result validation against requirements."""
@@ -422,8 +413,8 @@ class TestPerformanceBenchmarking(ThemedTestCase):
 
         # Test requirements checking
         requirements = {
-            'theme_switch_time': 1.0,  # Very lenient for testing
-            'memory_overhead_per_widget': 10240,  # 10KB for testing
+            "theme_switch_time": 1.0,  # Very lenient for testing
+            "memory_overhead_per_widget": 10240,  # 10KB for testing
         }
 
         meets_requirements = result.meets_requirements(requirements)
@@ -431,7 +422,7 @@ class TestPerformanceBenchmarking(ThemedTestCase):
 
         # Test with strict requirements that should fail
         strict_requirements = {
-            'theme_switch_time': 0.000001,  # Impossible requirement
+            "theme_switch_time": 0.000001,  # Impossible requirement
         }
 
         meets_strict = result.meets_requirements(strict_requirements)
@@ -528,10 +519,10 @@ class TestMemoryProfiling(ThemedTestCase):
         stats = profiler.track_widget_lifecycle(widget_factory, count=10)
 
         # Validate statistics
-        self.assertEqual(stats['widgets_created'], 10)
-        self.assertIn('widgets_still_alive', stats)
-        self.assertIn('creation_memory_delta', stats)
-        self.assertIn('cleanup_memory_delta', stats)
+        self.assertEqual(stats["widgets_created"], 10)
+        self.assertIn("widgets_still_alive", stats)
+        self.assertIn("creation_memory_delta", stats)
+        self.assertIn("cleanup_memory_delta", stats)
 
     def test_leak_detection(self):
         """Test memory leak detection."""
@@ -593,6 +584,7 @@ class TestConvenienceFunctions(ThemedTestCase):
 
     def test_assert_performance_requirement_function(self):
         """Test standalone assert_performance_requirement function."""
+
         def fast_operation():
             time.sleep(0.001)  # 1ms operation
 
@@ -631,6 +623,7 @@ class TestConvenienceFunctions(ThemedTestCase):
 
     def test_memory_convenience_functions(self):
         """Test memory convenience functions."""
+
         def test_operation():
             widget = self.create_test_widget()
             widget.setStyleSheet("color: blue;")
@@ -666,4 +659,5 @@ class TestPerformanceDecorators(ThemedTestCase):
 
 if __name__ == "__main__":
     import unittest
+
     unittest.main()

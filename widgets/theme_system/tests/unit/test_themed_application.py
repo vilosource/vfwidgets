@@ -4,6 +4,7 @@ Unit tests for ThemedApplication.
 Tests the application-level theme management wrapper providing
 simple API for global theming operations.
 """
+
 import json
 import os
 import tempfile
@@ -24,12 +25,12 @@ class TestThemedApplicationCreation(ThemedTestCase):
         """Set up test application."""
         super().setUp()
         # Mock QApplication to avoid requiring Qt in tests
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -57,12 +58,15 @@ class TestThemedApplicationCreation(ThemedTestCase):
 
     def test_themed_application_with_custom_config(self):
         """Test ThemedApplication with custom configuration."""
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
-            custom_app = ThemedApplication([], theme_config={
-                'default_theme': 'dark',
-                'auto_detect_system': True,
-                'persist_theme': True
-            })
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
+            custom_app = ThemedApplication(
+                [],
+                theme_config={
+                    "default_theme": "dark",
+                    "auto_detect_system": True,
+                    "persist_theme": True,
+                },
+            )
 
         self.assertIsNotNone(custom_app._config)
         custom_app.cleanup()
@@ -74,19 +78,19 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
     def setUp(self):
         """Set up test application."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
     def test_set_theme_by_name(self):
         """Test setting theme by name."""
         # Should be able to set theme by name
-        result = self.app.set_theme('dark')
+        result = self.app.set_theme("dark")
         self.assertTrue(result)
 
         # Current theme should be updated
@@ -97,8 +101,8 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
         """Test setting theme with Theme object."""
         theme = Theme(
             name="test_theme",
-            colors={'primary': '#FF0000', 'background': '#000000'},
-            styles={'window': {'background-color': '@colors.background'}}
+            colors={"primary": "#FF0000", "background": "#000000"},
+            styles={"window": {"background-color": "@colors.background"}},
         )
 
         result = self.app.set_theme(theme)
@@ -110,7 +114,7 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
 
     def test_set_invalid_theme(self):
         """Test setting invalid theme name."""
-        result = self.app.set_theme('nonexistent_theme')
+        result = self.app.set_theme("nonexistent_theme")
         self.assertFalse(result)
 
         # Should fall back to minimal theme
@@ -126,7 +130,7 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
 
         # Should have built-in themes
         theme_names = [theme.name if isinstance(theme, Theme) else theme for theme in themes]
-        self.assertIn('default', theme_names)
+        self.assertIn("default", theme_names)
 
     def test_get_current_theme(self):
         """Test getting current theme."""
@@ -139,7 +143,7 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
     def test_reload_current_theme(self):
         """Test reloading current theme."""
         # Set a theme first
-        self.app.set_theme('default')
+        self.app.set_theme("default")
 
         # Reload should work
         result = self.app.reload_current_theme()
@@ -150,8 +154,8 @@ class TestThemedApplicationThemeManagement(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def switch_theme():
-            self.app.set_theme('dark')
-            self.app.set_theme('light')
+            self.app.set_theme("dark")
+            self.app.set_theme("light")
 
         switch_time = benchmark.measure_time(switch_theme)
         # Should switch themes quickly (< 100ms for application level)
@@ -165,14 +169,15 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
         """Set up test application with temp directory."""
         super().setUp()
         self.temp_dir = tempfile.mkdtemp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application and temp directory."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         import shutil
+
         shutil.rmtree(self.temp_dir)
         super().tearDown()
 
@@ -180,13 +185,13 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
         """Test loading theme from file."""
         # Create test theme file
         theme_data = {
-            'name': 'test_file_theme',
-            'colors': {'primary': '#FF0000', 'background': '#FFFFFF'},
-            'styles': {'window': {'background-color': '@colors.background'}}
+            "name": "test_file_theme",
+            "colors": {"primary": "#FF0000", "background": "#FFFFFF"},
+            "styles": {"window": {"background-color": "@colors.background"}},
         }
 
-        theme_file = os.path.join(self.temp_dir, 'test_theme.json')
-        with open(theme_file, 'w') as f:
+        theme_file = os.path.join(self.temp_dir, "test_theme.json")
+        with open(theme_file, "w") as f:
             json.dump(theme_data, f)
 
         # Load theme file
@@ -196,14 +201,14 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
         # Should be available in themes
         themes = self.app.get_available_themes()
         theme_names = [theme.name if isinstance(theme, Theme) else theme for theme in themes]
-        self.assertIn('test_file_theme', theme_names)
+        self.assertIn("test_file_theme", theme_names)
 
     def test_load_invalid_theme_file(self):
         """Test loading invalid theme file."""
         # Create invalid theme file
-        invalid_file = os.path.join(self.temp_dir, 'invalid.json')
-        with open(invalid_file, 'w') as f:
-            f.write('invalid json content')
+        invalid_file = os.path.join(self.temp_dir, "invalid.json")
+        with open(invalid_file, "w") as f:
+            f.write("invalid json content")
 
         # Should handle gracefully
         result = self.app.load_theme_file(invalid_file)
@@ -211,7 +216,7 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
 
     def test_load_nonexistent_theme_file(self):
         """Test loading nonexistent theme file."""
-        nonexistent = os.path.join(self.temp_dir, 'nonexistent.json')
+        nonexistent = os.path.join(self.temp_dir, "nonexistent.json")
 
         result = self.app.load_theme_file(nonexistent)
         self.assertFalse(result)
@@ -219,10 +224,10 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
     def test_save_current_theme(self):
         """Test saving current theme to file."""
         # Set a theme
-        self.app.set_theme('default')
+        self.app.set_theme("default")
 
         # Save to file
-        output_file = os.path.join(self.temp_dir, 'saved_theme.json')
+        output_file = os.path.join(self.temp_dir, "saved_theme.json")
         result = self.app.save_current_theme(output_file)
         self.assertTrue(result)
 
@@ -237,22 +242,22 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
         """Test discovering themes from directory."""
         # Create theme files in directory
         theme1_data = {
-            'name': 'discovered_theme_1',
-            'colors': {'primary': '#FF0000'},
-            'styles': {'window': {}}
+            "name": "discovered_theme_1",
+            "colors": {"primary": "#FF0000"},
+            "styles": {"window": {}},
         }
         theme2_data = {
-            'name': 'discovered_theme_2',
-            'colors': {'primary': '#00FF00'},
-            'styles': {'window': {}}
+            "name": "discovered_theme_2",
+            "colors": {"primary": "#00FF00"},
+            "styles": {"window": {}},
         }
 
-        theme1_file = os.path.join(self.temp_dir, 'theme1.json')
-        theme2_file = os.path.join(self.temp_dir, 'theme2.json')
+        theme1_file = os.path.join(self.temp_dir, "theme1.json")
+        theme2_file = os.path.join(self.temp_dir, "theme2.json")
 
-        with open(theme1_file, 'w') as f:
+        with open(theme1_file, "w") as f:
             json.dump(theme1_data, f)
-        with open(theme2_file, 'w') as f:
+        with open(theme2_file, "w") as f:
             json.dump(theme2_data, f)
 
         # Discover themes
@@ -262,8 +267,8 @@ class TestThemedApplicationFileOperations(ThemedTestCase):
         # Themes should be available
         themes = self.app.get_available_themes()
         theme_names = [theme.name if isinstance(theme, Theme) else theme for theme in themes]
-        self.assertIn('discovered_theme_1', theme_names)
-        self.assertIn('discovered_theme_2', theme_names)
+        self.assertIn("discovered_theme_1", theme_names)
+        self.assertIn("discovered_theme_2", theme_names)
 
 
 class TestThemedApplicationVSCodeIntegration(ThemedTestCase):
@@ -273,14 +278,15 @@ class TestThemedApplicationVSCodeIntegration(ThemedTestCase):
         """Set up test application."""
         super().setUp()
         self.temp_dir = tempfile.mkdtemp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         import shutil
+
         shutil.rmtree(self.temp_dir)
         super().tearDown()
 
@@ -288,23 +294,18 @@ class TestThemedApplicationVSCodeIntegration(ThemedTestCase):
         """Test importing VSCode theme."""
         # Create mock VSCode theme file
         vscode_theme = {
-            'name': 'Test VSCode Theme',
-            'type': 'dark',
-            'colors': {
-                'editor.background': '#1e1e1e',
-                'editor.foreground': '#d4d4d4',
-                'activityBar.background': '#333333'
+            "name": "Test VSCode Theme",
+            "type": "dark",
+            "colors": {
+                "editor.background": "#1e1e1e",
+                "editor.foreground": "#d4d4d4",
+                "activityBar.background": "#333333",
             },
-            'tokenColors': [
-                {
-                    'scope': 'comment',
-                    'settings': {'foreground': '#608b4e'}
-                }
-            ]
+            "tokenColors": [{"scope": "comment", "settings": {"foreground": "#608b4e"}}],
         }
 
-        vscode_file = os.path.join(self.temp_dir, 'vscode_theme.json')
-        with open(vscode_file, 'w') as f:
+        vscode_file = os.path.join(self.temp_dir, "vscode_theme.json")
+        with open(vscode_file, "w") as f:
             json.dump(vscode_theme, f)
 
         # Import VSCode theme
@@ -315,29 +316,33 @@ class TestThemedApplicationVSCodeIntegration(ThemedTestCase):
         themes = self.app.get_available_themes()
         theme_names = [theme.name if isinstance(theme, Theme) else theme for theme in themes]
         # VSCode theme name might be modified during import
-        self.assertTrue(any('Test VSCode Theme' in name or 'test_vscode_theme' in name.lower()
-                           for name in theme_names))
+        self.assertTrue(
+            any(
+                "Test VSCode Theme" in name or "test_vscode_theme" in name.lower()
+                for name in theme_names
+            )
+        )
 
     def test_import_invalid_vscode_theme(self):
         """Test importing invalid VSCode theme."""
         # Create invalid VSCode theme file
-        invalid_vscode = {'invalid': 'structure'}
+        invalid_vscode = {"invalid": "structure"}
 
-        vscode_file = os.path.join(self.temp_dir, 'invalid_vscode.json')
-        with open(vscode_file, 'w') as f:
+        vscode_file = os.path.join(self.temp_dir, "invalid_vscode.json")
+        with open(vscode_file, "w") as f:
             json.dump(invalid_vscode, f)
 
         # Should handle gracefully
         result = self.app.import_vscode_theme(vscode_file)
         self.assertFalse(result)
 
-    @patch('vfwidgets_theme.widgets.application.find_vscode_themes')
+    @patch("vfwidgets_theme.widgets.application.find_vscode_themes")
     def test_auto_discover_vscode_themes(self, mock_find):
         """Test auto-discovery of VSCode themes."""
         # Mock VSCode theme discovery
-        mock_find.return_value = ['/mock/path/theme1.json', '/mock/path/theme2.json']
+        mock_find.return_value = ["/mock/path/theme1.json", "/mock/path/theme2.json"]
 
-        with patch.object(self.app, 'import_vscode_theme', return_value=True):
+        with patch.object(self.app, "import_vscode_theme", return_value=True):
             count = self.app.auto_discover_vscode_themes()
             self.assertEqual(count, 2)
 
@@ -348,23 +353,23 @@ class TestThemedApplicationSystemIntegration(ThemedTestCase):
     def setUp(self):
         """Set up test application."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
-    @patch('vfwidgets_theme.widgets.application.detect_system_theme')
+    @patch("vfwidgets_theme.widgets.application.detect_system_theme")
     def test_auto_detect_system_theme(self, mock_detect):
         """Test auto-detection of system theme."""
         # Mock system theme detection
-        mock_detect.return_value = 'dark'
+        mock_detect.return_value = "dark"
 
         result = self.app.auto_detect_system_theme()
-        self.assertEqual(result, 'dark')
+        self.assertEqual(result, "dark")
 
         # Should set system theme
         current = self.app.get_current_theme()
@@ -372,20 +377,20 @@ class TestThemedApplicationSystemIntegration(ThemedTestCase):
 
     def test_theme_persistence(self):
         """Test theme persistence across sessions."""
-        with patch('vfwidgets_theme.widgets.application.save_theme_preference') as mock_save:
+        with patch("vfwidgets_theme.widgets.application.save_theme_preference") as mock_save:
             # Set theme with persistence
-            self.app.set_theme('dark', persist=True)
+            self.app.set_theme("dark", persist=True)
 
             # Should save preference
             mock_save.assert_called()
 
-    @patch('vfwidgets_theme.widgets.application.load_theme_preference')
+    @patch("vfwidgets_theme.widgets.application.load_theme_preference")
     def test_theme_restoration(self, mock_load):
         """Test theme restoration on startup."""
         # Mock saved preference
-        mock_load.return_value = 'dark'
+        mock_load.return_value = "dark"
 
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             app = ThemedApplication([], auto_restore=True)
 
         # Should restore saved theme
@@ -415,12 +420,12 @@ class TestThemedApplicationWidgetIntegration(ThemedTestCase):
     def setUp(self):
         """Set up test application and widgets."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -438,7 +443,7 @@ class TestThemedApplicationWidgetIntegration(ThemedTestCase):
         widgets = [ThemedWidget() for _ in range(5)]
 
         # Change application theme
-        self.app.set_theme('dark')
+        self.app.set_theme("dark")
 
         # All widgets should receive theme update
         for widget in widgets:
@@ -466,7 +471,7 @@ class TestThemedApplicationWidgetIntegration(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def batch_update():
-            self.app.set_theme('light')
+            self.app.set_theme("light")
 
         update_time = benchmark.measure_time(batch_update)
 
@@ -484,23 +489,24 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
     def setUp(self):
         """Set up test application."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
     def test_theme_loading_error_recovery(self):
         """Test recovery from theme loading errors."""
         # Mock theme loading error
-        with patch.object(self.app._theme_manager, 'load_theme',
-                          side_effect=ThemeError("Loading failed")):
+        with patch.object(
+            self.app._theme_manager, "load_theme", side_effect=ThemeError("Loading failed")
+        ):
 
             # Should not crash - should fallback
-            result = self.app.set_theme('failing_theme')
+            result = self.app.set_theme("failing_theme")
             self.assertFalse(result)
 
             # Should have fallback theme
@@ -510,7 +516,7 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
     def test_file_operation_error_recovery(self):
         """Test recovery from file operation errors."""
         # Test loading nonexistent file
-        result = self.app.load_theme_file('/nonexistent/path/theme.json')
+        result = self.app.load_theme_file("/nonexistent/path/theme.json")
         self.assertFalse(result)
 
         # Application should still be functional
@@ -522,11 +528,12 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
         widget = ThemedWidget()
 
         # Mock widget update error
-        with patch.object(widget, '_on_theme_changed',
-                          side_effect=Exception("Widget update failed")):
+        with patch.object(
+            widget, "_on_theme_changed", side_effect=Exception("Widget update failed")
+        ):
 
             # Theme change should still work for other widgets
-            result = self.app.set_theme('dark')
+            result = self.app.set_theme("dark")
             # Result might be True or False depending on error handling
 
             # Application should remain functional
@@ -538,8 +545,10 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
     def test_system_integration_error_recovery(self):
         """Test recovery from system integration errors."""
         # Mock system theme detection error
-        with patch('vfwidgets_theme.widgets.application.detect_system_theme',
-                   side_effect=Exception("System detection failed")):
+        with patch(
+            "vfwidgets_theme.widgets.application.detect_system_theme",
+            side_effect=Exception("System detection failed"),
+        ):
 
             # Should handle gracefully
             result = self.app.auto_detect_system_theme()
@@ -556,12 +565,12 @@ class TestThemedApplicationPerformance(ThemedTestCase):
     def setUp(self):
         """Set up test application."""
         super().setUp()
-        with patch('vfwidgets_theme.widgets.application.QApplication'):
+        with patch("vfwidgets_theme.widgets.application.QApplication"):
             self.app = ThemedApplication([])
 
     def tearDown(self):
         """Clean up test application."""
-        if hasattr(self, 'app'):
+        if hasattr(self, "app"):
             self.app.cleanup()
         super().tearDown()
 
@@ -570,7 +579,7 @@ class TestThemedApplicationPerformance(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def create_app():
-            with patch('vfwidgets_theme.widgets.application.QApplication'):
+            with patch("vfwidgets_theme.widgets.application.QApplication"):
                 app = ThemedApplication([])
             app.cleanup()
             return app
@@ -584,9 +593,9 @@ class TestThemedApplicationPerformance(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def switch_themes():
-            self.app.set_theme('dark')
-            self.app.set_theme('light')
-            self.app.set_theme('default')
+            self.app.set_theme("dark")
+            self.app.set_theme("light")
+            self.app.set_theme("default")
 
         switch_time = benchmark.measure_time(switch_themes)
         # Theme switching should be fast (< 100ms)
@@ -600,7 +609,7 @@ class TestThemedApplicationPerformance(ThemedTestCase):
         benchmark = ThemeBenchmark()
 
         def theme_update():
-            self.app.set_theme('dark')
+            self.app.set_theme("dark")
 
         update_time = benchmark.measure_time(theme_update)
 
@@ -612,5 +621,5 @@ class TestThemedApplicationPerformance(ThemedTestCase):
             widget._cleanup_theme()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

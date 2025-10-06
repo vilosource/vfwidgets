@@ -37,17 +37,17 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
     """A themed tab widget with styled tabs and content areas."""
 
     theme_config = {
-        'bg': 'tabs.background',
-        'fg': 'tabs.foreground',
-        'tab_bg': 'tabs.tab.background',
-        'tab_fg': 'tabs.tab.foreground',
-        'tab_border': 'tabs.tab.border',
-        'active_tab_bg': 'tabs.active.background',
-        'active_tab_fg': 'tabs.active.foreground',
-        'hover_tab_bg': 'tabs.hover.background',
-        'content_bg': 'tabs.content.background',
-        'content_fg': 'tabs.content.foreground',
-        'font': 'tabs.font'
+        "bg": "tabs.background",
+        "fg": "tabs.foreground",
+        "tab_bg": "tabs.tab.background",
+        "tab_fg": "tabs.tab.foreground",
+        "tab_border": "tabs.tab.border",
+        "active_tab_bg": "tabs.active.background",
+        "active_tab_fg": "tabs.active.foreground",
+        "hover_tab_bg": "tabs.hover.background",
+        "content_bg": "tabs.content.background",
+        "content_fg": "tabs.content.foreground",
+        "font": "tabs.font",
     }
 
     # Custom signals
@@ -71,17 +71,17 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
     def update_styling(self):
         """Update tab widget styling based on current theme."""
         # Get theme colors
-        bg_color = self.theme.get('bg', '#f0f0f0')
-        fg_color = self.theme.get('fg', '#000000')
-        tab_bg = self.theme.get('tab_bg', '#e0e0e0')
-        tab_fg = self.theme.get('tab_fg', '#333333')
-        tab_border = self.theme.get('tab_border', '#cccccc')
-        active_tab_bg = self.theme.get('active_tab_bg', '#ffffff')
-        active_tab_fg = self.theme.get('active_tab_fg', '#000000')
-        hover_tab_bg = self.theme.get('hover_tab_bg', '#f5f5f5')
-        content_bg = self.theme.get('content_bg', '#ffffff')
-        content_fg = self.theme.get('content_fg', '#000000')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#f0f0f0")
+        fg_color = self.theme.get("fg", "#000000")
+        tab_bg = self.theme.get("tab_bg", "#e0e0e0")
+        tab_fg = self.theme.get("tab_fg", "#333333")
+        tab_border = self.theme.get("tab_border", "#cccccc")
+        active_tab_bg = self.theme.get("active_tab_bg", "#ffffff")
+        active_tab_fg = self.theme.get("active_tab_fg", "#000000")
+        hover_tab_bg = self.theme.get("hover_tab_bg", "#f5f5f5")
+        content_bg = self.theme.get("content_bg", "#ffffff")
+        content_fg = self.theme.get("content_fg", "#000000")
+        font = self.theme.get("font", "Arial, sans-serif")
 
         # Generate comprehensive stylesheet
         stylesheet = f"""
@@ -148,7 +148,7 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
         # Update all tab content widgets
         for i in range(self.count()):
             widget = self.widget(i)
-            if hasattr(widget, 'update_styling'):
+            if hasattr(widget, "update_styling"):
                 widget.update_styling()
 
     def add_themed_tab(self, widget, title, closable=True):
@@ -166,7 +166,7 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
 
         # Check if tab has unsaved changes (if applicable)
         widget = self.widget(index)
-        if hasattr(widget, 'has_unsaved_changes') and widget.has_unsaved_changes():
+        if hasattr(widget, "has_unsaved_changes") and widget.has_unsaved_changes():
             # In a real application, you might show a confirmation dialog
             print(f"Tab '{self.tabText(index)}' has unsaved changes")
 
@@ -187,9 +187,9 @@ class TabContent(ThemedWidget):
     """Base class for tab content with theming."""
 
     theme_config = {
-        'bg': 'tabs.content.background',
-        'fg': 'tabs.content.foreground',
-        'font': 'tabs.content.font'
+        "bg": "tabs.content.background",
+        "fg": "tabs.content.foreground",
+        "font": "tabs.content.font",
     }
 
     def __init__(self, content_type="basic", parent=None):
@@ -203,17 +203,19 @@ class TabContent(ThemedWidget):
 
     def update_styling(self):
         """Update content styling."""
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        font = self.theme.get("font", "Arial, sans-serif")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QWidget {{
             background-color: {bg_color};
             color: {fg_color};
             font-family: {font};
         }}
-        """)
+        """
+        )
 
     def has_unsaved_changes(self):
         """Check if tab has unsaved changes."""
@@ -315,9 +317,15 @@ class ListViewerTab(TabContent):
     def populate_list(self):
         """Populate with sample items."""
         sample_items = [
-            "Document 1.pdf", "Image_001.jpg", "Spreadsheet.xlsx",
-            "Presentation.pptx", "Archive.zip", "Music.mp3",
-            "Video.mp4", "Text_file.txt", "Database.db"
+            "Document 1.pdf",
+            "Image_001.jpg",
+            "Spreadsheet.xlsx",
+            "Presentation.pptx",
+            "Archive.zip",
+            "Music.mp3",
+            "Video.mp4",
+            "Text_file.txt",
+            "Database.db",
         ]
 
         for item in sample_items:
@@ -414,11 +422,13 @@ class SettingsTab(TabContent):
         auto_save = self.auto_save_check.isChecked()
         max_tabs = self.max_tabs_spin.value()
 
-        print(f"Applied settings: Theme={theme}, Font={font_size}, "
-              f"AutoSave={auto_save}, MaxTabs={max_tabs}")
+        print(
+            f"Applied settings: Theme={theme}, Font={font_size}, "
+            f"AutoSave={auto_save}, MaxTabs={max_tabs}"
+        )
 
         # Apply theme if changed
-        if theme in ['light', 'dark', 'colorful']:
+        if theme in ["light", "dark", "colorful"]:
             app = ThemedApplication.instance()
             if app:
                 app.set_theme(theme)
@@ -495,8 +505,11 @@ class TabWidgetDemo(ThemedWidget):
     def add_editor_tab(self):
         """Add a new editor tab."""
         editor_tab = TextEditorTab()
-        tab_count = sum(1 for i in range(self.tab_widget.count())
-                       if isinstance(self.tab_widget.widget(i), TextEditorTab))
+        tab_count = sum(
+            1
+            for i in range(self.tab_widget.count())
+            if isinstance(self.tab_widget.widget(i), TextEditorTab)
+        )
         title = f"Editor {tab_count + 1}"
         index = self.tab_widget.add_themed_tab(editor_tab, title, True)
         self.tab_widget.setCurrentIndex(index)
@@ -504,8 +517,11 @@ class TabWidgetDemo(ThemedWidget):
     def add_list_tab(self):
         """Add a new list tab."""
         list_tab = ListViewerTab()
-        tab_count = sum(1 for i in range(self.tab_widget.count())
-                       if isinstance(self.tab_widget.widget(i), ListViewerTab))
+        tab_count = sum(
+            1
+            for i in range(self.tab_widget.count())
+            if isinstance(self.tab_widget.widget(i), ListViewerTab)
+        )
         title = f"List {tab_count + 1}"
         index = self.tab_widget.add_themed_tab(list_tab, title, True)
         self.tab_widget.setCurrentIndex(index)
@@ -526,15 +542,15 @@ class TabWidgetDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         colorful_btn = QPushButton("Colorful Theme")
-        colorful_btn.clicked.connect(lambda: self.switch_theme('colorful'))
+        colorful_btn.clicked.connect(lambda: self.switch_theme("colorful"))
         controls_layout.addWidget(colorful_btn)
 
         layout.addLayout(controls_layout)
@@ -557,90 +573,63 @@ def main():
 
     # Define themes with tab styling
     light_theme = {
-        'name': 'light',
-        'tabs': {
-            'background': '#f5f5f5',
-            'foreground': '#333333',
-            'tab': {
-                'background': '#e0e0e0',
-                'foreground': '#333333',
-                'border': '#cccccc'
+        "name": "light",
+        "tabs": {
+            "background": "#f5f5f5",
+            "foreground": "#333333",
+            "tab": {"background": "#e0e0e0", "foreground": "#333333", "border": "#cccccc"},
+            "active": {"background": "#ffffff", "foreground": "#000000"},
+            "hover": {"background": "#f0f0f0"},
+            "content": {
+                "background": "#ffffff",
+                "foreground": "#000000",
+                "font": "Arial, sans-serif",
             },
-            'active': {
-                'background': '#ffffff',
-                'foreground': '#000000'
-            },
-            'hover': {
-                'background': '#f0f0f0'
-            },
-            'content': {
-                'background': '#ffffff',
-                'foreground': '#000000',
-                'font': 'Arial, sans-serif'
-            },
-            'font': 'Arial, sans-serif'
-        }
+            "font": "Arial, sans-serif",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'tabs': {
-            'background': '#2d2d2d',
-            'foreground': '#ffffff',
-            'tab': {
-                'background': '#3a3a3a',
-                'foreground': '#ffffff',
-                'border': '#555555'
+        "name": "dark",
+        "tabs": {
+            "background": "#2d2d2d",
+            "foreground": "#ffffff",
+            "tab": {"background": "#3a3a3a", "foreground": "#ffffff", "border": "#555555"},
+            "active": {"background": "#4a4a4a", "foreground": "#ffffff"},
+            "hover": {"background": "#404040"},
+            "content": {
+                "background": "#3a3a3a",
+                "foreground": "#ffffff",
+                "font": "Arial, sans-serif",
             },
-            'active': {
-                'background': '#4a4a4a',
-                'foreground': '#ffffff'
-            },
-            'hover': {
-                'background': '#404040'
-            },
-            'content': {
-                'background': '#3a3a3a',
-                'foreground': '#ffffff',
-                'font': 'Arial, sans-serif'
-            },
-            'font': 'Arial, sans-serif'
-        }
+            "font": "Arial, sans-serif",
+        },
     }
 
     colorful_theme = {
-        'name': 'colorful',
-        'tabs': {
-            'background': '#fff5f0',
-            'foreground': '#2d1810',
-            'tab': {
-                'background': '#ffcc99',
-                'foreground': '#2d1810',
-                'border': '#ff9966'
+        "name": "colorful",
+        "tabs": {
+            "background": "#fff5f0",
+            "foreground": "#2d1810",
+            "tab": {"background": "#ffcc99", "foreground": "#2d1810", "border": "#ff9966"},
+            "active": {"background": "#ffffff", "foreground": "#2d1810"},
+            "hover": {"background": "#ffe6d9"},
+            "content": {
+                "background": "#ffffff",
+                "foreground": "#2d1810",
+                "font": "Arial, sans-serif",
             },
-            'active': {
-                'background': '#ffffff',
-                'foreground': '#2d1810'
-            },
-            'hover': {
-                'background': '#ffe6d9'
-            },
-            'content': {
-                'background': '#ffffff',
-                'foreground': '#2d1810',
-                'font': 'Arial, sans-serif'
-            },
-            'font': 'Arial, sans-serif'
-        }
+            "font": "Arial, sans-serif",
+        },
     }
 
     # Register themes
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.register_theme('colorful', colorful_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.register_theme("colorful", colorful_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = TabWidgetDemo()
@@ -649,5 +638,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

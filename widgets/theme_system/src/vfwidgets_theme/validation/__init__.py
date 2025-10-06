@@ -42,42 +42,38 @@ from .schema import ColorSchema, StyleSchema, ThemeSchema, WidgetSchema, validat
 
 __all__ = [
     # Core framework
-    'ValidationFramework',
-    'ValidationMode',
-    'ValidationError',
-    'ValidationResult',
-    'ValidationType',
-
+    "ValidationFramework",
+    "ValidationMode",
+    "ValidationError",
+    "ValidationResult",
+    "ValidationType",
     # Decorators
-    'validate_theme',
-    'validate_contract',
-    'validation_decorator',
-    'require_valid_color',
-    'require_theme_structure',
-    'require_widget_state',
-
+    "validate_theme",
+    "validate_contract",
+    "validation_decorator",
+    "require_valid_color",
+    "require_theme_structure",
+    "require_widget_state",
     # Schema validation
-    'ThemeSchema',
-    'WidgetSchema',
-    'ColorSchema',
-    'StyleSchema',
-    'validate_schema',
-
+    "ThemeSchema",
+    "WidgetSchema",
+    "ColorSchema",
+    "StyleSchema",
+    "validate_schema",
     # Contract validation
-    'ThemeProtocol',
-    'WidgetProtocol',
-    'ContractValidator',
-    'validate_protocol_implementation',
-
+    "ThemeProtocol",
+    "WidgetProtocol",
+    "ContractValidator",
+    "validate_protocol_implementation",
     # Runtime assertions
-    'RuntimeAssertion',
-    'AssertionContext',
-    'theme_assertions',
-    'widget_assertions',
-    'performance_assertions'
+    "RuntimeAssertion",
+    "AssertionContext",
+    "theme_assertions",
+    "widget_assertions",
+    "performance_assertions",
 ]
 
 # Version information
-__version__ = '1.0.0'
-__author__ = 'VFWidgets Theme System'
-__description__ = 'Runtime validation framework for theme system integrity'
+__version__ = "1.0.0"
+__author__ = "VFWidgets Theme System"
+__description__ = "Runtime validation framework for theme system integrity"

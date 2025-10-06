@@ -95,11 +95,7 @@ class ThemeShortcuts:
         logger.debug(f"Added cycle shortcut: {key_sequence}")
         return shortcut
 
-    def add_specific_theme_shortcut(
-        self,
-        key_sequence: str,
-        theme_name: str
-    ) -> QShortcut:
+    def add_specific_theme_shortcut(self, key_sequence: str, theme_name: str) -> QShortcut:
         """Add shortcut to switch to a specific theme.
 
         Args:

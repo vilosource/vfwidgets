@@ -48,12 +48,12 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
     """Main application window with complete theming."""
 
     theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground',
-        'menubar_bg': 'menubar.background',
-        'menubar_fg': 'menubar.foreground',
-        'statusbar_bg': 'statusbar.background',
-        'statusbar_fg': 'statusbar.foreground'
+        "bg": "window.background",
+        "fg": "window.foreground",
+        "menubar_bg": "menubar.background",
+        "menubar_fg": "menubar.foreground",
+        "statusbar_bg": "statusbar.background",
+        "statusbar_fg": "statusbar.foreground",
     }
 
     def __init__(self):
@@ -84,46 +84,46 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
         menubar = self.menuBar()
 
         # File menu
-        file_menu = menubar.addMenu('File')
+        file_menu = menubar.addMenu("File")
 
-        new_action = QAction('New', self)
-        new_action.setShortcut('Ctrl+N')
+        new_action = QAction("New", self)
+        new_action.setShortcut("Ctrl+N")
         new_action.triggered.connect(self.new_document)
         file_menu.addAction(new_action)
 
-        open_action = QAction('Open', self)
-        open_action.setShortcut('Ctrl+O')
+        open_action = QAction("Open", self)
+        open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(self.open_document)
         file_menu.addAction(open_action)
 
-        save_action = QAction('Save', self)
-        save_action.setShortcut('Ctrl+S')
+        save_action = QAction("Save", self)
+        save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_document)
         file_menu.addAction(save_action)
 
         file_menu.addSeparator()
 
-        exit_action = QAction('Exit', self)
-        exit_action.setShortcut('Ctrl+Q')
+        exit_action = QAction("Exit", self)
+        exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
         # View menu
-        view_menu = menubar.addMenu('View')
+        view_menu = menubar.addMenu("View")
 
         # Theme submenu
-        theme_menu = view_menu.addMenu('Theme')
+        theme_menu = view_menu.addMenu("Theme")
 
-        themes = ['light', 'dark', 'blue', 'purple', 'forest']
+        themes = ["light", "dark", "blue", "purple", "forest"]
         for theme in themes:
             action = QAction(theme.title(), self)
             action.triggered.connect(lambda checked, t=theme: self.switch_theme(t))
             theme_menu.addAction(action)
 
         # Settings menu
-        settings_menu = menubar.addMenu('Settings')
+        settings_menu = menubar.addMenu("Settings")
 
-        preferences_action = QAction('Preferences', self)
+        preferences_action = QAction("Preferences", self)
         preferences_action.triggered.connect(self.show_preferences)
         settings_menu.addAction(preferences_action)
 
@@ -151,7 +151,7 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
         toolbar = QHBoxLayout()
 
         self.format_combo = QComboBox()
-        self.format_combo.addItems(['Plain Text', 'Markdown', 'HTML'])
+        self.format_combo.addItems(["Plain Text", "Markdown", "HTML"])
         toolbar.addWidget(QLabel("Format:"))
         toolbar.addWidget(self.format_combo)
 
@@ -172,9 +172,7 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
         # Text editor
         self.text_editor = QTextEdit()
         self.text_editor.setPlaceholderText("Start writing your document here...")
-        self.text_editor.textChanged.connect(
-            lambda: self.update_word_count(word_count_label)
-        )
+        self.text_editor.textChanged.connect(lambda: self.update_word_count(word_count_label))
         layout.addWidget(self.text_editor)
 
         self.tab_widget.addTab(editor_widget, "Editor")
@@ -262,8 +260,12 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
 
         self.file_list = QListWidget()
         sample_files = [
-            "document1.txt", "report.pdf", "data.csv",
-            "image.jpg", "presentation.pptx", "notes.md"
+            "document1.txt",
+            "report.pdf",
+            "data.csv",
+            "image.jpg",
+            "presentation.pptx",
+            "notes.md",
         ]
         for file in sample_files:
             self.file_list.addItem(file)
@@ -297,7 +299,7 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
         props_layout = QFormLayout(props_widget)
 
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(['light', 'dark', 'blue', 'purple', 'forest'])
+        self.theme_combo.addItems(["light", "dark", "blue", "purple", "forest"])
         self.theme_combo.currentTextChanged.connect(self.switch_theme)
         props_layout.addRow("Theme:", self.theme_combo)
 
@@ -348,14 +350,15 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
 
     def update_styling(self):
         """Apply theme styling to main window."""
-        bg = self.theme.get('bg', '#ffffff')
-        fg = self.theme.get('fg', '#000000')
-        menubar_bg = self.theme.get('menubar_bg', '#f0f0f0')
-        menubar_fg = self.theme.get('menubar_fg', '#000000')
-        statusbar_bg = self.theme.get('statusbar_bg', '#e0e0e0')
-        statusbar_fg = self.theme.get('statusbar_fg', '#000000')
+        bg = self.theme.get("bg", "#ffffff")
+        fg = self.theme.get("fg", "#000000")
+        menubar_bg = self.theme.get("menubar_bg", "#f0f0f0")
+        menubar_fg = self.theme.get("menubar_fg", "#000000")
+        statusbar_bg = self.theme.get("statusbar_bg", "#e0e0e0")
+        statusbar_fg = self.theme.get("statusbar_fg", "#000000")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QMainWindow {{
             background-color: {bg};
             color: {fg};
@@ -372,7 +375,8 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
             color: {statusbar_fg};
             border-top: 1px solid #ccc;
         }}
-        """)
+        """
+        )
 
     def new_document(self):
         """Create new document."""
@@ -444,9 +448,9 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
         filename = item.text()
         # Simulate file content
         content = f"Content of {filename}\n\n"
-        if filename.endswith('.txt'):
+        if filename.endswith(".txt"):
             content += "This is a text file with sample content."
-        elif filename.endswith('.csv'):
+        elif filename.endswith(".csv"):
             content += "Name,Age,City\nJohn,25,New York\nJane,30,London"
         else:
             content += "Binary file - cannot preview"
@@ -457,12 +461,14 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
     def log_message(self, message):
         """Log message to console."""
         from datetime import datetime
+
         timestamp = datetime.now().strftime("%H:%M:%S")
         self.console.append(f"[{timestamp}] {message}")
 
     def update_time(self):
         """Update time display."""
         from datetime import datetime
+
         current_time = datetime.now().strftime("%H:%M:%S")
         self.time_label.setText(current_time)
 
@@ -500,86 +506,116 @@ class ThemedMainWindow(ThemedWidget, QMainWindow):
 def create_application_themes():
     """Create comprehensive themes for the complete application."""
     themes = {
-        'light': {
-            'name': 'light',
-            'window': {'background': '#ffffff', 'foreground': '#333333'},
-            'menubar': {'background': '#f0f0f0', 'foreground': '#000000'},
-            'statusbar': {'background': '#e0e0e0', 'foreground': '#333333'},
-            'gauge': {
-                'background': '#ffffff', 'foreground': '#333333',
-                'needle': '#ff0000', 'scale': '#666666',
-                'value': {'background': '#f0f0f0', 'foreground': '#000000'},
-                'danger': '#ff0000', 'warning': '#ffaa00', 'safe': '#00aa00'
+        "light": {
+            "name": "light",
+            "window": {"background": "#ffffff", "foreground": "#333333"},
+            "menubar": {"background": "#f0f0f0", "foreground": "#000000"},
+            "statusbar": {"background": "#e0e0e0", "foreground": "#333333"},
+            "gauge": {
+                "background": "#ffffff",
+                "foreground": "#333333",
+                "needle": "#ff0000",
+                "scale": "#666666",
+                "value": {"background": "#f0f0f0", "foreground": "#000000"},
+                "danger": "#ff0000",
+                "warning": "#ffaa00",
+                "safe": "#00aa00",
             },
-            'progress': {
-                'background': '#e0e0e0', 'foreground': '#333333',
-                'fill': '#007bff', 'text': '#000000'
-            }
+            "progress": {
+                "background": "#e0e0e0",
+                "foreground": "#333333",
+                "fill": "#007bff",
+                "text": "#000000",
+            },
         },
-        'dark': {
-            'name': 'dark',
-            'window': {'background': '#2d2d2d', 'foreground': '#ffffff'},
-            'menubar': {'background': '#3a3a3a', 'foreground': '#ffffff'},
-            'statusbar': {'background': '#1a1a1a', 'foreground': '#ffffff'},
-            'gauge': {
-                'background': '#2d2d2d', 'foreground': '#ffffff',
-                'needle': '#ff6666', 'scale': '#aaaaaa',
-                'value': {'background': '#3a3a3a', 'foreground': '#ffffff'},
-                'danger': '#ff6666', 'warning': '#ffcc66', 'safe': '#66ff66'
+        "dark": {
+            "name": "dark",
+            "window": {"background": "#2d2d2d", "foreground": "#ffffff"},
+            "menubar": {"background": "#3a3a3a", "foreground": "#ffffff"},
+            "statusbar": {"background": "#1a1a1a", "foreground": "#ffffff"},
+            "gauge": {
+                "background": "#2d2d2d",
+                "foreground": "#ffffff",
+                "needle": "#ff6666",
+                "scale": "#aaaaaa",
+                "value": {"background": "#3a3a3a", "foreground": "#ffffff"},
+                "danger": "#ff6666",
+                "warning": "#ffcc66",
+                "safe": "#66ff66",
             },
-            'progress': {
-                'background': '#555555', 'foreground': '#ffffff',
-                'fill': '#66aaff', 'text': '#ffffff'
-            }
+            "progress": {
+                "background": "#555555",
+                "foreground": "#ffffff",
+                "fill": "#66aaff",
+                "text": "#ffffff",
+            },
         },
-        'blue': {
-            'name': 'blue',
-            'window': {'background': '#e3f2fd', 'foreground': '#0d47a1'},
-            'menubar': {'background': '#bbdefb', 'foreground': '#1565c0'},
-            'statusbar': {'background': '#90caf9', 'foreground': '#0d47a1'},
-            'gauge': {
-                'background': '#e3f2fd', 'foreground': '#0d47a1',
-                'needle': '#d32f2f', 'scale': '#1976d2',
-                'value': {'background': '#ffffff', 'foreground': '#0d47a1'},
-                'danger': '#d32f2f', 'warning': '#f57c00', 'safe': '#388e3c'
+        "blue": {
+            "name": "blue",
+            "window": {"background": "#e3f2fd", "foreground": "#0d47a1"},
+            "menubar": {"background": "#bbdefb", "foreground": "#1565c0"},
+            "statusbar": {"background": "#90caf9", "foreground": "#0d47a1"},
+            "gauge": {
+                "background": "#e3f2fd",
+                "foreground": "#0d47a1",
+                "needle": "#d32f2f",
+                "scale": "#1976d2",
+                "value": {"background": "#ffffff", "foreground": "#0d47a1"},
+                "danger": "#d32f2f",
+                "warning": "#f57c00",
+                "safe": "#388e3c",
             },
-            'progress': {
-                'background': '#bbdefb', 'foreground': '#0d47a1',
-                'fill': '#1976d2', 'text': '#0d47a1'
-            }
+            "progress": {
+                "background": "#bbdefb",
+                "foreground": "#0d47a1",
+                "fill": "#1976d2",
+                "text": "#0d47a1",
+            },
         },
-        'purple': {
-            'name': 'purple',
-            'window': {'background': '#f3e5f5', 'foreground': '#4a148c'},
-            'menubar': {'background': '#e1bee7', 'foreground': '#6a1b9a'},
-            'statusbar': {'background': '#ce93d8', 'foreground': '#4a148c'},
-            'gauge': {
-                'background': '#f3e5f5', 'foreground': '#4a148c',
-                'needle': '#d32f2f', 'scale': '#7b1fa2',
-                'value': {'background': '#ffffff', 'foreground': '#4a148c'},
-                'danger': '#d32f2f', 'warning': '#f57c00', 'safe': '#388e3c'
+        "purple": {
+            "name": "purple",
+            "window": {"background": "#f3e5f5", "foreground": "#4a148c"},
+            "menubar": {"background": "#e1bee7", "foreground": "#6a1b9a"},
+            "statusbar": {"background": "#ce93d8", "foreground": "#4a148c"},
+            "gauge": {
+                "background": "#f3e5f5",
+                "foreground": "#4a148c",
+                "needle": "#d32f2f",
+                "scale": "#7b1fa2",
+                "value": {"background": "#ffffff", "foreground": "#4a148c"},
+                "danger": "#d32f2f",
+                "warning": "#f57c00",
+                "safe": "#388e3c",
             },
-            'progress': {
-                'background': '#e1bee7', 'foreground': '#4a148c',
-                'fill': '#7b1fa2', 'text': '#4a148c'
-            }
+            "progress": {
+                "background": "#e1bee7",
+                "foreground": "#4a148c",
+                "fill": "#7b1fa2",
+                "text": "#4a148c",
+            },
         },
-        'forest': {
-            'name': 'forest',
-            'window': {'background': '#f1f8e9', 'foreground': '#1b5e20'},
-            'menubar': {'background': '#c8e6c9', 'foreground': '#2e7d32'},
-            'statusbar': {'background': '#a5d6a7', 'foreground': '#1b5e20'},
-            'gauge': {
-                'background': '#f1f8e9', 'foreground': '#1b5e20',
-                'needle': '#d32f2f', 'scale': '#388e3c',
-                'value': {'background': '#ffffff', 'foreground': '#1b5e20'},
-                'danger': '#d32f2f', 'warning': '#f57c00', 'safe': '#388e3c'
+        "forest": {
+            "name": "forest",
+            "window": {"background": "#f1f8e9", "foreground": "#1b5e20"},
+            "menubar": {"background": "#c8e6c9", "foreground": "#2e7d32"},
+            "statusbar": {"background": "#a5d6a7", "foreground": "#1b5e20"},
+            "gauge": {
+                "background": "#f1f8e9",
+                "foreground": "#1b5e20",
+                "needle": "#d32f2f",
+                "scale": "#388e3c",
+                "value": {"background": "#ffffff", "foreground": "#1b5e20"},
+                "danger": "#d32f2f",
+                "warning": "#f57c00",
+                "safe": "#388e3c",
             },
-            'progress': {
-                'background': '#c8e6c9', 'foreground': '#1b5e20',
-                'fill': '#388e3c', 'text': '#1b5e20'
-            }
-        }
+            "progress": {
+                "background": "#c8e6c9",
+                "foreground": "#1b5e20",
+                "fill": "#388e3c",
+                "text": "#1b5e20",
+            },
+        },
     }
     return themes
 
@@ -598,7 +634,7 @@ def main():
         print(f"Registered theme: {name}")
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show main window
     window = ThemedMainWindow()
@@ -616,5 +652,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

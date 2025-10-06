@@ -1,6 +1,7 @@
 """Terminal widget provider for MultisplitWidget integration."""
 
 import logging
+from typing import Optional
 
 from PySide6.QtWidgets import QWidget
 
@@ -26,6 +27,8 @@ class TerminalProvider(WidgetProvider):
         """
         self.server = server
         self.pane_to_session: dict[str, str] = {}  # Map pane_id -> session_id for cleanup
+        self._default_theme: Optional[dict] = None  # Default terminal theme for new terminals
+        self._default_config: Optional[dict] = None  # Default terminal config for new terminals
 
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
         """Create a new terminal widget for a pane.
@@ -51,7 +54,16 @@ class TerminalProvider(WidgetProvider):
         session_url = self.server.get_session_url(session_id)
 
         # Create terminal widget connected to session
-        terminal = TerminalWidget(server_url=session_url)
+        # Pass configuration via constructor so it's applied during initialization
+        terminal = TerminalWidget(
+            server_url=session_url,
+            terminal_config=self._default_config,
+        )
+
+        # Apply default theme if set (theme is applied after config in _configure_terminal)
+        if self._default_theme:
+            terminal.set_terminal_theme(self._default_theme)
+            logger.debug(f"Applied default theme to terminal: {widget_id}")
 
         logger.debug(f"Created terminal widget: {widget_id} (session: {session_id})")
 
@@ -84,3 +96,37 @@ class TerminalProvider(WidgetProvider):
                 logger.error(f"Failed to terminate session {session_id}: {e}")
         else:
             logger.warning(f"No session found for pane {pane_id}")
+
+    def set_default_theme(self, theme: dict) -> None:
+        """Set default theme for new terminal widgets.
+
+        Args:
+            theme: Terminal theme dictionary
+        """
+        self._default_theme = theme.copy()
+        logger.info(f"Set default terminal theme: {theme.get('name', 'custom')}")
+
+    def get_default_theme(self) -> Optional[dict]:
+        """Get current default theme.
+
+        Returns:
+            Default theme dictionary, or None if not set
+        """
+        return self._default_theme.copy() if self._default_theme else None
+
+    def set_default_config(self, config: dict) -> None:
+        """Set default configuration for new terminal widgets.
+
+        Args:
+            config: Terminal configuration dictionary
+        """
+        self._default_config = config.copy()
+        logger.info(f"Set default terminal configuration")
+
+    def get_default_config(self) -> Optional[dict]:
+        """Get current default configuration.
+
+        Returns:
+            Default configuration dictionary, or None if not set
+        """
+        return self._default_config.copy() if self._default_config else None

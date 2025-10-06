@@ -21,6 +21,7 @@ from vfwidgets_theme.core.theme import Theme
 @dataclass
 class BenchmarkResult:
     """Result of a single benchmark."""
+
     name: str
     mean_time: float  # seconds
     iterations: int
@@ -44,9 +45,9 @@ class SimpleBenchmarkSuite:
 
         self.results: List[BenchmarkResult] = []
         self.requirements = {
-            'property_access': 0.000010,  # 10μs
-            'widget_creation': 0.010,     # 10ms
-            'theme_switching': 0.100,     # 100ms
+            "property_access": 0.000010,  # 10μs
+            "widget_creation": 0.010,  # 10ms
+            "theme_switching": 0.100,  # 100ms
         }
 
     def run_benchmark(self, name: str, func, iterations: int = 100) -> BenchmarkResult:
@@ -63,10 +64,7 @@ class SimpleBenchmarkSuite:
         mean_time = statistics.mean(times)
 
         result = BenchmarkResult(
-            name=name,
-            mean_time=mean_time,
-            iterations=iterations,
-            timestamp=datetime.now()
+            name=name, mean_time=mean_time, iterations=iterations, timestamp=datetime.now()
         )
 
         self.results.append(result)
@@ -79,7 +77,7 @@ class SimpleBenchmarkSuite:
         theme = Theme(
             name="benchmark_theme",
             colors={"primary": "#007acc", "secondary": "#6f6f6f"},
-            styles={"font_size": "12px", "margin": "4px"}
+            styles={"font_size": "12px", "margin": "4px"},
         )
 
         def benchmark_func():
@@ -92,6 +90,7 @@ class SimpleBenchmarkSuite:
 
     def bench_widget_creation(self) -> BenchmarkResult:
         """Benchmark themed widget creation."""
+
         def benchmark_func():
             widget = ThemedWidget()
             widget.deleteLater()
@@ -101,20 +100,14 @@ class SimpleBenchmarkSuite:
     def bench_theme_switching(self) -> BenchmarkResult:
         """Benchmark theme switching."""
         app = QApplication.instance()
-        if not app or not hasattr(app, 'set_theme'):
+        if not app or not hasattr(app, "set_theme"):
             print("Skipping theme switching benchmark - no themed application")
             return BenchmarkResult(
-                name="theme_switching",
-                mean_time=0.0,
-                iterations=0,
-                timestamp=datetime.now()
+                name="theme_switching", mean_time=0.0, iterations=0, timestamp=datetime.now()
             )
 
         def benchmark_func():
-            theme = Theme(
-                name=f"bench_theme_{time.time()}",
-                colors={"primary": "#ff0000"}
-            )
+            theme = Theme(name=f"bench_theme_{time.time()}", colors={"primary": "#ff0000"})
             app.set_theme(theme)
 
         return self.run_benchmark("theme_switching", benchmark_func, 50)
@@ -123,16 +116,8 @@ class SimpleBenchmarkSuite:
         """Benchmark QSS style generation."""
         theme = Theme(
             name="qss_benchmark",
-            colors={
-                "background": "#ffffff",
-                "foreground": "#000000",
-                "primary": "#007acc"
-            },
-            styles={
-                "font_family": "Arial",
-                "font_size": "12px",
-                "padding": "8px"
-            }
+            colors={"background": "#ffffff", "foreground": "#000000", "primary": "#007acc"},
+            styles={"font_family": "Arial", "font_size": "12px", "padding": "8px"},
         )
 
         def benchmark_func():
@@ -184,66 +169,66 @@ class SimpleBenchmarkSuite:
 
     def validate_performance(self) -> Dict[str, Any]:
         """Validate performance against requirements."""
-        validation = {
-            'passed': [],
-            'failed': [],
-            'overall_pass': True
-        }
+        validation = {"passed": [], "failed": [], "overall_pass": True}
 
         for result in self.results:
             if result.name in self.requirements:
                 requirement = self.requirements[result.name]
 
                 if result.mean_time <= requirement:
-                    validation['passed'].append({
-                        'benchmark': result.name,
-                        'actual_ms': result.mean_time * 1000,
-                        'requirement_ms': requirement * 1000,
-                        'margin_ms': (requirement - result.mean_time) * 1000
-                    })
+                    validation["passed"].append(
+                        {
+                            "benchmark": result.name,
+                            "actual_ms": result.mean_time * 1000,
+                            "requirement_ms": requirement * 1000,
+                            "margin_ms": (requirement - result.mean_time) * 1000,
+                        }
+                    )
                 else:
-                    validation['failed'].append({
-                        'benchmark': result.name,
-                        'actual_ms': result.mean_time * 1000,
-                        'requirement_ms': requirement * 1000,
-                        'excess_ms': (result.mean_time - requirement) * 1000
-                    })
-                    validation['overall_pass'] = False
+                    validation["failed"].append(
+                        {
+                            "benchmark": result.name,
+                            "actual_ms": result.mean_time * 1000,
+                            "requirement_ms": requirement * 1000,
+                            "excess_ms": (result.mean_time - requirement) * 1000,
+                        }
+                    )
+                    validation["overall_pass"] = False
 
         return validation
 
     def generate_report(self) -> Dict[str, Any]:
         """Generate performance report."""
         if not self.results:
-            return {'error': 'No benchmark results available'}
+            return {"error": "No benchmark results available"}
 
         validation = self.validate_performance()
 
         return {
-            'timestamp': datetime.now().isoformat(),
-            'total_benchmarks': len(self.results),
-            'validation': validation,
-            'results': [
+            "timestamp": datetime.now().isoformat(),
+            "total_benchmarks": len(self.results),
+            "validation": validation,
+            "results": [
                 {
-                    'name': r.name,
-                    'mean_time_ms': r.mean_time * 1000,
-                    'iterations': r.iterations,
-                    'timestamp': r.timestamp.isoformat()
+                    "name": r.name,
+                    "mean_time_ms": r.mean_time * 1000,
+                    "iterations": r.iterations,
+                    "timestamp": r.timestamp.isoformat(),
                 }
                 for r in self.results
-            ]
+            ],
         }
 
     def save_report(self, filename: str = None) -> Path:
         """Save report to file."""
         if not filename:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"benchmark_report_{timestamp}.json"
 
         report_path = self.results_dir / filename
         report = self.generate_report()
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         return report_path
@@ -265,20 +250,24 @@ if __name__ == "__main__":
     print("\nPerformance Report:")
     print(f"Total benchmarks: {report['total_benchmarks']}")
 
-    validation = report['validation']
+    validation = report["validation"]
     print(f"Validation: {'PASS' if validation['overall_pass'] else 'FAIL'}")
 
-    if validation['passed']:
+    if validation["passed"]:
         print("\nPassed benchmarks:")
-        for passed in validation['passed']:
-            print(f"  ✅ {passed['benchmark']}: {passed['actual_ms']:.2f}ms "
-                  f"(< {passed['requirement_ms']:.2f}ms)")
+        for passed in validation["passed"]:
+            print(
+                f"  ✅ {passed['benchmark']}: {passed['actual_ms']:.2f}ms "
+                f"(< {passed['requirement_ms']:.2f}ms)"
+            )
 
-    if validation['failed']:
+    if validation["failed"]:
         print("\nFailed benchmarks:")
-        for failed in validation['failed']:
-            print(f"  ❌ {failed['benchmark']}: {failed['actual_ms']:.2f}ms "
-                  f"(> {failed['requirement_ms']:.2f}ms)")
+        for failed in validation["failed"]:
+            print(
+                f"  ❌ {failed['benchmark']}: {failed['actual_ms']:.2f}ms "
+                f"(> {failed['requirement_ms']:.2f}ms)"
+            )
 
     # Save report
     report_path = suite.save_report()

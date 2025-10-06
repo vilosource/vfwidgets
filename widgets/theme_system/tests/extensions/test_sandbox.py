@@ -25,20 +25,20 @@ class TestRestrictedBuiltins:
         builtins_dict = RestrictedBuiltins.create_restricted_builtins()
 
         # Check allowed builtins are present
-        assert 'len' in builtins_dict
-        assert 'str' in builtins_dict
-        assert 'list' in builtins_dict
-        assert 'dict' in builtins_dict
+        assert "len" in builtins_dict
+        assert "str" in builtins_dict
+        assert "list" in builtins_dict
+        assert "dict" in builtins_dict
 
         # Check forbidden builtins are not present
-        assert 'open' not in builtins_dict
-        assert 'exec' not in builtins_dict
-        assert 'eval' not in builtins_dict
-        assert '__import__' not in builtins_dict
+        assert "open" not in builtins_dict
+        assert "exec" not in builtins_dict
+        assert "eval" not in builtins_dict
+        assert "__import__" not in builtins_dict
 
         # Check safe print is present
-        assert 'print' in builtins_dict
-        assert callable(builtins_dict['print'])
+        assert "print" in builtins_dict
+        assert callable(builtins_dict["print"])
 
     def test_safe_print(self):
         """Test safe print function doesn't raise errors."""
@@ -126,6 +126,7 @@ class TestExecutionLimiter:
             with limiter.limit_execution():
                 # Slow operation should be stopped
                 import time
+
                 time.sleep(0.2)
 
 
@@ -146,7 +147,7 @@ class TestExtensionSandbox:
             description="Test extension",
             author="Test Author",
             path=Path("/fake/path"),
-            hooks={}
+            hooks={},
         )
 
     def test_sandbox_initialization(self, sandbox):
@@ -163,10 +164,10 @@ class TestExtensionSandbox:
         assert sample_extension.id in sandbox._extension_namespaces
         namespace = sandbox._extension_namespaces[sample_extension.id]
 
-        assert '__builtins__' in namespace
-        assert '__name__' in namespace
-        assert '__extension__' in namespace
-        assert namespace['__extension__'] is sample_extension
+        assert "__builtins__" in namespace
+        assert "__name__" in namespace
+        assert "__extension__" in namespace
+        assert namespace["__extension__"] is sample_extension
 
     def test_cleanup_extension(self, sandbox, sample_extension):
         """Test extension cleanup."""
@@ -212,21 +213,22 @@ class TestExtensionSandbox:
         """Test safe namespace creation."""
         namespace = sandbox.create_safe_namespace("test_ext")
 
-        assert '__builtins__' in namespace
-        assert '__name__' in namespace
-        assert namespace['__name__'] == 'extension_test_ext'
+        assert "__builtins__" in namespace
+        assert "__name__" in namespace
+        assert namespace["__name__"] == "extension_test_ext"
 
     def test_is_safe_attribute(self, sandbox):
         """Test attribute safety checking."""
+
         class TestObj:
             safe_attr = "safe"
             __unsafe_attr__ = "unsafe"
 
         obj = TestObj()
 
-        assert sandbox.is_safe_attribute(obj, 'safe_attr')
-        assert not sandbox.is_safe_attribute(obj, '__unsafe_attr__')
-        assert not sandbox.is_safe_attribute(obj, '__class__')
+        assert sandbox.is_safe_attribute(obj, "safe_attr")
+        assert not sandbox.is_safe_attribute(obj, "__unsafe_attr__")
+        assert not sandbox.is_safe_attribute(obj, "__class__")
 
     def test_wrap_object_basic_types(self, sandbox):
         """Test object wrapping for basic types."""
@@ -238,6 +240,7 @@ class TestExtensionSandbox:
 
     def test_wrap_object_complex_type(self, sandbox):
         """Test object wrapping for complex types."""
+
         class TestClass:
             def __init__(self):
                 self.value = 42
@@ -267,6 +270,7 @@ class TestSafeObjectProxy:
     @pytest.fixture
     def test_object(self):
         """Create test object."""
+
         class TestClass:
             def __init__(self):
                 self.safe_value = 42
@@ -304,6 +308,7 @@ class TestSafeObjectProxy:
 
     def test_callable_proxy(self, sandbox):
         """Test proxy for callable objects."""
+
         def test_func(x):
             return x * 2
 

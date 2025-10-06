@@ -65,16 +65,16 @@ class ExampleShowcase(ThemedWidget):
     """Main showcase widget demonstrating all Phase 5 examples."""
 
     theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground',
-        'accent': 'accent.primary',
-        'card_bg': 'card.background',
-        'card_border': 'card.border'
+        "bg": "window.background",
+        "fg": "window.foreground",
+        "accent": "accent.primary",
+        "card_bg": "card.background",
+        "card_border": "card.border",
     }
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.current_theme = 'light'
+        self.current_theme = "light"
         self.setup_ui()
 
     def setup_ui(self):
@@ -97,14 +97,16 @@ class ExampleShowcase(ThemedWidget):
         # Title
         title = QLabel("VFWidgets Theme System - Phase 5 Examples")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("""
+        title.setStyleSheet(
+            """
         QLabel {
             font-size: 24px;
             font-weight: bold;
             margin: 20px;
             padding: 10px;
         }
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         # Description
@@ -271,7 +273,7 @@ class ExampleShowcase(ThemedWidget):
 
         # Theme selector
         self.demo_theme_combo = QComboBox()
-        self.demo_theme_combo.addItems(['light', 'dark', 'blue', 'green', 'purple'])
+        self.demo_theme_combo.addItems(["light", "dark", "blue", "green", "purple"])
         self.demo_theme_combo.currentTextChanged.connect(self.switch_theme)
         controls_layout.addRow("Theme:", self.demo_theme_combo)
 
@@ -334,11 +336,11 @@ class ExampleShowcase(ThemedWidget):
         scroll_layout = QGridLayout(scroll_widget)
 
         themes = [
-            ('Light', 'light', '#ffffff', '#000000'),
-            ('Dark', 'dark', '#2d2d2d', '#ffffff'),
-            ('Blue', 'blue', '#e3f2fd', '#0d47a1'),
-            ('Green', 'green', '#e8f5e8', '#1b5e20'),
-            ('Purple', 'purple', '#f3e5f5', '#4a148c'),
+            ("Light", "light", "#ffffff", "#000000"),
+            ("Dark", "dark", "#2d2d2d", "#ffffff"),
+            ("Blue", "blue", "#e3f2fd", "#0d47a1"),
+            ("Green", "green", "#e8f5e8", "#1b5e20"),
+            ("Purple", "purple", "#f3e5f5", "#4a148c"),
         ]
 
         for i, (name, theme_id, bg, fg) in enumerate(themes):
@@ -348,14 +350,16 @@ class ExampleShowcase(ThemedWidget):
             # Theme preview card
             theme_card = QWidget()
             theme_card.setFixedSize(200, 150)
-            theme_card.setStyleSheet(f"""
+            theme_card.setStyleSheet(
+                f"""
             QWidget {{
                 background-color: {bg};
                 color: {fg};
                 border: 2px solid #ccc;
                 border-radius: 8px;
             }}
-            """)
+            """
+            )
 
             card_layout = QVBoxLayout(theme_card)
 
@@ -367,7 +371,8 @@ class ExampleShowcase(ThemedWidget):
 
             # Sample elements
             sample_btn = QPushButton("Sample Button")
-            sample_btn.setStyleSheet(f"""
+            sample_btn.setStyleSheet(
+                f"""
             QPushButton {{
                 background-color: {fg};
                 color: {bg};
@@ -376,7 +381,8 @@ class ExampleShowcase(ThemedWidget):
                 padding: 5px;
                 margin: 2px;
             }}
-            """)
+            """
+            )
             card_layout.addWidget(sample_btn)
 
             sample_text = QLabel("Sample text content")
@@ -387,7 +393,8 @@ class ExampleShowcase(ThemedWidget):
             # Apply button
             apply_btn = QPushButton("Apply Theme")
             apply_btn.clicked.connect(lambda checked, t=theme_id: self.switch_theme(t))
-            apply_btn.setStyleSheet("""
+            apply_btn.setStyleSheet(
+                """
             QPushButton {
                 background-color: #007bff;
                 color: white;
@@ -396,7 +403,8 @@ class ExampleShowcase(ThemedWidget):
                 padding: 5px;
                 margin: 2px;
             }
-            """)
+            """
+            )
             card_layout.addWidget(apply_btn)
 
             scroll_layout.addWidget(theme_card, row, col)
@@ -470,7 +478,7 @@ class ExampleShowcase(ThemedWidget):
         footer_layout.addWidget(QLabel("Global Theme:"))
 
         self.global_theme_combo = QComboBox()
-        self.global_theme_combo.addItems(['light', 'dark', 'blue', 'green', 'purple'])
+        self.global_theme_combo.addItems(["light", "dark", "blue", "green", "purple"])
         self.global_theme_combo.currentTextChanged.connect(self.switch_theme)
         footer_layout.addWidget(self.global_theme_combo)
 
@@ -494,14 +502,15 @@ class ExampleShowcase(ThemedWidget):
 
     def update_styling(self):
         """Update styling based on current theme."""
-        bg = self.theme.get('bg', '#ffffff')
-        fg = self.theme.get('fg', '#000000')
-        accent = self.theme.get('accent', '#007bff')
-        card_bg = self.theme.get('card_bg', '#f8f8f8')
-        card_border = self.theme.get('card_border', '#dddddd')
+        bg = self.theme.get("bg", "#ffffff")
+        fg = self.theme.get("fg", "#000000")
+        accent = self.theme.get("accent", "#007bff")
+        card_bg = self.theme.get("card_bg", "#f8f8f8")
+        card_border = self.theme.get("card_border", "#dddddd")
 
         # Update main widget styling
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         ExampleShowcase {{
             background-color: {bg};
             color: {fg};
@@ -537,7 +546,8 @@ class ExampleShowcase(ThemedWidget):
             background-color: {accent};
             opacity: 0.8;
         }}
-        """)
+        """
+        )
 
     def switch_theme(self, theme_name):
         """Switch to specified theme."""
@@ -672,15 +682,16 @@ creating beautiful, consistent, and accessible user interfaces.
 
     def reset_demo(self):
         """Reset the demo to initial state."""
-        self.switch_theme('light')
+        self.switch_theme("light")
         self.demo_output.clear()
         self.tutorial_output.clear()
         self.log_demo_output("Demo reset to initial state")
 
     def log_demo_output(self, message):
         """Log message to demo output."""
-        if hasattr(self, 'demo_output'):
+        if hasattr(self, "demo_output"):
             from datetime import datetime
+
             timestamp = datetime.now().strftime("%H:%M:%S")
             self.demo_output.append(f"[{timestamp}] {message}")
 
@@ -688,36 +699,36 @@ creating beautiful, consistent, and accessible user interfaces.
 def create_showcase_themes():
     """Create themes for the showcase application."""
     themes = {
-        'light': {
-            'name': 'light',
-            'window': {'background': '#ffffff', 'foreground': '#333333'},
-            'card': {'background': '#f8f8f8', 'border': '#dddddd'},
-            'accent': {'primary': '#007bff'}
+        "light": {
+            "name": "light",
+            "window": {"background": "#ffffff", "foreground": "#333333"},
+            "card": {"background": "#f8f8f8", "border": "#dddddd"},
+            "accent": {"primary": "#007bff"},
         },
-        'dark': {
-            'name': 'dark',
-            'window': {'background': '#2d2d2d', 'foreground': '#ffffff'},
-            'card': {'background': '#3a3a3a', 'border': '#555555'},
-            'accent': {'primary': '#66aaff'}
+        "dark": {
+            "name": "dark",
+            "window": {"background": "#2d2d2d", "foreground": "#ffffff"},
+            "card": {"background": "#3a3a3a", "border": "#555555"},
+            "accent": {"primary": "#66aaff"},
         },
-        'blue': {
-            'name': 'blue',
-            'window': {'background': '#e3f2fd', 'foreground': '#0d47a1'},
-            'card': {'background': '#ffffff', 'border': '#90caf9'},
-            'accent': {'primary': '#1976d2'}
+        "blue": {
+            "name": "blue",
+            "window": {"background": "#e3f2fd", "foreground": "#0d47a1"},
+            "card": {"background": "#ffffff", "border": "#90caf9"},
+            "accent": {"primary": "#1976d2"},
         },
-        'green': {
-            'name': 'green',
-            'window': {'background': '#e8f5e8', 'foreground': '#1b5e20'},
-            'card': {'background': '#ffffff', 'border': '#a5d6a7'},
-            'accent': {'primary': '#388e3c'}
+        "green": {
+            "name": "green",
+            "window": {"background": "#e8f5e8", "foreground": "#1b5e20"},
+            "card": {"background": "#ffffff", "border": "#a5d6a7"},
+            "accent": {"primary": "#388e3c"},
         },
-        'purple': {
-            'name': 'purple',
-            'window': {'background': '#f3e5f5', 'foreground': '#4a148c'},
-            'card': {'background': '#ffffff', 'border': '#ce93d8'},
-            'accent': {'primary': '#7b1fa2'}
-        }
+        "purple": {
+            "name": "purple",
+            "window": {"background": "#f3e5f5", "foreground": "#4a148c"},
+            "card": {"background": "#ffffff", "border": "#ce93d8"},
+            "accent": {"primary": "#7b1fa2"},
+        },
     }
     return themes
 
@@ -738,7 +749,7 @@ def main():
         print(f"Registered theme: {name}")
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
     print("Set initial theme to 'light'")
 
     # Create main showcase window
@@ -760,5 +771,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

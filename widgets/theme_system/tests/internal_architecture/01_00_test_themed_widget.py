@@ -14,7 +14,7 @@ This example verifies:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPainter
@@ -27,9 +27,9 @@ class SimpleThemedWidget(ThemedWidget):
     """Simple widget to test theming functionality."""
 
     theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground',
-        'accent': 'accent.primary'
+        "bg": "window.background",
+        "fg": "window.foreground",
+        "accent": "accent.primary",
     }
 
     def __init__(self, parent=None):
@@ -52,7 +52,7 @@ class SimpleThemedWidget(ThemedWidget):
 
         # Theme switcher
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(['default', 'dark', 'light', 'minimal'])
+        self.theme_combo.addItems(["default", "dark", "light", "minimal"])
         self.theme_combo.currentTextChanged.connect(self.switch_theme)
         layout.addWidget(self.theme_combo)
 
@@ -75,13 +75,13 @@ class SimpleThemedWidget(ThemedWidget):
         """Test theme property access."""
         try:
             # Test property access through theme_config
-            bg = self.theme.bg if hasattr(self.theme, 'bg') else 'N/A'
-            fg = self.theme.fg if hasattr(self.theme, 'fg') else 'N/A'
-            accent = self.theme.accent if hasattr(self.theme, 'accent') else 'N/A'
+            bg = self.theme.bg if hasattr(self.theme, "bg") else "N/A"
+            fg = self.theme.fg if hasattr(self.theme, "fg") else "N/A"
+            accent = self.theme.accent if hasattr(self.theme, "accent") else "N/A"
 
             # Test direct property access
-            theme_type = self.theme_type if hasattr(self, 'theme_type') else 'N/A'
-            is_dark = self.is_dark_theme if hasattr(self, 'is_dark_theme') else 'N/A'
+            theme_type = self.theme_type if hasattr(self, "theme_type") else "N/A"
+            is_dark = self.is_dark_theme if hasattr(self, "is_dark_theme") else "N/A"
 
             results = f"""✓ Property Access Working:
 - Background: {bg}
@@ -123,7 +123,7 @@ Theme Type: {app.theme_type}"""
 
         # Try to use theme colors if available
         try:
-            if hasattr(self.theme, 'accent'):
+            if hasattr(self.theme, "accent"):
                 color = QColor(self.theme.accent)
                 painter.setPen(color)
                 painter.drawRect(10, 10, 50, 50)
@@ -142,7 +142,7 @@ def main():
     print(f"✓ ThemedApplication created: {app}")
 
     # Set initial theme
-    app.set_theme('dark')
+    app.set_theme("dark")
     print("✓ Theme set to 'dark'")
     print(f"✓ Available themes: {app.available_themes}")
 
@@ -154,6 +154,7 @@ def main():
 
     # Test that the widget is registered
     from vfwidgets_theme.lifecycle import WidgetRegistry
+
     registry = WidgetRegistry()
     count = registry.get_widget_count()
     print(f"✓ Widget registry has {count} registered widget(s)")
@@ -167,5 +168,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

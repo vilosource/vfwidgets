@@ -34,6 +34,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectWidget(ThemedWidget, QWidget):
             """Correctly ordered widget."""
+
             pass
 
         # Should not raise any exception
@@ -48,6 +49,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectMainWindow(ThemedWidget, QMainWindow):
             """Correctly ordered main window."""
+
             pass
 
         # Should not raise any exception
@@ -62,6 +64,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectDialog(ThemedWidget, QDialog):
             """Correctly ordered dialog."""
+
             pass
 
         # Should not raise any exception
@@ -76,6 +79,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectFrame(ThemedWidget, QFrame):
             """Correctly ordered frame."""
+
             pass
 
         # Should not raise any exception
@@ -90,6 +94,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectEditor(ThemedWidget, QTextEdit):
             """Correctly ordered text editor."""
+
             pass
 
         # Should not raise any exception
@@ -104,6 +109,7 @@ class TestInheritanceOrderValidation:
 
         class CorrectButton(ThemedWidget, QPushButton):
             """Correctly ordered push button."""
+
             pass
 
         # Should not raise any exception
@@ -117,6 +123,7 @@ class TestInheritanceOrderValidation:
 
         class WrongWidget(QWidget, ThemedWidget):
             """Incorrectly ordered widget - should fail at instantiation."""
+
             pass
 
         # Should raise TypeError with helpful message
@@ -138,6 +145,7 @@ class TestInheritanceOrderValidation:
 
         class WrongMainWindow(QMainWindow, ThemedWidget):
             """Incorrectly ordered main window."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -153,6 +161,7 @@ class TestInheritanceOrderValidation:
 
         class WrongDialog(QDialog, ThemedWidget):
             """Incorrectly ordered dialog."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -167,6 +176,7 @@ class TestInheritanceOrderValidation:
 
         class WrongFrame(QFrame, ThemedWidget):
             """Incorrectly ordered frame."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -181,6 +191,7 @@ class TestInheritanceOrderValidation:
 
         class WrongEditor(QTextEdit, ThemedWidget):
             """Incorrectly ordered text editor."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -195,6 +206,7 @@ class TestInheritanceOrderValidation:
 
         class WrongButton(QPushButton, ThemedWidget):
             """Incorrectly ordered push button."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -209,6 +221,7 @@ class TestInheritanceOrderValidation:
 
         class BadWidget(QWidget, ThemedWidget):
             """Widget with wrong inheritance order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -216,14 +229,17 @@ class TestInheritanceOrderValidation:
 
         error_msg = str(exc_info.value)
         # Should show the wrong pattern: class BadWidget(QWidget, ThemedWidget)
-        assert "class BadWidget(QWidget, ThemedWidget" in error_msg or \
-               "BadWidget(QWidget, " in error_msg
+        assert (
+            "class BadWidget(QWidget, ThemedWidget" in error_msg
+            or "BadWidget(QWidget, " in error_msg
+        )
 
     def test_error_message_shows_correct_example(self, qtbot):
         """Test that error message shows the CORRECT inheritance pattern."""
 
         class BadWidget(QWidget, ThemedWidget):
             """Widget with wrong inheritance order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -231,14 +247,17 @@ class TestInheritanceOrderValidation:
 
         error_msg = str(exc_info.value)
         # Should show the correct pattern: class BadWidget(ThemedWidget, QWidget)
-        assert "class BadWidget(ThemedWidget, QWidget" in error_msg or \
-               "BadWidget(ThemedWidget, " in error_msg
+        assert (
+            "class BadWidget(ThemedWidget, QWidget" in error_msg
+            or "BadWidget(ThemedWidget, " in error_msg
+        )
 
     def test_error_message_explains_why(self, qtbot):
         """Test that error message explains WHY the order matters."""
 
         class BadWidget(QWidget, ThemedWidget):
             """Widget with wrong inheritance order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -253,16 +272,18 @@ class TestInheritanceOrderValidation:
 
         class CustomMixin:
             """A custom mixin class."""
+
             custom_value = 42
 
         class CorrectMultiInherit(ThemedWidget, CustomMixin, QWidget):
             """Widget with multiple inheritance, correct order."""
+
             pass
 
         # Should not raise - ThemedWidget is first
         widget = CorrectMultiInherit()
         assert widget is not None
-        assert hasattr(widget, 'custom_value')
+        assert hasattr(widget, "custom_value")
         assert widget.custom_value == 42
 
     def test_themedwidget_requires_qt_base(self, qtbot):
@@ -275,6 +296,7 @@ class TestInheritanceOrderValidation:
 
         class OnlyThemed(ThemedWidget):
             """Widget inheriting only from ThemedWidget - should fail."""
+
             pass
 
         # This SHOULD raise because ThemedWidget needs a Qt base class
@@ -292,10 +314,12 @@ class TestInheritanceOrderValidation:
 
         class BaseWidget(ThemedWidget, QWidget):
             """Base widget with correct order."""
+
             pass
 
         class DerivedWidget(BaseWidget):
             """Derived widget - should inherit correct order."""
+
             pass
 
         # Should not raise - order is correct in base class
@@ -310,6 +334,7 @@ class TestInheritanceOrderValidation:
         # Class definition should not raise
         class WrongWidget(QWidget, ThemedWidget):
             """This class definition should not raise."""
+
             pass
 
         # Error should only happen when we try to instantiate
@@ -321,10 +346,12 @@ class TestInheritanceOrderValidation:
 
         class CorrectLabel(ThemedWidget, QLabel):
             """Correct order with QLabel."""
+
             pass
 
         class WrongLabel(QLabel, ThemedWidget):
             """Wrong order with QLabel."""
+
             pass
 
         # Correct should work
@@ -340,10 +367,12 @@ class TestInheritanceOrderValidation:
 
         class CorrectList(ThemedWidget, QListWidget):
             """Correct order with QListWidget."""
+
             pass
 
         class WrongList(QListWidget, ThemedWidget):
             """Wrong order with QListWidget."""
+
             pass
 
         # Correct should work
@@ -359,10 +388,12 @@ class TestInheritanceOrderValidation:
 
         class CorrectTable(ThemedWidget, QTableWidget):
             """Correct order with QTableWidget."""
+
             pass
 
         class WrongTable(QTableWidget, ThemedWidget):
             """Wrong order with QTableWidget."""
+
             pass
 
         # Correct should work
@@ -382,6 +413,7 @@ class TestInheritanceValidationEdgeCases:
 
         class CustomMixin:
             """Non-Qt mixin class."""
+
             custom_method_called = False
 
             def custom_method(self):
@@ -389,6 +421,7 @@ class TestInheritanceValidationEdgeCases:
 
         class MixedWidget(ThemedWidget, CustomMixin, QWidget):
             """Widget with ThemedWidget first, then mixin, then Qt base."""
+
             pass
 
         # Should work - ThemedWidget is first, CustomMixin is not a Qt class
@@ -397,7 +430,7 @@ class TestInheritanceValidationEdgeCases:
         assert widget is not None
         assert isinstance(widget, ThemedWidget)
         assert isinstance(widget, QWidget)
-        assert hasattr(widget, 'custom_method')
+        assert hasattr(widget, "custom_method")
         widget.custom_method()
         assert widget.custom_method_called is True
 
@@ -406,6 +439,7 @@ class TestInheritanceValidationEdgeCases:
 
         class WrongWidget(QWidget, ThemedWidget):
             """Wrong order."""
+
             pass
 
         # Must raise TypeError (not ValueError or other exception types)
@@ -417,6 +451,7 @@ class TestInheritanceValidationEdgeCases:
 
         class WrongWidget(QWidget, ThemedWidget):
             """Wrong order."""
+
             pass
 
         try:
@@ -436,6 +471,7 @@ class TestInheritanceValidationDocumentation:
 
         class WrongWidget(QWidget, ThemedWidget):
             """Wrong order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -450,6 +486,7 @@ class TestInheritanceValidationDocumentation:
 
         class WrongWidget(QWidget, ThemedWidget):
             """Wrong order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:
@@ -457,7 +494,7 @@ class TestInheritanceValidationDocumentation:
 
         error_msg = str(exc_info.value)
         # Should be multiline for readability
-        lines = error_msg.split('\n')
+        lines = error_msg.split("\n")
         assert len(lines) > 3  # Should have multiple lines of explanation
 
     def test_error_message_class_specific(self, qtbot):
@@ -465,6 +502,7 @@ class TestInheritanceValidationDocumentation:
 
         class MyCustomWidget(QWidget, ThemedWidget):
             """Custom widget with wrong order."""
+
             pass
 
         with pytest.raises(TypeError) as exc_info:

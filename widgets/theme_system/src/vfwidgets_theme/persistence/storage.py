@@ -110,11 +110,11 @@ class ThemeMigrator:
     def detect_version(cls, theme_data: Dict[str, Any]) -> str:
         """Detect theme format version."""
         # Check for version field
-        if 'version' in theme_data:
-            return str(theme_data['version'])
+        if "version" in theme_data:
+            return str(theme_data["version"])
 
         # Legacy detection based on structure
-        if 'properties' in theme_data and isinstance(theme_data['properties'], dict):
+        if "properties" in theme_data and isinstance(theme_data["properties"], dict):
             return "0.9"  # Legacy format
 
         return "unknown"
@@ -139,27 +139,27 @@ class ThemeMigrator:
     def _migrate_from_v09(cls, theme_data: Dict[str, Any]) -> Dict[str, Any]:
         """Migrate from v0.9 format."""
         migrated = {
-            'version': cls.CURRENT_VERSION,
-            'name': theme_data.get('name', 'Migrated Theme'),
-            'description': theme_data.get('description', 'Migrated from v0.9'),
-            'author': theme_data.get('author', 'Unknown'),
-            'created_at': theme_data.get('created_at', datetime.datetime.now().isoformat()),
-            'updated_at': datetime.datetime.now().isoformat(),
-            'migration_info': {
-                'original_version': '0.9',
-                'migrated_at': datetime.datetime.now().isoformat()
-            }
+            "version": cls.CURRENT_VERSION,
+            "name": theme_data.get("name", "Migrated Theme"),
+            "description": theme_data.get("description", "Migrated from v0.9"),
+            "author": theme_data.get("author", "Unknown"),
+            "created_at": theme_data.get("created_at", datetime.datetime.now().isoformat()),
+            "updated_at": datetime.datetime.now().isoformat(),
+            "migration_info": {
+                "original_version": "0.9",
+                "migrated_at": datetime.datetime.now().isoformat(),
+            },
         }
 
         # Migrate properties
-        if 'properties' in theme_data:
-            migrated['properties'] = theme_data['properties']
+        if "properties" in theme_data:
+            migrated["properties"] = theme_data["properties"]
         else:
-            migrated['properties'] = {}
+            migrated["properties"] = {}
 
         # Migrate metadata if present
-        if 'metadata' in theme_data:
-            migrated['metadata'] = theme_data['metadata']
+        if "metadata" in theme_data:
+            migrated["metadata"] = theme_data["metadata"]
 
         return migrated
 
@@ -168,35 +168,35 @@ class ThemeMigrator:
         """Best effort migration for unknown format."""
         # Try to extract what we can
         migrated = {
-            'version': cls.CURRENT_VERSION,
-            'name': 'Unknown Format Theme',
-            'description': 'Migrated from unknown format',
-            'author': 'Unknown',
-            'created_at': datetime.datetime.now().isoformat(),
-            'updated_at': datetime.datetime.now().isoformat(),
-            'migration_info': {
-                'original_version': 'unknown',
-                'migrated_at': datetime.datetime.now().isoformat(),
-                'original_keys': list(theme_data.keys())
-            }
+            "version": cls.CURRENT_VERSION,
+            "name": "Unknown Format Theme",
+            "description": "Migrated from unknown format",
+            "author": "Unknown",
+            "created_at": datetime.datetime.now().isoformat(),
+            "updated_at": datetime.datetime.now().isoformat(),
+            "migration_info": {
+                "original_version": "unknown",
+                "migrated_at": datetime.datetime.now().isoformat(),
+                "original_keys": list(theme_data.keys()),
+            },
         }
 
         # Try to find properties
         properties = {}
 
         # Look for common property structures
-        if 'colors' in theme_data:
-            for key, value in theme_data['colors'].items():
+        if "colors" in theme_data:
+            for key, value in theme_data["colors"].items():
                 properties[f"color.{key}"] = value
 
-        if 'fonts' in theme_data:
-            for key, value in theme_data['fonts'].items():
+        if "fonts" in theme_data:
+            for key, value in theme_data["fonts"].items():
                 properties[f"font.{key}"] = value
 
-        if 'properties' in theme_data:
-            properties.update(theme_data['properties'])
+        if "properties" in theme_data:
+            properties.update(theme_data["properties"])
 
-        migrated['properties'] = properties
+        migrated["properties"] = properties
 
         return migrated
 
@@ -204,8 +204,8 @@ class ThemeMigrator:
 class ThemeValidator:
     """Validates theme data structure and content."""
 
-    REQUIRED_FIELDS = ['name', 'version', 'properties']
-    RECOMMENDED_FIELDS = ['description', 'author', 'created_at']
+    REQUIRED_FIELDS = ["name", "version", "properties"]
+    RECOMMENDED_FIELDS = ["description", "author", "created_at"]
 
     @classmethod
     def validate_theme(cls, theme_data: Dict[str, Any]) -> ThemeValidationResult:
@@ -224,29 +224,32 @@ class ThemeValidator:
                 warnings.append(f"Missing recommended field: {field}")
 
         # Validate specific field types
-        if 'properties' in theme_data:
-            prop_errors = cls._validate_properties(theme_data['properties'])
+        if "properties" in theme_data:
+            prop_errors = cls._validate_properties(theme_data["properties"])
             errors.extend(prop_errors)
 
-        if 'version' in theme_data:
-            version_errors = cls._validate_version(theme_data['version'])
+        if "version" in theme_data:
+            version_errors = cls._validate_version(theme_data["version"])
             errors.extend(version_errors)
 
         # Check for unknown fields that might be typos
         known_fields = {
-            'name', 'version', 'properties', 'description', 'author',
-            'created_at', 'updated_at', 'metadata', 'migration_info'
+            "name",
+            "version",
+            "properties",
+            "description",
+            "author",
+            "created_at",
+            "updated_at",
+            "metadata",
+            "migration_info",
         }
 
         for field in theme_data.keys():
             if field not in known_fields:
                 warnings.append(f"Unknown field (possible typo): {field}")
 
-        return ThemeValidationResult(
-            is_valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings
-        )
+        return ThemeValidationResult(is_valid=len(errors) == 0, errors=errors, warnings=warnings)
 
     @classmethod
     def _validate_properties(cls, properties: Any) -> List[str]:
@@ -284,7 +287,13 @@ class ThemeValidator:
             errors.append("Version must be a string")
         else:
             # Basic semantic version validation
-            if not version.replace('.', '').replace('-', '').replace('+', '').replace('_', '').isalnum():
+            if (
+                not version.replace(".", "")
+                .replace("-", "")
+                .replace("+", "")
+                .replace("_", "")
+                .isalnum()
+            ):
                 errors.append(f"Invalid version format: {version}")
 
         return errors
@@ -296,12 +305,14 @@ class ThemePersistence:
     def __init__(self, storage_dir: Path):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        self._backup_dir = self.storage_dir / '.backups'
+        self._backup_dir = self.storage_dir / ".backups"
         self.backup_manager = BackupManager(self._backup_dir)
         self.migrator = ThemeMigrator()
         self.validator = ThemeValidator()
 
-    def save_theme(self, theme: Theme, filename: Optional[str] = None, compress: bool = False) -> Path:
+    def save_theme(
+        self, theme: Theme, filename: Optional[str] = None, compress: bool = False
+    ) -> Path:
         """Save theme to disk with validation and backup.
 
         Args:
@@ -316,8 +327,8 @@ class ThemePersistence:
         if filename is None:
             filename = f"{theme.name.replace(' ', '_').lower()}.json"
 
-        if compress and not filename.endswith('.gz'):
-            filename += '.gz'
+        if compress and not filename.endswith(".gz"):
+            filename += ".gz"
 
         file_path = self.storage_dir / filename
 
@@ -337,10 +348,10 @@ class ThemePersistence:
 
             # Save theme data
             if compress:
-                with gzip.open(file_path, 'wt', encoding='utf-8') as f:
+                with gzip.open(file_path, "wt", encoding="utf-8") as f:
                     json.dump(theme_data, f, indent=2, ensure_ascii=False)
             else:
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(theme_data, f, indent=2, ensure_ascii=False)
 
             return file_path
@@ -370,11 +381,11 @@ class ThemePersistence:
 
         try:
             # Load theme data
-            if file_path.suffix == '.gz':
-                with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+            if file_path.suffix == ".gz":
+                with gzip.open(file_path, "rt", encoding="utf-8") as f:
                     theme_data = json.load(f)
             else:
-                with open(file_path, encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     theme_data = json.load(f)
 
             # Migrate if needed
@@ -384,7 +395,9 @@ class ThemePersistence:
             if validate:
                 validation = self.validator.validate_theme(theme_data)
                 if validation.has_errors:
-                    raise ThemeFormatError(f"Theme validation failed: {', '.join(validation.errors)}")
+                    raise ThemeFormatError(
+                        f"Theme validation failed: {', '.join(validation.errors)}"
+                    )
 
             # Create Theme object
             return self._deserialize_theme(theme_data)
@@ -396,7 +409,7 @@ class ThemePersistence:
 
     def list_themes(self) -> List[Path]:
         """List available theme files."""
-        patterns = ['*.json', '*.json.gz']
+        patterns = ["*.json", "*.json.gz"]
         theme_files = []
 
         for pattern in patterns:
@@ -409,26 +422,26 @@ class ThemePersistence:
         try:
             file_path = Path(path)
 
-            if file_path.suffix == '.gz':
-                with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+            if file_path.suffix == ".gz":
+                with gzip.open(file_path, "rt", encoding="utf-8") as f:
                     theme_data = json.load(f)
             else:
-                with open(file_path, encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     theme_data = json.load(f)
 
             # Return metadata only
             return {
-                'name': theme_data.get('name', 'Unknown'),
-                'version': theme_data.get('version', 'Unknown'),
-                'description': theme_data.get('description', ''),
-                'author': theme_data.get('author', 'Unknown'),
-                'created_at': theme_data.get('created_at', ''),
-                'updated_at': theme_data.get('updated_at', ''),
-                'file_size': file_path.stat().st_size,
-                'compressed': file_path.suffix == '.gz'
+                "name": theme_data.get("name", "Unknown"),
+                "version": theme_data.get("version", "Unknown"),
+                "description": theme_data.get("description", ""),
+                "author": theme_data.get("author", "Unknown"),
+                "created_at": theme_data.get("created_at", ""),
+                "updated_at": theme_data.get("updated_at", ""),
+                "file_size": file_path.stat().st_size,
+                "compressed": file_path.suffix == ".gz",
             }
         except Exception as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
     def _serialize_theme(self, theme: Theme) -> Dict[str, Any]:
         """Serialize Theme object to dictionary."""
@@ -437,11 +450,11 @@ class ThemePersistence:
 
         # Add persistence-specific metadata
         persistence_data = {
-            'version': ThemeMigrator.CURRENT_VERSION,
-            'description': theme.metadata.get('description', ''),
-            'author': theme.metadata.get('author', 'Unknown'),
-            'created_at': theme.metadata.get('created_at', datetime.datetime.now().isoformat()),
-            'updated_at': datetime.datetime.now().isoformat(),
+            "version": ThemeMigrator.CURRENT_VERSION,
+            "description": theme.metadata.get("description", ""),
+            "author": theme.metadata.get("author", "Unknown"),
+            "created_at": theme.metadata.get("created_at", datetime.datetime.now().isoformat()),
+            "updated_at": datetime.datetime.now().isoformat(),
         }
 
         # Merge colors and styles into a properties dict for compatibility
@@ -453,7 +466,7 @@ class ThemePersistence:
         return {
             **theme_dict,
             **persistence_data,
-            'properties': properties  # Unified properties for easier validation
+            "properties": properties,  # Unified properties for easier validation
         }
 
     def _deserialize_theme(self, theme_data: Dict[str, Any]) -> Theme:
@@ -461,37 +474,40 @@ class ThemePersistence:
         from ..core.theme import Theme as ThemeClass
 
         # Extract colors and styles from properties if available
-        properties = theme_data.get('properties', {})
-        colors = theme_data.get('colors', {})
-        styles = theme_data.get('styles', {})
+        properties = theme_data.get("properties", {})
+        colors = theme_data.get("colors", {})
+        styles = theme_data.get("styles", {})
 
         # If no colors/styles but we have properties, try to split them
         if not colors and not styles and properties:
             # Simple heuristic: color-related keys go to colors, others to styles
             for key, value in properties.items():
-                if any(color_word in key.lower() for color_word in ['color', 'background', 'foreground', 'border']):
+                if any(
+                    color_word in key.lower()
+                    for color_word in ["color", "background", "foreground", "border"]
+                ):
                     colors[key] = value
                 else:
                     styles[key] = value
 
         # Build metadata including persistence fields
-        metadata = theme_data.get('metadata', {}).copy()
-        if 'description' in theme_data:
-            metadata['description'] = theme_data['description']
-        if 'author' in theme_data:
-            metadata['author'] = theme_data['author']
-        if 'created_at' in theme_data:
-            metadata['created_at'] = theme_data['created_at']
-        if 'updated_at' in theme_data:
-            metadata['updated_at'] = theme_data['updated_at']
+        metadata = theme_data.get("metadata", {}).copy()
+        if "description" in theme_data:
+            metadata["description"] = theme_data["description"]
+        if "author" in theme_data:
+            metadata["author"] = theme_data["author"]
+        if "created_at" in theme_data:
+            metadata["created_at"] = theme_data["created_at"]
+        if "updated_at" in theme_data:
+            metadata["updated_at"] = theme_data["updated_at"]
 
         # Create Theme object with proper parameters
         return ThemeClass(
-            name=theme_data.get('name', 'Unnamed Theme'),
-            version=theme_data.get('version', '1.0.0'),
-            type=theme_data.get('type', 'light'),
+            name=theme_data.get("name", "Unnamed Theme"),
+            version=theme_data.get("version", "1.0.0"),
+            type=theme_data.get("type", "light"),
             colors=colors,
             styles=styles,
             metadata=metadata,
-            token_colors=theme_data.get('tokenColors', [])
+            token_colors=theme_data.get("tokenColors", []),
         )

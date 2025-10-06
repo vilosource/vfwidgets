@@ -57,15 +57,15 @@ class Phase4Demo:
                 "foreground": "#000000",
                 "success": "#28a745",
                 "warning": "#ffc107",
-                "error": "#dc3545"
+                "error": "#dc3545",
             },
             styles={
                 "font_family": "Arial, sans-serif",
                 "font_size": "14px",
                 "border_radius": "4px",
                 "padding": "8px",
-                "margin": "4px"
-            }
+                "margin": "4px",
+            },
         )
 
         # Theme with edge case values (for validation testing)
@@ -75,13 +75,13 @@ class Phase4Demo:
                 "primary": "#f0f",  # Short hex (valid but unusual)
                 "secondary": "red",  # Named color
                 "background": "#ffffff",
-                "questionable": "#abcdef"  # Non-standard color name
+                "questionable": "#abcdef",  # Non-standard color name
             },
             styles={
                 "font_size": "8px",  # Very small but valid
-                "padding": "0px",    # Zero padding
-                "unusual_property": "custom_value"  # Non-standard property
-            }
+                "padding": "0px",  # Zero padding
+                "unusual_property": "custom_value",  # Non-standard property
+            },
         )
 
         # High contrast theme
@@ -91,14 +91,14 @@ class Phase4Demo:
                 "primary": "#ffff00",
                 "secondary": "#ff00ff",
                 "background": "#000000",
-                "foreground": "#ffffff"
+                "foreground": "#ffffff",
             },
             styles={
                 "font_family": "Courier New, monospace",
                 "font_size": "16px",
                 "border_radius": "2px",
-                "padding": "12px"
-            }
+                "padding": "12px",
+            },
         )
 
         self.demo_themes = [valid_theme, questionable_theme, contrast_theme]
@@ -133,11 +133,7 @@ class Phase4Demo:
         theme_schema = ThemeSchema()
 
         for theme in self.demo_themes:
-            theme_data = {
-                "name": theme.name,
-                "colors": theme.colors,
-                "styles": theme.styles
-            }
+            theme_data = {"name": theme.name, "colors": theme.colors, "styles": theme.styles}
 
             result = validate_schema(theme_data, theme_schema)
             status = "✓ PASS" if result.passed else "✗ FAIL"
@@ -153,9 +149,9 @@ class Phase4Demo:
 
         # Simulate theme operation timing
         operation_times = {
-            "theme_creation": 0.5,      # 0.5ms - good
-            "theme_switch": 150.0,      # 150ms - exceeds 100ms threshold
-            "property_access": 0.0001   # 0.1ms - excellent
+            "theme_creation": 0.5,  # 0.5ms - good
+            "theme_switch": 150.0,  # 150ms - exceeds 100ms threshold
+            "property_access": 0.0001,  # 0.1ms - excellent
         }
 
         for operation, time_ms in operation_times.items():
@@ -203,8 +199,8 @@ class Phase4Demo:
         print("\n2. Fuzz Testing Simulation:")
         fuzz_inputs = [
             "{'name': '∂elta', 'colors': {}}",  # Unicode
-            "{'name': '', 'colors': None}",      # Empty/None
-            "{'name': 'x'*1000, 'colors': {}}"  # Very long
+            "{'name': '', 'colors': None}",  # Empty/None
+            "{'name': 'x'*1000, 'colors': {}}",  # Very long
         ]
 
         for i, fuzz_input in enumerate(fuzz_inputs, 1):
@@ -239,7 +235,7 @@ class Phase4Demo:
             ("RMS difference", 2.3, "< 5.0 threshold", True),
             ("SSIM similarity", 0.98, "> 0.95 threshold", True),
             ("Histogram diff", 0.1, "< 0.2 threshold", True),
-            ("Perceptual hash", 1, "< 3 threshold", True)
+            ("Perceptual hash", 1, "< 3 threshold", True),
         ]
 
         for metric, value, threshold, passed in comparison_results:
@@ -264,7 +260,7 @@ class Phase4Demo:
             ("Property Access", 0.005, 0.010, True),
             ("Theme Switching", 85.0, 100.0, True),
             ("Widget Creation", 12.0, 10.0, False),
-            ("QSS Generation", 1.2, 1.0, False)
+            ("QSS Generation", 1.2, 1.0, False),
         ]
 
         print("Benchmark Results:")
@@ -293,7 +289,7 @@ class Phase4Demo:
             ("Rapid Theme Switching", "200 switches/sec", "✓ PASS", "5.2s"),
             ("Error Recovery", "10/10 recovered", "✓ PASS", "100ms"),
             ("Migration Testing", "v1.0→v2.0", "✓ PASS", "150ms"),
-            ("Plugin Integration", "3 plugins loaded", "✓ PASS", "300ms")
+            ("Plugin Integration", "3 plugins loaded", "✓ PASS", "300ms"),
         ]
 
         for scenario, metric, status, duration in scenarios:
@@ -317,7 +313,7 @@ class Phase4Demo:
             ("Valid Colors", False),  # One theme has invalid colors
             ("Widget Themeable", True),
             ("Performance Bounds", True),
-            ("Memory Constraints", True)
+            ("Memory Constraints", True),
         ]
 
         print("Assertion Results:")
@@ -342,7 +338,7 @@ class Phase4Demo:
             (ValidationMode.DEBUG, "Full validation + detailed logging"),
             (ValidationMode.PRODUCTION, "Essential validation only"),
             (ValidationMode.STRICT, "Maximum validation + fail fast"),
-            (ValidationMode.DISABLED, "No validation (performance mode)")
+            (ValidationMode.DISABLED, "No validation (performance mode)"),
         ]
 
         current_mode = self.validation_framework.mode
@@ -404,7 +400,7 @@ class Phase4Demo:
             "✅ Integration Test Scenarios",
             "✅ Complex Application Testing",
             "✅ Stress Testing",
-            "✅ Error Recovery Testing"
+            "✅ Error Recovery Testing",
         ]
 
         # Print in two columns
@@ -432,6 +428,7 @@ def main():
     except Exception as e:
         print(f"❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

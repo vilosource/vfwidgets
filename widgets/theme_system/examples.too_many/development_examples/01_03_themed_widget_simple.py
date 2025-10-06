@@ -33,7 +33,7 @@ try:
     from PySide6.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QPushButton, QVBoxLayout
 
     # Force headless mode if no display available
-    if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
+    if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
         print("No display available - running in demonstration mode without Qt GUI")
         QT_AVAILABLE = False
     else:
@@ -45,28 +45,58 @@ except ImportError:
 
     # Fallback implementations
     class QVBoxLayout:
-        def addWidget(self, widget): pass
+        def addWidget(self, widget):
+            pass
+
     class QHBoxLayout:
-        def addWidget(self, widget): pass
+        def addWidget(self, widget):
+            pass
+
     class QPushButton:
-        def __init__(self, text): self.text = text
-        def clicked(self): pass
+        def __init__(self, text):
+            self.text = text
+
+        def clicked(self):
+            pass
+
     class QLabel:
-        def __init__(self, text): self.text = text
-        def setText(self, text): self.text = text
+        def __init__(self, text):
+            self.text = text
+
+        def setText(self, text):
+            self.text = text
+
     class QMainWindow:
-        def __init__(self): pass
-        def setCentralWidget(self, widget): pass
-        def show(self): pass
+        def __init__(self):
+            pass
+
+        def setCentralWidget(self, widget):
+            pass
+
+        def show(self):
+            pass
+
     class QTimer:
-        def __init__(self): pass
-        def start(self, ms): pass
-        def timeout(self): pass
+        def __init__(self):
+            pass
+
+        def start(self, ms):
+            pass
+
+        def timeout(self):
+            pass
+
     class QPainter:
-        def __init__(self, widget): pass
-        def fillRect(self, rect, color): pass
+        def __init__(self, widget):
+            pass
+
+        def fillRect(self, rect, color):
+            pass
+
     class QColor:
-        def __init__(self, color): pass
+        def __init__(self, color):
+            pass
+
 
 from vfwidgets_theme.widgets.application import ThemedApplication
 from vfwidgets_theme.widgets.base import ThemedWidget
@@ -81,10 +111,10 @@ class SimpleThemedButton(ThemedWidget):
 
     # Define theme properties - this is optional but provides better control
     theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground',
-        'accent': 'accent.primary',
-        'border': 'control.border'
+        "bg": "window.background",
+        "fg": "window.foreground",
+        "accent": "accent.primary",
+        "border": "control.border",
     }
 
     def __init__(self, text="Themed Button", parent=None):
@@ -129,9 +159,9 @@ class SimpleThemedButton(ThemedWidget):
         painter = QPainter(self)
 
         # Use theme properties with automatic fallbacks
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        accent_color = self.theme.get('accent', '#007acc')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        accent_color = self.theme.get("accent", "#007acc")
 
         # Simple themed rendering
         if self._is_hovered:
@@ -147,10 +177,7 @@ class SimpleThemedLabel(ThemedWidget):
     """Simple themed label with minimal theme configuration."""
 
     # Minimal theme config - uses ThemedWidget defaults for missing properties
-    theme_config = {
-        'text_color': 'window.foreground',
-        'bg_color': 'window.background'
-    }
+    theme_config = {"text_color": "window.foreground", "bg_color": "window.background"}
 
     def __init__(self, text="Themed Label", parent=None):
         super().__init__(parent)
@@ -192,7 +219,7 @@ class SimpleExample:
     def __init__(self):
         """Initialize the simple example."""
         print("🚀 Starting Simple ThemedWidget Example")
-        print("="*60)
+        print("=" * 60)
 
         # Create themed application - this sets up the entire theme system
         if QT_AVAILABLE:
@@ -202,8 +229,12 @@ class SimpleExample:
             self.app = ThemedApplication()
 
         print("✅ ThemedApplication created")
-        print(f"   - Available themes: {[t.name if hasattr(t, 'name') else str(t) for t in self.app.get_available_themes()]}")
-        print(f"   - Current theme: {self.app.get_current_theme().name if self.app.get_current_theme() else 'None'}")
+        print(
+            f"   - Available themes: {[t.name if hasattr(t, 'name') else str(t) for t in self.app.get_available_themes()]}"
+        )
+        print(
+            f"   - Current theme: {self.app.get_current_theme().name if self.app.get_current_theme() else 'None'}"
+        )
 
         # Create themed widgets - demonstrates the simple API
         self.create_widgets()
@@ -225,7 +256,7 @@ class SimpleExample:
         # Ensure application is ready before creating Qt widgets
         if QT_AVAILABLE:
             # Process any pending Qt events to ensure app is ready
-            if hasattr(self.app, 'processEvents'):
+            if hasattr(self.app, "processEvents"):
                 self.app.processEvents()
 
         try:
@@ -235,7 +266,7 @@ class SimpleExample:
                 SimpleThemedButton("Secondary Button"),
                 SimpleThemedLabel("Header Label"),
                 SimpleThemedLabel("Status Label"),
-                SimpleThemedPanel()
+                SimpleThemedPanel(),
             ]
         except Exception as e:
             print(f"   - Error creating Qt widgets (using fallback mode): {e}")
@@ -245,7 +276,7 @@ class SimpleExample:
                 SimpleThemedButton("Secondary Button"),
                 SimpleThemedLabel("Header Label"),
                 SimpleThemedLabel("Status Label"),
-                SimpleThemedPanel()
+                SimpleThemedPanel(),
             ]
 
         print(f"✅ Created {len(self.widgets)} themed widgets")
@@ -263,7 +294,9 @@ class SimpleExample:
 
         # Get available themes
         available_themes = self.app.get_available_themes()
-        theme_names = [theme.name if hasattr(theme, 'name') else str(theme) for theme in available_themes]
+        theme_names = [
+            theme.name if hasattr(theme, "name") else str(theme) for theme in available_themes
+        ]
 
         # Switch between themes - all widgets update automatically
         for theme_name in theme_names[:3]:  # Test first 3 themes
@@ -296,15 +329,14 @@ class SimpleExample:
         # Create widget with invalid theme config - should still work
         print("🔄 Creating widget with problematic config...")
         try:
+
             class ProblematicWidget(ThemedWidget):
-                theme_config = {
-                    'invalid_property': 'nonexistent.path.to.nowhere'
-                }
+                theme_config = {"invalid_property": "nonexistent.path.to.nowhere"}
 
                 def __init__(self):
                     super().__init__()
                     # Try to access invalid property - should get fallback
-                    value = self.theme.get('invalid_property', 'fallback_value')
+                    value = self.theme.get("invalid_property", "fallback_value")
                     print(f"   - Got fallback value: {value}")
 
             widget = ProblematicWidget()
@@ -338,10 +370,12 @@ class SimpleExample:
         print("✅ Widget Statistics:")
         for i, widget in enumerate(self.widgets):
             try:
-                if hasattr(widget, 'theme_statistics'):
+                if hasattr(widget, "theme_statistics"):
                     stats = widget.theme_statistics
-                    print(f"   - Widget {i+1}: {stats.get('update_count', 0)} updates, "
-                          f"cache hit rate: {stats.get('hit_rate', 0):.1%}")
+                    print(
+                        f"   - Widget {i+1}: {stats.get('update_count', 0)} updates, "
+                        f"cache hit rate: {stats.get('hit_rate', 0):.1%}"
+                    )
             except Exception as e:
                 print(f"   - Widget {i+1}: stats unavailable ({e})")
 
@@ -364,7 +398,7 @@ class SimpleExample:
         try:
             # Example has been demonstrated during initialization
             print("\n🎉 Simple ThemedWidget Example Completed Successfully!")
-            print("="*60)
+            print("=" * 60)
             print("\nKey Takeaways:")
             print("1. ThemedWidget provides THE simple way to create themed widgets")
             print("2. Just inherit and optionally define theme_config")
@@ -395,6 +429,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Error running example: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

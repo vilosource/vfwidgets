@@ -4,6 +4,7 @@ Unit tests for ThemedWidget base class.
 Tests the primary API that developers use - ThemedWidget inheritance pattern
 with automatic registration, property access, and lifecycle management.
 """
+
 import threading
 import time
 import unittest
@@ -31,18 +32,19 @@ class TestThemedWidgetCreation(ThemedTestCase):
 
     def test_themed_widget_metaclass(self):
         """Test ThemedWidget metaclass functionality."""
+
         # Test custom theme_config is processed
         class CustomWidget(ThemedWidget):
             theme_config = {
-                'bg': 'window.background',
-                'fg': 'window.foreground',
-                'accent': 'accent.primary'
+                "bg": "window.background",
+                "fg": "window.foreground",
+                "accent": "accent.primary",
             }
 
         widget = CustomWidget()
-        self.assertIn('bg', widget._theme_config)
-        self.assertIn('fg', widget._theme_config)
-        self.assertIn('accent', widget._theme_config)
+        self.assertIn("bg", widget._theme_config)
+        self.assertIn("fg", widget._theme_config)
+        self.assertIn("accent", widget._theme_config)
 
     def test_themed_widget_without_config(self):
         """Test ThemedWidget creation without theme_config."""
@@ -50,8 +52,8 @@ class TestThemedWidgetCreation(ThemedTestCase):
 
         # Should have default config
         self.assertIsInstance(widget._theme_config, dict)
-        self.assertIn('background', widget._theme_config)
-        self.assertIn('color', widget._theme_config)
+        self.assertIn("background", widget._theme_config)
+        self.assertIn("color", widget._theme_config)
 
     def test_themed_widget_parent_inheritance(self):
         """Test that child widgets inherit parent themes."""
@@ -88,10 +90,10 @@ class TestThemedWidgetProperties(ThemedTestCase):
 
         class TestWidget(ThemedWidget):
             theme_config = {
-                'background': 'window.background',
-                'foreground': 'window.foreground',
-                'accent': 'accent.primary',
-                'border': 'control.border'
+                "background": "window.background",
+                "foreground": "window.foreground",
+                "accent": "accent.primary",
+                "border": "control.border",
             }
 
         self.widget = TestWidget()
@@ -126,8 +128,11 @@ class TestThemedWidgetProperties(ThemedTestCase):
     def test_property_fallback(self):
         """Test property fallback when property not found."""
         # Access non-existent property should return fallback
-        with patch.object(self.widget._theme_properties, 'get_property',
-                          side_effect=PropertyNotFoundError("test.missing", "Test missing")):
+        with patch.object(
+            self.widget._theme_properties,
+            "get_property",
+            side_effect=PropertyNotFoundError("test.missing", "Test missing"),
+        ):
             value = self.widget.theme.missing_property
             self.assertIsNotNone(value)  # Should get fallback value
 
@@ -145,13 +150,13 @@ class TestThemedWidgetProperties(ThemedTestCase):
 
         # Should detect changes (mock may not trigger actual changes)
         # This verifies the signal mechanism works
-        self.assertTrue(hasattr(self.widget, 'property_changed'))
+        self.assertTrue(hasattr(self.widget, "property_changed"))
 
     def test_property_descriptor_behavior(self):
         """Test theme property descriptor behavior."""
         # Test descriptor creates proper attributes
-        self.assertTrue(hasattr(self.widget.theme, 'background'))
-        self.assertTrue(hasattr(self.widget.theme, 'foreground'))
+        self.assertTrue(hasattr(self.widget.theme, "background"))
+        self.assertTrue(hasattr(self.widget.theme, "foreground"))
 
         # Test descriptor caching
         prop1 = self.widget.theme.background
@@ -161,12 +166,12 @@ class TestThemedWidgetProperties(ThemedTestCase):
     def test_dynamic_property_access(self):
         """Test dynamic property access patterns."""
         # Test getitem access
-        background = self.widget.theme['background']
+        background = self.widget.theme["background"]
         self.assertIsInstance(background, str)
 
         # Test get with default
-        missing = self.widget.theme.get('missing', 'default')
-        self.assertEqual(missing, 'default')
+        missing = self.widget.theme.get("missing", "default")
+        self.assertEqual(missing, "default")
 
 
 class TestThemedWidgetLifecycle(ThemedTestCase):
@@ -305,7 +310,7 @@ class TestThemedWidgetThemeUpdates(ThemedTestCase):
 
         # Custom handler should be called
         # Note: May not be called if theme doesn't actually change
-        self.assertTrue(hasattr(widget, 'on_theme_changed'))
+        self.assertTrue(hasattr(widget, "on_theme_changed"))
 
     def test_theme_inheritance(self):
         """Test theme inheritance from parent widgets."""
@@ -488,8 +493,9 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         widget = ThemedWidget()
 
         # Mock theme loading error
-        with patch.object(widget._theme_manager, 'get_current_theme',
-                          side_effect=ThemeError("Loading failed")):
+        with patch.object(
+            widget._theme_manager, "get_current_theme", side_effect=ThemeError("Loading failed")
+        ):
 
             # Should not crash - should use fallback
             background = widget.theme.background
@@ -500,8 +506,11 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         widget = ThemedWidget()
 
         # Mock property resolution error
-        with patch.object(widget._theme_properties, 'get_property',
-                          side_effect=PropertyNotFoundError("test.missing", "Missing")):
+        with patch.object(
+            widget._theme_properties,
+            "get_property",
+            side_effect=PropertyNotFoundError("test.missing", "Missing"),
+        ):
 
             # Should not crash - should use fallback
             value = widget.theme.missing_property
@@ -512,8 +521,7 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         widget = ThemedWidget()
 
         # Mock theme update error
-        with patch.object(widget, '_apply_theme_update',
-                          side_effect=Exception("Update failed")):
+        with patch.object(widget, "_apply_theme_update", side_effect=Exception("Update failed")):
 
             # Should not crash
             try:
@@ -526,8 +534,9 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         widget = ThemedWidget()
 
         # Mock cleanup error
-        with patch.object(widget._theme_manager, 'unregister_widget',
-                          side_effect=Exception("Cleanup failed")):
+        with patch.object(
+            widget._theme_manager, "unregister_widget", side_effect=Exception("Cleanup failed")
+        ):
 
             # Should not crash during cleanup
             try:
@@ -541,20 +550,21 @@ class TestThemedWidgetCustomization(ThemedTestCase):
 
     def test_custom_theme_config(self):
         """Test custom theme configuration."""
+
         class CustomWidget(ThemedWidget):
             theme_config = {
-                'primary': 'accent.primary',
-                'secondary': 'accent.secondary',
-                'background': 'custom.background',
-                'text': 'custom.text'
+                "primary": "accent.primary",
+                "secondary": "accent.secondary",
+                "background": "custom.background",
+                "text": "custom.text",
             }
 
         widget = CustomWidget()
 
         # Should have custom config
-        self.assertIn('primary', widget._theme_config)
-        self.assertIn('secondary', widget._theme_config)
-        self.assertEqual(widget._theme_config['primary'], 'accent.primary')
+        self.assertIn("primary", widget._theme_config)
+        self.assertIn("secondary", widget._theme_config)
+        self.assertEqual(widget._theme_config["primary"], "accent.primary")
 
     def test_custom_theme_change_handler(self):
         """Test custom theme change handler."""
@@ -569,15 +579,13 @@ class TestThemedWidgetCustomization(ThemedTestCase):
         widget._on_theme_changed(self.mock_theme)
 
         # Verify handler structure exists
-        self.assertTrue(hasattr(widget, 'on_theme_changed'))
+        self.assertTrue(hasattr(widget, "on_theme_changed"))
 
     def test_custom_property_access(self):
         """Test custom property access patterns."""
+
         class CustomWidget(ThemedWidget):
-            theme_config = {
-                'bg': 'window.background',
-                'fg': 'window.foreground'
-            }
+            theme_config = {"bg": "window.background", "fg": "window.foreground"}
 
             @property
             def background_color(self):
@@ -595,27 +603,22 @@ class TestThemedWidgetCustomization(ThemedTestCase):
 
     def test_theme_config_inheritance(self):
         """Test theme config inheritance in class hierarchy."""
+
         class BaseWidget(ThemedWidget):
-            theme_config = {
-                'base_bg': 'window.background',
-                'base_fg': 'window.foreground'
-            }
+            theme_config = {"base_bg": "window.background", "base_fg": "window.foreground"}
 
         class DerivedWidget(BaseWidget):
-            theme_config = {
-                'derived_accent': 'accent.primary',
-                'derived_border': 'control.border'
-            }
+            theme_config = {"derived_accent": "accent.primary", "derived_border": "control.border"}
 
         widget = DerivedWidget()
 
         # Should have merged config
         config = widget._theme_config
-        self.assertIn('base_bg', config)
-        self.assertIn('base_fg', config)
-        self.assertIn('derived_accent', config)
-        self.assertIn('derived_border', config)
+        self.assertIn("base_bg", config)
+        self.assertIn("base_fg", config)
+        self.assertIn("derived_accent", config)
+        self.assertIn("derived_border", config)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -50,13 +50,11 @@ __all__ = [
     "ThemeCollection",
     "validate_theme_data",
     "create_theme_from_dict",
-
     # Core management
     "ThemeManager",
     "ThemeLoader",
     "FileThemeLoader",
     "create_theme_manager",
-
     # Theme providers
     "DefaultThemeProvider",
     "CachedThemeProvider",
@@ -64,7 +62,6 @@ __all__ = [
     "create_default_provider",
     "create_cached_provider",
     "create_composite_provider",
-
     # Registry system
     "ThemeWidgetRegistry",
     "RegistryEntry",

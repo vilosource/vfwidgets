@@ -66,14 +66,14 @@ class TestValidationRules:
 
     def test_regex_rule_valid(self):
         """Test RegexRule with valid patterns."""
-        rule = RegexRule("test", pattern=r'^\d+$')
+        rule = RegexRule("test", pattern=r"^\d+$")
 
         assert rule.validate("123") is True
         assert rule.validate("0") is True
 
     def test_regex_rule_invalid(self):
         """Test RegexRule with invalid values."""
-        rule = RegexRule("test", pattern=r'^\d+$')
+        rule = RegexRule("test", pattern=r"^\d+$")
 
         assert rule.validate("abc") is False
         assert rule.validate("12a") is False
@@ -97,6 +97,7 @@ class TestValidationRules:
 
     def test_callable_rule(self):
         """Test CallableRule with custom validator."""
+
         def is_even(value):
             return int(value) % 2 == 0
 
@@ -110,6 +111,7 @@ class TestValidationRules:
 
     def test_callable_rule_exception_handling(self):
         """Test CallableRule handles exceptions gracefully."""
+
         def failing_validator(value):
             raise ValueError("Always fails")
 
@@ -134,9 +136,9 @@ class TestPropertyCache:
 
         # Test stats
         stats = cache.stats
-        assert stats['hits'] == 1
-        assert stats['misses'] == 1
-        assert stats['hit_rate'] == 0.5
+        assert stats["hits"] == 1
+        assert stats["misses"] == 1
+        assert stats["hit_rate"] == 0.5
 
     def test_cache_eviction(self):
         """Test cache eviction when at capacity."""
@@ -152,7 +154,7 @@ class TestPropertyCache:
         cache.set("key3", "value3")
 
         assert cache.get("key1") == "value1"  # Should still be there
-        assert cache.get("key2") is None      # Should be evicted
+        assert cache.get("key2") is None  # Should be evicted
         assert cache.get("key3") == "value3"  # Should be there
 
     def test_cache_invalidation(self):
@@ -180,7 +182,7 @@ class TestPropertyCache:
 
         assert cache.get("key1") is None
         assert cache.get("key2") is None
-        assert cache.stats['size'] == 0
+        assert cache.stats["size"] == 0
 
     def test_cache_thread_safety(self):
         """Test cache thread safety."""
@@ -285,6 +287,7 @@ class TestComputedProperty:
 
     def test_computed_property_error_handling(self):
         """Test computed property error handling."""
+
         def failing_computation(obj):
             raise ValueError("Computation failed")
 
@@ -338,10 +341,7 @@ class TestPropertyDescriptor:
 
         # Descriptor with min/max validation
         descriptor = PropertyDescriptor(
-            "test.property",
-            int,
-            validator=min_max_validator(0, 100),
-            default=50
+            "test.property", int, validator=min_max_validator(0, 100), default=50
         )
 
         # Should use default value due to validation failure
@@ -360,9 +360,9 @@ class TestPropertyDescriptor:
             str,
             validator=[
                 enum_validator(["red", "green", "blue"]),
-                regex_validator(r'^[a-z]+$')  # Only lowercase letters
+                regex_validator(r"^[a-z]+$"),  # Only lowercase letters
             ],
-            default="black"
+            default="black",
         )
 
         # Should pass both validations
@@ -425,15 +425,12 @@ class TestPropertyDescriptor:
         # Primary property returns None (not found)
         mock_widget._get_theme_property.side_effect = lambda prop: {
             "test.property": None,
-            "parent.property": "inherited_value"
+            "parent.property": "inherited_value",
         }.get(prop)
         mock_widget._on_property_changed = Mock()
 
         descriptor = PropertyDescriptor(
-            "test.property",
-            str,
-            inherit_from="parent.property",
-            default="default_value"
+            "test.property", str, inherit_from="parent.property", default="default_value"
         )
 
         # Should get inherited value
@@ -458,11 +455,7 @@ class TestPropertyDescriptor:
         mock_widget = Mock()
         mock_widget._on_property_changed = Mock()
 
-        descriptor = PropertyDescriptor(
-            "test.property",
-            int,
-            validator=min_max_validator(0, 100)
-        )
+        descriptor = PropertyDescriptor("test.property", int, validator=min_max_validator(0, 100))
 
         # Should raise ValidationError for invalid value
         with pytest.raises(ValidationError):
@@ -477,7 +470,9 @@ class TestPropertyDescriptor:
         mock_widget._get_theme_property.return_value = "valid"  # Use a value that passes validation
         mock_widget._on_property_changed = Mock()
 
-        descriptor = PropertyDescriptor("test.property", str, validator=enum_validator(["valid", "allowed"]))
+        descriptor = PropertyDescriptor(
+            "test.property", str, validator=enum_validator(["valid", "allowed"])
+        )
 
         # Access property a few times
         descriptor.__get__(mock_widget, type(mock_widget))
@@ -490,13 +485,14 @@ class TestPropertyDescriptor:
             pass
 
         stats = descriptor.statistics
-        assert stats['name'] == "test.property"
-        assert stats['access_count'] == 2
-        assert stats['validation_failures'] == 1
-        assert stats['validators_count'] == 1
+        assert stats["name"] == "test.property"
+        assert stats["access_count"] == 2
+        assert stats["validation_failures"] == 1
+        assert stats["validators_count"] == 1
 
     def test_descriptor_class_access(self):
         """Test accessing descriptor from class returns descriptor itself."""
+
         class TestClass:
             test_prop = PropertyDescriptor("test.property", str)
 
@@ -507,6 +503,7 @@ class TestPropertyDescriptor:
 
     def test_descriptor_computed_property(self):
         """Test descriptor with computed property."""
+
         def compute_value(obj):
             return f"computed_{obj.base_value}"
 
@@ -514,11 +511,7 @@ class TestPropertyDescriptor:
         mock_widget = Mock()
         mock_widget.base_value = "test"
 
-        descriptor = PropertyDescriptor(
-            "test.property",
-            str,
-            computed=computed
-        )
+        descriptor = PropertyDescriptor("test.property", str, computed=computed)
 
         # Should use computed value
         value = descriptor.__get__(mock_widget, type(mock_widget))
@@ -537,7 +530,7 @@ class TestUtilityFunctions:
 
     def test_regex_validator_creation(self):
         """Test regex_validator utility function."""
-        validator = regex_validator(r'^\d+$')
+        validator = regex_validator(r"^\d+$")
         assert isinstance(validator, RegexRule)
         assert validator.validate("123")
         assert not validator.validate("abc")
@@ -555,11 +548,11 @@ class TestUtilityFunctions:
         assert isinstance(validator, RegexRule)
 
         # Test various color formats
-        assert validator.validate("#ff0000")    # Hex
-        assert validator.validate("#f00")       # Short hex
+        assert validator.validate("#ff0000")  # Hex
+        assert validator.validate("#f00")  # Short hex
         assert validator.validate("rgb(255, 0, 0)")  # RGB
         assert validator.validate("rgba(255, 0, 0, 0.5)")  # RGBA
-        assert validator.validate("red")        # Named color
+        assert validator.validate("red")  # Named color
 
         # Invalid colors
         assert not validator.validate("not-a-color")
@@ -567,12 +560,13 @@ class TestUtilityFunctions:
 
     def test_computed_property_decorator(self):
         """Test computed_property decorator."""
+
         @computed_property(dependencies=["prop1", "prop2"])
         def test_computed(obj):
             return f"{obj.prop1}_{obj.prop2}"
 
         # Should have the computed property metadata
-        assert hasattr(test_computed, '_computed_property')
+        assert hasattr(test_computed, "_computed_property")
         computed = test_computed._computed_property
         assert isinstance(computed, ComputedProperty)
         assert computed.dependencies == ["prop1", "prop2"]
@@ -599,17 +593,10 @@ class TestIntegrationWithThemedWidget:
         # Define a class using PropertyDescriptor
         class TestWidget(MockThemedWidget):
             background = PropertyDescriptor(
-                "window.background",
-                str,
-                validator=color_validator(),
-                default="#cccccc"
+                "window.background", str, validator=color_validator(), default="#cccccc"
             )
 
-            text_color = PropertyDescriptor(
-                "text.color",
-                str,
-                default="#333333"
-            )
+            text_color = PropertyDescriptor("text.color", str, default="#333333")
 
         widget = TestWidget()
 
@@ -633,6 +620,7 @@ class TestPerformanceCharacteristics:
 
     def test_property_access_performance(self):
         """Test that property access meets performance requirements."""
+
         class MockWidget:
             def __init__(self):
                 self.call_count = 0
@@ -652,7 +640,9 @@ class TestPerformanceCharacteristics:
 
         # Should be very fast for cached access
         avg_time_ns = (end_time - start_time) * 1_000_000_000 / 1000
-        assert avg_time_ns < 10000, f"Property access too slow: {avg_time_ns}ns avg"  # Relaxed to 10μs
+        assert (
+            avg_time_ns < 10000
+        ), f"Property access too slow: {avg_time_ns}ns avg"  # Relaxed to 10μs
 
         # Only first access should call _get_theme_property
         assert widget.call_count == 1

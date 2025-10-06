@@ -15,7 +15,7 @@ What this demonstrates:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QComboBox, QFrame, QLabel, QPushButton, QVBoxLayout, QWidget
@@ -28,10 +28,10 @@ class ThemeSwitcherWidget(ThemedWidget, QWidget):
 
     # Map semantic names to theme properties
     theme_config = {
-        'background': 'colors.background',
-        'foreground': 'colors.foreground',
-        'primary': 'colors.primary',
-        'accent': 'colors.accent'
+        "background": "colors.background",
+        "foreground": "colors.foreground",
+        "primary": "colors.primary",
+        "accent": "colors.accent",
     }
 
     def __init__(self):
@@ -98,12 +98,13 @@ class ThemeSwitcherWidget(ThemedWidget, QWidget):
     def update_styling(self):
         """Apply theme colors to the widget."""
         # Access theme properties through our mapping
-        bg = getattr(self.theme, 'background', '#ffffff')
-        fg = getattr(self.theme, 'foreground', '#000000')
-        primary = getattr(self.theme, 'primary', '#0066cc')
+        bg = getattr(self.theme, "background", "#ffffff")
+        fg = getattr(self.theme, "foreground", "#000000")
+        primary = getattr(self.theme, "primary", "#0066cc")
 
         # Apply styles
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             ThemeSwitcherWidget {{
                 background-color: {bg};
                 color: {fg};
@@ -133,7 +134,8 @@ class ThemeSwitcherWidget(ThemedWidget, QWidget):
             QPushButton:hover {{
                 background-color: {fg};
             }}
-        """)
+        """
+        )
 
         # Set object name for title styling
         self.title.setObjectName("title")
@@ -143,7 +145,7 @@ def main():
     app = ThemedApplication(sys.argv)
 
     # Start with light theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     widget = ThemeSwitcherWidget()
     widget.setWindowTitle("Theme Switching Example")
@@ -152,5 +154,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

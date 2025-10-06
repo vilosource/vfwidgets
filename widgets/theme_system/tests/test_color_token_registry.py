@@ -12,7 +12,7 @@ Tests the color token system including:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import unittest
 
@@ -100,8 +100,11 @@ class TestColorTokenRegistry(unittest.TestCase):
 
         # Dark theme foreground should be light (starts with c, d, e, or f)
         first_char = default.lower()[1]  # Get first hex digit after #
-        self.assertIn(first_char, ["c", "d", "e", "f"],
-                      f"Dark theme foreground {default} should be light color")
+        self.assertIn(
+            first_char,
+            ["c", "d", "e", "f"],
+            f"Dark theme foreground {default} should be light color",
+        )
 
     def test_get_tokens_by_category(self):
         """Test retrieving all tokens in a category."""
@@ -142,7 +145,9 @@ class TestColorTokenRegistry(unittest.TestCase):
             self.assertIsNotNone(token, f"Token {token_name} not found")
             self.assertIsNotNone(token.description, f"Token {token.name} missing description")
             self.assertIsInstance(token.description, str)
-            self.assertGreater(len(token.description), 0, f"Token {token.name} has empty description")
+            self.assertGreater(
+                len(token.description), 0, f"Token {token.name} has empty description"
+            )
 
     def test_hierarchical_token_names(self):
         """Test that token names follow hierarchical naming convention."""
@@ -151,8 +156,10 @@ class TestColorTokenRegistry(unittest.TestCase):
         for token_name in all_token_names:
             token = ColorTokenRegistry.get_token(token_name)
             # Token names should have at least one dot
-            parts = token.name.split('.')
-            self.assertGreaterEqual(len(parts), 2, f"Token {token.name} doesn't follow naming convention")
+            parts = token.name.split(".")
+            self.assertGreaterEqual(
+                len(parts), 2, f"Token {token.name} doesn't follow naming convention"
+            )
 
             # First part should match the category prefix
             category_prefixes = {
@@ -175,13 +182,18 @@ class TestColorTokenRegistry(unittest.TestCase):
             if expected_prefix:
                 if isinstance(expected_prefix, list):
                     # For list of prefixes, first part should match one of them
-                    self.assertIn(parts[0], expected_prefix,
-                                  f"Token {token.name} doesn't match category prefix")
+                    self.assertIn(
+                        parts[0],
+                        expected_prefix,
+                        f"Token {token.name} doesn't match category prefix",
+                    )
                 else:
                     # For single prefix, allow exact match or compound names like editorLineNumber
                     # which still belong to the editor category
-                    self.assertTrue(parts[0].startswith(expected_prefix) or parts[0] == expected_prefix,
-                                    f"Token {token.name} doesn't match category prefix {expected_prefix}")
+                    self.assertTrue(
+                        parts[0].startswith(expected_prefix) or parts[0] == expected_prefix,
+                        f"Token {token.name} doesn't match category prefix {expected_prefix}",
+                    )
 
     def test_button_role_tokens(self):
         """Test that button role tokens are defined."""
@@ -227,7 +239,7 @@ class TestColorTokenRegistryGet(unittest.TestCase):
             type="light",
             colors={
                 "button.background": "#ff0000",  # Custom red button
-            }
+            },
         )
 
         value = ColorTokenRegistry.get("button.background", theme)
@@ -242,14 +254,15 @@ class TestColorTokenRegistryGet(unittest.TestCase):
             colors={
                 "colors.background": "#1e1e1e",
                 "colors.foreground": "#d4d4d4",
-            }
+            },
         )
 
         # Should get dark default from registry
         value = ColorTokenRegistry.get("button.background", theme)
         expected_dark = "#0e639c"  # Dark default from registry
-        self.assertEqual(value, expected_dark,
-                        f"Should return dark default {expected_dark} for dark theme")
+        self.assertEqual(
+            value, expected_dark, f"Should return dark default {expected_dark} for dark theme"
+        )
 
     def test_get_light_theme_defaults(self):
         """Test that get() returns light defaults for light themes."""
@@ -260,28 +273,21 @@ class TestColorTokenRegistryGet(unittest.TestCase):
             colors={
                 "colors.background": "#ffffff",
                 "colors.foreground": "#000000",
-            }
+            },
         )
 
         # Should get light default from registry
         value = ColorTokenRegistry.get("button.background", theme)
         expected_light = "#0078d4"  # Light default from registry
-        self.assertEqual(value, expected_light,
-                        f"Should return light default {expected_light} for light theme")
+        self.assertEqual(
+            value, expected_light, f"Should return light default {expected_light} for light theme"
+        )
 
     def test_get_unknown_token_smart_heuristic(self):
         """Test that get() uses smart heuristic for unknown tokens."""
-        dark_theme = Theme(
-            name="dark",
-            type="dark",
-            colors={"colors.background": "#1e1e1e"}
-        )
+        dark_theme = Theme(name="dark", type="dark", colors={"colors.background": "#1e1e1e"})
 
-        light_theme = Theme(
-            name="light",
-            type="light",
-            colors={"colors.background": "#ffffff"}
-        )
+        light_theme = Theme(name="light", type="light", colors={"colors.background": "#ffffff"})
 
         # Unknown background token
         dark_value = ColorTokenRegistry.get("custom.background", dark_theme)
@@ -313,7 +319,7 @@ class TestColorTokenRegistryGet(unittest.TestCase):
         dark_theme = Theme(
             name="dark_inferred",
             type="light",  # Wrong type, but dark background
-            colors={"colors.background": "#1e1e1e"}  # Very dark gray
+            colors={"colors.background": "#1e1e1e"},  # Very dark gray
         )
         # The explicit type="light" should take precedence over heuristic
         self.assertFalse(ColorTokenRegistry._is_dark_theme(dark_theme))
@@ -323,11 +329,7 @@ class TestColorTokenRegistryGet(unittest.TestCase):
 
     def test_get_editor_tokens(self):
         """Test get() with editor-specific tokens."""
-        dark_theme = Theme(
-            name="dark",
-            type="dark",
-            colors={"colors.background": "#1e1e1e"}
-        )
+        dark_theme = Theme(name="dark", type="dark", colors={"colors.background": "#1e1e1e"})
 
         # Editor background should get dark default
         editor_bg = ColorTokenRegistry.get("editor.background", dark_theme)
@@ -387,7 +389,7 @@ class TestColorTokenRegistryGet(unittest.TestCase):
                 "editor.foreground": "#d4d4d4",
                 "tab.activeBackground": "#1e1e1e",
                 "tab.inactiveBackground": "#2d2d2d",
-            }
+            },
         )
 
         # All other tokens should get sensible dark defaults
@@ -417,7 +419,7 @@ class TestColorToken(unittest.TestCase):
             category=TokenCategory.BASE,
             description="Test color",
             default_light="#ffffff",
-            default_dark="#000000"
+            default_dark="#000000",
         )
 
         self.assertEqual(token.name, "test.color")
@@ -433,7 +435,7 @@ class TestColorToken(unittest.TestCase):
             category=TokenCategory.BASE,
             description="Test color",
             default_light="#ffffff",
-            default_dark="#000000"
+            default_dark="#000000",
         )
 
         # ColorToken is a frozen dataclass, so assignment should fail
@@ -446,5 +448,5 @@ class TestColorToken(unittest.TestCase):
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

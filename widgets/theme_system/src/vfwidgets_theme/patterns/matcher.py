@@ -55,10 +55,10 @@ class PatternError(ThemeError):
 class PatternType(Enum):
     """Types of patterns supported by the matcher."""
 
-    GLOB = "glob"           # shell-style wildcards: *.txt, test_*
-    REGEX = "regex"         # regular expressions: test_\d+
-    CUSTOM = "custom"       # custom function patterns
-    PLUGIN = "plugin"       # patterns from plugins
+    GLOB = "glob"  # shell-style wildcards: *.txt, test_*
+    REGEX = "regex"  # regular expressions: test_\d+
+    CUSTOM = "custom"  # custom function patterns
+    PLUGIN = "plugin"  # patterns from plugins
 
 
 class PatternPriority(IntEnum):
@@ -76,14 +76,14 @@ class MatchResult(NamedTuple):
     """Result of a pattern match operation."""
 
     matched: bool
-    score: float           # 0.0 to 1.0, higher is better match
+    score: float  # 0.0 to 1.0, higher is better match
     metadata: Dict[str, Any] = {}
 
 
 class PatternFunction(Protocol):
     """Protocol for custom pattern functions."""
 
-    def __call__(self, target: str, widget: 'ThemedWidget') -> MatchResult:
+    def __call__(self, target: str, widget: "ThemedWidget") -> MatchResult:
         """Check if target matches the pattern.
 
         Args:
@@ -181,12 +181,12 @@ class LRUCache:
             hit_rate = self._hits / total if total > 0 else 0.0
 
             return {
-                'size': len(self._cache),
-                'max_size': self.max_size,
-                'hits': self._hits,
-                'misses': self._misses,
-                'evictions': self._evictions,
-                'hit_rate': hit_rate
+                "size": len(self._cache),
+                "max_size": self.max_size,
+                "hits": self._hits,
+                "misses": self._misses,
+                "evictions": self._evictions,
+                "hit_rate": hit_rate,
             }
 
 
@@ -229,13 +229,13 @@ class PatternMatcher:
 
         # Performance tracking
         self._stats = {
-            'patterns_matched': 0,
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'pattern_failures': 0,
-            'average_match_time': 0.0,
-            'total_match_time': 0.0,
-            'match_count': 0,
+            "patterns_matched": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "pattern_failures": 0,
+            "average_match_time": 0.0,
+            "total_match_time": 0.0,
+            "match_count": 0,
         }
         self._stats_lock = threading.RLock()
 
@@ -246,12 +246,16 @@ class PatternMatcher:
         if self.debug:
             logger.debug("PatternMatcher initialized")
 
-    def add_pattern(self, pattern: str, pattern_type: PatternType,
-                   priority: PatternPriority = PatternPriority.NORMAL,
-                   name: Optional[str] = None,
-                   description: Optional[str] = None,
-                   custom_function: Optional[PatternFunction] = None,
-                   plugin_name: Optional[str] = None) -> int:
+    def add_pattern(
+        self,
+        pattern: str,
+        pattern_type: PatternType,
+        priority: PatternPriority = PatternPriority.NORMAL,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        custom_function: Optional[PatternFunction] = None,
+        plugin_name: Optional[str] = None,
+    ) -> int:
         """Add a pattern to the matcher.
 
         Args:
@@ -282,7 +286,7 @@ class PatternMatcher:
                 name=name,
                 description=description,
                 custom_function=custom_function,
-                plugin_name=plugin_name
+                plugin_name=plugin_name,
             )
 
             # Pre-compile regex patterns for performance
@@ -304,7 +308,7 @@ class PatternMatcher:
 
         except Exception as e:
             with self._stats_lock:
-                self._stats['pattern_failures'] += 1
+                self._stats["pattern_failures"] += 1
             raise PatternError(f"Failed to add pattern '{pattern}': {e}")
 
     def remove_pattern(self, pattern_index: int) -> bool:
@@ -325,8 +329,9 @@ class PatternMatcher:
             logger.error(f"Failed to remove pattern {pattern_index}: {e}")
             return False
 
-    def match_patterns(self, target: str, widget: 'ThemedWidget',
-                      context: Optional[Dict[str, Any]] = None) -> List[Tuple[int, Pattern, MatchResult]]:
+    def match_patterns(
+        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
+    ) -> List[Tuple[int, Pattern, MatchResult]]:
         """Find all patterns that match the target string.
 
         Args:
@@ -348,11 +353,11 @@ class PatternMatcher:
             cached_result = self._match_cache.get(cache_key)
             if cached_result is not None:
                 with self._stats_lock:
-                    self._stats['cache_hits'] += 1
+                    self._stats["cache_hits"] += 1
                 return cached_result
 
             with self._stats_lock:
-                self._stats['cache_misses'] += 1
+                self._stats["cache_misses"] += 1
 
             # Perform actual matching
             matches = self._match_patterns_uncached(target, widget, context)
@@ -363,26 +368,29 @@ class PatternMatcher:
             # Update statistics
             match_time = time.perf_counter() - start_time
             with self._stats_lock:
-                self._stats['patterns_matched'] += len(matches)
-                self._stats['total_match_time'] += match_time
-                self._stats['match_count'] += 1
-                self._stats['average_match_time'] = (
-                    self._stats['total_match_time'] / self._stats['match_count']
+                self._stats["patterns_matched"] += len(matches)
+                self._stats["total_match_time"] += match_time
+                self._stats["match_count"] += 1
+                self._stats["average_match_time"] = (
+                    self._stats["total_match_time"] / self._stats["match_count"]
                 )
 
             if self.debug and matches:
-                logger.debug(f"Matched {len(matches)} patterns for '{target}' in {match_time*1000:.2f}ms")
+                logger.debug(
+                    f"Matched {len(matches)} patterns for '{target}' in {match_time*1000:.2f}ms"
+                )
 
             return matches
 
         except Exception as e:
             with self._stats_lock:
-                self._stats['pattern_failures'] += 1
+                self._stats["pattern_failures"] += 1
             logger.error(f"Pattern matching failed for '{target}': {e}")
             return []
 
-    def get_best_match(self, target: str, widget: 'ThemedWidget',
-                      context: Optional[Dict[str, Any]] = None) -> Optional[Tuple[int, Pattern, MatchResult]]:
+    def get_best_match(
+        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
+    ) -> Optional[Tuple[int, Pattern, MatchResult]]:
         """Get the best matching pattern based on priority and match score.
 
         Args:
@@ -404,7 +412,7 @@ class PatternMatcher:
 
         return best_match
 
-    def add_plugin(self, plugin: 'PatternPlugin') -> None:
+    def add_plugin(self, plugin: "PatternPlugin") -> None:
         """Add a pattern plugin."""
         self._plugins[plugin.name] = plugin
 
@@ -435,12 +443,12 @@ class PatternMatcher:
             active_patterns = sum(1 for p in self._patterns if p is not None and p.enabled)
 
             return {
-                'total_patterns': len(self._patterns),
-                'active_patterns': active_patterns,
-                'plugin_count': len(self._plugins),
-                'match_cache_stats': self._match_cache.get_stats(),
-                'pattern_cache_stats': self._pattern_cache.get_stats(),
-                'performance_stats': self._stats.copy(),
+                "total_patterns": len(self._patterns),
+                "active_patterns": active_patterns,
+                "plugin_count": len(self._plugins),
+                "match_cache_stats": self._match_cache.get_stats(),
+                "pattern_cache_stats": self._pattern_cache.get_stats(),
+                "performance_stats": self._stats.copy(),
             }
 
     def clear_caches(self) -> None:
@@ -482,16 +490,17 @@ class PatternMatcher:
         avg_time = total_time / iterations
 
         return {
-            'total_time_ms': total_time,
-            'average_time_ms': avg_time,
-            'iterations': iterations,
-            'patterns_per_second': iterations / (total_time / 1000),
+            "total_time_ms": total_time,
+            "average_time_ms": avg_time,
+            "iterations": iterations,
+            "patterns_per_second": iterations / (total_time / 1000),
         }
 
     # Private methods
 
-    def _match_patterns_uncached(self, target: str, widget: 'ThemedWidget',
-                                context: Optional[Dict[str, Any]] = None) -> List[Tuple[int, Pattern, MatchResult]]:
+    def _match_patterns_uncached(
+        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
+    ) -> List[Tuple[int, Pattern, MatchResult]]:
         """Perform actual pattern matching without caching."""
         matches = []
 
@@ -515,8 +524,13 @@ class PatternMatcher:
 
         return matches
 
-    def _match_single_pattern(self, pattern: Pattern, target: str,
-                            widget: 'ThemedWidget', context: Optional[Dict[str, Any]] = None) -> MatchResult:
+    def _match_single_pattern(
+        self,
+        pattern: Pattern,
+        target: str,
+        widget: "ThemedWidget",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MatchResult:
         """Match a single pattern against the target."""
         try:
             if pattern.pattern_type == PatternType.GLOB:
@@ -552,7 +566,7 @@ class PatternMatcher:
         score = 0.0
         if matched:
             # Higher score for more specific patterns (fewer wildcards)
-            wildcards = pattern.count('*') + pattern.count('?')
+            wildcards = pattern.count("*") + pattern.count("?")
             specificity = max(0, len(pattern) - wildcards) / len(pattern) if pattern else 0
             score = specificity
 
@@ -568,7 +582,7 @@ class PatternMatcher:
             if match:
                 # Score based on match length relative to target length
                 score = len(match.group(0)) / len(target) if target else 0
-                return MatchResult(True, score, {'match': match})
+                return MatchResult(True, score, {"match": match})
             else:
                 return MatchResult(False, 0.0)
 
@@ -591,9 +605,13 @@ class PatternMatcher:
         except re.error as e:
             raise PatternError(f"Invalid regex pattern '{pattern}': {e}")
 
-    def _validate_pattern(self, pattern: str, pattern_type: PatternType,
-                         custom_function: Optional[PatternFunction] = None,
-                         plugin_name: Optional[str] = None) -> None:
+    def _validate_pattern(
+        self,
+        pattern: str,
+        pattern_type: PatternType,
+        custom_function: Optional[PatternFunction] = None,
+        plugin_name: Optional[str] = None,
+    ) -> None:
         """Validate a pattern before adding it."""
         if not pattern:
             raise PatternError("Pattern cannot be empty")
@@ -614,8 +632,9 @@ class PatternMatcher:
             if plugin_name not in self._plugins:
                 raise PatternError(f"Plugin '{plugin_name}' not found")
 
-    def _generate_cache_key(self, target: str, widget: 'ThemedWidget',
-                          context: Optional[Dict[str, Any]] = None) -> str:
+    def _generate_cache_key(
+        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Generate a cache key for pattern matching."""
         # Include widget context for caching
         widget_sig = f"{type(widget).__name__}:{getattr(widget, '_widget_id', id(widget))}"
@@ -655,25 +674,31 @@ class MockWidget:
 
 # Utility functions for common patterns
 
+
 def glob_pattern(pattern: str) -> Tuple[str, PatternType]:
     """Create a glob pattern tuple."""
     return (pattern, PatternType.GLOB)
+
 
 def regex_pattern(pattern: str) -> Tuple[str, PatternType]:
     """Create a regex pattern tuple."""
     return (pattern, PatternType.REGEX)
 
+
 def widget_name_pattern(name: str) -> str:
     """Create a pattern that matches widget names."""
     return f"*{name}*"
+
 
 def widget_type_pattern(widget_type: str) -> str:
     """Create a pattern that matches widget types."""
     return f"{widget_type}*"
 
+
 def dialog_pattern() -> str:
     """Create a pattern that matches all dialogs."""
     return "*Dialog*"
+
 
 def button_pattern() -> str:
     """Create a pattern that matches all buttons."""

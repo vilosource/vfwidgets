@@ -23,6 +23,7 @@ from typing import Optional
 
 try:
     from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
@@ -45,6 +46,7 @@ except ImportError:
 
         def __init__(self, parent=None):
             pass
+
 
 from .base import ThemedWidget
 

@@ -74,11 +74,7 @@ class ThemeCache:
         self.max_size = max_size
         self._cache: OrderedDict[str, Theme] = OrderedDict()
         self._lock = threading.RLock()
-        self._stats = {
-            "hits": 0,
-            "misses": 0,
-            "evictions": 0
-        }
+        self._stats = {"hits": 0, "misses": 0, "evictions": 0}
         logger.debug(f"ThemeCache initialized with max_size: {max_size}")
 
     @property
@@ -158,8 +154,11 @@ class ThemeCache:
     def get_statistics(self) -> Dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
-            hit_rate = self._stats["hits"] / (self._stats["hits"] + self._stats["misses"]) \
-                if (self._stats["hits"] + self._stats["misses"]) > 0 else 0.0
+            hit_rate = (
+                self._stats["hits"] / (self._stats["hits"] + self._stats["misses"])
+                if (self._stats["hits"] + self._stats["misses"]) > 0
+                else 0.0
+            )
 
             return {
                 "size": len(self._cache),
@@ -167,7 +166,7 @@ class ThemeCache:
                 "hits": self._stats["hits"],
                 "misses": self._stats["misses"],
                 "evictions": self._stats["evictions"],
-                "hit_rate": hit_rate
+                "hit_rate": hit_rate,
             }
 
 
@@ -226,10 +225,10 @@ class FileThemeLoader:
             raise ThemeLoadError(f"Path is not a file: {path}")
 
         try:
-            with open(path, encoding='utf-8') as f:
-                if path.suffix.lower() == '.json':
+            with open(path, encoding="utf-8") as f:
+                if path.suffix.lower() == ".json":
                     data = json.load(f)
-                elif path.suffix.lower() in {'.yaml', '.yml'}:
+                elif path.suffix.lower() in {".yaml", ".yml"}:
                     data = yaml.safe_load(f)
                 else:
                     raise ThemeLoadError(f"Unsupported file format: {path.suffix}")
@@ -285,20 +284,20 @@ class BuiltinThemeManager:
                 "colors.error": "#d32f2f",
                 "colors.warning": "#f57c00",
                 "colors.success": "#2e7d32",
-                "colors.info": "#1976d2"
+                "colors.info": "#1976d2",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
                 "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",
-                "label": "color: @colors.foreground;"
+                "label": "color: @colors.foreground;",
             },
             "metadata": {
                 "description": "Default light theme",
                 "author": "VFWidgets",
-                "builtin": True
-            }
+                "builtin": True,
+            },
         }
 
         # Dark theme - using NAMESPACED keys (colors.*)
@@ -329,20 +328,20 @@ class BuiltinThemeManager:
                 "tab.hoverBackground": "#2e2e32",
                 "tab.hoverForeground": "#ffffff",
                 "editorGroupHeader.tabsBackground": "#2d2d30",
-                "editorGroupHeader.tabsBorder": "#252526"
+                "editorGroupHeader.tabsBorder": "#252526",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
                 "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",
-                "label": "color: @colors.foreground;"
+                "label": "color: @colors.foreground;",
             },
             "metadata": {
                 "description": "Standard dark theme",
                 "author": "VFWidgets",
-                "builtin": True
-            }
+                "builtin": True,
+            },
         }
 
         # Light theme (high contrast) - using NAMESPACED keys (colors.*)
@@ -372,20 +371,20 @@ class BuiltinThemeManager:
                 "tab.hoverBackground": "#e8e8e8",
                 "tab.hoverForeground": "#333333",
                 "editorGroupHeader.tabsBackground": "#f3f3f3",
-                "editorGroupHeader.tabsBorder": "#cccccc"
+                "editorGroupHeader.tabsBorder": "#cccccc",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
                 "input": "background-color: @colors.background; color: @colors.foreground; border: 2px solid @colors.border;",
-                "label": "color: @colors.foreground; font-weight: bold;"
+                "label": "color: @colors.foreground; font-weight: bold;",
             },
             "metadata": {
                 "description": "High contrast light theme",
                 "author": "VFWidgets",
-                "builtin": True
-            }
+                "builtin": True,
+            },
         }
 
         # Create theme objects
@@ -446,7 +445,9 @@ class ThemeDiscovery:
         self._loader = loader or FileThemeLoader()
         logger.debug("ThemeDiscovery initialized")
 
-    def discover_in_directory(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
+    def discover_in_directory(
+        self, directory: Union[str, Path], recursive: bool = True
+    ) -> List[Theme]:
         """Discover themes in directory.
 
         Args:
@@ -507,7 +508,7 @@ class ThemeRepository:
         self,
         cache: Optional[ThemeCache] = None,
         discovery: Optional[ThemeDiscovery] = None,
-        builtin_manager: Optional[BuiltinThemeManager] = None
+        builtin_manager: Optional[BuiltinThemeManager] = None,
     ):
         """Initialize theme repository.
 
@@ -542,7 +543,7 @@ class ThemeRepository:
                     file_path=None,  # Built-in themes have no file path
                     loaded_time=time.time(),
                     access_count=0,
-                    last_accessed=0.0
+                    last_accessed=0.0,
                 )
                 logger.debug(f"Loaded built-in theme: {theme_name}")
         except Exception as e:
@@ -563,7 +564,7 @@ class ThemeRepository:
                 file_path=None,
                 loaded_time=time.time(),
                 access_count=0,
-                last_accessed=0.0
+                last_accessed=0.0,
             )
 
             # Update cache
@@ -685,7 +686,7 @@ class ThemeRepository:
                 file_path=Path(file_path),
                 loaded_time=time.time(),
                 access_count=0,
-                last_accessed=0.0
+                last_accessed=0.0,
             )
             self._cache.put(theme.name, theme)
 
@@ -713,10 +714,10 @@ class ThemeRepository:
             theme_data = theme.to_dict()
 
             # Save based on file extension
-            with open(path, 'w', encoding='utf-8') as f:
-                if path.suffix.lower() == '.json':
+            with open(path, "w", encoding="utf-8") as f:
+                if path.suffix.lower() == ".json":
                     json.dump(theme_data, f, indent=2, ensure_ascii=False)
-                elif path.suffix.lower() in {'.yaml', '.yml'}:
+                elif path.suffix.lower() in {".yaml", ".yml"}:
                     yaml.dump(theme_data, f, default_flow_style=False, allow_unicode=True)
                 else:
                     raise ThemeLoadError(f"Unsupported file format: {path.suffix}")
@@ -750,7 +751,7 @@ class ThemeRepository:
                         file_path=None,  # Discovery doesn't track individual file paths
                         loaded_time=time.time(),
                         access_count=0,
-                        last_accessed=0.0
+                        last_accessed=0.0,
                     )
                     self._cache.put(theme.name, theme)
 
@@ -775,7 +776,7 @@ class ThemeRepository:
                 "builtin_themes": builtin_count,
                 "loaded_themes": len(self._themes) - builtin_count,
                 "total_access_count": total_access_count,
-                "cache_stats": cache_stats
+                "cache_stats": cache_stats,
             }
 
     def _update_access_metadata(self, name: str) -> None:
@@ -789,7 +790,7 @@ class ThemeRepository:
 def create_theme_repository(
     cache_size: int = 100,
     discovery: Optional[ThemeDiscovery] = None,
-    builtin_manager: Optional[BuiltinThemeManager] = None
+    builtin_manager: Optional[BuiltinThemeManager] = None,
 ) -> ThemeRepository:
     """Factory function for creating theme repository with defaults.
 
@@ -806,11 +807,7 @@ def create_theme_repository(
     discovery = discovery or ThemeDiscovery()
     builtin_manager = builtin_manager or BuiltinThemeManager()
 
-    repository = ThemeRepository(
-        cache=cache,
-        discovery=discovery,
-        builtin_manager=builtin_manager
-    )
+    repository = ThemeRepository(cache=cache, discovery=discovery, builtin_manager=builtin_manager)
 
     logger.debug("Created theme repository with default configuration")
     return repository

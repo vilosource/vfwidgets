@@ -39,7 +39,7 @@ class MockThemedApplication:
 
             # Apply theme to all widgets
             for widget in self.widgets:
-                if hasattr(widget, 'apply_theme'):
+                if hasattr(widget, "apply_theme"):
                     widget.apply_theme(theme)
 
             # Call callbacks
@@ -114,7 +114,9 @@ class ThemeSwitchingScenario:
             # Create test themes
             self.themes = self._create_switching_themes()
 
-            print(f"Set up theme switching scenario with {len(self.widgets)} widgets and {len(self.themes)} themes")
+            print(
+                f"Set up theme switching scenario with {len(self.widgets)} widgets and {len(self.themes)} themes"
+            )
             return True
 
         except Exception as e:
@@ -130,13 +132,9 @@ class ThemeSwitchingScenario:
                     "primary": "#e74c3c",
                     "secondary": "#95a5a6",
                     "background": "#ecf0f1",
-                    "text": "#2c3e50"
+                    "text": "#2c3e50",
                 },
-                styles={
-                    "font_family": "Arial",
-                    "font_size": "12px",
-                    "padding": "8px"
-                }
+                styles={"font_family": "Arial", "font_size": "12px", "padding": "8px"},
             ),
             Theme(
                 name="switch_theme_2",
@@ -144,13 +142,9 @@ class ThemeSwitchingScenario:
                     "primary": "#3498db",
                     "secondary": "#e67e22",
                     "background": "#34495e",
-                    "text": "#ecf0f1"
+                    "text": "#ecf0f1",
                 },
-                styles={
-                    "font_family": "Roboto",
-                    "font_size": "14px",
-                    "padding": "10px"
-                }
+                styles={"font_family": "Roboto", "font_size": "14px", "padding": "10px"},
             ),
             Theme(
                 name="switch_theme_3",
@@ -158,13 +152,9 @@ class ThemeSwitchingScenario:
                     "primary": "#2ecc71",
                     "secondary": "#f39c12",
                     "background": "#1abc9c",
-                    "text": "#ffffff"
+                    "text": "#ffffff",
                 },
-                styles={
-                    "font_family": "Segoe UI",
-                    "font_size": "13px",
-                    "padding": "6px"
-                }
+                styles={"font_family": "Segoe UI", "font_size": "13px", "padding": "6px"},
             ),
             Theme(
                 name="switch_theme_4",
@@ -172,13 +162,9 @@ class ThemeSwitchingScenario:
                     "primary": "#9b59b6",
                     "secondary": "#16a085",
                     "background": "#27ae60",
-                    "text": "#f8c471"
+                    "text": "#f8c471",
                 },
-                styles={
-                    "font_family": "Helvetica",
-                    "font_size": "11px",
-                    "padding": "12px"
-                }
+                styles={"font_family": "Helvetica", "font_size": "11px", "padding": "12px"},
             ),
             Theme(
                 name="switch_theme_5",
@@ -186,14 +172,10 @@ class ThemeSwitchingScenario:
                     "primary": "#f1c40f",
                     "secondary": "#e74c3c",
                     "background": "#8e44ad",
-                    "text": "#ecf0f1"
+                    "text": "#ecf0f1",
                 },
-                styles={
-                    "font_family": "Calibri",
-                    "font_size": "15px",
-                    "padding": "9px"
-                }
-            )
+                styles={"font_family": "Calibri", "font_size": "15px", "padding": "9px"},
+            ),
         ]
         return themes
 
@@ -207,7 +189,7 @@ class ThemeSwitchingScenario:
             "total_time": 0.0,
             "average_switch_time": 0.0,
             "switches_per_second": 0.0,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -221,11 +203,9 @@ class ThemeSwitchingScenario:
                 end_switch = time.perf_counter()
 
                 switch_time = (end_switch - start_switch) * 1000  # Convert to ms
-                results["switch_times"].append({
-                    "iteration": i,
-                    "theme_name": theme.name,
-                    "duration_ms": switch_time
-                })
+                results["switch_times"].append(
+                    {"iteration": i, "theme_name": theme.name, "duration_ms": switch_time}
+                )
 
                 # Small delay to simulate real usage
                 time.sleep(0.01)
@@ -256,7 +236,7 @@ class ThemeSwitchingScenario:
             "switches_per_second": 0.0,
             "failed_switches": 0,
             "theme_distribution": {},
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -300,7 +280,9 @@ class ThemeSwitchingScenario:
             results["errors"].append(f"Rapid switching test failed: {e}")
             return results
 
-    def test_concurrent_switching(self, thread_count: int = 3, operations_per_thread: int = 20) -> Dict[str, Any]:
+    def test_concurrent_switching(
+        self, thread_count: int = 3, operations_per_thread: int = 20
+    ) -> Dict[str, Any]:
         """Test concurrent theme switching from multiple threads."""
         results = {
             "thread_count": thread_count,
@@ -309,7 +291,7 @@ class ThemeSwitchingScenario:
             "successful_operations": 0,
             "thread_results": [],
             "duration_ms": 0.0,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -319,11 +301,7 @@ class ThemeSwitchingScenario:
 
             def switching_worker(worker_id: int):
                 """Worker thread for theme switching."""
-                worker_result = {
-                    "worker_id": worker_id,
-                    "operations": 0,
-                    "errors": []
-                }
+                worker_result = {"worker_id": worker_id, "operations": 0, "errors": []}
 
                 for i in range(operations_per_thread):
                     try:
@@ -368,7 +346,9 @@ class ThemeSwitchingScenario:
             results["total_operations"] = thread_count * operations_per_thread
             results["thread_results"] = thread_results
 
-            print(f"Concurrent switching: {results['successful_operations']}/{results['total_operations']} operations")
+            print(
+                f"Concurrent switching: {results['successful_operations']}/{results['total_operations']} operations"
+            )
             print(f"Duration: {results['duration_ms']:.2f}ms")
 
             return results
@@ -385,7 +365,7 @@ class ThemeSwitchingScenario:
             "inconsistent_widgets": 0,
             "current_theme": None,
             "widget_states": [],
-            "consistency_check_passed": False
+            "consistency_check_passed": False,
         }
 
         try:
@@ -409,7 +389,7 @@ class ThemeSwitchingScenario:
                     "widget_id": widget.widget_id,
                     "has_theme": widget_theme is not None,
                     "theme_name": widget_theme.name if widget_theme else None,
-                    "is_consistent": widget_theme and widget_theme.name == current_theme_name
+                    "is_consistent": widget_theme and widget_theme.name == current_theme_name,
                 }
 
                 results["widget_states"].append(widget_state)
@@ -436,7 +416,7 @@ class ThemeSwitchingScenario:
             "total_switches": 0,
             "max_switches_per_second": 0.0,
             "errors": [],
-            "performance_degradation": False
+            "performance_degradation": False,
         }
 
         try:
@@ -505,7 +485,7 @@ class ThemeSwitchingScenario:
             "consistency_results": None,
             "stress_results": None,
             "overall_success": False,
-            "summary": {}
+            "summary": {},
         }
 
         try:
@@ -547,7 +527,7 @@ class ThemeSwitchingScenario:
                 rapid_results.get("switches_per_second", 0) > 10,  # At least 10 switches/sec
                 concurrent_results.get("successful_operations", 0) > 0,
                 consistency_results.get("consistency_check_passed", False),
-                not stress_results.get("performance_degradation", True)
+                not stress_results.get("performance_degradation", True),
             ]
 
             scenario_results["overall_success"] = all(success_criteria)
@@ -560,7 +540,7 @@ class ThemeSwitchingScenario:
                 "rapid_switch_rate": rapid_results.get("switches_per_second", 0),
                 "concurrent_operations": concurrent_results.get("successful_operations", 0),
                 "consistency_passed": consistency_results.get("consistency_check_passed", False),
-                "stress_max_rate": stress_results.get("max_switches_per_second", 0)
+                "stress_max_rate": stress_results.get("max_switches_per_second", 0),
             }
 
             return scenario_results

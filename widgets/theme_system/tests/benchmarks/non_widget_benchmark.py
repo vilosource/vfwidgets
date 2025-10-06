@@ -29,20 +29,20 @@ def run_theme_benchmarks():
                 "primary": "#007acc",
                 "secondary": "#6f6f6f",
                 "background": "#ffffff",
-                "foreground": "#000000"
+                "foreground": "#000000",
             },
             styles={
                 "font_family": "Arial",
                 "font_size": "12px",
                 "border_radius": "4px",
-                "padding": "8px"
-            }
+                "padding": "8px",
+            },
         )
         end = time.perf_counter()
         theme_create_times.append(end - start)
 
     mean_create = statistics.mean(theme_create_times)
-    results['theme_creation'] = mean_create
+    results["theme_creation"] = mean_create
     print(f"   Mean theme creation time: {mean_create*1000:.3f}ms")
 
     # Benchmark 2: Property Access
@@ -50,7 +50,7 @@ def run_theme_benchmarks():
     theme = Theme(
         name="property_test",
         colors={"primary": "#007acc", "secondary": "#6f6f6f"},
-        styles={"font_size": "12px", "margin": "4px"}
+        styles={"font_size": "12px", "margin": "4px"},
     )
 
     property_times = []
@@ -64,21 +64,13 @@ def run_theme_benchmarks():
         property_times.append(end - start)
 
     mean_property = statistics.mean(property_times)
-    results['property_access'] = mean_property
+    results["property_access"] = mean_property
     print(f"   Mean property access time: {mean_property*1000:.3f}ms")
 
     # Benchmark 3: Theme Comparison
     print("\n3. Theme Comparison Benchmark")
-    theme1 = Theme(
-        name="theme1",
-        colors={"primary": "#007acc"},
-        styles={"font_size": "12px"}
-    )
-    theme2 = Theme(
-        name="theme2",
-        colors={"primary": "#ff0000"},
-        styles={"font_size": "12px"}
-    )
+    theme1 = Theme(name="theme1", colors={"primary": "#007acc"}, styles={"font_size": "12px"})
+    theme2 = Theme(name="theme2", colors={"primary": "#ff0000"}, styles={"font_size": "12px"})
 
     compare_times = []
     for i in range(500):
@@ -91,7 +83,7 @@ def run_theme_benchmarks():
         compare_times.append(end - start)
 
     mean_compare = statistics.mean(compare_times)
-    results['theme_comparison'] = mean_compare
+    results["theme_comparison"] = mean_compare
     print(f"   Mean theme comparison time: {mean_compare*1000:.3f}ms")
 
     # Benchmark 4: QSS Generation Simulation
@@ -102,14 +94,14 @@ def run_theme_benchmarks():
             "background": "#ffffff",
             "foreground": "#000000",
             "primary": "#007acc",
-            "secondary": "#6f6f6f"
+            "secondary": "#6f6f6f",
         },
         styles={
             "font_family": "Arial",
             "font_size": "12px",
             "border_radius": "4px",
-            "padding": "8px"
-        }
+            "padding": "8px",
+        },
     )
 
     qss_times = []
@@ -135,7 +127,7 @@ def run_theme_benchmarks():
         qss_times.append(end - start)
 
     mean_qss = statistics.mean(qss_times)
-    results['qss_generation'] = mean_qss
+    results["qss_generation"] = mean_qss
     print(f"   Mean QSS generation time: {mean_qss*1000:.3f}ms")
 
     # Summary
@@ -144,15 +136,15 @@ def run_theme_benchmarks():
     print("=" * 60)
 
     requirements = {
-        'theme_creation': 0.001,      # 1ms
-        'property_access': 0.00001,   # 10μs
-        'theme_comparison': 0.0001,   # 100μs
-        'qss_generation': 0.001,      # 1ms
+        "theme_creation": 0.001,  # 1ms
+        "property_access": 0.00001,  # 10μs
+        "theme_comparison": 0.0001,  # 100μs
+        "qss_generation": 0.001,  # 1ms
     }
 
     all_passed = True
     for benchmark_name, actual_time in results.items():
-        requirement = requirements.get(benchmark_name, float('inf'))
+        requirement = requirements.get(benchmark_name, float("inf"))
         passed = actual_time <= requirement
 
         status = "PASS" if passed else "FAIL"
@@ -181,9 +173,7 @@ def run_stress_test():
     errors = 0
 
     base_theme = Theme(
-        name="stress_base",
-        colors={"primary": "#007acc"},
-        styles={"font_size": "12px"}
+        name="stress_base", colors={"primary": "#007acc"}, styles={"font_size": "12px"}
     )
 
     while time.time() < end_time:
@@ -192,7 +182,7 @@ def run_stress_test():
             theme = Theme(
                 name=f"stress_theme_{theme_count}",
                 colors={"primary": f"#{theme_count % 256:02x}0000"},
-                styles={"font_size": f"{12 + theme_count % 10}px"}
+                styles={"font_size": f"{12 + theme_count % 10}px"},
             )
             theme_count += 1
 
@@ -221,12 +211,12 @@ def run_stress_test():
     print(f"  Accesses per second: {accesses_per_second:.0f}")
 
     return {
-        'duration': duration,
-        'themes_created': theme_count,
-        'property_accesses': property_accesses,
-        'errors': errors,
-        'themes_per_second': themes_per_second,
-        'accesses_per_second': accesses_per_second
+        "duration": duration,
+        "themes_created": theme_count,
+        "property_accesses": property_accesses,
+        "errors": errors,
+        "themes_per_second": themes_per_second,
+        "accesses_per_second": accesses_per_second,
     }
 
 
@@ -243,10 +233,13 @@ if __name__ == "__main__":
         else:
             print("\n❌ Some benchmarks FAILED")
 
-        print(f"\n📊 Stress test: {stress_results['themes_per_second']:.0f} themes/sec, "
-              f"{stress_results['accesses_per_second']:.0f} accesses/sec")
+        print(
+            f"\n📊 Stress test: {stress_results['themes_per_second']:.0f} themes/sec, "
+            f"{stress_results['accesses_per_second']:.0f} accesses/sec"
+        )
 
     except Exception as e:
         print(f"\n❌ Benchmark ERROR: {e}")
         import traceback
+
         traceback.print_exc()

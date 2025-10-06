@@ -24,8 +24,8 @@ logger = get_logger(__name__)
 class ExtensionMetadata:
     """Extension metadata parser and validator."""
 
-    REQUIRED_FIELDS = ['name', 'version', 'description', 'author']
-    OPTIONAL_FIELDS = ['dependencies', 'provides', 'homepage', 'license', 'tags']
+    REQUIRED_FIELDS = ["name", "version", "description", "author"]
+    OPTIONAL_FIELDS = ["dependencies", "provides", "homepage", "license", "tags"]
 
     @classmethod
     def parse_from_module(cls, module) -> Dict[str, Any]:
@@ -44,14 +44,14 @@ class ExtensionMetadata:
         metadata = {}
 
         # Try to get metadata from __extension_info__
-        if hasattr(module, '__extension_info__'):
+        if hasattr(module, "__extension_info__"):
             info = module.__extension_info__
             if isinstance(info, dict):
                 metadata.update(info)
 
         # Try to get metadata from individual attributes
         for field in cls.REQUIRED_FIELDS + cls.OPTIONAL_FIELDS:
-            attr_name = f'__extension_{field}__'
+            attr_name = f"__extension_{field}__"
             if hasattr(module, attr_name):
                 metadata[field] = getattr(module, attr_name)
 
@@ -61,12 +61,12 @@ class ExtensionMetadata:
                 raise ExtensionError(f"Extension missing required field: {field}")
 
         # Set defaults for optional fields
-        metadata.setdefault('dependencies', [])
-        metadata.setdefault('provides', [])
-        metadata.setdefault('tags', [])
+        metadata.setdefault("dependencies", [])
+        metadata.setdefault("provides", [])
+        metadata.setdefault("tags", [])
 
         # Validate version format
-        cls._validate_version(metadata['version'])
+        cls._validate_version(metadata["version"])
 
         return metadata
 
@@ -74,7 +74,7 @@ class ExtensionMetadata:
     def _validate_version(cls, version: str) -> None:
         """Validate version string format."""
         # Simple semantic version validation
-        pattern = r'^\d+\.\d+\.\d+(?:-[\w\d-]+)?(?:\+[\w\d-]+)?$'
+        pattern = r"^\d+\.\d+\.\d+(?:-[\w\d-]+)?(?:\+[\w\d-]+)?$"
         if not re.match(pattern, version):
             raise ExtensionError(f"Invalid version format: {version}")
 
@@ -90,7 +90,7 @@ class ExtensionMetadata:
 
         """
         try:
-            with open(metadata_file, encoding='utf-8') as f:
+            with open(metadata_file, encoding="utf-8") as f:
                 metadata = json.load(f)
 
             # Validate required fields
@@ -98,7 +98,7 @@ class ExtensionMetadata:
                 if field not in metadata:
                     raise ExtensionError(f"Extension missing required field: {field}")
 
-            cls._validate_version(metadata['version'])
+            cls._validate_version(metadata["version"])
             return metadata
 
         except json.JSONDecodeError as e:
@@ -111,16 +111,16 @@ class ExtensionHookDiscovery:
     """Discovers and validates extension hooks."""
 
     HOOK_PATTERNS = {
-        'on_theme_loaded': r'^on_theme_loaded$',
-        'on_theme_applied': r'^on_theme_applied$',
-        'on_theme_changed': r'^on_theme_changed$',
-        'transform_theme': r'^transform_theme$',
-        'provide_widgets': r'^provide_widgets$',
-        'customize_colors': r'^customize_colors$',
-        'add_properties': r'^add_properties$',
-        'validate_theme': r'^validate_theme$',
-        'on_extension_loaded': r'^on_extension_loaded$',
-        'on_extension_unloaded': r'^on_extension_unloaded$',
+        "on_theme_loaded": r"^on_theme_loaded$",
+        "on_theme_applied": r"^on_theme_applied$",
+        "on_theme_changed": r"^on_theme_changed$",
+        "transform_theme": r"^transform_theme$",
+        "provide_widgets": r"^provide_widgets$",
+        "customize_colors": r"^customize_colors$",
+        "add_properties": r"^add_properties$",
+        "validate_theme": r"^validate_theme$",
+        "on_extension_loaded": r"^on_extension_loaded$",
+        "on_extension_unloaded": r"^on_extension_unloaded$",
     }
 
     @classmethod
@@ -139,7 +139,7 @@ class ExtensionHookDiscovery:
         # Get all callable attributes
         for name in dir(module):
             obj = getattr(module, name)
-            if callable(obj) and not name.startswith('_'):
+            if callable(obj) and not name.startswith("_"):
                 # Check if it matches a hook pattern
                 for hook_name, pattern in cls.HOOK_PATTERNS.items():
                     if re.match(pattern, name):
@@ -166,16 +166,16 @@ class ExtensionHookDiscovery:
 
             # Define expected signatures for each hook
             expected_signatures = {
-                'on_theme_loaded': ['theme'],
-                'on_theme_applied': ['theme', 'widget'],
-                'on_theme_changed': ['old_theme', 'new_theme'],
-                'transform_theme': ['theme'],
-                'provide_widgets': [],
-                'customize_colors': ['theme'],
-                'add_properties': ['theme'],
-                'validate_theme': ['theme'],
-                'on_extension_loaded': [],
-                'on_extension_unloaded': [],
+                "on_theme_loaded": ["theme"],
+                "on_theme_applied": ["theme", "widget"],
+                "on_theme_changed": ["old_theme", "new_theme"],
+                "transform_theme": ["theme"],
+                "provide_widgets": [],
+                "customize_colors": ["theme"],
+                "add_properties": ["theme"],
+                "validate_theme": ["theme"],
+                "on_extension_loaded": [],
+                "on_extension_unloaded": [],
             }
 
             expected = expected_signatures.get(hook_name, [])
@@ -247,16 +247,16 @@ class ExtensionLoader:
 
             # Create extension object
             extension = Extension(
-                name=metadata['name'],
-                version=metadata['version'],
-                description=metadata['description'],
-                author=metadata['author'],
+                name=metadata["name"],
+                version=metadata["version"],
+                description=metadata["description"],
+                author=metadata["author"],
                 path=extension_path,
                 module=module,
-                dependencies=metadata.get('dependencies', []),
-                provides=metadata.get('provides', []),
+                dependencies=metadata.get("dependencies", []),
+                provides=metadata.get("provides", []),
                 hooks=hooks,
-                metadata=metadata
+                metadata=metadata,
             )
 
             logger.info(f"Successfully loaded extension: {extension.name}")
@@ -277,7 +277,9 @@ class ExtensionLoader:
                 # Directory-based extension
                 init_file = extension_path / "__init__.py"
                 if not init_file.exists():
-                    raise ExtensionError(f"Extension directory missing __init__.py: {extension_path}")
+                    raise ExtensionError(
+                        f"Extension directory missing __init__.py: {extension_path}"
+                    )
 
                 spec = importlib.util.spec_from_file_location(module_name, init_file)
             else:
@@ -350,8 +352,8 @@ class ExtensionLoader:
 
         try:
             # Try to parse as Python
-            if extension_path.suffix == '.py':
-                with open(extension_path, encoding='utf-8') as f:
+            if extension_path.suffix == ".py":
+                with open(extension_path, encoding="utf-8") as f:
                     source = f.read()
 
                 try:
@@ -368,7 +370,7 @@ class ExtensionLoader:
 
             # Try to discover hooks
             try:
-                if 'module' in locals():
+                if "module" in locals():
                     self._discover_hooks(module)
             except ExtensionError as e:
                 issues.append(f"Hook error: {e}")
@@ -452,7 +454,7 @@ def on_extension_unloaded():
 # Available after extension is loaded by the system
 '''
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(template)
 
         logger.info(f"Created extension template: {output_path}")

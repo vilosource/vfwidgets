@@ -6,4 +6,4 @@ for theme files during development.
 
 from .hot_reload import HotReloader
 
-__all__ = ['HotReloader']
+__all__ = ["HotReloader"]

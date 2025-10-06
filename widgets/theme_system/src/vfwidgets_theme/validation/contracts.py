@@ -114,14 +114,11 @@ class ContractValidator:
             passed=True,
             validation_type=ValidationType.CONTRACT,
             message=f"Contract validation for {protocol.__name__}",
-            context={
-                'object_type': type(obj).__name__,
-                'protocol': protocol.__name__
-            }
+            context={"object_type": type(obj).__name__, "protocol": protocol.__name__},
         )
 
         # Basic isinstance check using Protocol
-        if hasattr(protocol, '__protocols__') or hasattr(protocol, '_is_protocol'):
+        if hasattr(protocol, "__protocols__") or hasattr(protocol, "_is_protocol"):
             if not isinstance(obj, protocol):
                 result.add_error(f"Object does not implement {protocol.__name__} protocol")
                 return result
@@ -156,10 +153,10 @@ class ContractValidator:
             # Validate method signature (basic check)
             try:
                 import inspect
+
                 sig = inspect.signature(method)
-                expected_params = len(method_signature.get('params', []))
-                actual_params = len([p for p in sig.parameters.values()
-                                   if p.default == p.empty])
+                expected_params = len(method_signature.get("params", []))
+                actual_params = len([p for p in sig.parameters.values() if p.default == p.empty])
 
                 if actual_params > expected_params:
                     result.add_warning(f"Method {method_name} has more parameters than expected")
@@ -193,7 +190,7 @@ class ContractValidator:
     def _get_protocol_attributes(self, protocol: Type) -> Dict[str, Any]:
         """Extract required attributes from protocol."""
         attrs = {}
-        if hasattr(protocol, '__annotations__'):
+        if hasattr(protocol, "__annotations__"):
             attrs.update(protocol.__annotations__)
         return attrs
 
@@ -201,80 +198,86 @@ class ContractValidator:
         """Extract required methods from protocol."""
         methods = {}
         for name in dir(protocol):
-            if not name.startswith('_'):
+            if not name.startswith("_"):
                 attr = getattr(protocol, name, None)
                 if callable(attr):
-                    methods[name] = {'params': []}  # Simplified signature
+                    methods[name] = {"params": []}  # Simplified signature
         return methods
 
     def _validate_theme_protocol(self, obj: Any, result: ValidationResult):
         """Validate theme-specific contract requirements."""
         # Check that colors and styles are accessible
-        if hasattr(obj, 'colors'):
+        if hasattr(obj, "colors"):
             if not isinstance(obj.colors, dict):
                 result.add_error("Theme.colors must be a dictionary")
 
-        if hasattr(obj, 'styles'):
+        if hasattr(obj, "styles"):
             if not isinstance(obj.styles, dict):
                 result.add_error("Theme.styles must be a dictionary")
 
         # Test method functionality
-        if hasattr(obj, 'get_color'):
+        if hasattr(obj, "get_color"):
             try:
                 # Test with a known color if possible
-                if hasattr(obj, 'colors') and obj.colors:
+                if hasattr(obj, "colors") and obj.colors:
                     first_color = next(iter(obj.colors.keys()))
                     color_value = obj.get_color(first_color)
                     if color_value is None:
-                        result.add_warning(f"get_color returned None for existing color: {first_color}")
+                        result.add_warning(
+                            f"get_color returned None for existing color: {first_color}"
+                        )
             except Exception as e:
                 result.add_error(f"get_color method failed: {e}")
 
-        if hasattr(obj, 'get_style'):
+        if hasattr(obj, "get_style"):
             try:
                 # Test with a known style if possible
-                if hasattr(obj, 'styles') and obj.styles:
+                if hasattr(obj, "styles") and obj.styles:
                     first_style = next(iter(obj.styles.keys()))
                     style_value = obj.get_style(first_style)
                     if style_value is None:
-                        result.add_warning(f"get_style returned None for existing style: {first_style}")
+                        result.add_warning(
+                            f"get_style returned None for existing style: {first_style}"
+                        )
             except Exception as e:
                 result.add_error(f"get_style method failed: {e}")
 
     def _validate_widget_protocol(self, obj: Any, result: ValidationResult):
         """Validate widget-specific contract requirements."""
         # Test apply_theme method
-        if hasattr(obj, 'apply_theme'):
+        if hasattr(obj, "apply_theme"):
             # Can't easily test without a real theme, but check it's callable
             if not callable(obj.apply_theme):
                 result.add_error("apply_theme is not callable")
 
         # Test get_current_theme method
-        if hasattr(obj, 'get_current_theme'):
+        if hasattr(obj, "get_current_theme"):
             try:
                 current_theme = obj.get_current_theme()
                 # Should return None or a theme object
-                if current_theme is not None and not hasattr(current_theme, 'name'):
+                if current_theme is not None and not hasattr(current_theme, "name"):
                     result.add_warning("get_current_theme returned object without 'name' attribute")
             except Exception as e:
                 result.add_error(f"get_current_theme method failed: {e}")
 
         # Test supports_theme_property method
-        if hasattr(obj, 'supports_theme_property'):
+        if hasattr(obj, "supports_theme_property"):
             try:
                 # Test with common property names
-                test_props = ['color', 'background', 'font_size']
+                test_props = ["color", "background", "font_size"]
                 for prop in test_props:
                     supports = obj.supports_theme_property(prop)
                     if not isinstance(supports, bool):
-                        result.add_error(f"supports_theme_property should return bool, got {type(supports)}")
+                        result.add_error(
+                            f"supports_theme_property should return bool, got {type(supports)}"
+                        )
                         break
             except Exception as e:
                 result.add_error(f"supports_theme_property method failed: {e}")
 
     def _validate_theme_provider_protocol(self, obj: Any, result: ValidationResult):
         """Validate theme provider-specific contract requirements."""
-        if hasattr(obj, 'list_themes'):
+        if hasattr(obj, "list_themes"):
             try:
                 themes = obj.list_themes()
                 if not isinstance(themes, list):
@@ -284,7 +287,7 @@ class ContractValidator:
             except Exception as e:
                 result.add_error(f"list_themes method failed: {e}")
 
-        if hasattr(obj, 'get_theme'):
+        if hasattr(obj, "get_theme"):
             try:
                 # Test with invalid theme name should return None
                 nonexistent_theme = obj.get_theme("__nonexistent_theme__")
@@ -296,7 +299,7 @@ class ContractValidator:
     def _validate_theme_applicator_protocol(self, obj: Any, result: ValidationResult):
         """Validate theme applicator-specific contract requirements."""
         # Test can_apply_theme method
-        if hasattr(obj, 'can_apply_theme'):
+        if hasattr(obj, "can_apply_theme"):
             try:
                 # Test with None arguments should not crash
                 can_apply = obj.can_apply_theme(None, None)
@@ -373,6 +376,7 @@ class ContractEnforcer:
                 raise ContractViolationError(error_msg)
             else:
                 import logging
+
                 logging.warning(error_msg)
 
         return result
@@ -387,6 +391,7 @@ class ContractViolationError(Exception):
 # Testing utilities for contracts
 def create_mock_theme() -> Any:
     """Create a mock theme for testing."""
+
     class MockTheme:
         def __init__(self):
             self.name = "mock_theme"
@@ -400,17 +405,14 @@ def create_mock_theme() -> Any:
             return self.styles.get(style_name)
 
         def to_dict(self) -> Dict[str, Any]:
-            return {
-                "name": self.name,
-                "colors": self.colors,
-                "styles": self.styles
-            }
+            return {"name": self.name, "colors": self.colors, "styles": self.styles}
 
     return MockTheme()
 
 
 def create_mock_widget() -> Any:
     """Create a mock widget for testing."""
+
     class MockWidget:
         def __init__(self):
             self._current_theme = None

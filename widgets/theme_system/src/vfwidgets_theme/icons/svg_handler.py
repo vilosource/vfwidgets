@@ -27,10 +27,9 @@ class SVGIconHandler:
         self._svg_cache: Dict[str, QByteArray] = {}
         self._renderer_cache: Dict[str, QSvgRenderer] = {}
 
-    def load_svg_icon(self,
-                     svg_path: Path,
-                     size: Optional[QSize] = None,
-                     color: Optional[str] = None) -> Optional[QIcon]:
+    def load_svg_icon(
+        self, svg_path: Path, size: Optional[QSize] = None, color: Optional[str] = None
+    ) -> Optional[QIcon]:
         """Load SVG icon from file.
 
         Args:
@@ -87,7 +86,7 @@ class SVGIconHandler:
             return self._svg_cache[cache_key]
 
         try:
-            with open(svg_path, 'rb') as f:
+            with open(svg_path, "rb") as f:
                 content = f.read()
 
             svg_content = QByteArray(content)
@@ -111,7 +110,7 @@ class SVGIconHandler:
         """
         try:
             # Convert to string for manipulation
-            svg_str = svg_content.data().decode('utf-8')
+            svg_str = svg_content.data().decode("utf-8")
 
             # Parse SVG XML
             root = ET.fromstring(svg_str)
@@ -120,7 +119,7 @@ class SVGIconHandler:
             self._apply_color_to_element(root, color)
 
             # Convert back to bytes
-            modified_svg = ET.tostring(root, encoding='utf-8', method='xml')
+            modified_svg = ET.tostring(root, encoding="utf-8", method="xml")
             return QByteArray(modified_svg)
 
         except Exception as e:
@@ -130,23 +129,23 @@ class SVGIconHandler:
     def _apply_color_to_element(self, element: ET.Element, color: str) -> None:
         """Recursively apply color to SVG element and children."""
         # Skip elements that should keep their original color
-        skip_elements = {'defs', 'metadata', 'title', 'desc'}
-        if element.tag.split('}')[-1] in skip_elements:
+        skip_elements = {"defs", "metadata", "title", "desc"}
+        if element.tag.split("}")[-1] in skip_elements:
             return
 
         # Apply color to fill attribute
-        if 'fill' in element.attrib and element.attrib['fill'] != 'none':
-            element.attrib['fill'] = color
+        if "fill" in element.attrib and element.attrib["fill"] != "none":
+            element.attrib["fill"] = color
 
         # Apply color to stroke attribute
-        if 'stroke' in element.attrib and element.attrib['stroke'] != 'none':
-            element.attrib['stroke'] = color
+        if "stroke" in element.attrib and element.attrib["stroke"] != "none":
+            element.attrib["stroke"] = color
 
         # Check style attribute
-        if 'style' in element.attrib:
-            style = element.attrib['style']
+        if "style" in element.attrib:
+            style = element.attrib["style"]
             style = self._modify_style_color(style, color)
-            element.attrib['style'] = style
+            element.attrib["style"] = style
 
         # Recursively process children
         for child in element:
@@ -154,23 +153,23 @@ class SVGIconHandler:
 
     def _modify_style_color(self, style: str, color: str) -> str:
         """Modify CSS style string to apply color."""
-        style_parts = style.split(';')
+        style_parts = style.split(";")
         modified_parts = []
 
         for part in style_parts:
-            if ':' in part:
-                prop, value = part.split(':', 1)
+            if ":" in part:
+                prop, value = part.split(":", 1)
                 prop = prop.strip()
                 value = value.strip()
 
-                if prop in ['fill', 'stroke'] and value != 'none':
+                if prop in ["fill", "stroke"] and value != "none":
                     value = color
 
                 modified_parts.append(f"{prop}:{value}")
             else:
                 modified_parts.append(part)
 
-        return ';'.join(modified_parts)
+        return ";".join(modified_parts)
 
     def _get_renderer(self, cache_key: str, svg_content: QByteArray) -> Optional[QSvgRenderer]:
         """Get or create SVG renderer."""
@@ -200,7 +199,9 @@ class SVGIconHandler:
 
         return pixmap
 
-    def create_multi_size_icon(self, svg_path: Path, sizes: list, color: Optional[str] = None) -> Optional[QIcon]:
+    def create_multi_size_icon(
+        self, svg_path: Path, sizes: list, color: Optional[str] = None
+    ) -> Optional[QIcon]:
         """Create icon with multiple sizes from SVG.
 
         Args:
@@ -229,7 +230,9 @@ class SVGIconHandler:
             logger.error(f"Error creating multi-size icon: {e}")
             return None
 
-    def _create_pixmap_from_svg(self, svg_path: Path, size: QSize, color: Optional[str]) -> Optional[QPixmap]:
+    def _create_pixmap_from_svg(
+        self, svg_path: Path, size: QSize, color: Optional[str]
+    ) -> Optional[QPixmap]:
         """Create single pixmap from SVG."""
         svg_content = self._load_svg_content(svg_path)
         if not svg_content:
@@ -298,8 +301,8 @@ class SVGIconHandler:
     def get_cache_info(self) -> Dict[str, int]:
         """Get cache information."""
         return {
-            'svg_cache_size': len(self._svg_cache),
-            'renderer_cache_size': len(self._renderer_cache),
+            "svg_cache_size": len(self._svg_cache),
+            "renderer_cache_size": len(self._renderer_cache),
         }
 
     def preload_svg(self, svg_path: Path) -> bool:
@@ -333,7 +336,7 @@ class SVGIconHandler:
         colors = set()
 
         try:
-            with open(svg_path, encoding='utf-8') as f:
+            with open(svg_path, encoding="utf-8") as f:
                 svg_content = f.read()
 
             # Parse XML
@@ -348,20 +351,20 @@ class SVGIconHandler:
     def _extract_colors_from_element(self, element: ET.Element, colors: set) -> None:
         """Recursively extract colors from SVG element."""
         # Check fill attribute
-        if 'fill' in element.attrib:
-            fill = element.attrib['fill']
-            if fill and fill != 'none' and fill != 'transparent':
+        if "fill" in element.attrib:
+            fill = element.attrib["fill"]
+            if fill and fill != "none" and fill != "transparent":
                 colors.add(fill)
 
         # Check stroke attribute
-        if 'stroke' in element.attrib:
-            stroke = element.attrib['stroke']
-            if stroke and stroke != 'none' and stroke != 'transparent':
+        if "stroke" in element.attrib:
+            stroke = element.attrib["stroke"]
+            if stroke and stroke != "none" and stroke != "transparent":
                 colors.add(stroke)
 
         # Check style attribute
-        if 'style' in element.attrib:
-            style = element.attrib['style']
+        if "style" in element.attrib:
+            style = element.attrib["style"]
             self._extract_colors_from_style(style, colors)
 
         # Process children
@@ -374,14 +377,14 @@ class SVGIconHandler:
 
         # Find color values in style
         color_patterns = [
-            r'fill:\s*([^;]+)',
-            r'stroke:\s*([^;]+)',
-            r'color:\s*([^;]+)',
+            r"fill:\s*([^;]+)",
+            r"stroke:\s*([^;]+)",
+            r"color:\s*([^;]+)",
         ]
 
         for pattern in color_patterns:
             matches = re.findall(pattern, style)
             for match in matches:
                 color = match.strip()
-                if color and color != 'none' and color != 'transparent':
+                if color and color != "none" and color != "transparent":
                     colors.add(color)

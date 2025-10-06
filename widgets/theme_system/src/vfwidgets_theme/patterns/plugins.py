@@ -32,8 +32,13 @@ class PatternPlugin(ABC):
         self.description = description
 
     @abstractmethod
-    def match(self, pattern: str, target: str, widget: 'ThemedWidget',
-              context: Optional[Dict[str, Any]] = None) -> MatchResult:
+    def match(
+        self,
+        pattern: str,
+        target: str,
+        widget: "ThemedWidget",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MatchResult:
         """Check if target matches the pattern.
 
         Args:
@@ -64,9 +69,9 @@ class PatternPlugin(ABC):
     def get_info(self) -> Dict[str, Any]:
         """Get plugin information."""
         return {
-            'name': self.name,
-            'description': self.description,
-            'type': 'pattern_plugin',
+            "name": self.name,
+            "description": self.description,
+            "type": "pattern_plugin",
         }
 
 
@@ -126,17 +131,23 @@ class PluginManager:
 
 # Built-in plugins
 
+
 class HierarchyPlugin(PatternPlugin):
     """Plugin for matching widget hierarchy patterns."""
 
     def __init__(self):
         super().__init__(
             name="hierarchy",
-            description="Match patterns based on widget parent-child relationships"
+            description="Match patterns based on widget parent-child relationships",
         )
 
-    def match(self, pattern: str, target: str, widget: 'ThemedWidget',
-              context: Optional[Dict[str, Any]] = None) -> MatchResult:
+    def match(
+        self,
+        pattern: str,
+        target: str,
+        widget: "ThemedWidget",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MatchResult:
         """Match hierarchy patterns like "Dialog.Button" or "Window>Panel>Button".
 
         Pattern format:
@@ -183,11 +194,16 @@ class StatePlugin(PatternPlugin):
     def __init__(self):
         super().__init__(
             name="state",
-            description="Match patterns based on widget state (enabled, visible, etc.)"
+            description="Match patterns based on widget state (enabled, visible, etc.)",
         )
 
-    def match(self, pattern: str, target: str, widget: 'ThemedWidget',
-              context: Optional[Dict[str, Any]] = None) -> MatchResult:
+    def match(
+        self,
+        pattern: str,
+        target: str,
+        widget: "ThemedWidget",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MatchResult:
         """Match state patterns like "enabled", "visible", "focused".
 
         Pattern format:
@@ -199,25 +215,25 @@ class StatePlugin(PatternPlugin):
         """
         try:
             if pattern == "enabled":
-                enabled = getattr(widget, 'isEnabled', lambda: True)()
+                enabled = getattr(widget, "isEnabled", lambda: True)()
                 return MatchResult(enabled, 1.0 if enabled else 0.0)
 
             elif pattern == "disabled":
-                enabled = getattr(widget, 'isEnabled', lambda: True)()
+                enabled = getattr(widget, "isEnabled", lambda: True)()
                 disabled = not enabled
                 return MatchResult(disabled, 1.0 if disabled else 0.0)
 
             elif pattern == "visible":
-                visible = getattr(widget, 'isVisible', lambda: True)()
+                visible = getattr(widget, "isVisible", lambda: True)()
                 return MatchResult(visible, 1.0 if visible else 0.0)
 
             elif pattern == "hidden":
-                visible = getattr(widget, 'isVisible', lambda: True)()
+                visible = getattr(widget, "isVisible", lambda: True)()
                 hidden = not visible
                 return MatchResult(hidden, 1.0 if hidden else 0.0)
 
             elif pattern == "focused":
-                focused = getattr(widget, 'hasFocus', lambda: False)()
+                focused = getattr(widget, "hasFocus", lambda: False)()
                 return MatchResult(focused, 1.0 if focused else 0.0)
 
             return MatchResult(False, 0.0)
@@ -236,12 +252,16 @@ class GeometryPlugin(PatternPlugin):
 
     def __init__(self):
         super().__init__(
-            name="geometry",
-            description="Match patterns based on widget geometry (size, position)"
+            name="geometry", description="Match patterns based on widget geometry (size, position)"
         )
 
-    def match(self, pattern: str, target: str, widget: 'ThemedWidget',
-              context: Optional[Dict[str, Any]] = None) -> MatchResult:
+    def match(
+        self,
+        pattern: str,
+        target: str,
+        widget: "ThemedWidget",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> MatchResult:
         """Match geometry patterns like "width>100", "height<50", "x=0".
 
         Pattern format:

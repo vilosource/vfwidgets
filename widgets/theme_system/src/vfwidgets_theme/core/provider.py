@@ -153,7 +153,10 @@ class DefaultThemeProvider:
                     if color_key in theme.colors:
                         color = theme.colors[color_key]
                         # Create property resolver for this theme if needed
-                        if self._property_resolver is None or self._property_resolver.theme != theme:
+                        if (
+                            self._property_resolver is None
+                            or self._property_resolver.theme != theme
+                        ):
                             self._property_resolver = PropertyResolver(theme)
                         # Resolve any references in the color value
                         resolved_color = self._property_resolver.resolve_reference(
@@ -163,7 +166,9 @@ class DefaultThemeProvider:
                         self._stats.color_access_count += 1
                         self._stats.total_access_time += time.time() - start_time
 
-                        logger.debug(f"Retrieved color '{color_key}' from theme '{target_theme_name}': {resolved_color}")
+                        logger.debug(
+                            f"Retrieved color '{color_key}' from theme '{target_theme_name}': {resolved_color}"
+                        )
                         return resolved_color
 
                 # Fallback to global fallback system
@@ -182,7 +187,9 @@ class DefaultThemeProvider:
             # Return fallback color instead of raising
             return get_fallback_color(color_key)
 
-    def get_property(self, property_key: PropertyKey, theme_name: Optional[str] = None) -> PropertyValue:
+    def get_property(
+        self, property_key: PropertyKey, theme_name: Optional[str] = None
+    ) -> PropertyValue:
         """Get theme property with fallback support.
 
         Args:
@@ -218,7 +225,10 @@ class DefaultThemeProvider:
                             # Resolve any references in the property value
                             if isinstance(property_value, str):
                                 # Create property resolver for this theme if needed
-                                if self._property_resolver is None or self._property_resolver.theme != theme:
+                                if (
+                                    self._property_resolver is None
+                                    or self._property_resolver.theme != theme
+                                ):
                                     self._property_resolver = PropertyResolver(theme)
                                 resolved_value = self._property_resolver.resolve_reference(
                                     property_value, theme_data
@@ -229,7 +239,9 @@ class DefaultThemeProvider:
                             self._stats.property_access_count += 1
                             self._stats.total_access_time += time.time() - start_time
 
-                            logger.debug(f"Retrieved property '{property_key}' from theme '{target_theme_name}': {resolved_value}")
+                            logger.debug(
+                                f"Retrieved property '{property_key}' from theme '{target_theme_name}': {resolved_value}"
+                            )
                             return resolved_value
 
                     except (KeyError, AttributeError, TypeError):
@@ -254,7 +266,7 @@ class DefaultThemeProvider:
 
     def _get_nested_property(self, data: Dict[str, Any], property_key: str) -> Any:
         """Get nested property using dot notation."""
-        keys = property_key.split('.')
+        keys = property_key.split(".")
         current = data
 
         for key in keys:
@@ -342,14 +354,12 @@ class DefaultThemeProvider:
         """Get provider statistics."""
         with self._lock:
             total_accesses = (
-                self._stats.theme_access_count +
-                self._stats.color_access_count +
-                self._stats.property_access_count
+                self._stats.theme_access_count
+                + self._stats.color_access_count
+                + self._stats.property_access_count
             )
 
-            avg_access_time = (
-                self._stats.total_access_time / max(1, total_accesses)
-            )
+            avg_access_time = self._stats.total_access_time / max(1, total_accesses)
 
             return {
                 "total_themes": len(self._themes),
@@ -362,7 +372,7 @@ class DefaultThemeProvider:
                 "cache_misses": self._stats.cache_misses,
                 "errors": self._stats.errors,
                 "total_access_time": self._stats.total_access_time,
-                "average_access_time": avg_access_time
+                "average_access_time": avg_access_time,
             }
 
 
@@ -445,7 +455,9 @@ class CachedThemeProvider:
             logger.debug(f"Color cache miss, cached: {cache_key}")
             return color
 
-    def get_property(self, property_key: PropertyKey, theme_name: Optional[str] = None) -> PropertyValue:
+    def get_property(
+        self, property_key: PropertyKey, theme_name: Optional[str] = None
+    ) -> PropertyValue:
         """Get property with caching."""
         cache_key = f"{theme_name or 'current'}:{property_key}"
 
@@ -543,7 +555,7 @@ class CachedThemeProvider:
             hit_rate = self._stats.cache_hits / max(1, total_requests)
 
             base_stats = {}
-            if hasattr(self._base_provider, 'get_statistics'):
+            if hasattr(self._base_provider, "get_statistics"):
                 base_stats = self._base_provider.get_statistics()
 
             return {
@@ -553,13 +565,11 @@ class CachedThemeProvider:
                 "property_cache_entries": len(self._property_cache),
                 "theme_cache_entries": len(self._theme_cache),
                 "total_cache_entries": (
-                    len(self._color_cache) +
-                    len(self._property_cache) +
-                    len(self._theme_cache)
+                    len(self._color_cache) + len(self._property_cache) + len(self._theme_cache)
                 ),
                 "cache_hits": self._stats.cache_hits,
                 "cache_misses": self._stats.cache_misses,
-                "cache_hit_rate": hit_rate
+                "cache_hit_rate": hit_rate,
             }
 
 
@@ -627,7 +637,9 @@ class CompositeThemeProvider:
             # No provider has the color, use global fallback
             return get_fallback_color(color_key)
 
-    def get_property(self, property_key: PropertyKey, theme_name: Optional[str] = None) -> PropertyValue:
+    def get_property(
+        self, property_key: PropertyKey, theme_name: Optional[str] = None
+    ) -> PropertyValue:
         """Get property from first provider that has it."""
         with self._lock:
             for provider in self._providers:
@@ -667,29 +679,25 @@ class CompositeThemeProvider:
     def get_statistics(self) -> Dict[str, Any]:
         """Get aggregate statistics from all providers."""
         with self._lock:
-            stats = {
-                "total_providers": len(self._providers),
-                "providers": []
-            }
+            stats = {"total_providers": len(self._providers), "providers": []}
 
             for i, provider in enumerate(self._providers):
                 try:
-                    if hasattr(provider, 'get_statistics'):
+                    if hasattr(provider, "get_statistics"):
                         provider_stats = provider.get_statistics()
                         provider_stats["priority"] = i
                         stats["providers"].append(provider_stats)
                     else:
-                        stats["providers"].append({
-                            "priority": i,
-                            "type": type(provider).__name__,
-                            "statistics": "not_available"
-                        })
+                        stats["providers"].append(
+                            {
+                                "priority": i,
+                                "type": type(provider).__name__,
+                                "statistics": "not_available",
+                            }
+                        )
                 except Exception as e:
                     logger.error(f"Error getting statistics from provider {i}: {e}")
-                    stats["providers"].append({
-                        "priority": i,
-                        "error": str(e)
-                    })
+                    stats["providers"].append({"priority": i, "error": str(e)})
 
             return stats
 
@@ -709,8 +717,7 @@ def create_default_provider(themes: Optional[Dict[str, Theme]] = None) -> Defaul
 
 
 def create_cached_provider(
-    base_provider: ThemeProvider,
-    cache_size: int = 1000
+    base_provider: ThemeProvider, cache_size: int = 1000
 ) -> CachedThemeProvider:
     """Create cached theme provider wrapping another provider.
 
@@ -725,7 +732,9 @@ def create_cached_provider(
     return CachedThemeProvider(base_provider, cache_size)
 
 
-def create_composite_provider(providers: Optional[List[ThemeProvider]] = None) -> CompositeThemeProvider:
+def create_composite_provider(
+    providers: Optional[List[ThemeProvider]] = None,
+) -> CompositeThemeProvider:
     """Create composite provider combining multiple sources.
 
     Args:

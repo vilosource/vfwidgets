@@ -14,6 +14,7 @@ from .suite import BenchmarkResult, BenchmarkSuite
 @dataclass
 class BenchmarkConfig:
     """Configuration for benchmark execution."""
+
     iterations: int = 100
     warmup: int = 10
     timeout: float = 60.0  # seconds
@@ -33,9 +34,9 @@ class BenchmarkRunner:
         """Configure a specific benchmark."""
         self.configs[name] = config
 
-    def run_benchmark_with_config(self,
-                                 benchmark_func: Callable,
-                                 config: BenchmarkConfig) -> BenchmarkResult:
+    def run_benchmark_with_config(
+        self, benchmark_func: Callable, config: BenchmarkConfig
+    ) -> BenchmarkResult:
         """Run a benchmark with specific configuration."""
         if config.parallel and config.processes > 1:
             return self._run_parallel_process(benchmark_func, config)
@@ -44,9 +45,7 @@ class BenchmarkRunner:
         else:
             return self._run_sequential(benchmark_func, config)
 
-    def _run_sequential(self,
-                       benchmark_func: Callable,
-                       config: BenchmarkConfig) -> BenchmarkResult:
+    def _run_sequential(self, benchmark_func: Callable, config: BenchmarkConfig) -> BenchmarkResult:
         """Run benchmark sequentially."""
         # Create a temporary benchmark suite for this run
         temp_suite = BenchmarkSuite(self.suite.results_dir)
@@ -57,9 +56,9 @@ class BenchmarkRunner:
 
         return wrapped_benchmark()
 
-    def _run_parallel_thread(self,
-                            benchmark_func: Callable,
-                            config: BenchmarkConfig) -> BenchmarkResult:
+    def _run_parallel_thread(
+        self, benchmark_func: Callable, config: BenchmarkConfig
+    ) -> BenchmarkResult:
         """Run benchmark with multiple threads."""
         results = []
         exceptions = []
@@ -110,6 +109,7 @@ class BenchmarkRunner:
             raise RuntimeError("No successful benchmark iterations")
 
         import statistics
+
         return BenchmarkResult(
             name=f"{benchmark_func.__name__}_threaded",
             duration=sum(results),
@@ -121,21 +121,21 @@ class BenchmarkRunner:
             std_dev=statistics.stdev(results) if len(results) > 1 else 0.0,
             memory_usage=0.0,  # TODO: Implement memory tracking for threaded
             timestamp=time.time(),
-            metadata={'threads': config.threads}
+            metadata={"threads": config.threads},
         )
 
-    def _run_parallel_process(self,
-                             benchmark_func: Callable,
-                             config: BenchmarkConfig) -> BenchmarkResult:
+    def _run_parallel_process(
+        self, benchmark_func: Callable, config: BenchmarkConfig
+    ) -> BenchmarkResult:
         """Run benchmark with multiple processes."""
         # Note: This is a simplified implementation
         # Process-based benchmarking is complex due to serialization requirements
         # For now, fall back to threading
         return self._run_parallel_thread(benchmark_func, config)
 
-    def run_stress_test(self,
-                       benchmark_func: Callable,
-                       duration_seconds: float = 60.0) -> Dict[str, Any]:
+    def run_stress_test(
+        self, benchmark_func: Callable, duration_seconds: float = 60.0
+    ) -> Dict[str, Any]:
         """Run stress test for a specified duration."""
         print(f"Running stress test for {duration_seconds} seconds...")
 
@@ -159,8 +159,10 @@ class BenchmarkRunner:
                 if iterations % 100 == 0:
                     elapsed = time.time() - start_time
                     remaining = duration_seconds - elapsed
-                    print(f"  Progress: {elapsed:.1f}s elapsed, {remaining:.1f}s remaining, "
-                          f"{iterations} iterations")
+                    print(
+                        f"  Progress: {elapsed:.1f}s elapsed, {remaining:.1f}s remaining, "
+                        f"{iterations} iterations"
+                    )
 
             except Exception as e:
                 errors += 1
@@ -172,32 +174,33 @@ class BenchmarkRunner:
 
         if not times:
             return {
-                'error': 'No successful iterations',
-                'total_time': total_time,
-                'iterations': iterations,
-                'errors': errors
+                "error": "No successful iterations",
+                "total_time": total_time,
+                "iterations": iterations,
+                "errors": errors,
             }
 
         import statistics
 
         return {
-            'total_time': total_time,
-            'iterations': iterations,
-            'errors': errors,
-            'iterations_per_second': iterations / total_time,
-            'mean_time': statistics.mean(times),
-            'median_time': statistics.median(times),
-            'min_time': min(times),
-            'max_time': max(times),
-            'std_dev': statistics.stdev(times) if len(times) > 1 else 0.0,
+            "total_time": total_time,
+            "iterations": iterations,
+            "errors": errors,
+            "iterations_per_second": iterations / total_time,
+            "mean_time": statistics.mean(times),
+            "median_time": statistics.median(times),
+            "min_time": min(times),
+            "max_time": max(times),
+            "std_dev": statistics.stdev(times) if len(times) > 1 else 0.0,
         }
 
-    def run_load_test(self,
-                     benchmark_func: Callable,
-                     concurrent_users: int = 10,
-                     duration_seconds: float = 30.0) -> Dict[str, Any]:
+    def run_load_test(
+        self, benchmark_func: Callable, concurrent_users: int = 10, duration_seconds: float = 30.0
+    ) -> Dict[str, Any]:
         """Run load test with multiple concurrent 'users'."""
-        print(f"Running load test with {concurrent_users} concurrent users for {duration_seconds} seconds...")
+        print(
+            f"Running load test with {concurrent_users} concurrent users for {duration_seconds} seconds..."
+        )
 
         results = []
         exceptions = []
@@ -222,11 +225,13 @@ class BenchmarkRunner:
                     exceptions.append(e)
                     break
 
-            results.append({
-                'iterations': user_iterations,
-                'times': user_times,
-                'total_time': time.time() - user_start
-            })
+            results.append(
+                {
+                    "iterations": user_iterations,
+                    "times": user_times,
+                    "total_time": time.time() - user_start,
+                }
+            )
 
         # Run concurrent users
         threads = []
@@ -240,41 +245,41 @@ class BenchmarkRunner:
             thread.join()
 
         # Aggregate results
-        total_iterations = sum(r['iterations'] for r in results)
+        total_iterations = sum(r["iterations"] for r in results)
         all_times = []
         for r in results:
-            all_times.extend(r['times'])
+            all_times.extend(r["times"])
 
         if not all_times:
             return {
-                'error': 'No successful iterations',
-                'concurrent_users': concurrent_users,
-                'exceptions': len(exceptions)
+                "error": "No successful iterations",
+                "concurrent_users": concurrent_users,
+                "exceptions": len(exceptions),
             }
 
         import statistics
 
         return {
-            'concurrent_users': concurrent_users,
-            'total_iterations': total_iterations,
-            'total_exceptions': len(exceptions),
-            'iterations_per_second': total_iterations / duration_seconds,
-            'mean_time': statistics.mean(all_times),
-            'median_time': statistics.median(all_times),
-            'min_time': min(all_times),
-            'max_time': max(all_times),
-            'std_dev': statistics.stdev(all_times) if len(all_times) > 1 else 0.0,
-            'per_user_results': results
+            "concurrent_users": concurrent_users,
+            "total_iterations": total_iterations,
+            "total_exceptions": len(exceptions),
+            "iterations_per_second": total_iterations / duration_seconds,
+            "mean_time": statistics.mean(all_times),
+            "median_time": statistics.median(all_times),
+            "min_time": min(all_times),
+            "max_time": max(all_times),
+            "std_dev": statistics.stdev(all_times) if len(all_times) > 1 else 0.0,
+            "per_user_results": results,
         }
 
-    def profile_benchmark(self,
-                         benchmark_func: Callable,
-                         profiler: str = 'cprofile') -> Dict[str, Any]:
+    def profile_benchmark(
+        self, benchmark_func: Callable, profiler: str = "cprofile"
+    ) -> Dict[str, Any]:
         """Profile a benchmark to identify bottlenecks."""
-        if profiler == 'cprofile':
+        if profiler == "cprofile":
             return self._profile_with_cprofile(benchmark_func)
         else:
-            return {'error': f'Unsupported profiler: {profiler}'}
+            return {"error": f"Unsupported profiler: {profiler}"}
 
     def _profile_with_cprofile(self, benchmark_func: Callable) -> Dict[str, Any]:
         """Profile using cProfile."""
@@ -290,26 +295,26 @@ class BenchmarkRunner:
             for _ in range(10):
                 benchmark_func()
         except Exception as e:
-            return {'error': f'Profiling failed: {e}'}
+            return {"error": f"Profiling failed: {e}"}
         finally:
             profiler.disable()
 
         # Analyze results
         stream = io.StringIO()
         stats = pstats.Stats(profiler, stream=stream)
-        stats.sort_stats('cumulative')
+        stats.sort_stats("cumulative")
         stats.print_stats(20)  # Top 20 functions
 
         profile_output = stream.getvalue()
 
         return {
-            'profile_output': profile_output,
-            'total_calls': stats.total_calls,
+            "profile_output": profile_output,
+            "total_calls": stats.total_calls,
         }
 
-    def compare_benchmarks(self,
-                          benchmark_funcs: List[Callable],
-                          names: Optional[List[str]] = None) -> Dict[str, Any]:
+    def compare_benchmarks(
+        self, benchmark_funcs: List[Callable], names: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """Compare multiple benchmark functions."""
         if names is None:
             names = [func.__name__ for func in benchmark_funcs]
@@ -324,24 +329,29 @@ class BenchmarkRunner:
                 result = self.run_benchmark_with_config(func, config)
                 results[name] = result
             except Exception as e:
-                results[name] = {'error': str(e)}
+                results[name] = {"error": str(e)}
 
         # Find best and worst performers
-        valid_results = {name: result for name, result in results.items()
-                        if isinstance(result, BenchmarkResult)}
+        valid_results = {
+            name: result for name, result in results.items() if isinstance(result, BenchmarkResult)
+        }
 
         if valid_results:
             best = min(valid_results.items(), key=lambda x: x[1].mean_time)
             worst = max(valid_results.items(), key=lambda x: x[1].mean_time)
 
             return {
-                'results': results,
-                'best_performer': {'name': best[0], 'time': best[1].mean_time},
-                'worst_performer': {'name': worst[0], 'time': worst[1].mean_time},
-                'comparison_factor': worst[1].mean_time / best[1].mean_time if best[1].mean_time > 0 else float('inf')
+                "results": results,
+                "best_performer": {"name": best[0], "time": best[1].mean_time},
+                "worst_performer": {"name": worst[0], "time": worst[1].mean_time},
+                "comparison_factor": (
+                    worst[1].mean_time / best[1].mean_time
+                    if best[1].mean_time > 0
+                    else float("inf")
+                ),
             }
         else:
-            return {'results': results, 'error': 'No valid benchmark results'}
+            return {"results": results, "error": "No valid benchmark results"}
 
 
 if __name__ == "__main__":
@@ -360,4 +370,6 @@ if __name__ == "__main__":
 
     # Run stress test
     stress_results = runner.run_stress_test(sample_benchmark, duration_seconds=5.0)
-    print(f"Stress test results: {stress_results['iterations']} iterations in {stress_results['total_time']:.2f}s")
+    print(
+        f"Stress test results: {stress_results['iterations']} iterations in {stress_results['total_time']:.2f}s"
+    )

@@ -6,6 +6,4 @@ debouncing, performance optimization, and testing support.
 
 from .system import ThemeEventSystem
 
-__all__ = [
-    'ThemeEventSystem'
-]
+__all__ = ["ThemeEventSystem"]

@@ -34,38 +34,33 @@ class CustomThemedWidget(ThemedWidget):
     # Notice we're using more specific property paths
     theme_config = {
         # Window/background properties
-        'window_bg': 'window.background',
-        'window_fg': 'window.foreground',
-
+        "window_bg": "window.background",
+        "window_fg": "window.foreground",
         # Button properties
-        'button_bg': 'button.background',
-        'button_fg': 'button.foreground',
-        'button_hover': 'button.hover.background',
-        'button_border': 'button.border',
-
+        "button_bg": "button.background",
+        "button_fg": "button.foreground",
+        "button_hover": "button.hover.background",
+        "button_border": "button.border",
         # Card/panel properties
-        'card_bg': 'card.background',
-        'card_fg': 'card.foreground',
-        'card_border': 'card.border',
-
+        "card_bg": "card.background",
+        "card_fg": "card.foreground",
+        "card_border": "card.border",
         # Text properties
-        'title_color': 'text.title.color',
-        'body_color': 'text.body.color',
-        'caption_color': 'text.caption.color',
-
+        "title_color": "text.title.color",
+        "body_color": "text.body.color",
+        "caption_color": "text.caption.color",
         # Status colors
-        'success_color': 'status.success',
-        'warning_color': 'status.warning',
-        'error_color': 'status.error',
-
+        "success_color": "status.success",
+        "warning_color": "status.warning",
+        "error_color": "status.error",
         # Accent colors
-        'primary_accent': 'accent.primary',
-        'secondary_accent': 'accent.secondary'
+        "primary_accent": "accent.primary",
+        "secondary_accent": "accent.secondary",
     }
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.current_theme = 'ocean'  # Start with our custom theme
+        self.current_theme = "ocean"  # Start with our custom theme
         self.setup_ui()
 
     def setup_ui(self):
@@ -115,19 +110,19 @@ class CustomThemedWidget(ThemedWidget):
         button_layout = QHBoxLayout()
 
         self.ocean_btn = QPushButton("Ocean Theme")
-        self.ocean_btn.clicked.connect(lambda: self.switch_theme('ocean'))
+        self.ocean_btn.clicked.connect(lambda: self.switch_theme("ocean"))
         button_layout.addWidget(self.ocean_btn)
 
         self.sunset_btn = QPushButton("Sunset Theme")
-        self.sunset_btn.clicked.connect(lambda: self.switch_theme('sunset'))
+        self.sunset_btn.clicked.connect(lambda: self.switch_theme("sunset"))
         button_layout.addWidget(self.sunset_btn)
 
         self.forest_btn = QPushButton("Forest Theme")
-        self.forest_btn.clicked.connect(lambda: self.switch_theme('forest'))
+        self.forest_btn.clicked.connect(lambda: self.switch_theme("forest"))
         button_layout.addWidget(self.forest_btn)
 
         self.mono_btn = QPushButton("Monochrome")
-        self.mono_btn.clicked.connect(lambda: self.switch_theme('monochrome'))
+        self.mono_btn.clicked.connect(lambda: self.switch_theme("monochrome"))
         button_layout.addWidget(self.mono_btn)
 
         layout.addLayout(button_layout)
@@ -144,49 +139,54 @@ class CustomThemedWidget(ThemedWidget):
     def update_styling(self):
         """Apply theme properties to all widgets."""
         # Get all theme properties
-        window_bg = self.theme.get('window_bg', '#ffffff')
-        window_fg = self.theme.get('window_fg', '#000000')
+        window_bg = self.theme.get("window_bg", "#ffffff")
+        window_fg = self.theme.get("window_fg", "#000000")
 
-        button_bg = self.theme.get('button_bg', '#e0e0e0')
-        button_fg = self.theme.get('button_fg', '#000000')
-        button_hover = self.theme.get('button_hover', '#d0d0d0')
-        button_border = self.theme.get('button_border', '#cccccc')
+        button_bg = self.theme.get("button_bg", "#e0e0e0")
+        button_fg = self.theme.get("button_fg", "#000000")
+        button_hover = self.theme.get("button_hover", "#d0d0d0")
+        button_border = self.theme.get("button_border", "#cccccc")
 
-        card_bg = self.theme.get('card_bg', '#f8f8f8')
-        card_fg = self.theme.get('card_fg', '#000000')
-        card_border = self.theme.get('card_border', '#dddddd')
+        card_bg = self.theme.get("card_bg", "#f8f8f8")
+        card_fg = self.theme.get("card_fg", "#000000")
+        card_border = self.theme.get("card_border", "#dddddd")
 
-        title_color = self.theme.get('title_color', '#000000')
-        body_color = self.theme.get('body_color', '#333333')
-        caption_color = self.theme.get('caption_color', '#666666')
+        title_color = self.theme.get("title_color", "#000000")
+        body_color = self.theme.get("body_color", "#333333")
+        caption_color = self.theme.get("caption_color", "#666666")
 
-        success_color = self.theme.get('success_color', '#28a745')
-        warning_color = self.theme.get('warning_color', '#ffc107')
-        error_color = self.theme.get('error_color', '#dc3545')
+        success_color = self.theme.get("success_color", "#28a745")
+        warning_color = self.theme.get("warning_color", "#ffc107")
+        error_color = self.theme.get("error_color", "#dc3545")
 
-        primary_accent = self.theme.get('primary_accent', '#007bff')
+        primary_accent = self.theme.get("primary_accent", "#007bff")
 
         # Apply window styling
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         CustomThemedWidget {{
             background-color: {window_bg};
             color: {window_fg};
             padding: 20px;
         }}
-        """)
+        """
+        )
 
         # Apply title styling
-        self.title_label.setStyleSheet(f"""
+        self.title_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {title_color};
             font-size: 24px;
             font-weight: bold;
             margin: 10px;
         }}
-        """)
+        """
+        )
 
         # Apply card styling
-        self.info_card.setStyleSheet(f"""
+        self.info_card.setStyleSheet(
+            f"""
         QFrame {{
             background-color: {card_bg};
             color: {card_fg};
@@ -195,57 +195,70 @@ class CustomThemedWidget(ThemedWidget):
             padding: 10px;
             margin: 10px;
         }}
-        """)
+        """
+        )
 
-        self.card_title.setStyleSheet(f"""
+        self.card_title.setStyleSheet(
+            f"""
         QLabel {{
             color: {primary_accent};
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 5px;
         }}
-        """)
+        """
+        )
 
-        self.card_body.setStyleSheet(f"""
+        self.card_body.setStyleSheet(
+            f"""
         QLabel {{
             color: {body_color};
             font-size: 14px;
             margin-bottom: 5px;
         }}
-        """)
+        """
+        )
 
-        self.card_caption.setStyleSheet(f"""
+        self.card_caption.setStyleSheet(
+            f"""
         QLabel {{
             color: {caption_color};
             font-size: 12px;
             font-style: italic;
         }}
-        """)
+        """
+        )
 
         # Apply status colors
-        self.success_label.setStyleSheet(f"""
+        self.success_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {success_color};
             font-weight: bold;
             padding: 5px;
         }}
-        """)
+        """
+        )
 
-        self.warning_label.setStyleSheet(f"""
+        self.warning_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {warning_color};
             font-weight: bold;
             padding: 5px;
         }}
-        """)
+        """
+        )
 
-        self.error_label.setStyleSheet(f"""
+        self.error_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {error_color};
             font-weight: bold;
             padding: 5px;
         }}
-        """)
+        """
+        )
 
         # Apply button styling
         button_style = f"""
@@ -273,14 +286,16 @@ class CustomThemedWidget(ThemedWidget):
 
         # Update theme display
         self.theme_display.setText(f"Current Theme: {self.current_theme.title()}")
-        self.theme_display.setStyleSheet(f"""
+        self.theme_display.setStyleSheet(
+            f"""
         QLabel {{
             color: {primary_accent};
             font-size: 14px;
             font-weight: bold;
             margin: 10px;
         }}
-        """)
+        """
+        )
 
     def switch_theme(self, theme_name):
         """Switch to the specified theme."""
@@ -300,138 +315,123 @@ def create_custom_themes():
 
     # Ocean Theme - Cool blues and teals
     ocean_theme = {
-        'name': 'ocean',
-        'window': {
-            'background': '#f0f8ff',    # Alice blue
-            'foreground': '#2c3e50'     # Dark blue-gray
+        "name": "ocean",
+        "window": {
+            "background": "#f0f8ff",  # Alice blue
+            "foreground": "#2c3e50",  # Dark blue-gray
         },
-        'button': {
-            'background': '#3498db',    # Blue
-            'foreground': '#ffffff',    # White
-            'hover': {'background': '#2980b9'},  # Darker blue
-            'border': '#2980b9'
+        "button": {
+            "background": "#3498db",  # Blue
+            "foreground": "#ffffff",  # White
+            "hover": {"background": "#2980b9"},  # Darker blue
+            "border": "#2980b9",
         },
-        'card': {
-            'background': '#ffffff',    # White
-            'foreground': '#2c3e50',    # Dark blue-gray
-            'border': '#bdc3c7'         # Light gray
+        "card": {
+            "background": "#ffffff",  # White
+            "foreground": "#2c3e50",  # Dark blue-gray
+            "border": "#bdc3c7",  # Light gray
         },
-        'text': {
-            'title': {'color': '#2980b9'},     # Blue
-            'body': {'color': '#34495e'},      # Dark gray
-            'caption': {'color': '#7f8c8d'}    # Gray
+        "text": {
+            "title": {"color": "#2980b9"},  # Blue
+            "body": {"color": "#34495e"},  # Dark gray
+            "caption": {"color": "#7f8c8d"},  # Gray
         },
-        'status': {
-            'success': '#27ae60',       # Green
-            'warning': '#f39c12',       # Orange
-            'error': '#e74c3c'          # Red
+        "status": {
+            "success": "#27ae60",  # Green
+            "warning": "#f39c12",  # Orange
+            "error": "#e74c3c",  # Red
         },
-        'accent': {
-            'primary': '#3498db',       # Blue
-            'secondary': '#1abc9c'      # Teal
-        }
+        "accent": {"primary": "#3498db", "secondary": "#1abc9c"},  # Blue  # Teal
     }
 
     # Sunset Theme - Warm oranges and reds
     sunset_theme = {
-        'name': 'sunset',
-        'window': {
-            'background': '#fff5f0',    # Very light orange
-            'foreground': '#5d4037'     # Brown
+        "name": "sunset",
+        "window": {"background": "#fff5f0", "foreground": "#5d4037"},  # Very light orange  # Brown
+        "button": {
+            "background": "#ff6b35",  # Orange-red
+            "foreground": "#ffffff",  # White
+            "hover": {"background": "#e55a2e"},
+            "border": "#e55a2e",
         },
-        'button': {
-            'background': '#ff6b35',    # Orange-red
-            'foreground': '#ffffff',    # White
-            'hover': {'background': '#e55a2e'},
-            'border': '#e55a2e'
+        "card": {
+            "background": "#ffffff",  # White
+            "foreground": "#5d4037",  # Brown
+            "border": "#ffab91",  # Light orange
         },
-        'card': {
-            'background': '#ffffff',    # White
-            'foreground': '#5d4037',    # Brown
-            'border': '#ffab91'         # Light orange
+        "text": {
+            "title": {"color": "#d84315"},  # Dark orange
+            "body": {"color": "#6d4c41"},  # Brown
+            "caption": {"color": "#8d6e63"},  # Light brown
         },
-        'text': {
-            'title': {'color': '#d84315'},     # Dark orange
-            'body': {'color': '#6d4c41'},      # Brown
-            'caption': {'color': '#8d6e63'}    # Light brown
+        "status": {
+            "success": "#4caf50",  # Green
+            "warning": "#ff9800",  # Orange
+            "error": "#f44336",  # Red
         },
-        'status': {
-            'success': '#4caf50',       # Green
-            'warning': '#ff9800',       # Orange
-            'error': '#f44336'          # Red
-        },
-        'accent': {
-            'primary': '#ff6b35',       # Orange-red
-            'secondary': '#ffab40'      # Light orange
-        }
+        "accent": {"primary": "#ff6b35", "secondary": "#ffab40"},  # Orange-red  # Light orange
     }
 
     # Forest Theme - Natural greens
     forest_theme = {
-        'name': 'forest',
-        'window': {
-            'background': '#f1f8e9',    # Very light green
-            'foreground': '#1b5e20'     # Dark green
+        "name": "forest",
+        "window": {
+            "background": "#f1f8e9",  # Very light green
+            "foreground": "#1b5e20",  # Dark green
         },
-        'button': {
-            'background': '#4caf50',    # Green
-            'foreground': '#ffffff',    # White
-            'hover': {'background': '#43a047'},
-            'border': '#43a047'
+        "button": {
+            "background": "#4caf50",  # Green
+            "foreground": "#ffffff",  # White
+            "hover": {"background": "#43a047"},
+            "border": "#43a047",
         },
-        'card': {
-            'background': '#ffffff',    # White
-            'foreground': '#1b5e20',    # Dark green
-            'border': '#a5d6a7'         # Light green
+        "card": {
+            "background": "#ffffff",  # White
+            "foreground": "#1b5e20",  # Dark green
+            "border": "#a5d6a7",  # Light green
         },
-        'text': {
-            'title': {'color': '#2e7d32'},     # Green
-            'body': {'color': '#388e3c'},      # Green
-            'caption': {'color': '#66bb6a'}    # Light green
+        "text": {
+            "title": {"color": "#2e7d32"},  # Green
+            "body": {"color": "#388e3c"},  # Green
+            "caption": {"color": "#66bb6a"},  # Light green
         },
-        'status': {
-            'success': '#4caf50',       # Green
-            'warning': '#ff9800',       # Orange
-            'error': '#f44336'          # Red
+        "status": {
+            "success": "#4caf50",  # Green
+            "warning": "#ff9800",  # Orange
+            "error": "#f44336",  # Red
         },
-        'accent': {
-            'primary': '#4caf50',       # Green
-            'secondary': '#8bc34a'      # Light green
-        }
+        "accent": {"primary": "#4caf50", "secondary": "#8bc34a"},  # Green  # Light green
     }
 
     # Monochrome Theme - Black, white, and grays
     monochrome_theme = {
-        'name': 'monochrome',
-        'window': {
-            'background': '#fafafa',    # Very light gray
-            'foreground': '#212121'     # Very dark gray
+        "name": "monochrome",
+        "window": {
+            "background": "#fafafa",  # Very light gray
+            "foreground": "#212121",  # Very dark gray
         },
-        'button': {
-            'background': '#616161',    # Gray
-            'foreground': '#ffffff',    # White
-            'hover': {'background': '#424242'},
-            'border': '#424242'
+        "button": {
+            "background": "#616161",  # Gray
+            "foreground": "#ffffff",  # White
+            "hover": {"background": "#424242"},
+            "border": "#424242",
         },
-        'card': {
-            'background': '#ffffff',    # White
-            'foreground': '#212121',    # Very dark gray
-            'border': '#e0e0e0'         # Light gray
+        "card": {
+            "background": "#ffffff",  # White
+            "foreground": "#212121",  # Very dark gray
+            "border": "#e0e0e0",  # Light gray
         },
-        'text': {
-            'title': {'color': '#000000'},     # Black
-            'body': {'color': '#424242'},      # Dark gray
-            'caption': {'color': '#757575'}    # Gray
+        "text": {
+            "title": {"color": "#000000"},  # Black
+            "body": {"color": "#424242"},  # Dark gray
+            "caption": {"color": "#757575"},  # Gray
         },
-        'status': {
-            'success': '#424242',       # Dark gray
-            'warning': '#616161',       # Gray
-            'error': '#212121'          # Very dark gray
+        "status": {
+            "success": "#424242",  # Dark gray
+            "warning": "#616161",  # Gray
+            "error": "#212121",  # Very dark gray
         },
-        'accent': {
-            'primary': '#212121',       # Very dark gray
-            'secondary': '#616161'      # Gray
-        }
+        "accent": {"primary": "#212121", "secondary": "#616161"},  # Very dark gray  # Gray
     }
 
     return [ocean_theme, sunset_theme, forest_theme, monochrome_theme]
@@ -450,11 +450,11 @@ def main():
     themes = create_custom_themes()
 
     for theme in themes:
-        app.register_theme(theme['name'], theme)
+        app.register_theme(theme["name"], theme)
         print(f"Registered theme: {theme['name']}")
 
     # Set initial theme
-    app.set_theme('ocean')
+    app.set_theme("ocean")
     print("Set initial theme to 'ocean'")
 
     # Create and show the widget
@@ -470,7 +470,7 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     Tutorial 02 demonstrates:
 

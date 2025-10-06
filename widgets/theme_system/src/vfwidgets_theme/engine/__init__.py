@@ -17,11 +17,9 @@ on widgets. It's designed for performance and correctness.
 __all__ = [
     # Theme application
     # "ThemeApplicator",
-
     # Style generation
     # "QSSGenerator",
     # "StylesheetGenerator",
-
     # Property resolution
     # "PropertyResolver",
     # "ThemeResolver",

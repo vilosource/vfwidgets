@@ -25,7 +25,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from PySide6.QtCore import Property, QEasingCurve, QPropertyAnimation, Qt, QTimer, Signal
 from PySide6.QtGui import QColor
@@ -61,10 +61,10 @@ class ThemeEditor(ThemedWidget, QWidget):
     theme_changed_signal = Signal()
 
     theme_config = {
-        'editor_bg': 'colors.background',
-        'editor_fg': 'colors.foreground',
-        'editor_border': 'colors.border',
-        'editor_accent': 'colors.accent'
+        "editor_bg": "colors.background",
+        "editor_fg": "colors.foreground",
+        "editor_border": "colors.border",
+        "editor_accent": "colors.accent",
     }
 
     def __init__(self):
@@ -88,14 +88,14 @@ class ThemeEditor(ThemedWidget, QWidget):
 
         self.color_editors = {}
         colors = [
-            ('Background', 'background', '#ffffff'),
-            ('Foreground', 'foreground', '#000000'),
-            ('Primary', 'primary', '#0066cc'),
-            ('Accent', 'accent', '#00aa00'),
-            ('Border', 'border', '#cccccc'),
-            ('Error', 'error', '#ff0000'),
-            ('Warning', 'warning', '#ffaa00'),
-            ('Success', 'success', '#00aa00'),
+            ("Background", "background", "#ffffff"),
+            ("Foreground", "foreground", "#000000"),
+            ("Primary", "primary", "#0066cc"),
+            ("Accent", "accent", "#00aa00"),
+            ("Border", "border", "#cccccc"),
+            ("Error", "error", "#ff0000"),
+            ("Warning", "warning", "#ffaa00"),
+            ("Success", "success", "#00aa00"),
         ]
 
         for i, (label, key, default) in enumerate(colors):
@@ -107,7 +107,9 @@ class ThemeEditor(ThemedWidget, QWidget):
             color_layout.addWidget(color_btn, i, 1)
 
             color_input = QLineEdit(default)
-            color_input.textChanged.connect(lambda text, k=key, b=color_btn: self.update_color(k, text, b))
+            color_input.textChanged.connect(
+                lambda text, k=key, b=color_btn: self.update_color(k, text, b)
+            )
             color_layout.addWidget(color_input, i, 2)
 
             self.color_editors[key] = (color_btn, color_input)
@@ -155,7 +157,7 @@ class ThemeEditor(ThemedWidget, QWidget):
 
     def update_color(self, key, value, button):
         """Update color button when text changes."""
-        if value.startswith('#') and len(value) == 7:
+        if value.startswith("#") and len(value) == 7:
             button.setStyleSheet(f"background-color: {value};")
             self.custom_theme[key] = value
 
@@ -168,59 +170,52 @@ class ThemeEditor(ThemedWidget, QWidget):
 
         # Create theme data
         theme_data = {
-            'name': self.name_edit.text(),
-            'type': 'dark' if self.dark_check.isChecked() else 'light',
-            'colors': colors,
-            'styles': {
-                'window': {
-                    'background-color': colors['background'],
-                    'color': colors['foreground']
-                }
-            }
+            "name": self.name_edit.text(),
+            "type": "dark" if self.dark_check.isChecked() else "light",
+            "colors": colors,
+            "styles": {
+                "window": {"background-color": colors["background"], "color": colors["foreground"]}
+            },
         }
 
         # Save to temp file and load
-        temp_path = Path('/tmp/custom_theme.json')
-        with open(temp_path, 'w') as f:
+        temp_path = Path("/tmp/custom_theme.json")
+        with open(temp_path, "w") as f:
             json.dump(theme_data, f)
 
         app = ThemedApplication.instance()
         if app:
             app.load_theme_file(temp_path)
-            app.set_theme(theme_data['name'])
+            app.set_theme(theme_data["name"])
 
     def save_theme(self):
         """Save theme to file."""
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save Theme", "", "Theme Files (*.json)"
-        )
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Theme", "", "Theme Files (*.json)")
         if file_path:
             colors = {}
             for key, (_button, input) in self.color_editors.items():
                 colors[key] = input.text()
 
             theme_data = {
-                'name': self.name_edit.text(),
-                'type': 'dark' if self.dark_check.isChecked() else 'light',
-                'colors': colors,
-                'styles': {
-                    'window': {
-                        'background-color': colors['background'],
-                        'color': colors['foreground']
+                "name": self.name_edit.text(),
+                "type": "dark" if self.dark_check.isChecked() else "light",
+                "colors": colors,
+                "styles": {
+                    "window": {
+                        "background-color": colors["background"],
+                        "color": colors["foreground"],
                     }
-                }
+                },
             }
 
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 json.dump(theme_data, f, indent=2)
 
             QMessageBox.information(self, "Success", f"Theme saved to {file_path}")
 
     def load_theme(self):
         """Load theme from file."""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Load Theme", "", "Theme Files (*.json)"
-        )
+        file_path, _ = QFileDialog.getOpenFileName(self, "Load Theme", "", "Theme Files (*.json)")
         if file_path:
             app = ThemedApplication.instance()
             if app and app.load_theme_file(file_path):
@@ -231,9 +226,9 @@ class AnimatedWidget(ThemedWidget, QWidget):
     """Widget with animated theme transitions."""
 
     theme_config = {
-        'widget_bg': 'colors.background',
-        'widget_fg': 'colors.foreground',
-        'widget_accent': 'colors.accent'
+        "widget_bg": "colors.background",
+        "widget_fg": "colors.foreground",
+        "widget_accent": "colors.accent",
     }
 
     def __init__(self):
@@ -271,17 +266,17 @@ class AnimatedWidget(ThemedWidget, QWidget):
     def on_theme_changed(self):
         """Animate theme transition."""
         # Store old colors
-        self.old_colors = dict(self.new_colors) if self.new_colors else {
-            'bg': '#ffffff',
-            'fg': '#000000',
-            'accent': '#0066cc'
-        }
+        self.old_colors = (
+            dict(self.new_colors)
+            if self.new_colors
+            else {"bg": "#ffffff", "fg": "#000000", "accent": "#0066cc"}
+        )
 
         # Get new colors
         self.new_colors = {
-            'bg': getattr(self.theme, 'widget_bg', '#ffffff'),
-            'fg': getattr(self.theme, 'widget_fg', '#000000'),
-            'accent': getattr(self.theme, 'widget_accent', '#0066cc')
+            "bg": getattr(self.theme, "widget_bg", "#ffffff"),
+            "fg": getattr(self.theme, "widget_fg", "#000000"),
+            "accent": getattr(self.theme, "widget_accent", "#0066cc"),
         }
 
         # Start animation
@@ -305,11 +300,12 @@ class AnimatedWidget(ThemedWidget, QWidget):
             b = int(old_color.blue() + (new_color.blue() - old_color.blue()) * progress)
             return QColor(r, g, b).name()
 
-        bg = interpolate_color(self.old_colors['bg'], self.new_colors['bg'], progress)
-        fg = interpolate_color(self.old_colors['fg'], self.new_colors['fg'], progress)
-        accent = interpolate_color(self.old_colors['accent'], self.new_colors['accent'], progress)
+        bg = interpolate_color(self.old_colors["bg"], self.new_colors["bg"], progress)
+        fg = interpolate_color(self.old_colors["fg"], self.new_colors["fg"], progress)
+        accent = interpolate_color(self.old_colors["accent"], self.new_colors["accent"], progress)
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             AnimatedWidget {{
                 background-color: {bg};
                 border: 2px solid {accent};
@@ -325,16 +321,14 @@ class AnimatedWidget(ThemedWidget, QWidget):
             QProgressBar::chunk {{
                 background-color: {accent};
             }}
-        """)
+        """
+        )
 
 
 class CompleteApplication(ThemedWidget, QMainWindow):
     """Complete application demonstrating all features."""
 
-    theme_config = {
-        'app_bg': 'colors.background',
-        'app_fg': 'colors.foreground'
-    }
+    theme_config = {"app_bg": "colors.background", "app_fg": "colors.foreground"}
 
     def __init__(self):
         super().__init__()
@@ -429,7 +423,9 @@ class CompleteApplication(ThemedWidget, QMainWindow):
 
         # Chart placeholder
         chart = QTextEdit()
-        chart.setPlainText("Chart visualization would go here.\nTheme colors are applied automatically.")
+        chart.setPlainText(
+            "Chart visualization would go here.\nTheme colors are applied automatically."
+        )
         chart.setReadOnly(True)
         layout.addWidget(chart, 2, 0, 1, 2)
 
@@ -442,7 +438,7 @@ class CompleteApplication(ThemedWidget, QMainWindow):
 
         # Sample data
         for i in range(10):
-            table.setItem(i, 0, QTableWidgetItem(str(i+1)))
+            table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
             table.setItem(i, 1, QTableWidgetItem(f"Item {i+1}"))
             table.setItem(i, 2, QTableWidgetItem("Active" if i % 2 else "Inactive"))
             table.setItem(i, 3, QTableWidgetItem(f"{(i+1)*10}"))
@@ -474,14 +470,17 @@ class CompleteApplication(ThemedWidget, QMainWindow):
         if app:
             theme = app.current_theme_name
             theme_type = app.theme_type
-            self.status.showMessage(f"Current Theme: {theme} | Type: {theme_type} | Widgets: Multiple")
+            self.status.showMessage(
+                f"Current Theme: {theme} | Type: {theme_type} | Widgets: Multiple"
+            )
 
     def on_theme_changed(self):
         """Update application styling."""
-        bg = getattr(self.theme, 'app_bg', '#ffffff')
-        fg = getattr(self.theme, 'app_fg', '#000000')
+        bg = getattr(self.theme, "app_bg", "#ffffff")
+        fg = getattr(self.theme, "app_fg", "#000000")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QMainWindow {{
                 background-color: {bg};
             }}
@@ -516,14 +515,15 @@ class CompleteApplication(ThemedWidget, QMainWindow):
                 color: {bg};
                 padding: 5px;
             }}
-        """)
+        """
+        )
 
 
 def main():
     app = ThemedApplication(sys.argv)
 
     # Start with default theme
-    app.set_theme('default')
+    app.set_theme("default")
 
     window = CompleteApplication()
     window.show()
@@ -531,5 +531,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

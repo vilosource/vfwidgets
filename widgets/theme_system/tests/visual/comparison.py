@@ -8,14 +8,15 @@ from typing import Dict, Tuple
 
 try:
     from PIL import Image, ImageChops, ImageStat
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
 
 
-
 class ComparisonMetric(Enum):
     """Image comparison metrics."""
+
     RMS = "rms"  # Root Mean Square
     MAE = "mae"  # Mean Absolute Error
     SSIM = "ssim"  # Structural Similarity Index
@@ -108,8 +109,8 @@ class ImageComparator:
             return 1.0
 
         # Convert to grayscale for simplicity
-        gray1 = img1.convert('L')
-        gray2 = img2.convert('L')
+        gray1 = img1.convert("L")
+        gray2 = img2.convert("L")
 
         # Calculate means
         stat1 = ImageStat.Stat(gray1)
@@ -132,7 +133,7 @@ class ImageComparator:
         c2 = (0.03 * 255) ** 2
 
         numerator = (2 * mean1 * mean2 + c1) * (2 * covariance + c2)
-        denominator = (mean1 ** 2 + mean2 ** 2 + c1) * (var1 + var2 + c2)
+        denominator = (mean1**2 + mean2**2 + c1) * (var1 + var2 + c2)
 
         if denominator == 0:
             ssim = 1.0
@@ -158,8 +159,8 @@ class ImageComparator:
 
         # Convert to LAB color space for perceptual comparison
         try:
-            lab1 = img1.convert('RGB')
-            lab2 = img2.convert('RGB')
+            lab1 = img1.convert("RGB")
+            lab2 = img2.convert("RGB")
 
             # Simple perceptual weighting (rough approximation)
             # Weight red, green, blue channels differently based on human perception
@@ -189,10 +190,9 @@ class ImageComparator:
             # Fallback to RMS if LAB conversion fails
             return self.compare_rms(img1, img2)
 
-    def compare_images(self,
-                      img1: Image.Image,
-                      img2: Image.Image,
-                      metric: ComparisonMetric = ComparisonMetric.RMS) -> float:
+    def compare_images(
+        self, img1: Image.Image, img2: Image.Image, metric: ComparisonMetric = ComparisonMetric.RMS
+    ) -> float:
         """
         Compare two images using the specified metric.
 
@@ -213,9 +213,7 @@ class ImageComparator:
         else:
             return self.compare_perceptual(img1, img2)
 
-    def multi_metric_comparison(self,
-                               img1: Image.Image,
-                               img2: Image.Image) -> Dict[str, float]:
+    def multi_metric_comparison(self, img1: Image.Image, img2: Image.Image) -> Dict[str, float]:
         """
         Compare images using multiple metrics.
 
@@ -233,11 +231,13 @@ class ImageComparator:
             "perceptual": self.compare_perceptual(img1, img2),
         }
 
-    def is_similar(self,
-                   img1: Image.Image,
-                   img2: Image.Image,
-                   tolerance: float = 0.01,
-                   metric: ComparisonMetric = ComparisonMetric.RMS) -> bool:
+    def is_similar(
+        self,
+        img1: Image.Image,
+        img2: Image.Image,
+        tolerance: float = 0.01,
+        metric: ComparisonMetric = ComparisonMetric.RMS,
+    ) -> bool:
         """
         Check if two images are similar within tolerance.
 
@@ -253,9 +253,9 @@ class ImageComparator:
         difference = self.compare_images(img1, img2, metric)
         return difference <= tolerance
 
-    def get_best_metric(self,
-                       img1: Image.Image,
-                       img2: Image.Image) -> Tuple[ComparisonMetric, float]:
+    def get_best_metric(
+        self, img1: Image.Image, img2: Image.Image
+    ) -> Tuple[ComparisonMetric, float]:
         """
         Find the best metric for comparing two specific images.
 

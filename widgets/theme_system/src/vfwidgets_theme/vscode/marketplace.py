@@ -139,21 +139,21 @@ class MarketplaceClient:
         query_lower = query.lower()
 
         # Check name, display name, description
-        for field in ['name', 'displayName', 'description']:
-            value = manifest.get(field, '')
+        for field in ["name", "displayName", "description"]:
+            value = manifest.get(field, "")
             if isinstance(value, str) and query_lower in value.lower():
                 return True
 
         # Check keywords/tags
-        keywords = manifest.get('keywords', [])
+        keywords = manifest.get("keywords", [])
         if isinstance(keywords, list):
             for keyword in keywords:
                 if isinstance(keyword, str) and query_lower in keyword.lower():
                     return True
 
         # Check if it's a theme extension
-        contributes = manifest.get('contributes', {})
-        if 'themes' in contributes:
+        contributes = manifest.get("contributes", {})
+        if "themes" in contributes:
             return True
 
         return False
@@ -165,29 +165,29 @@ class MarketplaceClient:
 
         popular_themes = [
             {
-                'id': 'dracula-theme.theme-dracula',
-                'name': 'theme-dracula',
-                'displayName': 'Dracula Official',
-                'description': 'Official Dracula Theme. A dark theme for many editors, shells, and more.',
-                'version': '2.24.2',
-                'publisher': 'dracula-theme'
+                "id": "dracula-theme.theme-dracula",
+                "name": "theme-dracula",
+                "displayName": "Dracula Official",
+                "description": "Official Dracula Theme. A dark theme for many editors, shells, and more.",
+                "version": "2.24.2",
+                "publisher": "dracula-theme",
             },
             {
-                'id': 'ms-vscode.vscode-json',
-                'name': 'vscode-json',
-                'displayName': 'JSON Language Features',
-                'description': 'Provides rich language support for JSON',
-                'version': '1.0.0',
-                'publisher': 'ms-vscode'
+                "id": "ms-vscode.vscode-json",
+                "name": "vscode-json",
+                "displayName": "JSON Language Features",
+                "description": "Provides rich language support for JSON",
+                "version": "1.0.0",
+                "publisher": "ms-vscode",
             },
             {
-                'id': 'github.github-vscode-theme',
-                'name': 'github-vscode-theme',
-                'displayName': 'GitHub Theme',
-                'description': 'GitHub theme for VS Code',
-                'version': '6.3.4',
-                'publisher': 'GitHub'
-            }
+                "id": "github.github-vscode-theme",
+                "name": "github-vscode-theme",
+                "displayName": "GitHub Theme",
+                "description": "GitHub theme for VS Code",
+                "version": "6.3.4",
+                "publisher": "GitHub",
+            },
         ]
 
         query_lower = query.lower()
@@ -198,17 +198,20 @@ class MarketplaceClient:
                 break
 
             # Simple matching logic
-            if (query_lower in theme_data['displayName'].lower() or
-                query_lower in theme_data['description'].lower() or
-                'dark' in query_lower and 'dark' in theme_data['description'].lower()):
+            if (
+                query_lower in theme_data["displayName"].lower()
+                or query_lower in theme_data["description"].lower()
+                or "dark" in query_lower
+                and "dark" in theme_data["description"].lower()
+            ):
 
                 extension = ThemeExtension(
-                    id=theme_data['id'],
-                    name=theme_data['name'],
-                    display_name=theme_data['displayName'],
-                    description=theme_data['description'],
-                    version=theme_data['version'],
-                    publisher=theme_data['publisher']
+                    id=theme_data["id"],
+                    name=theme_data["name"],
+                    display_name=theme_data["displayName"],
+                    description=theme_data["description"],
+                    version=theme_data["version"],
+                    publisher=theme_data["publisher"],
                 )
                 suggestions.append(extension)
 
@@ -231,15 +234,17 @@ class MarketplaceClient:
         logger.info(f"Attempting to download theme: {extension_id}")
 
         # Check if already cached
-        extension_dir = self.extensions_dir / extension_id.replace('.', '_')
+        extension_dir = self.extensions_dir / extension_id.replace(".", "_")
         if extension_dir.exists():
             logger.info(f"Theme already cached: {extension_dir}")
             return extension_dir
 
         # For now, return None since we can't directly download from marketplace
         # without authentication. Users should install themes manually.
-        logger.warning(f"Theme {extension_id} not found in cache. "
-                      "Please install manually from VSCode marketplace.")
+        logger.warning(
+            f"Theme {extension_id} not found in cache. "
+            "Please install manually from VSCode marketplace."
+        )
         return None
 
     def import_from_extension(self, extension_path: Path) -> List[Theme]:
@@ -260,7 +265,7 @@ class MarketplaceClient:
         themes = []
 
         try:
-            if extension_path.suffix == '.vsix':
+            if extension_path.suffix == ".vsix":
                 themes = self._import_from_vsix(extension_path)
             elif extension_path.is_dir():
                 themes = self._import_from_directory(extension_path)
@@ -282,7 +287,7 @@ class MarketplaceClient:
             temp_path = Path(temp_dir)
 
             # Extract .vsix file (it's a zip)
-            with zipfile.ZipFile(vsix_path, 'r') as zip_file:
+            with zipfile.ZipFile(vsix_path, "r") as zip_file:
                 zip_file.extractall(temp_path)
 
             # Look for extension directory
@@ -308,8 +313,8 @@ class MarketplaceClient:
             manifest = json.load(f)
 
         # Get theme contributions
-        contributes = manifest.get('contributes', {})
-        theme_contributions = contributes.get('themes', [])
+        contributes = manifest.get("contributes", {})
+        theme_contributions = contributes.get("themes", [])
 
         if not theme_contributions:
             logger.warning("No theme contributions found in extension")
@@ -317,7 +322,7 @@ class MarketplaceClient:
 
         # Import each theme
         for theme_contrib in theme_contributions:
-            theme_path = extension_dir / theme_contrib['path']
+            theme_path = extension_dir / theme_contrib["path"]
             if theme_path.exists():
                 try:
                     theme = self._load_theme_file(theme_path, theme_contrib)
@@ -336,8 +341,9 @@ class MarketplaceClient:
 
             # Convert VSCode theme to our Theme format
             from .importer import VSCodeThemeImporter
+
             importer = VSCodeThemeImporter()
-            theme = importer.import_theme(theme_data, contribution.get('label', 'Unnamed Theme'))
+            theme = importer.import_theme(theme_data, contribution.get("label", "Unnamed Theme"))
 
             return theme
 
@@ -351,21 +357,21 @@ class MarketplaceClient:
 
         # Find theme files
         themes = []
-        contributes = manifest.get('contributes', {})
-        theme_contributions = contributes.get('themes', [])
+        contributes = manifest.get("contributes", {})
+        theme_contributions = contributes.get("themes", [])
 
         for theme_contrib in theme_contributions:
-            themes.append(theme_contrib.get('label', 'Unnamed Theme'))
+            themes.append(theme_contrib.get("label", "Unnamed Theme"))
 
         return ThemeExtension(
             id=extension_id,
-            name=manifest.get('name', 'Unknown'),
-            display_name=manifest.get('displayName', manifest.get('name', 'Unknown')),
-            description=manifest.get('description', ''),
-            version=manifest.get('version', '1.0.0'),
-            publisher=manifest.get('publisher', 'Unknown'),
+            name=manifest.get("name", "Unknown"),
+            display_name=manifest.get("displayName", manifest.get("name", "Unknown")),
+            description=manifest.get("description", ""),
+            version=manifest.get("version", "1.0.0"),
+            publisher=manifest.get("publisher", "Unknown"),
             local_path=local_path,
-            themes=themes
+            themes=themes,
         )
 
     def get_cached_extensions(self) -> List[ThemeExtension]:
@@ -411,7 +417,7 @@ class MarketplaceClient:
         install_dir = self.extensions_dir / extension_id
 
         try:
-            if extension_path.suffix == '.vsix':
+            if extension_path.suffix == ".vsix":
                 self._install_vsix(extension_path, install_dir)
             elif extension_path.is_dir():
                 self._install_directory(extension_path, install_dir)
@@ -439,7 +445,7 @@ class MarketplaceClient:
         """Install .vsix file to directory."""
         ensure_directory(install_dir)
 
-        with zipfile.ZipFile(vsix_path, 'r') as zip_file:
+        with zipfile.ZipFile(vsix_path, "r") as zip_file:
             zip_file.extractall(install_dir)
 
         # Move contents from extension subdirectory if present

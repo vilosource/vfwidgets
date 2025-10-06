@@ -88,6 +88,7 @@ class TestThemePickerDialog:
         # Ensure we start with dark theme
         app.set_theme("dark")
         import time
+
         time.sleep(0.01)  # Allow signal processing
         original_theme = app.current_theme_name
         assert original_theme == "dark"

@@ -145,7 +145,26 @@ class ThemeLogger:
             if extra:
                 # Avoid overwriting standard LogRecord attributes
                 for key, value in extra.items():
-                    if key not in {'name', 'msg', 'args', 'levelname', 'levelno', 'pathname', 'filename', 'module', 'lineno', 'funcName', 'created', 'msecs', 'relativeCreated', 'thread', 'threadName', 'processName', 'process', 'message'}:
+                    if key not in {
+                        "name",
+                        "msg",
+                        "args",
+                        "levelname",
+                        "levelno",
+                        "pathname",
+                        "filename",
+                        "module",
+                        "lineno",
+                        "funcName",
+                        "created",
+                        "msecs",
+                        "relativeCreated",
+                        "thread",
+                        "threadName",
+                        "processName",
+                        "process",
+                        "message",
+                    }:
                         log_extra[key] = value
 
             self.logger.log(level, message, extra=log_extra)
@@ -171,16 +190,19 @@ class ThemeLogger:
 
             # Log if operation was slow
             if duration_ms > 50:  # Configurable threshold
-                self.warning(f"Slow operation: {operation}", extra={
-                    "operation": operation,
-                    "duration_ms": duration_ms,
-                    "performance_warning": True
-                })
+                self.warning(
+                    f"Slow operation: {operation}",
+                    extra={
+                        "operation": operation,
+                        "duration_ms": duration_ms,
+                        "performance_warning": True,
+                    },
+                )
             elif self.debug_enabled:
-                self.debug(f"Operation completed: {operation}", extra={
-                    "operation": operation,
-                    "duration_ms": duration_ms
-                })
+                self.debug(
+                    f"Operation completed: {operation}",
+                    extra={"operation": operation, "duration_ms": duration_ms},
+                )
 
     def measure_time(self, operation: str) -> Callable:
         """Decorator for measuring function execution time.
@@ -194,11 +216,14 @@ class ThemeLogger:
                 pass
 
         """
+
         def decorator(func):
             def wrapper(*args, **kwargs):
                 with self.performance_context(operation):
                     return func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
 
@@ -228,12 +253,12 @@ class ThemeLogFormatter(logging.Formatter):
         formatted = super().format(record)
 
         # Add structured data if present
-        if hasattr(record, 'component'):
+        if hasattr(record, "component"):
             component_info = f" [{record.component}]"
             formatted = formatted.replace(record.name, record.name + component_info)
 
         # Add performance information
-        if hasattr(record, 'duration_ms'):
+        if hasattr(record, "duration_ms"):
             duration = record.duration_ms
             if duration > 100:
                 perf_indicator = f" ⚠️ {duration:.1f}ms"
@@ -244,11 +269,11 @@ class ThemeLogFormatter(logging.Formatter):
             formatted += perf_indicator
 
         # Add operation context
-        if hasattr(record, 'operation'):
+        if hasattr(record, "operation"):
             formatted += f" ({record.operation})"
 
         # Add theme context
-        if hasattr(record, 'theme_name'):
+        if hasattr(record, "theme_name"):
             formatted += f" theme={record.theme_name}"
 
         return formatted
@@ -305,7 +330,9 @@ def get_debug_logger(component_name: str) -> ThemeLogger:
 
 
 # Convenience functions for common logging scenarios
-def log_theme_error(logger: ThemeLogger, error: Exception, context: Optional[Dict[str, Any]] = None) -> None:
+def log_theme_error(
+    logger: ThemeLogger, error: Exception, context: Optional[Dict[str, Any]] = None
+) -> None:
     """Log a theme error with structured context.
 
     Args:
@@ -323,17 +350,19 @@ def log_theme_error(logger: ThemeLogger, error: Exception, context: Optional[Dic
         error_data.update(context)
 
     # Add error-specific attributes if available
-    if hasattr(error, 'theme_name'):
-        error_data['theme_name'] = error.theme_name
-    if hasattr(error, 'property_key'):
-        error_data['property_key'] = error.property_key
-    if hasattr(error, 'file_path'):
-        error_data['file_path'] = error.file_path
+    if hasattr(error, "theme_name"):
+        error_data["theme_name"] = error.theme_name
+    if hasattr(error, "property_key"):
+        error_data["property_key"] = error.property_key
+    if hasattr(error, "file_path"):
+        error_data["file_path"] = error.file_path
 
     logger.error(f"Theme error: {type(error).__name__}", extra=error_data)
 
 
-def log_performance_warning(message: str, duration_ms: float, operation: Optional[str] = None) -> None:
+def log_performance_warning(
+    message: str, duration_ms: float, operation: Optional[str] = None
+) -> None:
     """Log a performance warning for slow operations.
 
     Args:
@@ -344,10 +373,7 @@ def log_performance_warning(message: str, duration_ms: float, operation: Optiona
     """
     perf_logger = get_performance_logger()
 
-    extra_data = {
-        "duration_ms": duration_ms,
-        "performance_warning": True
-    }
+    extra_data = {"duration_ms": duration_ms, "performance_warning": True}
 
     if operation:
         extra_data["operation"] = operation
@@ -366,12 +392,15 @@ def log_theme_switch(theme_name: str, widget_count: int, duration_ms: float) -> 
     """
     logger = create_theme_logger("theme_switch")
 
-    logger.info(f"Theme switched to '{theme_name}'", extra={
-        "theme_name": theme_name,
-        "widget_count": widget_count,
-        "duration_ms": duration_ms,
-        "operation": "theme_switch"
-    })
+    logger.info(
+        f"Theme switched to '{theme_name}'",
+        extra={
+            "theme_name": theme_name,
+            "widget_count": widget_count,
+            "duration_ms": duration_ms,
+            "operation": "theme_switch",
+        },
+    )
 
 
 def log_widget_themed(widget_type: str, theme_properties: int, duration_ms: float) -> None:
@@ -385,12 +414,15 @@ def log_widget_themed(widget_type: str, theme_properties: int, duration_ms: floa
     """
     logger = create_theme_logger("widget_theming")
 
-    logger.debug(f"Widget themed: {widget_type}", extra={
-        "widget_type": widget_type,
-        "theme_properties": theme_properties,
-        "duration_ms": duration_ms,
-        "operation": "widget_theming"
-    })
+    logger.debug(
+        f"Widget themed: {widget_type}",
+        extra={
+            "widget_type": widget_type,
+            "theme_properties": theme_properties,
+            "duration_ms": duration_ms,
+            "operation": "widget_theming",
+        },
+    )
 
 
 # Performance measurement utilities
@@ -448,7 +480,7 @@ class PerformanceTracker:
                         "avg_ms": sum(measurements) / len(measurements),
                         "min_ms": min(measurements),
                         "max_ms": max(measurements),
-                        "total_ms": sum(measurements)
+                        "total_ms": sum(measurements),
                     }
             return stats
 
@@ -529,22 +561,18 @@ __all__ = [
     # Core logging classes
     "ThemeLogger",
     "ThemeLogFormatter",
-
     # Logger creation functions
     "create_theme_logger",
     "get_performance_logger",
     "get_debug_logger",
-
     # Convenience logging functions
     "log_theme_error",
     "log_performance_warning",
     "log_theme_switch",
     "log_widget_themed",
-
     # Performance tracking
     "PerformanceTracker",
     "get_global_performance_tracker",
-
     # Configuration
     "configure_theme_logging",
     "reset_logging_system",

@@ -20,12 +20,10 @@ __all__ = [
     # "ColorValidator",
     # "color_to_hex",
     # "parse_color",
-
     # Caching system
     # "ThemeCache",
     # "PropertyCache",
     # "LRUCache",
-
     # Pattern matching
     # "PropertyMatcher",
     # "ThemePatternMatcher",

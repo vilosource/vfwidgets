@@ -10,20 +10,17 @@ from typing import Optional, Union
 
 from PySide6.QtCore import QSize, QTimer, Signal
 from PySide6.QtWidgets import (
-    QDialog,
     QDialogButtonBox,
     QHBoxLayout,
     QLabel,
     QMessageBox,
     QPushButton,
     QSplitter,
-    QToolBar,
     QVBoxLayout,
     QWidget,
 )
 
 from ..core.theme import Theme, ThemeBuilder
-from ..factory.builder import ThemeComposer
 from ..logging import get_debug_logger
 from ..validation.framework import ValidationResult
 from .base import ThemedWidget
@@ -74,6 +71,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
             show_preview: Show live preview panel (Phase 3)
             show_validation: Show accessibility validation (Phase 4)
             compact_mode: Use compact layout for embedding
+
         """
         super().__init__(parent)
 
@@ -184,6 +182,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Args:
             token_path: Selected token path
+
         """
         logger.debug(f"Token selected in editor: {token_path}")
         self.token_selected.emit(token_path)
@@ -210,6 +209,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Args:
             color_value: New color value
+
         """
         token_path = self._token_browser.get_selected_token()
         if token_path and self._theme_builder:
@@ -233,6 +233,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Args:
             font_value: New font value (CSS string)
+
         """
         token_path = self._token_browser.get_selected_token()
         if token_path and self._theme_builder:
@@ -259,6 +260,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Token value as string
+
         """
         if not self._current_theme:
             return ""
@@ -283,6 +285,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             True if font token
+
         """
         # Font tokens typically contain "font" in the path
         font_keywords = ["font", "fontFamily", "fontSize", "fontWeight"]
@@ -293,6 +296,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Args:
             theme: Theme name or Theme instance
+
         """
         if isinstance(theme, str):
             # Load theme by name
@@ -325,6 +329,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Current theme with all modifications
+
         """
         if self._theme_builder:
             return self._theme_builder.build()
@@ -335,16 +340,14 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Validation result with accessibility checks
+
         """
         # TODO Phase 4: Implement full validation
         # For now, return a placeholder
         from ..validation.framework import ValidationResult
 
         return ValidationResult(
-            valid=True,
-            errors=[],
-            warnings=[],
-            metadata={"phase": "Phase 4 - Not yet implemented"}
+            valid=True, errors=[], warnings=[], metadata={"phase": "Phase 4 - Not yet implemented"}
         )
 
     def reset_theme(self) -> None:
@@ -358,6 +361,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Dict of token_path -> value for modified tokens
+
         """
         # TODO Phase 7: Track modifications for undo/redo
         return {}
@@ -376,7 +380,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         # Apply theme to preview widget (ThemedWidget handles this automatically)
         # We just need to trigger a refresh
-        if hasattr(self, '_preview_widget'):
+        if hasattr(self, "_preview_widget"):
             self._preview_widget.refresh()
 
         logger.debug(f"Preview updated with theme: {self._current_theme.name}")
@@ -386,7 +390,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
         if not self._show_validation or not self._current_theme:
             return
 
-        if hasattr(self, '_validation_panel'):
+        if hasattr(self, "_validation_panel"):
             # Extract color values from theme
             theme_colors = self._current_theme.colors.copy()
             self._validation_panel.validate_theme(theme_colors)
@@ -399,6 +403,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
         Args:
             token_path: Token to fix
             suggested_value: Suggested value
+
         """
         if self._theme_builder:
             # Apply suggested fix
@@ -411,7 +416,7 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
             self._update_validation()
 
             # Select token in browser to show what was fixed
-            if hasattr(self, '_token_browser'):
+            if hasattr(self, "_token_browser"):
                 self._token_browser.select_token(token_path)
 
             logger.info(f"Auto-fix applied: {token_path} = {suggested_value}")
@@ -421,9 +426,10 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         Args:
             token_path: Token to highlight
+
         """
         # Select token in browser
-        if hasattr(self, '_token_browser'):
+        if hasattr(self, "_token_browser"):
             self._token_browser.select_token(token_path)
 
         logger.debug(f"Token highlighted: {token_path}")
@@ -481,6 +487,7 @@ class ThemeEditorDialog(ThemedDialog):
             base_theme: Theme name or Theme instance to start from
             mode: Editor mode ("create", "edit", or "clone")
             size: Initial dialog size
+
         """
         super().__init__(parent)
 
@@ -501,6 +508,7 @@ class ThemeEditorDialog(ThemedDialog):
 
         Args:
             base_theme: Base theme to edit
+
         """
         layout = QVBoxLayout(self)
 
@@ -572,6 +580,7 @@ class ThemeEditorDialog(ThemedDialog):
 
         Returns:
             Theme instance with all modifications
+
         """
         return self._editor.get_theme()
 
@@ -583,6 +592,7 @@ class ThemeEditorDialog(ThemedDialog):
 
         Returns:
             True if successful
+
         """
         theme = self._editor.get_theme()
 
@@ -612,6 +622,7 @@ class ThemeEditorDialog(ThemedDialog):
 
         Returns:
             True if successful
+
         """
         if filepath:
             # Direct import from specified path

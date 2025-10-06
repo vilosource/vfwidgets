@@ -24,6 +24,7 @@ from vfwidgets_theme.core.theme import Theme
 @dataclass
 class BenchmarkResult:
     """Result of a single benchmark."""
+
     name: str
     duration: float  # seconds
     iterations: int
@@ -39,14 +40,14 @@ class BenchmarkResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         result = asdict(self)
-        result['timestamp'] = self.timestamp.isoformat()
+        result["timestamp"] = self.timestamp.isoformat()
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BenchmarkResult':
+    def from_dict(cls, data: Dict[str, Any]) -> "BenchmarkResult":
         """Create from dictionary."""
         data = data.copy()
-        data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        data["timestamp"] = datetime.fromisoformat(data["timestamp"])
         return cls(**data)
 
 
@@ -62,10 +63,10 @@ class BenchmarkSuite:
 
         # Performance requirements (from specs)
         self.requirements = {
-            'theme_switch_time': 0.1,  # < 100ms for 100 widgets
-            'property_access_time': 0.000001,  # < 1μs
-            'widget_creation_time': 0.01,  # < 10ms per widget
-            'memory_overhead': 1.0,  # < 1KB per widget
+            "theme_switch_time": 0.1,  # < 100ms for 100 widgets
+            "property_access_time": 0.000001,  # < 1μs
+            "widget_creation_time": 0.01,  # < 10ms per widget
+            "memory_overhead": 1.0,  # < 1KB per widget
         }
 
         self._init_database()
@@ -73,7 +74,8 @@ class BenchmarkSuite:
     def _init_database(self):
         """Initialize results database."""
         with sqlite3.connect(self.results_db) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS benchmark_results (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
@@ -88,7 +90,8 @@ class BenchmarkSuite:
                     timestamp TEXT NOT NULL,
                     metadata TEXT NOT NULL
                 )
-            """)
+            """
+            )
             conn.commit()
 
     def benchmark(self, name: str = None, iterations: int = 100, warmup: int = 10):
@@ -100,34 +103,38 @@ class BenchmarkSuite:
             iterations: Number of iterations to run
             warmup: Number of warmup iterations
         """
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 benchmark_name = name or func.__name__
-                return self._run_benchmark(benchmark_name, func, iterations, warmup, *args, **kwargs)
+                return self._run_benchmark(
+                    benchmark_name, func, iterations, warmup, *args, **kwargs
+                )
+
             return wrapper
+
         return decorator
 
     def _get_memory_usage(self) -> float:
         """Get current memory usage in MB."""
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_info().rss / 1024 / 1024
         except ImportError:
             # Fallback using sys if psutil not available
             try:
                 import resource
+
                 return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             except:
                 return 0.0
 
-    def _run_benchmark(self,
-                      name: str,
-                      func: Callable,
-                      iterations: int,
-                      warmup: int,
-                      *args, **kwargs) -> BenchmarkResult:
+    def _run_benchmark(
+        self, name: str, func: Callable, iterations: int, warmup: int, *args, **kwargs
+    ) -> BenchmarkResult:
         """Run a benchmark function."""
         print(f"Running benchmark: {name}")
 
@@ -181,7 +188,7 @@ class BenchmarkSuite:
             std_dev=std_dev,
             memory_usage=memory_usage,
             timestamp=datetime.now(),
-            metadata={}
+            metadata={},
         )
 
         self.results.append(result)
@@ -197,27 +204,38 @@ class BenchmarkSuite:
     def _save_result(self, result: BenchmarkResult):
         """Save result to database."""
         with sqlite3.connect(self.results_db) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO benchmark_results
                 (name, duration, iterations, min_time, max_time, mean_time,
                  median_time, std_dev, memory_usage, timestamp, metadata)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                result.name, result.duration, result.iterations,
-                result.min_time, result.max_time, result.mean_time,
-                result.median_time, result.std_dev, result.memory_usage,
-                result.timestamp.isoformat(), json.dumps(result.metadata)
-            ))
+            """,
+                (
+                    result.name,
+                    result.duration,
+                    result.iterations,
+                    result.min_time,
+                    result.max_time,
+                    result.mean_time,
+                    result.median_time,
+                    result.std_dev,
+                    result.memory_usage,
+                    result.timestamp.isoformat(),
+                    json.dumps(result.metadata),
+                ),
+            )
             conn.commit()
 
     # Micro-benchmarks
     def bench_property_access(self):
         """Benchmark theme property access."""
+
         def benchmark_func():
             theme = Theme(
                 name="benchmark_theme",
                 colors={"primary": "#007acc", "secondary": "#6f6f6f"},
-                styles={"font_size": "12px", "margin": "4px"}
+                styles={"font_size": "12px", "margin": "4px"},
             )
 
             # Access various properties
@@ -230,6 +248,7 @@ class BenchmarkSuite:
 
     def bench_widget_creation(self):
         """Benchmark themed widget creation."""
+
         def benchmark_func():
             app = QApplication.instance()
             if not app:
@@ -242,18 +261,16 @@ class BenchmarkSuite:
 
     def bench_theme_switching(self):
         """Benchmark theme switching performance."""
+
         def benchmark_func():
-            app = ThemedApplication.instance() if hasattr(ThemedApplication, 'instance') else None
+            app = ThemedApplication.instance() if hasattr(ThemedApplication, "instance") else None
             if not app:
                 app = QApplication.instance()
                 if not isinstance(app, ThemedApplication):
                     return
 
             # Create test theme
-            theme = Theme(
-                name=f"bench_theme_{time.time()}",
-                colors={"primary": "#ff0000"}
-            )
+            theme = Theme(name=f"bench_theme_{time.time()}", colors={"primary": "#ff0000"})
 
             # Switch theme
             app.set_theme(theme)
@@ -262,6 +279,7 @@ class BenchmarkSuite:
 
     def bench_qss_generation(self):
         """Benchmark QSS style generation."""
+
         def benchmark_func():
             theme = Theme(
                 name="qss_benchmark",
@@ -269,14 +287,14 @@ class BenchmarkSuite:
                     "background": "#ffffff",
                     "foreground": "#000000",
                     "primary": "#007acc",
-                    "secondary": "#6f6f6f"
+                    "secondary": "#6f6f6f",
                 },
                 styles={
                     "font_family": "Arial",
                     "font_size": "12px",
                     "border_radius": "4px",
-                    "padding": "8px"
-                }
+                    "padding": "8px",
+                },
             )
 
             # Simulate QSS generation
@@ -298,6 +316,7 @@ class BenchmarkSuite:
     # Macro-benchmarks
     def bench_complex_application(self):
         """Benchmark complex application with multiple widgets."""
+
         def benchmark_func():
             app = QApplication.instance()
             if not app:
@@ -313,10 +332,10 @@ class BenchmarkSuite:
             # Apply theme to all widgets
             theme = Theme(
                 name=f"complex_theme_{time.time()}",
-                colors={"background": "#f0f0f0", "text": "#333333"}
+                colors={"background": "#f0f0f0", "text": "#333333"},
             )
 
-            if hasattr(app, 'set_theme'):
+            if hasattr(app, "set_theme"):
                 app.set_theme(theme)
 
             # Cleanup
@@ -327,9 +346,10 @@ class BenchmarkSuite:
 
     def bench_rapid_theme_switching(self):
         """Benchmark rapid theme switching."""
+
         def benchmark_func():
             app = QApplication.instance()
-            if not app or not hasattr(app, 'set_theme'):
+            if not app or not hasattr(app, "set_theme"):
                 return
 
             # Create widget
@@ -338,10 +358,7 @@ class BenchmarkSuite:
             # Switch themes rapidly
             themes = []
             for i in range(5):
-                theme = Theme(
-                    name=f"rapid_theme_{i}",
-                    colors={"primary": f"#{i:02x}0000"}
-                )
+                theme = Theme(name=f"rapid_theme_{i}", colors={"primary": f"#{i:02x}0000"})
                 themes.append(theme)
 
             for theme in themes:
@@ -353,6 +370,7 @@ class BenchmarkSuite:
 
     def bench_memory_efficiency(self):
         """Benchmark memory efficiency."""
+
         def benchmark_func():
             # Create and destroy widgets to test memory efficiency
             widgets = []
@@ -399,27 +417,30 @@ class BenchmarkSuite:
     def get_historical_results(self, name: str, limit: int = 100) -> List[BenchmarkResult]:
         """Get historical results for a benchmark."""
         with sqlite3.connect(self.results_db) as conn:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM benchmark_results
                 WHERE name = ?
                 ORDER BY timestamp DESC
                 LIMIT ?
-            """, (name, limit))
+            """,
+                (name, limit),
+            )
 
             results = []
             for row in cursor:
                 result_data = {
-                    'name': row[1],
-                    'duration': row[2],
-                    'iterations': row[3],
-                    'min_time': row[4],
-                    'max_time': row[5],
-                    'mean_time': row[6],
-                    'median_time': row[7],
-                    'std_dev': row[8],
-                    'memory_usage': row[9],
-                    'timestamp': row[10],
-                    'metadata': json.loads(row[11])
+                    "name": row[1],
+                    "duration": row[2],
+                    "iterations": row[3],
+                    "min_time": row[4],
+                    "max_time": row[5],
+                    "mean_time": row[6],
+                    "median_time": row[7],
+                    "std_dev": row[8],
+                    "memory_usage": row[9],
+                    "timestamp": row[10],
+                    "metadata": json.loads(row[11]),
                 }
                 results.append(BenchmarkResult.from_dict(result_data))
 
@@ -451,11 +472,11 @@ class BenchmarkSuite:
 
                 if current_time > recent_avg * (1 + threshold):
                     regression = {
-                        'name': result.name,
-                        'current_time': current_time,
-                        'baseline_time': recent_avg,
-                        'regression_factor': current_time / recent_avg,
-                        'threshold_exceeded': (current_time / recent_avg - 1) * 100
+                        "name": result.name,
+                        "current_time": current_time,
+                        "baseline_time": recent_avg,
+                        "regression_factor": current_time / recent_avg,
+                        "threshold_exceeded": (current_time / recent_avg - 1) * 100,
                     }
                     regressions.append(regression)
 
@@ -463,16 +484,12 @@ class BenchmarkSuite:
 
     def validate_performance_requirements(self) -> Dict[str, Any]:
         """Validate results against performance requirements."""
-        validation_results = {
-            'passed': [],
-            'failed': [],
-            'overall_pass': True
-        }
+        validation_results = {"passed": [], "failed": [], "overall_pass": True}
 
         requirement_mapping = {
-            'bench_property_access': 'property_access_time',
-            'bench_widget_creation': 'widget_creation_time',
-            'bench_theme_switching': 'theme_switch_time',
+            "bench_property_access": "property_access_time",
+            "bench_widget_creation": "widget_creation_time",
+            "bench_theme_switching": "theme_switch_time",
         }
 
         for result in self.results:
@@ -481,27 +498,31 @@ class BenchmarkSuite:
                 requirement = self.requirements[requirement_key]
 
                 if result.mean_time <= requirement:
-                    validation_results['passed'].append({
-                        'benchmark': result.name,
-                        'actual': result.mean_time,
-                        'requirement': requirement,
-                        'margin': requirement - result.mean_time
-                    })
+                    validation_results["passed"].append(
+                        {
+                            "benchmark": result.name,
+                            "actual": result.mean_time,
+                            "requirement": requirement,
+                            "margin": requirement - result.mean_time,
+                        }
+                    )
                 else:
-                    validation_results['failed'].append({
-                        'benchmark': result.name,
-                        'actual': result.mean_time,
-                        'requirement': requirement,
-                        'excess': result.mean_time - requirement
-                    })
-                    validation_results['overall_pass'] = False
+                    validation_results["failed"].append(
+                        {
+                            "benchmark": result.name,
+                            "actual": result.mean_time,
+                            "requirement": requirement,
+                            "excess": result.mean_time - requirement,
+                        }
+                    )
+                    validation_results["overall_pass"] = False
 
         return validation_results
 
     def generate_report(self) -> Dict[str, Any]:
         """Generate comprehensive benchmark report."""
         if not self.results:
-            return {'error': 'No benchmark results available'}
+            return {"error": "No benchmark results available"}
 
         # Basic statistics
         total_benchmarks = len(self.results)
@@ -517,36 +538,38 @@ class BenchmarkSuite:
         # Results summary
         results_summary = []
         for result in self.results:
-            results_summary.append({
-                'name': result.name,
-                'mean_time_ms': result.mean_time * 1000,
-                'median_time_ms': result.median_time * 1000,
-                'std_dev_ms': result.std_dev * 1000,
-                'memory_mb': result.memory_usage,
-                'iterations': result.iterations
-            })
+            results_summary.append(
+                {
+                    "name": result.name,
+                    "mean_time_ms": result.mean_time * 1000,
+                    "median_time_ms": result.median_time * 1000,
+                    "std_dev_ms": result.std_dev * 1000,
+                    "memory_mb": result.memory_usage,
+                    "iterations": result.iterations,
+                }
+            )
 
         return {
-            'timestamp': datetime.now().isoformat(),
-            'total_benchmarks': total_benchmarks,
-            'total_time': total_time,
-            'average_time': avg_time,
-            'performance_validation': performance_validation,
-            'regressions': regressions,
-            'results': results_summary,
-            'requirements': self.requirements
+            "timestamp": datetime.now().isoformat(),
+            "total_benchmarks": total_benchmarks,
+            "total_time": total_time,
+            "average_time": avg_time,
+            "performance_validation": performance_validation,
+            "regressions": regressions,
+            "results": results_summary,
+            "requirements": self.requirements,
         }
 
     def save_report(self, filename: Optional[str] = None) -> Path:
         """Save benchmark report to file."""
         if not filename:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"benchmark_report_{timestamp}.json"
 
         report_path = self.results_dir / filename
         report = self.generate_report()
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         return report_path
@@ -574,9 +597,11 @@ if __name__ == "__main__":
     report = suite.generate_report()
     print("\nBenchmark Report:")
     print(f"Total benchmarks: {report['total_benchmarks']}")
-    print(f"Performance validation: {'PASS' if report['performance_validation']['overall_pass'] else 'FAIL'}")
+    print(
+        f"Performance validation: {'PASS' if report['performance_validation']['overall_pass'] else 'FAIL'}"
+    )
 
-    if report['regressions']:
+    if report["regressions"]:
         print(f"Regressions detected: {len(report['regressions'])}")
 
     # Save report

@@ -44,12 +44,12 @@ class TestDefaultThemeProvider(ThemedTestCase):
                 "primary": "#007acc",
                 "secondary": "#ffffff",
                 "background": "#f5f5f5",
-                "foreground": "#333333"
+                "foreground": "#333333",
             },
             "styles": {
                 "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
-                "QLabel": "color: @colors.foreground; background-color: @colors.background;"
-            }
+                "QLabel": "color: @colors.foreground; background-color: @colors.background;",
+            },
         }
         self.sample_theme = Theme.from_dict(self.sample_theme_data)
 
@@ -188,10 +188,7 @@ class TestDefaultThemeProvider(ThemedTestCase):
             """Worker function for concurrent testing."""
             try:
                 # Create worker-specific theme
-                theme_data = {
-                    **self.sample_theme_data,
-                    "name": f"worker-theme-{worker_id}"
-                }
+                theme_data = {**self.sample_theme_data, "name": f"worker-theme-{worker_id}"}
                 theme = Theme.from_dict(theme_data)
                 themes.append(theme)
 
@@ -237,13 +234,8 @@ class TestCachedThemeProvider(ThemedTestCase):
         self.sample_theme_data = {
             "name": "cached-test-theme",
             "version": "1.0.0",
-            "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff"
-            },
-            "styles": {
-                "QPushButton": "background-color: @colors.primary;"
-            }
+            "colors": {"primary": "#007acc", "secondary": "#ffffff"},
+            "styles": {"QPushButton": "background-color: @colors.primary;"},
         }
         self.sample_theme = Theme.from_dict(self.sample_theme_data)
 
@@ -279,7 +271,9 @@ class TestCachedThemeProvider(ThemedTestCase):
 
         # Cache should not exceed size limit
         # (Implementation dependent - this tests the concept)
-        self.assertLessEqual(len(small_cached_provider._color_cache), small_cached_provider._cache_size + 1)
+        self.assertLessEqual(
+            len(small_cached_provider._color_cache), small_cached_provider._cache_size + 1
+        )
 
     def test_cache_invalidation_specific_theme(self):
         """Test invalidating cache for specific theme."""
@@ -352,13 +346,13 @@ class TestCompositeThemeProvider(ThemedTestCase):
             "name": "theme1",
             "version": "1.0.0",
             "colors": {"primary": "#ff0000"},
-            "styles": {"QPushButton": "color: red;"}
+            "styles": {"QPushButton": "color: red;"},
         }
         self.theme2_data = {
             "name": "theme2",
             "version": "1.0.0",
             "colors": {"primary": "#00ff00"},
-            "styles": {"QPushButton": "color: green;"}
+            "styles": {"QPushButton": "color: green;"},
         }
 
         self.theme1 = Theme.from_dict(self.theme1_data)
@@ -403,18 +397,22 @@ class TestCompositeThemeProvider(ThemedTestCase):
     def test_get_color_priority_order(self):
         """Test color retrieval respects provider priority order."""
         # Both providers have same theme name but different colors
-        theme_same_name_1 = Theme.from_dict({
-            "name": "same-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#ff0000"},
-            "styles": {}
-        })
-        theme_same_name_2 = Theme.from_dict({
-            "name": "same-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#00ff00"},
-            "styles": {}
-        })
+        theme_same_name_1 = Theme.from_dict(
+            {
+                "name": "same-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#ff0000"},
+                "styles": {},
+            }
+        )
+        theme_same_name_2 = Theme.from_dict(
+            {
+                "name": "same-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#00ff00"},
+                "styles": {},
+            }
+        )
 
         self.provider1.add_theme(theme_same_name_1)
         self.provider2.add_theme(theme_same_name_2)
@@ -480,12 +478,14 @@ class TestProviderFactories(ThemedTestCase):
 
     def test_create_default_provider_with_themes(self):
         """Test creating default provider with initial themes."""
-        theme = Theme.from_dict({
-            "name": "factory-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "factory-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {},
+            }
+        )
         themes = {"factory-theme": theme}
 
         provider = create_default_provider(themes)
@@ -534,7 +534,7 @@ class TestProviderPerformance(ThemedTestCase):
             "name": "performance-theme",
             "version": "1.0.0",
             "colors": {f"color{i}": f"#{i:06x}" for i in range(100)},
-            "styles": {f"Widget{i}": f"color: #{i:06x};" for i in range(100)}
+            "styles": {f"Widget{i}": f"color: #{i:06x};" for i in range(100)},
         }
         self.perf_theme = Theme.from_dict(self.perf_theme_data)
 
@@ -622,7 +622,7 @@ class TestProviderPerformance(ThemedTestCase):
                 "name": f"memory-theme-{i}",
                 "version": "1.0.0",
                 "colors": {f"color{j}": f"#{j:06x}" for j in range(10)},
-                "styles": {f"Widget{j}": f"color: #{j:06x};" for j in range(10)}
+                "styles": {f"Widget{j}": f"color: #{j:06x};" for j in range(10)},
             }
             theme = Theme.from_dict(theme_data)
             themes.append(theme)
@@ -657,12 +657,14 @@ class TestProviderIntegration(ThemedTestCase):
         composite_provider = CompositeThemeProvider([cached_provider])
 
         # Add theme through base provider
-        theme = Theme.from_dict({
-            "name": "layered-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        theme = Theme.from_dict(
+            {
+                "name": "layered-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
         base_provider.add_theme(theme)
 
         # Access through composite (should work through all layers)
@@ -675,12 +677,14 @@ class TestProviderIntegration(ThemedTestCase):
         provider = DefaultThemeProvider()
 
         # Add theme with partial data
-        partial_theme = Theme.from_dict({
-            "name": "partial-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},  # Only has primary
-            "styles": {}
-        })
+        partial_theme = Theme.from_dict(
+            {
+                "name": "partial-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},  # Only has primary
+                "styles": {},
+            }
+        )
         provider.add_theme(partial_theme)
 
         # Should get primary color from theme
@@ -696,7 +700,7 @@ class TestProviderIntegration(ThemedTestCase):
         providers = [
             DefaultThemeProvider(),
             CachedThemeProvider(DefaultThemeProvider()),
-            CompositeThemeProvider()
+            CompositeThemeProvider(),
         ]
 
         for provider in providers:

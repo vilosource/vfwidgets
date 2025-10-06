@@ -13,7 +13,7 @@ Tests the stylesheet generation system including:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import unittest
 
@@ -36,7 +36,6 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "colors.focusBorder": "#007acc",
                 "colors.contrastBorder": "#3c3c3c",
                 "colors.disabledForeground": "#555555",
-
                 # Button colors
                 "button.background": "#0e639c",
                 "button.foreground": "#ffffff",
@@ -45,25 +44,20 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "button.pressedBackground": "#094771",
                 "button.disabledBackground": "#555555",
                 "button.disabledForeground": "#999999",
-
                 # Secondary button
                 "button.secondary.background": "#313131",
                 "button.secondary.foreground": "#cccccc",
                 "button.secondary.hoverBackground": "#3e3e3e",
-
                 # Danger button
                 "button.danger.background": "#dc3545",
                 "button.danger.hoverBackground": "#c82333",
-
                 # Success button
                 "button.success.background": "#28a745",
                 "button.success.hoverBackground": "#218838",
-
                 # Warning button
                 "button.warning.background": "#ffc107",
                 "button.warning.foreground": "#000000",
                 "button.warning.hoverBackground": "#e0a800",
-
                 # Input colors
                 "input.background": "#3c3c3c",
                 "input.foreground": "#cccccc",
@@ -72,12 +66,10 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "input.focusBorder": "#007acc",
                 "input.disabledBackground": "#555555",
                 "input.disabledForeground": "#999999",
-
                 # Editor colors
                 "editor.background": "#1e1e1e",
                 "editor.foreground": "#d4d4d4",
                 "editor.selectionBackground": "#264f78",
-
                 # List colors
                 "list.background": "#252526",
                 "list.foreground": "#cccccc",
@@ -85,7 +77,6 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "list.activeSelectionForeground": "#ffffff",
                 "list.inactiveSelectionBackground": "#37373d",
                 "list.hoverBackground": "#2a2d2e",
-
                 # Tab colors
                 "tab.activeBackground": "#1e1e1e",
                 "tab.activeForeground": "#ffffff",
@@ -93,7 +84,6 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "tab.inactiveForeground": "#969696",
                 "tab.hoverBackground": "#2a2d2e",
                 "tab.border": "#252526",
-
                 # Menu colors
                 "menu.background": "#252526",
                 "menu.foreground": "#cccccc",
@@ -102,34 +92,27 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "menu.selectionForeground": "#ffffff",
                 "menu.separatorBackground": "#454545",
                 "menubar.background": "#252526",
-
                 # Scrollbar colors
                 "scrollbarSlider.background": "#79797966",
                 "scrollbarSlider.hoverBackground": "#797979cc",
                 "scrollbarSlider.activeBackground": "#bfbfbf66",
-
                 # Combobox colors
                 "combobox.background": "#3c3c3c",
                 "combobox.foreground": "#cccccc",
                 "combobox.border": "#3c3c3c",
                 "combobox.arrowForeground": "#999999",
                 "dropdown.listBackground": "#252526",
-
                 # Table colors
                 "table.gridColor": "#3c3c3c",
                 "table.headerBackground": "#2d2d2d",
                 "table.headerForeground": "#cccccc",
-
                 # Status bar
                 "statusBar.background": "#007acc",
                 "statusBar.foreground": "#ffffff",
-
                 # Progress bar
                 "progressBar.background": "#007acc",
-
                 # Splitter
                 "splitter.background": "#3c3c3c",
-
                 # Fonts
                 "font.default.family": "Segoe UI, Arial, sans-serif",
                 "font.default.size": "9pt",
@@ -143,7 +126,7 @@ class TestStylesheetGenerator(unittest.TestCase):
                 "font.tab.size": "9pt",
                 "font.menu.family": "Segoe UI, Arial, sans-serif",
                 "font.menu.size": "9pt",
-            }
+            },
         )
 
     def test_generator_initialization(self):
@@ -350,7 +333,7 @@ class TestStylesheetGenerator(unittest.TestCase):
             colors={
                 "colors.background": "#ffffff",
                 "colors.foreground": "#000000",
-            }
+            },
         )
 
         generator = StylesheetGenerator(minimal_theme, "TestWidget")
@@ -369,19 +352,41 @@ class TestStylesheetGenerator(unittest.TestCase):
 
         # List of all widget types that should be styled
         widget_types = [
-            "QPushButton", "QToolButton", "QRadioButton", "QCheckBox",
-            "QLineEdit", "QTextEdit", "QPlainTextEdit", "QSpinBox", "QDoubleSpinBox",
-            "QListWidget", "QListView", "QTreeWidget", "QTreeView",
-            "QTableWidget", "QTableView", "QHeaderView",
-            "QComboBox", "QTabWidget", "QTabBar",
-            "QMenuBar", "QMenu", "QScrollBar",
-            "QGroupBox", "QFrame", "QSplitter", "QToolBar", "QStatusBar",
-            "QLabel", "QProgressBar"
+            "QPushButton",
+            "QToolButton",
+            "QRadioButton",
+            "QCheckBox",
+            "QLineEdit",
+            "QTextEdit",
+            "QPlainTextEdit",
+            "QSpinBox",
+            "QDoubleSpinBox",
+            "QListWidget",
+            "QListView",
+            "QTreeWidget",
+            "QTreeView",
+            "QTableWidget",
+            "QTableView",
+            "QHeaderView",
+            "QComboBox",
+            "QTabWidget",
+            "QTabBar",
+            "QMenuBar",
+            "QMenu",
+            "QScrollBar",
+            "QGroupBox",
+            "QFrame",
+            "QSplitter",
+            "QToolBar",
+            "QStatusBar",
+            "QLabel",
+            "QProgressBar",
         ]
 
         for widget_type in widget_types:
-            self.assertIn(widget_type, stylesheet,
-                         f"Widget type {widget_type} should be in stylesheet")
+            self.assertIn(
+                widget_type, stylesheet, f"Widget type {widget_type} should be in stylesheet"
+            )
 
     def test_pseudo_states_coverage(self):
         """Test that all major pseudo-states are covered."""
@@ -392,13 +397,17 @@ class TestStylesheetGenerator(unittest.TestCase):
         # Note: :checked is not included because it's mostly used for checkboxes/radio buttons
         # which inherit default Qt styling, and our theme system doesn't override it
         pseudo_states = [
-            ":hover", ":pressed", ":disabled", ":focus",
-            ":selected", "::item", "::tab"
+            ":hover",
+            ":pressed",
+            ":disabled",
+            ":focus",
+            ":selected",
+            "::item",
+            "::tab",
         ]
 
         for state in pseudo_states:
-            self.assertIn(state, stylesheet,
-                         f"Pseudo-state {state} should be in stylesheet")
+            self.assertIn(state, stylesheet, f"Pseudo-state {state} should be in stylesheet")
 
     def test_font_hierarchy(self):
         """Test that font hierarchy is properly implemented."""
@@ -421,5 +430,5 @@ class TestStylesheetGenerator(unittest.TestCase):
         self.assertNotIn("\n\n\n\n\n", stylesheet)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

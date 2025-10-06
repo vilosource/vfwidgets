@@ -44,7 +44,7 @@ class SchemaField:
     min_length: Optional[int] = None
     max_length: Optional[int] = None
     pattern: Optional[str] = None
-    nested_schema: Optional['Schema'] = None
+    nested_schema: Optional["Schema"] = None
 
     def validate(self, value: Any, result: ValidationResult):
         """Validate a value against this field schema."""
@@ -56,7 +56,9 @@ class SchemaField:
 
         # Type validation
         if not self._validate_type(value):
-            result.add_error(f"Field '{self.name}' has invalid type: expected {self.schema_type.name}, got {type(value).__name__}")
+            result.add_error(
+                f"Field '{self.name}' has invalid type: expected {self.schema_type.name}, got {type(value).__name__}"
+            )
             return
 
         # Value constraints
@@ -99,23 +101,33 @@ class SchemaField:
         # Numeric constraints
         if isinstance(value, (int, float)):
             if self.min_value is not None and value < self.min_value:
-                result.add_error(f"Field '{self.name}' value {value} is below minimum {self.min_value}")
+                result.add_error(
+                    f"Field '{self.name}' value {value} is below minimum {self.min_value}"
+                )
             if self.max_value is not None and value > self.max_value:
-                result.add_error(f"Field '{self.name}' value {value} is above maximum {self.max_value}")
+                result.add_error(
+                    f"Field '{self.name}' value {value} is above maximum {self.max_value}"
+                )
 
         # String constraints
         if isinstance(value, str):
             if self.min_length is not None and len(value) < self.min_length:
-                result.add_error(f"Field '{self.name}' length {len(value)} is below minimum {self.min_length}")
+                result.add_error(
+                    f"Field '{self.name}' length {len(value)} is below minimum {self.min_length}"
+                )
             if self.max_length is not None and len(value) > self.max_length:
-                result.add_error(f"Field '{self.name}' length {len(value)} is above maximum {self.max_length}")
+                result.add_error(
+                    f"Field '{self.name}' length {len(value)} is above maximum {self.max_length}"
+                )
             if self.pattern and not re.match(self.pattern, value):
                 result.add_error(f"Field '{self.name}' does not match pattern {self.pattern}")
 
         # Enum constraints
         if self.schema_type == SchemaType.ENUM and self.enum_values:
             if value not in self.enum_values:
-                result.add_error(f"Field '{self.name}' value '{value}' not in allowed values {self.enum_values}")
+                result.add_error(
+                    f"Field '{self.name}' value '{value}' not in allowed values {self.enum_values}"
+                )
 
         # Nested schema validation
         if self.nested_schema and isinstance(value, dict):
@@ -129,7 +141,7 @@ class SchemaField:
             return False
 
         # Hex colors
-        if value.startswith('#'):
+        if value.startswith("#"):
             hex_part = value[1:]
             if len(hex_part) in (3, 4, 6, 8):  # #RGB, #RGBA, #RRGGBB, #RRGGBBAA
                 try:
@@ -139,15 +151,28 @@ class SchemaField:
                     pass
 
         # RGB/RGBA functions
-        rgb_pattern = r'^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$'
-        rgba_pattern = r'^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-1]?\.?\d*)\s*\)$'
+        rgb_pattern = r"^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$"
+        rgba_pattern = r"^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-1]?\.?\d*)\s*\)$"
         if re.match(rgb_pattern, value) or re.match(rgba_pattern, value):
             return True
 
         # Named colors (basic set)
         named_colors = {
-            'red', 'green', 'blue', 'white', 'black', 'transparent', 'gray', 'grey',
-            'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown'
+            "red",
+            "green",
+            "blue",
+            "white",
+            "black",
+            "transparent",
+            "gray",
+            "grey",
+            "yellow",
+            "cyan",
+            "magenta",
+            "orange",
+            "purple",
+            "pink",
+            "brown",
         }
         return value.lower() in named_colors
 
@@ -157,7 +182,7 @@ class SchemaField:
             return False
 
         # CSS unit pattern: number followed by optional unit
-        pattern = r'^-?\d*\.?\d+(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch)?$'
+        pattern = r"^-?\d*\.?\d+(px|em|rem|%|vh|vw|pt|pc|in|cm|mm|ex|ch)?$"
         return re.match(pattern, value) is not None
 
 
@@ -179,7 +204,7 @@ class Schema:
         result = ValidationResult(
             passed=True,
             validation_type=ValidationType.SCHEMA,
-            message=f"Schema validation for {self.name}"
+            message=f"Schema validation for {self.name}",
         )
 
         if not isinstance(data, dict):
@@ -219,7 +244,7 @@ class Schema:
 # Common validator functions
 def validate_hex_color(value: Any, result: ValidationResult, field_name: str):
     """Validate hex color format."""
-    if isinstance(value, str) and value.startswith('#'):
+    if isinstance(value, str) and value.startswith("#"):
         hex_part = value[1:]
         if len(hex_part) not in (3, 6, 8):
             result.add_error(f"Invalid hex color length in {field_name}: {value}")
@@ -238,7 +263,7 @@ def validate_positive_number(value: Any, result: ValidationResult, field_name: s
 def validate_css_size(value: Any, result: ValidationResult, field_name: str):
     """Validate CSS size units."""
     if isinstance(value, str):
-        pattern = r'^\d+(\.\d+)?(px|em|rem|%|pt|pc|in|cm|mm|vh|vw)$'
+        pattern = r"^\d+(\.\d+)?(px|em|rem|%|pt|pc|in|cm|mm|vh|vw)$"
         if not re.match(pattern, value):
             result.add_error(f"Invalid CSS size format in {field_name}: {value}")
 
@@ -246,104 +271,172 @@ def validate_css_size(value: Any, result: ValidationResult, field_name: str):
 # Predefined schemas
 def create_color_schema() -> Schema:
     """Create schema for color definitions."""
-    return Schema("Color", [
-        SchemaField("value", SchemaType.COLOR, required=True),
-        SchemaField("alpha", SchemaType.FLOAT, required=False, min_value=0.0, max_value=1.0),
-        SchemaField("name", SchemaType.STRING, required=False, max_length=50)
-    ])
+    return Schema(
+        "Color",
+        [
+            SchemaField("value", SchemaType.COLOR, required=True),
+            SchemaField("alpha", SchemaType.FLOAT, required=False, min_value=0.0, max_value=1.0),
+            SchemaField("name", SchemaType.STRING, required=False, max_length=50),
+        ],
+    )
 
 
 def create_style_schema() -> Schema:
     """Create schema for style definitions."""
-    return Schema("Style", [
-        SchemaField("font_family", SchemaType.STRING, required=False, max_length=100),
-        SchemaField("font_size", SchemaType.CSS_UNIT, required=False,
-                   validators=[validate_css_size]),
-        SchemaField("font_weight", SchemaType.ENUM, required=False,
-                   enum_values=["normal", "bold", "lighter", "bolder", "100", "200", "300", "400", "500", "600", "700", "800", "900"]),
-        SchemaField("color", SchemaType.COLOR, required=False),
-        SchemaField("background_color", SchemaType.COLOR, required=False),
-        SchemaField("border_width", SchemaType.CSS_UNIT, required=False,
-                   validators=[validate_css_size]),
-        SchemaField("border_radius", SchemaType.CSS_UNIT, required=False,
-                   validators=[validate_css_size]),
-        SchemaField("padding", SchemaType.CSS_UNIT, required=False,
-                   validators=[validate_css_size]),
-        SchemaField("margin", SchemaType.CSS_UNIT, required=False,
-                   validators=[validate_css_size])
-    ])
+    return Schema(
+        "Style",
+        [
+            SchemaField("font_family", SchemaType.STRING, required=False, max_length=100),
+            SchemaField(
+                "font_size", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+            ),
+            SchemaField(
+                "font_weight",
+                SchemaType.ENUM,
+                required=False,
+                enum_values=[
+                    "normal",
+                    "bold",
+                    "lighter",
+                    "bolder",
+                    "100",
+                    "200",
+                    "300",
+                    "400",
+                    "500",
+                    "600",
+                    "700",
+                    "800",
+                    "900",
+                ],
+            ),
+            SchemaField("color", SchemaType.COLOR, required=False),
+            SchemaField("background_color", SchemaType.COLOR, required=False),
+            SchemaField(
+                "border_width", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+            ),
+            SchemaField(
+                "border_radius", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+            ),
+            SchemaField(
+                "padding", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+            ),
+            SchemaField(
+                "margin", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+            ),
+        ],
+    )
 
 
 class ThemeSchema(Schema):
     """Schema for theme validation."""
 
     def __init__(self):
-        super().__init__("Theme", [
-            SchemaField("name", SchemaType.STRING, required=True,
-                       min_length=1, max_length=100,
-                       pattern=r'^[a-zA-Z][a-zA-Z0-9_-]*$'),
-            SchemaField("version", SchemaType.STRING, required=False,
-                       pattern=r'^\d+\.\d+\.\d+$'),
-            SchemaField("description", SchemaType.STRING, required=False,
-                       max_length=500),
-            SchemaField("colors", SchemaType.DICT, required=True),
-            SchemaField("styles", SchemaType.DICT, required=True),
-            SchemaField("metadata", SchemaType.DICT, required=False)
-        ])
+        super().__init__(
+            "Theme",
+            [
+                SchemaField(
+                    "name",
+                    SchemaType.STRING,
+                    required=True,
+                    min_length=1,
+                    max_length=100,
+                    pattern=r"^[a-zA-Z][a-zA-Z0-9_-]*$",
+                ),
+                SchemaField(
+                    "version", SchemaType.STRING, required=False, pattern=r"^\d+\.\d+\.\d+$"
+                ),
+                SchemaField("description", SchemaType.STRING, required=False, max_length=500),
+                SchemaField("colors", SchemaType.DICT, required=True),
+                SchemaField("styles", SchemaType.DICT, required=True),
+                SchemaField("metadata", SchemaType.DICT, required=False),
+            ],
+        )
 
 
 class WidgetSchema(Schema):
     """Schema for widget validation."""
 
     def __init__(self):
-        super().__init__("Widget", [
-            SchemaField("name", SchemaType.STRING, required=True,
-                       min_length=1, max_length=100),
-            SchemaField("type", SchemaType.STRING, required=True,
-                       enum_values=["button", "label", "input", "textarea", "select", "checkbox", "radio"]),
-            SchemaField("theme", SchemaType.STRING, required=False),
-            SchemaField("styles", SchemaType.DICT, required=False),
-            SchemaField("enabled", SchemaType.BOOLEAN, required=False, default=True),
-            SchemaField("visible", SchemaType.BOOLEAN, required=False, default=True)
-        ])
+        super().__init__(
+            "Widget",
+            [
+                SchemaField("name", SchemaType.STRING, required=True, min_length=1, max_length=100),
+                SchemaField(
+                    "type",
+                    SchemaType.STRING,
+                    required=True,
+                    enum_values=[
+                        "button",
+                        "label",
+                        "input",
+                        "textarea",
+                        "select",
+                        "checkbox",
+                        "radio",
+                    ],
+                ),
+                SchemaField("theme", SchemaType.STRING, required=False),
+                SchemaField("styles", SchemaType.DICT, required=False),
+                SchemaField("enabled", SchemaType.BOOLEAN, required=False, default=True),
+                SchemaField("visible", SchemaType.BOOLEAN, required=False, default=True),
+            ],
+        )
 
 
 class ColorSchema(Schema):
     """Schema for color validation."""
 
     def __init__(self):
-        super().__init__("Color", [
-            SchemaField("primary", SchemaType.COLOR, required=True),
-            SchemaField("secondary", SchemaType.COLOR, required=False),
-            SchemaField("background", SchemaType.COLOR, required=False),
-            SchemaField("foreground", SchemaType.COLOR, required=False),
-            SchemaField("accent", SchemaType.COLOR, required=False),
-            SchemaField("error", SchemaType.COLOR, required=False),
-            SchemaField("warning", SchemaType.COLOR, required=False),
-            SchemaField("success", SchemaType.COLOR, required=False),
-            SchemaField("info", SchemaType.COLOR, required=False)
-        ])
+        super().__init__(
+            "Color",
+            [
+                SchemaField("primary", SchemaType.COLOR, required=True),
+                SchemaField("secondary", SchemaType.COLOR, required=False),
+                SchemaField("background", SchemaType.COLOR, required=False),
+                SchemaField("foreground", SchemaType.COLOR, required=False),
+                SchemaField("accent", SchemaType.COLOR, required=False),
+                SchemaField("error", SchemaType.COLOR, required=False),
+                SchemaField("warning", SchemaType.COLOR, required=False),
+                SchemaField("success", SchemaType.COLOR, required=False),
+                SchemaField("info", SchemaType.COLOR, required=False),
+            ],
+        )
 
 
 class StyleSchema(Schema):
     """Schema for style validation."""
 
     def __init__(self):
-        super().__init__("Style", [
-            SchemaField("font_family", SchemaType.STRING, required=False),
-            SchemaField("font_size", SchemaType.CSS_UNIT, required=False,
-                       validators=[validate_css_size]),
-            SchemaField("font_weight", SchemaType.STRING, required=False),
-            SchemaField("line_height", SchemaType.CSS_UNIT, required=False),
-            SchemaField("border_radius", SchemaType.CSS_UNIT, required=False,
-                       validators=[validate_css_size]),
-            SchemaField("padding", SchemaType.CSS_UNIT, required=False,
-                       validators=[validate_css_size]),
-            SchemaField("margin", SchemaType.CSS_UNIT, required=False,
-                       validators=[validate_css_size]),
-            SchemaField("border_width", SchemaType.CSS_UNIT, required=False,
-                       validators=[validate_css_size])
-        ])
+        super().__init__(
+            "Style",
+            [
+                SchemaField("font_family", SchemaType.STRING, required=False),
+                SchemaField(
+                    "font_size", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+                ),
+                SchemaField("font_weight", SchemaType.STRING, required=False),
+                SchemaField("line_height", SchemaType.CSS_UNIT, required=False),
+                SchemaField(
+                    "border_radius",
+                    SchemaType.CSS_UNIT,
+                    required=False,
+                    validators=[validate_css_size],
+                ),
+                SchemaField(
+                    "padding", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+                ),
+                SchemaField(
+                    "margin", SchemaType.CSS_UNIT, required=False, validators=[validate_css_size]
+                ),
+                SchemaField(
+                    "border_width",
+                    SchemaType.CSS_UNIT,
+                    required=False,
+                    validators=[validate_css_size],
+                ),
+            ],
+        )
 
 
 def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
@@ -362,10 +455,10 @@ def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
 
 # Schema registry for dynamic schema lookup
 _SCHEMA_REGISTRY: Dict[str, Schema] = {
-    'theme': ThemeSchema(),
-    'widget': WidgetSchema(),
-    'color': ColorSchema(),
-    'style': StyleSchema()
+    "theme": ThemeSchema(),
+    "widget": WidgetSchema(),
+    "color": ColorSchema(),
+    "style": StyleSchema(),
 }
 
 

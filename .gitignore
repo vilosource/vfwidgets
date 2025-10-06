@@ -29,7 +29,15 @@ MANIFEST
 
 # PyInstaller
 *.manifest
-*.spec
+# Allow pysidedeploy.spec files for packaging
+!pysidedeploy.spec
+
+# Nuitka/pyside6-deploy build artifacts
+deployment/
+*.bin
+*.app
+*.exe
+# But allow .exe in specific test directories if needed
 
 # Installer logs
 pip-log.txt

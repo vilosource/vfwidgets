@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 try:
     from PIL import Image, ImageChops, ImageDraw, ImageStat
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
@@ -25,6 +26,7 @@ from vfwidgets_theme import ThemedApplication, ThemedWidget
 
 class ComparisonResult(Enum):
     """Result of image comparison."""
+
     IDENTICAL = "identical"
     SIMILAR = "similar"
     DIFFERENT = "different"
@@ -34,6 +36,7 @@ class ComparisonResult(Enum):
 @dataclass
 class VisualTestResult:
     """Result of a visual test."""
+
     name: str
     result: ComparisonResult
     difference_percentage: float
@@ -60,10 +63,12 @@ class VisualTestFramework:
     - CI/CD integration support
     """
 
-    def __init__(self,
-                 baseline_dir: Union[str, Path] = "tests/visual/baselines",
-                 output_dir: Union[str, Path] = "tests/visual/output",
-                 tolerance: float = 0.01):
+    def __init__(
+        self,
+        baseline_dir: Union[str, Path] = "tests/visual/baselines",
+        output_dir: Union[str, Path] = "tests/visual/output",
+        tolerance: float = 0.01,
+    ):
         """
         Initialize the visual testing framework.
 
@@ -86,14 +91,12 @@ class VisualTestFramework:
         # Ensure PIL is available for image operations
         if not PIL_AVAILABLE:
             raise ImportError(
-                "PIL (Pillow) is required for visual testing. "
-                "Install with: pip install Pillow"
+                "PIL (Pillow) is required for visual testing. " "Install with: pip install Pillow"
             )
 
-    def capture_widget(self,
-                      widget: QWidget,
-                      size: Optional[QSize] = None,
-                      wait_time: float = 0.1) -> QImage:
+    def capture_widget(
+        self, widget: QWidget, size: Optional[QSize] = None, wait_time: float = 0.1
+    ) -> QImage:
         """
         Capture a screenshot of a widget.
 
@@ -127,7 +130,7 @@ class VisualTestFramework:
                 time.sleep(wait_time)
 
         # Capture the widget
-        if hasattr(widget, 'grab'):
+        if hasattr(widget, "grab"):
             # Modern Qt method
             pixmap = widget.grab()
             image = pixmap.toImage()
@@ -197,8 +200,7 @@ class VisualTestFramework:
 
             # Create PIL image
             pil_image = Image.frombuffer(
-                'RGB', (width, height),
-                image_data, 'raw', 'BGRX', bytes_per_line, 1
+                "RGB", (width, height), image_data, "raw", "BGRX", bytes_per_line, 1
             )
 
             return pil_image
@@ -210,16 +212,13 @@ class VisualTestFramework:
         """Convert PIL Image to QImage."""
         try:
             # Convert to RGB if necessary
-            if pil_image.mode != 'RGB':
-                pil_image = pil_image.convert('RGB')
+            if pil_image.mode != "RGB":
+                pil_image = pil_image.convert("RGB")
 
             width, height = pil_image.size
 
             # Convert to QImage
-            qimage = QImage(
-                pil_image.tobytes(), width, height,
-                QImage.Format.Format_RGB888
-            )
+            qimage = QImage(pil_image.tobytes(), width, height, QImage.Format.Format_RGB888)
 
             # Convert to RGB32 for consistency
             return qimage.convertToFormat(QImage.Format.Format_RGB32)
@@ -227,10 +226,9 @@ class VisualTestFramework:
             print(f"Error converting PIL to QImage: {e}")
             return None
 
-    def compare_images(self,
-                      actual: QImage,
-                      expected: QImage,
-                      tolerance: Optional[float] = None) -> Tuple[ComparisonResult, float]:
+    def compare_images(
+        self, actual: QImage, expected: QImage, tolerance: Optional[float] = None
+    ) -> Tuple[ComparisonResult, float]:
         """
         Compare two images with tolerance.
 
@@ -281,10 +279,9 @@ class VisualTestFramework:
             print(f"Error comparing images: {e}")
             return ComparisonResult.ERROR, 0.0
 
-    def generate_diff(self,
-                     actual: QImage,
-                     expected: QImage,
-                     highlight_color: Tuple[int, int, int] = (255, 0, 0)) -> Optional[QImage]:
+    def generate_diff(
+        self, actual: QImage, expected: QImage, highlight_color: Tuple[int, int, int] = (255, 0, 0)
+    ) -> Optional[QImage]:
         """
         Generate a visual diff image highlighting differences.
 
@@ -313,7 +310,7 @@ class VisualTestFramework:
 
             # Create a composite showing the diff
             # Start with the actual image
-            result = actual_pil.copy().convert('RGB')
+            result = actual_pil.copy().convert("RGB")
 
             # Highlight differences
             diff_data = diff.getdata()
@@ -345,12 +342,14 @@ class VisualTestFramework:
             print(f"Error generating diff image: {e}")
             return None
 
-    def run_visual_test(self,
-                       test_name: str,
-                       widget: QWidget,
-                       tolerance: Optional[float] = None,
-                       size: Optional[QSize] = None,
-                       update_baseline: bool = False) -> VisualTestResult:
+    def run_visual_test(
+        self,
+        test_name: str,
+        widget: QWidget,
+        tolerance: Optional[float] = None,
+        size: Optional[QSize] = None,
+        update_baseline: bool = False,
+    ) -> VisualTestResult:
         """
         Run a complete visual test.
 
@@ -384,7 +383,7 @@ class VisualTestFramework:
                     result=ComparisonResult.IDENTICAL,
                     difference_percentage=0.0,
                     baseline_path=baseline_path,
-                    actual_path=actual_path
+                    actual_path=actual_path,
                 )
             else:
                 # Load baseline and compare
@@ -396,7 +395,7 @@ class VisualTestFramework:
                         result=ComparisonResult.ERROR,
                         difference_percentage=0.0,
                         error_message="Could not load baseline image",
-                        actual_path=actual_path
+                        actual_path=actual_path,
                     )
                 else:
                     # Compare images
@@ -416,7 +415,9 @@ class VisualTestFramework:
                         difference_percentage=diff_percentage,
                         baseline_path=baseline_path,
                         actual_path=actual_path,
-                        diff_path=diff_path if comparison_result != ComparisonResult.IDENTICAL else None
+                        diff_path=(
+                            diff_path if comparison_result != ComparisonResult.IDENTICAL else None
+                        ),
                     )
 
             self.test_results.append(result)
@@ -428,16 +429,18 @@ class VisualTestFramework:
                 result=ComparisonResult.ERROR,
                 difference_percentage=0.0,
                 error_message=str(e),
-                actual_path=actual_path
+                actual_path=actual_path,
             )
             self.test_results.append(error_result)
             return error_result
 
-    def test_themed_widget(self,
-                          widget_class: type = ThemedWidget,
-                          theme_name: str = "default",
-                          test_name: Optional[str] = None,
-                          size: QSize = QSize(200, 100)) -> VisualTestResult:
+    def test_themed_widget(
+        self,
+        widget_class: type = ThemedWidget,
+        theme_name: str = "default",
+        test_name: Optional[str] = None,
+        size: QSize = QSize(200, 100),
+    ) -> VisualTestResult:
         """
         Test a themed widget with a specific theme.
 
@@ -458,7 +461,7 @@ class VisualTestFramework:
 
         # Apply theme if application exists
         app = QApplication.instance()
-        if hasattr(app, 'set_theme'):
+        if hasattr(app, "set_theme"):
             try:
                 app.set_theme(theme_name)
             except:
@@ -467,10 +470,12 @@ class VisualTestFramework:
         # Run test
         return self.run_visual_test(test_name, widget, size=size)
 
-    def batch_test_themes(self,
-                         widget_class: type = ThemedWidget,
-                         theme_names: List[str] = None,
-                         size: QSize = QSize(200, 100)) -> List[VisualTestResult]:
+    def batch_test_themes(
+        self,
+        widget_class: type = ThemedWidget,
+        theme_names: List[str] = None,
+        size: QSize = QSize(200, 100),
+    ) -> List[VisualTestResult]:
         """
         Test a widget class with multiple themes.
 
@@ -487,9 +492,7 @@ class VisualTestFramework:
 
         results = []
         for theme_name in theme_names:
-            result = self.test_themed_widget(
-                widget_class, theme_name, size=size
-            )
+            result = self.test_themed_widget(widget_class, theme_name, size=size)
             results.append(result)
 
         return results
@@ -512,8 +515,9 @@ class VisualTestFramework:
         errors = sum(1 for r in self.test_results if r.result == ComparisonResult.ERROR)
 
         # Calculate average difference
-        valid_diffs = [r.difference_percentage for r in self.test_results
-                      if r.result != ComparisonResult.ERROR]
+        valid_diffs = [
+            r.difference_percentage for r in self.test_results if r.result != ComparisonResult.ERROR
+        ]
         avg_diff = sum(valid_diffs) / len(valid_diffs) if valid_diffs else 0.0
 
         return {
@@ -530,10 +534,10 @@ class VisualTestFramework:
                     "result": r.result.value,
                     "difference": r.difference_percentage,
                     "error": r.error_message,
-                    "timestamp": r.timestamp
+                    "timestamp": r.timestamp,
                 }
                 for r in self.test_results
-            ]
+            ],
         }
 
     def cleanup(self):

@@ -44,13 +44,8 @@ class TestThemeRepository(ThemedTestCase):
         self.sample_theme_data = {
             "name": "test-theme",
             "version": "1.0.0",
-            "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff"
-            },
-            "styles": {
-                "button": "background-color: @colors.primary;"
-            }
+            "colors": {"primary": "#007acc", "secondary": "#ffffff"},
+            "styles": {"button": "background-color: @colors.primary;"},
         }
 
     def test_repository_initialization(self):
@@ -146,9 +141,9 @@ class TestThemeRepository(ThemedTestCase):
         self.repository.clear_themes()
         self.assertEqual(len(self.repository.list_themes()), 0)
 
-    @patch('pathlib.Path.exists')
-    @patch('pathlib.Path.is_file')
-    @patch('builtins.open', new_callable=mock_open)
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.is_file")
+    @patch("builtins.open", new_callable=mock_open)
     def test_load_from_file_json(self, mock_file, mock_is_file, mock_exists):
         """Test loading theme from JSON file."""
         mock_exists.return_value = True
@@ -161,7 +156,7 @@ class TestThemeRepository(ThemedTestCase):
         self.assertEqual(theme.version, "1.0.0")
         mock_file.assert_called_once()
 
-    @patch('pathlib.Path.exists')
+    @patch("pathlib.Path.exists")
     def test_load_from_file_nonexistent(self, mock_exists):
         """Test loading from non-existent file raises error."""
         mock_exists.return_value = False
@@ -171,8 +166,8 @@ class TestThemeRepository(ThemedTestCase):
 
         self.assertIn("nonexistent.json", str(context.exception))
 
-    @patch('pathlib.Path.parent.mkdir')
-    @patch('builtins.open', new_callable=mock_open)
+    @patch("pathlib.Path.parent.mkdir")
+    @patch("builtins.open", new_callable=mock_open)
     def test_save_to_file(self, mock_file, mock_mkdir):
         """Test saving theme to file."""
         theme = Theme.from_dict(self.sample_theme_data)
@@ -183,7 +178,7 @@ class TestThemeRepository(ThemedTestCase):
         mock_file.assert_called_once()
         # Verify JSON was written
         handle = mock_file.return_value
-        written_content = ''.join(call.args[0] for call in handle.write.call_args_list)
+        written_content = "".join(call.args[0] for call in handle.write.call_args_list)
         self.assertIn('"name": "test-theme"', written_content)
 
     def test_discover_themes_in_directory(self):
@@ -214,7 +209,7 @@ class TestThemeRepository(ThemedTestCase):
         retrieved1 = self.repository.get_theme("test-theme")
 
         # Second access should hit cache
-        with patch.object(self.repository._themes, 'get') as mock_get:
+        with patch.object(self.repository._themes, "get") as mock_get:
             retrieved2 = self.repository.get_theme("test-theme")
             # Cache should prevent direct dict access
             mock_get.assert_not_called()
@@ -282,16 +277,12 @@ class TestFileThemeLoader(ThemedTestCase):
         self.assertFalse(self.loader.can_load("theme"))
         self.assertFalse(self.loader.can_load(123))
 
-    @patch('pathlib.Path.exists')
-    @patch('pathlib.Path.is_file')
-    @patch('builtins.open', new_callable=mock_open)
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.is_file")
+    @patch("builtins.open", new_callable=mock_open)
     def test_load_json_theme(self, mock_file, mock_is_file, mock_exists):
         """Test loading valid JSON theme."""
-        theme_data = {
-            "name": "test-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"}
-        }
+        theme_data = {"name": "test-theme", "version": "1.0.0", "colors": {"primary": "#007acc"}}
 
         mock_exists.return_value = True
         mock_is_file.return_value = True
@@ -302,9 +293,9 @@ class TestFileThemeLoader(ThemedTestCase):
         self.assertEqual(theme.name, "test-theme")
         self.assertEqual(theme.version, "1.0.0")
 
-    @patch('pathlib.Path.exists')
-    @patch('pathlib.Path.is_file')
-    @patch('builtins.open', new_callable=mock_open)
+    @patch("pathlib.Path.exists")
+    @patch("pathlib.Path.is_file")
+    @patch("builtins.open", new_callable=mock_open)
     def test_load_invalid_json(self, mock_file, mock_is_file, mock_exists):
         """Test loading invalid JSON raises error."""
         mock_exists.return_value = True
@@ -371,11 +362,9 @@ class TestThemeCache(ThemedTestCase):
         """Set up test fixtures."""
         super().setUp()
         self.cache = ThemeCache(max_size=3)
-        self.theme = Theme.from_dict({
-            "name": "test-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"}
-        })
+        self.theme = Theme.from_dict(
+            {"name": "test-theme", "version": "1.0.0", "colors": {"primary": "#007acc"}}
+        )
 
     def test_cache_initialization(self):
         """Test cache initialization with size limits."""
@@ -537,11 +526,9 @@ class TestRepositoryIntegration(ThemedTestCase):
     def test_performance_requirements(self):
         """Test repository meets performance requirements."""
         repo = ThemeRepository()
-        theme = Theme.from_dict({
-            "name": "perf-test",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"}
-        })
+        theme = Theme.from_dict(
+            {"name": "perf-test", "version": "1.0.0", "colors": {"primary": "#007acc"}}
+        )
 
         # Test theme loading performance (< 200ms requirement)
         start_time = time.time()
@@ -568,9 +555,7 @@ class TestRepositoryIntegration(ThemedTestCase):
         repo = ThemeRepository()
 
         # Measure baseline memory
-        baseline_size = sys.getsizeof(repo) + sum(
-            sys.getsizeof(v) for v in repo.__dict__.values()
-        )
+        baseline_size = sys.getsizeof(repo) + sum(sys.getsizeof(v) for v in repo.__dict__.values())
 
         # Add themes and measure growth
         themes_count = 10
@@ -578,15 +563,13 @@ class TestRepositoryIntegration(ThemedTestCase):
             theme_data = {
                 "name": f"memory-test-{i}",
                 "version": "1.0.0",
-                "colors": {"primary": "#007acc", "secondary": "#ffffff"}
+                "colors": {"primary": "#007acc", "secondary": "#ffffff"},
             }
             theme = Theme.from_dict(theme_data)
             repo.add_theme(theme)
 
         # Calculate memory per theme
-        final_size = sys.getsizeof(repo) + sum(
-            sys.getsizeof(v) for v in repo.__dict__.values()
-        )
+        final_size = sys.getsizeof(repo) + sum(sys.getsizeof(v) for v in repo.__dict__.values())
 
         memory_per_theme = (final_size - baseline_size) / themes_count
 

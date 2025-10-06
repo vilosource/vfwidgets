@@ -40,22 +40,40 @@ try:
     from PySide6.QtCore import QObject, QThread, QTimer, Signal
     from PySide6.QtGui import QPalette
     from PySide6.QtWidgets import QApplication, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Create mock classes for headless testing
     class QObject:
-        def __init__(self): pass
+        def __init__(self):
+            pass
+
     class QWidget(QObject):
-        def __init__(self, parent=None): super().__init__()
-        def setStyleSheet(self, stylesheet): pass
-        def styleSheet(self): return ""
+        def __init__(self, parent=None):
+            super().__init__()
+
+        def setStyleSheet(self, stylesheet):
+            pass
+
+        def styleSheet(self):
+            return ""
+
     class QApplication(QObject):
-        def __init__(self): super().__init__()
-        def setStyleSheet(self, stylesheet): pass
-        def styleSheet(self): return ""
+        def __init__(self):
+            super().__init__()
+
+        def setStyleSheet(self, stylesheet):
+            pass
+
+        def styleSheet(self):
+            return ""
+
         @staticmethod
-        def instance(): return None
+        def instance():
+            return None
+
 
 # Import foundation modules
 from ..logging import get_debug_logger
@@ -232,14 +250,9 @@ class WidgetThemeApplicator:
         # Resolve all color references once
         resolved_colors = {}
         for key, value in theme.colors.items():
-            resolved_colors[key] = self._property_resolver.resolve_reference(
-                value, theme.to_dict()
-            )
+            resolved_colors[key] = self._property_resolver.resolve_reference(value, theme.to_dict())
 
-        return {
-            "colors": resolved_colors,
-            "resolved_styles": {}
-        }
+        return {"colors": resolved_colors, "resolved_styles": {}}
 
     def _generate_widget_specific_stylesheet(
         self, widget: QWidget, theme: Theme, base_styles: Dict[str, Any]
@@ -379,9 +392,7 @@ class ApplicationThemeApplicator:
         # Resolve colors once
         resolved_colors = {}
         for key, value in theme.colors.items():
-            resolved_colors[key] = self._property_resolver.resolve_reference(
-                value, theme.to_dict()
-            )
+            resolved_colors[key] = self._property_resolver.resolve_reference(value, theme.to_dict())
 
         # Add all styles from theme
         for selector, style in theme.styles.items():
@@ -493,7 +504,7 @@ class StyleInvalidator:
         try:
             # Force widget to repaint/reapply styles
             # In Qt, this would typically involve calling update() or repaint()
-            if hasattr(widget, 'update'):
+            if hasattr(widget, "update"):
                 widget.update()
 
             logger.debug(f"Invalidated style cache for widget {type(widget).__name__}")
@@ -572,10 +583,7 @@ class AsyncThemeApplicator:
         logger.debug(f"AsyncThemeApplicator initialized with {max_workers} workers")
 
     def apply_theme_async(
-        self,
-        widget_id: str,
-        theme: Theme,
-        callback: Optional[Callable[[bool, str], None]] = None
+        self, widget_id: str, theme: Theme, callback: Optional[Callable[[bool, str], None]] = None
     ) -> Future[bool]:
         """Apply theme to widget asynchronously.
 
@@ -588,6 +596,7 @@ class AsyncThemeApplicator:
             Future object for async operation
 
         """
+
         def apply_worker():
             """Worker function for async theme application."""
             try:
@@ -612,7 +621,7 @@ class AsyncThemeApplicator:
         self,
         widget_ids: List[str],
         theme: Theme,
-        callback: Optional[Callable[[Dict[str, bool]], None]] = None
+        callback: Optional[Callable[[Dict[str, bool]], None]] = None,
     ) -> Future[Dict[str, bool]]:
         """Apply theme to batch of widgets asynchronously.
 
@@ -625,6 +634,7 @@ class AsyncThemeApplicator:
             Future object for async batch operation
 
         """
+
         def batch_worker():
             """Worker function for async batch theme application."""
             try:
@@ -753,7 +763,7 @@ class ThemeApplicator:
         batch_updater: Optional[BatchThemeUpdater] = None,
         invalidator: Optional[StyleInvalidator] = None,
         async_applicator: Optional[AsyncThemeApplicator] = None,
-        platform_adapter: Optional[PlatformThemeAdapter] = None
+        platform_adapter: Optional[PlatformThemeAdapter] = None,
     ):
         """Initialize theme applicator with dependency injection.
 
@@ -841,7 +851,9 @@ class ThemeApplicator:
             # Update statistics
             with self._lock:
                 self._stats.global_updates += 1
-                self._stats.widgets_themed += sum(1 for success in widget_results.values() if success)
+                self._stats.widgets_themed += sum(
+                    1 for success in widget_results.values() if success
+                )
                 self._stats.errors += sum(1 for success in widget_results.values() if not success)
                 if not app_success:
                     self._stats.errors += 1
@@ -878,7 +890,9 @@ class ThemeApplicator:
             logger.error(f"Error applying theme to application: {e}")
             return False
 
-    def batch_update_theme(self, theme: Theme, widget_ids: Optional[List[str]] = None) -> Dict[str, bool]:
+    def batch_update_theme(
+        self, theme: Theme, widget_ids: Optional[List[str]] = None
+    ) -> Dict[str, bool]:
         """Batch update theme for specified widgets.
 
         Args:
@@ -953,7 +967,7 @@ class ThemeApplicator:
                 "total_time": self._stats.total_time,
                 "average_time_per_operation": (
                     self._stats.total_time / max(1, self._stats.widgets_themed + self._stats.errors)
-                )
+                ),
             }
 
     def shutdown(self) -> None:
@@ -968,8 +982,7 @@ class ThemeApplicator:
 
 
 def create_theme_applicator(
-    registry: Optional[ThemeWidgetRegistry] = None,
-    max_workers: int = 4
+    registry: Optional[ThemeWidgetRegistry] = None, max_workers: int = 4
 ) -> ThemeApplicator:
     """Factory function for creating theme applicator with defaults.
 
@@ -998,7 +1011,7 @@ def create_theme_applicator(
         batch_updater=batch_updater,
         invalidator=invalidator,
         async_applicator=async_applicator,
-        platform_adapter=platform_adapter
+        platform_adapter=platform_adapter,
     )
 
     logger.debug("Created theme applicator with default configuration")

@@ -5,7 +5,7 @@ import os
 import sys
 
 # Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from vfwidgets_theme import ThemedApplication
 
@@ -27,6 +27,7 @@ def test_vscode_theme():
         print(f"✗ Error setting vscode theme: {e}")
         return False
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     success = test_vscode_theme()
     sys.exit(0 if success else 1)

@@ -48,8 +48,8 @@ from typing import (
 from .protocols import ThemeableWidget, ThemeProvider
 
 # Type variables for generic implementations
-T = TypeVar('T')
-WidgetType = TypeVar('WidgetType', bound=ThemeableWidget)
+T = TypeVar("T")
+WidgetType = TypeVar("WidgetType", bound=ThemeableWidget)
 
 
 class WidgetLifecycleState(Enum):
@@ -158,12 +158,12 @@ class WidgetRegistry:
 
         # Performance tracking
         self._stats = {
-            'total_registrations': 0,
-            'total_unregistrations': 0,
-            'registration_failures': 0,
-            'validation_failures': 0,
-            'bulk_operations': 0,
-            'lifecycle_events': 0,
+            "total_registrations": 0,
+            "total_unregistrations": 0,
+            "registration_failures": 0,
+            "validation_failures": 0,
+            "bulk_operations": 0,
+            "lifecycle_events": 0,
         }
         self._start_time = time.time()  # For uptime tracking
 
@@ -186,7 +186,7 @@ class WidgetRegistry:
 
         # Validate widget before registration
         if self._enable_validation and not self._validate_widget(widget):
-            self._stats['validation_failures'] += 1
+            self._stats["validation_failures"] += 1
             raise ValueError(f"Widget validation failed: {type(widget).__name__}")
 
         widget_id = id(widget)
@@ -216,18 +216,22 @@ class WidgetRegistry:
 
                     # Update lifecycle state and tracking
                     if self._enable_lifecycle_tracking:
-                        self._update_lifecycle_state(widget_id, WidgetLifecycleState.REGISTERED, metadata)
+                        self._update_lifecycle_state(
+                            widget_id, WidgetLifecycleState.REGISTERED, metadata
+                        )
 
                     # Update statistics
-                    self._stats['total_registrations'] += 1
+                    self._stats["total_registrations"] += 1
 
                     break  # Success - exit retry loop
 
             except Exception as e:
                 if attempt == self._max_registration_attempts - 1:
                     # Final attempt failed
-                    self._stats['registration_failures'] += 1
-                    raise RegistrationError(f"Failed to register widget after {self._max_registration_attempts} attempts: {e}")
+                    self._stats["registration_failures"] += 1
+                    raise RegistrationError(
+                        f"Failed to register widget after {self._max_registration_attempts} attempts: {e}"
+                    )
 
                 # Brief delay before retry
                 time.sleep(0.001)  # 1ms delay
@@ -264,7 +268,7 @@ class WidgetRegistry:
                 self._lifecycle_events.pop(widget_id, None)
 
                 # Update statistics
-                self._stats['total_unregistrations'] += 1
+                self._stats["total_unregistrations"] += 1
 
                 return True
 
@@ -345,7 +349,9 @@ class WidgetRegistry:
             if widget is not None:
                 yield widget
 
-    def filter_widgets(self, predicate: Callable[[Dict[str, Any]], bool]) -> Iterator[ThemeableWidget]:
+    def filter_widgets(
+        self, predicate: Callable[[Dict[str, Any]], bool]
+    ) -> Iterator[ThemeableWidget]:
         """Filter widgets by metadata predicate.
 
         Args:
@@ -389,8 +395,11 @@ class WidgetRegistry:
         with self._lock:
             self._lifecycle_callbacks.append(callback)
 
-    def bulk_register(self, widgets: List[ThemeableWidget],
-                     metadata_list: Optional[List[Optional[Dict[str, Any]]]] = None) -> Dict[str, Any]:
+    def bulk_register(
+        self,
+        widgets: List[ThemeableWidget],
+        metadata_list: Optional[List[Optional[Dict[str, Any]]]] = None,
+    ) -> Dict[str, Any]:
         """Register multiple widgets atomically with comprehensive error handling.
 
         Args:
@@ -408,7 +417,7 @@ class WidgetRegistry:
         start_time = time.perf_counter()
 
         if not widgets:
-            return {'successful': 0, 'failed': 0, 'duration_ms': 0.0}
+            return {"successful": 0, "failed": 0, "duration_ms": 0.0}
 
         if metadata_list and len(metadata_list) != len(widgets):
             raise ValueError("metadata_list length must match widgets length")
@@ -430,7 +439,8 @@ class WidgetRegistry:
             if self._enable_validation and failed:
                 raise BulkOperationError(
                     f"Bulk registration validation failed for {len(failed)} widgets",
-                    0, [item[0] for item in failed]
+                    0,
+                    [item[0] for item in failed],
                 )
 
             # Attempt to register all widgets
@@ -451,7 +461,9 @@ class WidgetRegistry:
                         self._metadata[widget_id] = metadata.copy()
 
                     if self._enable_lifecycle_tracking:
-                        self._update_lifecycle_state(widget_id, WidgetLifecycleState.REGISTERED, metadata)
+                        self._update_lifecycle_state(
+                            widget_id, WidgetLifecycleState.REGISTERED, metadata
+                        )
 
                     successful.append(widget)
 
@@ -459,9 +471,9 @@ class WidgetRegistry:
                     failed.append((widget, str(e)))
 
             # Update statistics
-            self._stats['total_registrations'] += len(successful)
-            self._stats['registration_failures'] += len(failed)
-            self._stats['bulk_operations'] += 1
+            self._stats["total_registrations"] += len(successful)
+            self._stats["registration_failures"] += len(failed)
+            self._stats["bulk_operations"] += 1
 
         duration_ms = (time.perf_counter() - start_time) * 1000
 
@@ -472,16 +484,17 @@ class WidgetRegistry:
                 print(f"Warning: Bulk registration averaged {per_widget_ms:.3f}ms per widget")
 
         result = {
-            'successful': len(successful),
-            'failed': len(failed),
-            'duration_ms': duration_ms,
-            'per_widget_us': (duration_ms * 1000) / len(widgets) if widgets else 0,
+            "successful": len(successful),
+            "failed": len(failed),
+            "duration_ms": duration_ms,
+            "per_widget_us": (duration_ms * 1000) / len(widgets) if widgets else 0,
         }
 
         if failed:
             raise BulkOperationError(
                 f"Bulk registration failed for {len(failed)} of {len(widgets)} widgets",
-                len(successful), [item[0] for item in failed]
+                len(successful),
+                [item[0] for item in failed],
             )
 
         return result
@@ -499,7 +512,7 @@ class WidgetRegistry:
         start_time = time.perf_counter()
 
         if not widgets:
-            return {'successful': 0, 'failed': 0, 'duration_ms': 0.0}
+            return {"successful": 0, "failed": 0, "duration_ms": 0.0}
 
         successful_count = 0
 
@@ -508,15 +521,15 @@ class WidgetRegistry:
                 if self.unregister(widget):  # Uses the enhanced unregister method
                     successful_count += 1
 
-            self._stats['bulk_operations'] += 1
+            self._stats["bulk_operations"] += 1
 
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         return {
-            'successful': successful_count,
-            'failed': len(widgets) - successful_count,
-            'duration_ms': duration_ms,
-            'per_widget_us': (duration_ms * 1000) / len(widgets) if widgets else 0,
+            "successful": successful_count,
+            "failed": len(widgets) - successful_count,
+            "duration_ms": duration_ms,
+            "per_widget_us": (duration_ms * 1000) / len(widgets) if widgets else 0,
         }
 
     def get_lifecycle_events(self, widget: ThemeableWidget) -> List[WidgetLifecycleEvent]:
@@ -565,12 +578,16 @@ class WidgetRegistry:
             self._cleanup_dead_references()
 
             stats = self._stats.copy()
-            stats.update({
-                'active_widgets': len(self._widgets),
-                'tracked_lifecycle_events': sum(len(events) for events in self._lifecycle_events.values()),
-                'memory_overhead_bytes': self._estimate_memory_overhead(),
-                'uptime_seconds': time.time() - self._start_time,
-            })
+            stats.update(
+                {
+                    "active_widgets": len(self._widgets),
+                    "tracked_lifecycle_events": sum(
+                        len(events) for events in self._lifecycle_events.values()
+                    ),
+                    "memory_overhead_bytes": self._estimate_memory_overhead(),
+                    "uptime_seconds": time.time() - self._start_time,
+                }
+            )
 
             return stats
 
@@ -609,10 +626,10 @@ class WidgetRegistry:
                 issues.append(f"{dead_refs} dead weak references found")
 
             return {
-                'is_valid': len(issues) == 0,
-                'issues': issues,
-                'total_widgets': len(self._widgets),
-                'dead_references': dead_refs,
+                "is_valid": len(issues) == 0,
+                "issues": issues,
+                "total_widgets": len(self._widgets),
+                "dead_references": dead_refs,
             }
 
     def _validate_widget(self, widget: ThemeableWidget) -> bool:
@@ -631,7 +648,7 @@ class WidgetRegistry:
                 return False
 
             # Check if it implements the required protocol
-            if not hasattr(widget, '__class__'):
+            if not hasattr(widget, "__class__"):
                 return False
 
             # Additional validation can be added here
@@ -640,8 +657,9 @@ class WidgetRegistry:
         except Exception:
             return False
 
-    def _update_lifecycle_state(self, widget_id: int, state: WidgetLifecycleState,
-                               metadata: Optional[Dict[str, Any]] = None) -> None:
+    def _update_lifecycle_state(
+        self, widget_id: int, state: WidgetLifecycleState, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Update widget lifecycle state and emit event.
 
         Args:
@@ -660,10 +678,7 @@ class WidgetRegistry:
 
         # Create and store event
         event = WidgetLifecycleEvent(
-            widget_id=widget_id,
-            state=state,
-            timestamp=timestamp,
-            metadata=metadata
+            widget_id=widget_id, state=state, timestamp=timestamp, metadata=metadata
         )
 
         if widget_id not in self._lifecycle_events:
@@ -672,7 +687,7 @@ class WidgetRegistry:
         self._lifecycle_events[widget_id].append(event)
 
         # Update statistics
-        self._stats['lifecycle_events'] += 1
+        self._stats["lifecycle_events"] += 1
 
         # Notify lifecycle callbacks
         for callback in self._lifecycle_callbacks:
@@ -816,11 +831,11 @@ class LifecycleManager:
             self._registry.register(widget)
 
             # Inject theme provider if available
-            if self._theme_provider and hasattr(widget, '_theme_provider'):
+            if self._theme_provider and hasattr(widget, "_theme_provider"):
                 widget._theme_provider = self._theme_provider
 
             # Call registration callbacks
-            self._call_lifecycle_callbacks('register', widget)
+            self._call_lifecycle_callbacks("register", widget)
 
     def unregister_widget(self, widget: ThemeableWidget) -> bool:
         """Unregister a widget.
@@ -837,7 +852,7 @@ class LifecycleManager:
 
             if was_registered:
                 # Call unregistration callbacks
-                self._call_lifecycle_callbacks('unregister', widget)
+                self._call_lifecycle_callbacks("unregister", widget)
 
             return was_registered
 
@@ -862,7 +877,9 @@ class LifecycleManager:
         """
         return self._registry.count()
 
-    def add_lifecycle_callback(self, event: str, callback: Callable[[ThemeableWidget], None]) -> None:
+    def add_lifecycle_callback(
+        self, event: str, callback: Callable[[ThemeableWidget], None]
+    ) -> None:
         """Add callback for lifecycle events.
 
         Args:
@@ -993,7 +1010,7 @@ class ThemeUpdateContext:
         self._start_time: Optional[float] = None
         self._widgets_updated: List[ThemeableWidget] = []
 
-    def __enter__(self) -> 'ThemeUpdateContext':
+    def __enter__(self) -> "ThemeUpdateContext":
         """Enter the context manager."""
         self._start_time = time.perf_counter()
         return self
@@ -1028,7 +1045,7 @@ class ThemeUpdateContext:
         for widget in widgets:
             try:
                 # Call widget's theme change handler
-                if hasattr(widget, 'on_theme_changed'):
+                if hasattr(widget, "on_theme_changed"):
                     widget.on_theme_changed()
                     self._widgets_updated.append(widget)
             except Exception as e:
@@ -1062,7 +1079,7 @@ class WidgetCreationContext:
         self._widgets_created: List[ThemeableWidget] = []
         self._start_time: Optional[float] = None
 
-    def __enter__(self) -> 'WidgetCreationContext':
+    def __enter__(self) -> "WidgetCreationContext":
         """Enter the context manager."""
         self._start_time = time.perf_counter()
         return self
@@ -1121,7 +1138,7 @@ class PerformanceContext:
         self._peak_memory: int = 0
         self._metrics: Dict[str, Any] = {}
 
-    def __enter__(self) -> 'PerformanceContext':
+    def __enter__(self) -> "PerformanceContext":
         """Enter the context manager."""
         self._start_time = time.perf_counter()
         self._start_memory = self._get_memory_usage()
@@ -1135,11 +1152,11 @@ class PerformanceContext:
             end_memory = self._get_memory_usage()
 
             self._metrics = {
-                'execution_time': end_time - self._start_time,
-                'memory_usage': end_memory - self._start_memory,
-                'peak_memory': max(self._peak_memory - self._start_memory, 0),
-                'start_memory': self._start_memory,
-                'end_memory': end_memory,
+                "execution_time": end_time - self._start_time,
+                "memory_usage": end_memory - self._start_memory,
+                "peak_memory": max(self._peak_memory - self._start_memory, 0),
+                "start_memory": self._start_memory,
+                "end_memory": end_memory,
             }
 
         return False  # Don't suppress exceptions
@@ -1258,7 +1275,7 @@ class CleanupScheduler:
         # Emergency cleanup - catch and ignore all errors
         for obj in objects:
             try:
-                if hasattr(obj, 'cleanup'):
+                if hasattr(obj, "cleanup"):
                     obj.cleanup()
             except Exception:
                 pass  # Ignore all errors during emergency cleanup
@@ -1321,21 +1338,16 @@ class CleanupValidator:
             Dictionary with cleanup statistics.
 
         """
-        stats = {
-            'total': len(objects),
-            'cleaned': 0,
-            'failed': 0,
-            'errors': 0
-        }
+        stats = {"total": len(objects), "cleaned": 0, "failed": 0, "errors": 0}
 
         for obj in objects:
             try:
                 if self.validate_cleanup(obj):
-                    stats['cleaned'] += 1
+                    stats["cleaned"] += 1
                 else:
-                    stats['failed'] += 1
+                    stats["failed"] += 1
             except Exception:
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         return stats
 
@@ -1369,9 +1381,9 @@ class MemoryTracker:
 
             # Take memory snapshot
             self._memory_snapshots[obj_id] = {
-                'start_time': time.time(),
-                'start_memory': self._get_object_memory(obj),
-                'type': type(obj).__name__,
+                "start_time": time.time(),
+                "start_memory": self._get_object_memory(obj),
+                "type": type(obj).__name__,
             }
 
     def stop_tracking(self, obj: Any) -> Optional[Dict[str, Any]]:
@@ -1394,15 +1406,15 @@ class MemoryTracker:
             snapshot = self._memory_snapshots.get(obj_id, {})
             final_stats = {
                 **snapshot,
-                'end_time': time.time(),
-                'end_memory': self._get_object_memory(obj),
-                'duration': time.time() - snapshot.get('start_time', 0),
+                "end_time": time.time(),
+                "end_memory": self._get_object_memory(obj),
+                "duration": time.time() - snapshot.get("start_time", 0),
             }
 
             # Calculate memory difference
-            start_mem = snapshot.get('start_memory', 0)
-            end_mem = final_stats['end_memory']
-            final_stats['memory_delta'] = end_mem - start_mem
+            start_mem = snapshot.get("start_memory", 0)
+            end_mem = final_stats["end_memory"]
+            final_stats["memory_delta"] = end_mem - start_mem
 
             # Clean up tracking
             del self._tracked_objects[obj_id]
@@ -1477,18 +1489,18 @@ class MemoryTracker:
                     snapshot = self._memory_snapshots.get(obj_id, {})
                     current_stats = {
                         **snapshot,
-                        'current_time': time.time(),
-                        'current_memory': self._get_object_memory(obj),
-                        'object_id': obj_id,
+                        "current_time": time.time(),
+                        "current_memory": self._get_object_memory(obj),
+                        "object_id": obj_id,
                     }
 
                     # Calculate current duration and memory delta
-                    current_stats['current_duration'] = (
-                        current_stats['current_time'] - snapshot.get('start_time', 0)
-                    )
-                    current_stats['current_memory_delta'] = (
-                        current_stats['current_memory'] - snapshot.get('start_memory', 0)
-                    )
+                    current_stats["current_duration"] = current_stats[
+                        "current_time"
+                    ] - snapshot.get("start_time", 0)
+                    current_stats["current_memory_delta"] = current_stats[
+                        "current_memory"
+                    ] - snapshot.get("start_memory", 0)
 
                     stats.append(current_stats)
 
@@ -1506,6 +1518,7 @@ class MemoryTracker:
         """
         try:
             import sys
+
             return sys.getsizeof(obj)
         except Exception:
             return 0
@@ -1569,12 +1582,14 @@ class LeakDetector:
                     age = current_time - creation_time
 
                     if age > max_age_seconds:
-                        potential_leaks.append({
-                            'object_id': obj_id,
-                            'object_type': type(obj).__name__,
-                            'age_seconds': age,
-                            'creation_time': creation_time,
-                        })
+                        potential_leaks.append(
+                            {
+                                "object_id": obj_id,
+                                "object_type": type(obj).__name__,
+                                "age_seconds": age,
+                                "creation_time": creation_time,
+                            }
+                        )
 
         return potential_leaks
 
@@ -1611,10 +1626,10 @@ class LeakDetector:
                 self._creation_times.pop(obj_id, None)
 
         return {
-            'before_gc': before_count,
-            'after_gc': after_count,
-            'collected': before_count - after_count,
-            'potential_leaks': after_count,
+            "before_gc": before_count,
+            "after_gc": after_count,
+            "collected": before_count - after_count,
+            "potential_leaks": after_count,
         }
 
     def _on_object_destroyed(self, obj_id: int) -> None:
@@ -1678,12 +1693,12 @@ class ResourceReporter:
 
             # Generate report
             report = {
-                'timestamp': time.time(),
-                'uptime_seconds': time.time() - self._start_time,
-                'total_widgets': len(active_widgets),
-                'memory_usage': self._estimate_total_memory(active_widgets),
-                'widget_types': self._count_widget_types(active_widgets),
-                'performance_metrics': self._get_performance_metrics(),
+                "timestamp": time.time(),
+                "uptime_seconds": time.time() - self._start_time,
+                "total_widgets": len(active_widgets),
+                "memory_usage": self._estimate_total_memory(active_widgets),
+                "widget_types": self._count_widget_types(active_widgets),
+                "performance_metrics": self._get_performance_metrics(),
             }
 
             return report
@@ -1703,6 +1718,7 @@ class ResourceReporter:
         for widget in widgets:
             try:
                 import sys
+
                 total_memory += sys.getsizeof(widget)
             except Exception:
                 total_memory += 1024  # Estimate 1KB per widget
@@ -1741,13 +1757,13 @@ class ResourceReporter:
 
             process = psutil.Process(os.getpid())
             return {
-                'cpu_percent': process.cpu_percent(),
-                'memory_rss': process.memory_info().rss,
-                'memory_vms': process.memory_info().vms,
-                'num_threads': process.num_threads(),
+                "cpu_percent": process.cpu_percent(),
+                "memory_rss": process.memory_info().rss,
+                "memory_vms": process.memory_info().vms,
+                "num_threads": process.num_threads(),
             }
         except Exception:
-            return {'error': 'Performance metrics unavailable'}
+            return {"error": "Performance metrics unavailable"}
 
 
 class PerformanceMonitor:
@@ -1780,9 +1796,9 @@ class PerformanceMonitor:
             end_memory = self._get_current_memory()
 
             measurement = {
-                'duration': end_time - start_time,
-                'memory_delta': end_memory - start_memory,
-                'timestamp': time.time(),
+                "duration": end_time - start_time,
+                "memory_delta": end_memory - start_memory,
+                "timestamp": time.time(),
             }
 
             with self._lock:
@@ -1800,22 +1816,22 @@ class PerformanceMonitor:
 
             for operation_name, measurements in self._measurements.items():
                 if measurements:
-                    durations = [m['duration'] for m in measurements]
-                    memory_deltas = [m['memory_delta'] for m in measurements]
+                    durations = [m["duration"] for m in measurements]
+                    memory_deltas = [m["memory_delta"] for m in measurements]
 
                     metrics[operation_name] = {
-                        'count': len(measurements),
-                        'duration': {
-                            'min': min(durations),
-                            'max': max(durations),
-                            'avg': sum(durations) / len(durations),
+                        "count": len(measurements),
+                        "duration": {
+                            "min": min(durations),
+                            "max": max(durations),
+                            "avg": sum(durations) / len(durations),
                         },
-                        'memory': {
-                            'min': min(memory_deltas),
-                            'max': max(memory_deltas),
-                            'avg': sum(memory_deltas) / len(memory_deltas),
+                        "memory": {
+                            "min": min(memory_deltas),
+                            "max": max(memory_deltas),
+                            "avg": sum(memory_deltas) / len(memory_deltas),
                         },
-                        'latest_timestamp': max(m['timestamp'] for m in measurements),
+                        "latest_timestamp": max(m["timestamp"] for m in measurements),
                     }
 
             return metrics
@@ -1836,6 +1852,7 @@ class PerformanceMonitor:
             import os
 
             import psutil
+
             process = psutil.Process(os.getpid())
             return process.memory_info().rss
         except Exception:
@@ -1853,6 +1870,7 @@ def auto_register(registry: Optional[WidgetRegistry] = None):
         Decorator function.
 
     """
+
     def decorator(cls):
         original_init = cls.__init__
 
@@ -1862,7 +1880,7 @@ def auto_register(registry: Optional[WidgetRegistry] = None):
             original_init(self, *args, **kwargs)
 
             # Auto-register if registry available
-            target_registry = registry or getattr(cls, '_default_registry', None)
+            target_registry = registry or getattr(cls, "_default_registry", None)
             if target_registry:
                 try:
                     target_registry.register(self)
@@ -1885,9 +1903,12 @@ def lifecycle_tracked(registry: WidgetRegistry):
         Decorator function.
 
     """
+
     def decorator(cls):
         # Add lifecycle callback to class
-        def track_lifecycle(self, state: WidgetLifecycleState, metadata: Optional[Dict[str, Any]] = None):
+        def track_lifecycle(
+            self, state: WidgetLifecycleState, metadata: Optional[Dict[str, Any]] = None
+        ):
             """Track a lifecycle event for this widget."""
             widget_id = id(self)
             registry._update_lifecycle_state(widget_id, state, metadata)
@@ -1903,29 +1924,24 @@ __all__ = [
     # Core Classes
     "WidgetRegistry",
     "LifecycleManager",
-
     # Lifecycle Management
     "WidgetLifecycleState",
     "WidgetLifecycleEvent",
     "RegistrationError",
     "BulkOperationError",
-
     # Context Managers
     "ThemeUpdateContext",
     "WidgetCreationContext",
     "PerformanceContext",
-
     # Cleanup System
     "CleanupProtocol",
     "CleanupScheduler",
     "CleanupValidator",
-
     # Memory Management
     "MemoryTracker",
     "LeakDetector",
     "ResourceReporter",
     "PerformanceMonitor",
-
     # Decorators
     "auto_register",
     "lifecycle_tracked",

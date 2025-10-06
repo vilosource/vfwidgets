@@ -93,7 +93,7 @@ class ThemedTestCase(unittest.TestCase):
         """Clean up after theme testing."""
         # Clean up created widgets
         for widget in self._created_widgets:
-            if hasattr(widget, 'setParent'):
+            if hasattr(widget, "setParent"):
                 widget.setParent(None)
         self._created_widgets.clear()
 
@@ -183,8 +183,7 @@ class ThemedTestCase(unittest.TestCase):
         return widget
 
     def create_test_themeable_widget(
-        self,
-        theme_provider: Optional[MockThemeProvider] = None
+        self, theme_provider: Optional[MockThemeProvider] = None
     ) -> MockThemeableWidget:
         """Create a test themeable widget with automatic cleanup tracking.
 
@@ -222,11 +221,7 @@ class ThemedTestCase(unittest.TestCase):
     # Theme assertion utilities
 
     def assert_theme_property(
-        self,
-        widget: Any,
-        property_key: str,
-        expected_value: Any,
-        msg: Optional[str] = None
+        self, widget: Any, property_key: str, expected_value: Any, msg: Optional[str] = None
     ) -> None:
         """Assert that a widget has the expected theme property value.
 
@@ -237,25 +232,19 @@ class ThemedTestCase(unittest.TestCase):
             msg: Optional assertion message.
 
         """
-        if hasattr(widget, 'get_theme_property'):
+        if hasattr(widget, "get_theme_property"):
             actual_value = widget.get_theme_property(property_key)
-        elif hasattr(widget, 'get_property'):
+        elif hasattr(widget, "get_property"):
             actual_value = widget.get_property(property_key)
         else:
             self.fail(f"Widget {widget} does not support theme property access")
 
         self.assertEqual(
-            actual_value,
-            expected_value,
-            msg or f"Theme property '{property_key}' mismatch"
+            actual_value, expected_value, msg or f"Theme property '{property_key}' mismatch"
         )
 
     def assert_theme_color(
-        self,
-        widget: Any,
-        color_key: str,
-        expected_color: ColorValue,
-        msg: Optional[str] = None
+        self, widget: Any, color_key: str, expected_color: ColorValue, msg: Optional[str] = None
     ) -> None:
         """Assert that a widget has the expected theme color.
 
@@ -266,22 +255,18 @@ class ThemedTestCase(unittest.TestCase):
             msg: Optional assertion message.
 
         """
-        if hasattr(widget, 'get_theme_color'):
+        if hasattr(widget, "get_theme_color"):
             actual_color = widget.get_theme_color(color_key)
         else:
             self.fail(f"Widget {widget} does not support theme color access")
 
-        self.assertEqual(
-            actual_color,
-            expected_color,
-            msg or f"Theme color '{color_key}' mismatch"
-        )
+        self.assertEqual(actual_color, expected_color, msg or f"Theme color '{color_key}' mismatch")
 
     def assert_valid_theme_data(
         self,
         theme_data: ThemeData,
         required_properties: Optional[List[str]] = None,
-        msg: Optional[str] = None
+        msg: Optional[str] = None,
     ) -> None:
         """Assert that theme data is valid and complete.
 
@@ -294,41 +279,40 @@ class ThemedTestCase(unittest.TestCase):
         self.assertIsInstance(theme_data, dict, "Theme data must be a dictionary")
 
         required_properties = required_properties or [
-            'primary_color', 'background', 'foreground', 'font_family', 'font_size'
+            "primary_color",
+            "background",
+            "foreground",
+            "font_family",
+            "font_size",
         ]
 
         for prop in required_properties:
-            self.assertIn(
-                prop,
-                theme_data,
-                msg or f"Required theme property '{prop}' missing"
-            )
+            self.assertIn(prop, theme_data, msg or f"Required theme property '{prop}' missing")
 
         # Validate color properties
         color_properties = [
-            'primary_color', 'secondary_color', 'background', 'foreground',
-            'success_color', 'warning_color', 'error_color'
+            "primary_color",
+            "secondary_color",
+            "background",
+            "foreground",
+            "success_color",
+            "warning_color",
+            "error_color",
         ]
 
         for prop in color_properties:
             if prop in theme_data:
                 value = theme_data[prop]
-                self.assertIsInstance(
-                    value,
-                    str,
-                    f"Color property '{prop}' must be string"
-                )
+                self.assertIsInstance(value, str, f"Color property '{prop}' must be string")
                 self.assertTrue(
-                    value.startswith('#') or value.startswith('rgb') or
-                    value in ['red', 'green', 'blue', 'black', 'white'],
-                    f"Color property '{prop}' has invalid value: {value}"
+                    value.startswith("#")
+                    or value.startswith("rgb")
+                    or value in ["red", "green", "blue", "black", "white"],
+                    f"Color property '{prop}' has invalid value: {value}",
                 )
 
     def assert_stylesheet_valid(
-        self,
-        stylesheet: str,
-        widget_type: Optional[str] = None,
-        msg: Optional[str] = None
+        self, stylesheet: str, widget_type: Optional[str] = None, msg: Optional[str] = None
     ) -> None:
         """Assert that a QSS stylesheet is valid.
 
@@ -344,18 +328,18 @@ class ThemedTestCase(unittest.TestCase):
         if widget_type:
             # Simple validation that widget type appears in stylesheet
             widget_selectors = {
-                'button': 'QPushButton',
-                'label': 'QLabel',
-                'edit': 'QLineEdit',
-                'text': 'QTextEdit',
-                'combo': 'QComboBox',
+                "button": "QPushButton",
+                "label": "QLabel",
+                "edit": "QLineEdit",
+                "text": "QTextEdit",
+                "combo": "QComboBox",
             }
 
-            expected_selector = widget_selectors.get(widget_type, f'Q{widget_type.title()}')
+            expected_selector = widget_selectors.get(widget_type, f"Q{widget_type.title()}")
             self.assertIn(
                 expected_selector,
                 stylesheet,
-                msg or f"Stylesheet missing selector for {widget_type}"
+                msg or f"Stylesheet missing selector for {widget_type}",
             )
 
     # Performance assertion utilities
@@ -384,15 +368,11 @@ class ThemedTestCase(unittest.TestCase):
             self.assertLess(
                 elapsed,
                 max_time,
-                f"Operation '{operation_name}' took {elapsed:.6f}s, "
-                f"expected < {max_time:.6f}s"
+                f"Operation '{operation_name}' took {elapsed:.6f}s, " f"expected < {max_time:.6f}s",
             )
 
     def assert_performance_requirement(
-        self,
-        operation: Callable[[], Any],
-        requirement_type: str,
-        iterations: int = 100
+        self, operation: Callable[[], Any], requirement_type: str, iterations: int = 100
     ) -> None:
         """Assert that an operation meets specific performance requirements.
 
@@ -403,10 +383,10 @@ class ThemedTestCase(unittest.TestCase):
 
         """
         requirements = {
-            'theme_switch': 0.1,  # 100ms for 100 widgets
-            'property_access': 0.0001,  # 100μs (more realistic for test environment with mocks)
-            'callback_registration': 0.001,  # 1ms (more realistic for test environment)
-            'style_generation': 0.01,  # 10ms
+            "theme_switch": 0.1,  # 100ms for 100 widgets
+            "property_access": 0.0001,  # 100μs (more realistic for test environment with mocks)
+            "callback_registration": 0.001,  # 1ms (more realistic for test environment)
+            "style_generation": 0.01,  # 10ms
         }
 
         if requirement_type not in requirements:
@@ -427,7 +407,7 @@ class ThemedTestCase(unittest.TestCase):
             avg_time,
             max_time,
             f"Performance requirement '{requirement_type}' not met: "
-            f"avg {avg_time:.6f}s > {max_time:.6f}s"
+            f"avg {avg_time:.6f}s > {max_time:.6f}s",
         )
 
     # Memory assertion utilities
@@ -450,17 +430,10 @@ class ThemedTestCase(unittest.TestCase):
             yield profiler
 
         leaks = self.memory_profiler.detect_leaks()
-        self.assertLessEqual(
-            len(leaks),
-            max_leaks,
-            f"Memory leaks detected: {leaks}"
-        )
+        self.assertLessEqual(len(leaks), max_leaks, f"Memory leaks detected: {leaks}")
 
     def assert_memory_requirement(
-        self,
-        operation: Callable[[], Any],
-        max_memory_mb: float,
-        iterations: int = 10
+        self, operation: Callable[[], Any], max_memory_mb: float, iterations: int = 10
     ) -> None:
         """Assert that an operation meets memory requirements.
 
@@ -484,7 +457,7 @@ class ThemedTestCase(unittest.TestCase):
             self.assertLess(
                 peak_mb,
                 max_memory_mb,
-                f"Memory usage {peak_mb:.2f}MB exceeds limit {max_memory_mb:.2f}MB"
+                f"Memory usage {peak_mb:.2f}MB exceeds limit {max_memory_mb:.2f}MB",
             )
 
         finally:
@@ -493,9 +466,7 @@ class ThemedTestCase(unittest.TestCase):
     # Test data generation utilities
 
     def generate_test_theme(
-        self,
-        base_theme: str = "default",
-        overrides: Optional[Dict[str, Any]] = None
+        self, base_theme: str = "default", overrides: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Generate test theme data with optional overrides.
 
@@ -508,9 +479,9 @@ class ThemedTestCase(unittest.TestCase):
 
         """
         base_themes = {
-            'default': self.default_theme_data,
-            'dark': self.dark_theme_data,
-            'light': self.light_theme_data,
+            "default": self.default_theme_data,
+            "dark": self.dark_theme_data,
+            "light": self.light_theme_data,
         }
 
         if base_theme not in base_themes:
@@ -524,9 +495,7 @@ class ThemedTestCase(unittest.TestCase):
         return theme_data
 
     def generate_test_widgets(
-        self,
-        widget_types: List[str],
-        count_per_type: int = 1
+        self, widget_types: List[str], count_per_type: int = 1
     ) -> List[MockWidget]:
         """Generate multiple test widgets of different types.
 
@@ -547,11 +516,7 @@ class ThemedTestCase(unittest.TestCase):
 
         return widgets
 
-    def simulate_theme_switch(
-        self,
-        widgets: List[Any],
-        theme_name: str = "dark"
-    ) -> float:
+    def simulate_theme_switch(self, widgets: List[Any], theme_name: str = "dark") -> float:
         """Simulate theme switching on multiple widgets.
 
         Args:
@@ -565,9 +530,9 @@ class ThemedTestCase(unittest.TestCase):
         start_time = time.perf_counter()
 
         for widget in widgets:
-            if hasattr(widget, 'on_theme_changed'):
+            if hasattr(widget, "on_theme_changed"):
                 widget.on_theme_changed()
-            elif hasattr(widget, 'setStyleSheet'):
+            elif hasattr(widget, "setStyleSheet"):
                 # Simulate QSS update
                 new_style = f"color: {theme_name};"
                 widget.setStyleSheet(new_style)
@@ -589,15 +554,13 @@ class ThemedTestCase(unittest.TestCase):
 
         # Basic color validation
         valid_color = (
-            color.startswith('#') and len(color) in [4, 7] or
-            color.startswith('rgb') or
-            color.lower() in ['red', 'green', 'blue', 'black', 'white', 'transparent']
+            color.startswith("#")
+            and len(color) in [4, 7]
+            or color.startswith("rgb")
+            or color.lower() in ["red", "green", "blue", "black", "white", "transparent"]
         )
 
-        self.assertTrue(
-            valid_color,
-            msg or f"Invalid color value: {color}"
-        )
+        self.assertTrue(valid_color, msg or f"Invalid color value: {color}")
 
     def assert_font_valid(self, font: str, msg: Optional[str] = None) -> None:
         """Assert that a font specification is valid.
@@ -612,11 +575,7 @@ class ThemedTestCase(unittest.TestCase):
 
         # Basic font validation - should contain at least a family name
         parts = font.split()
-        self.assertGreaterEqual(
-            len(parts),
-            1,
-            msg or f"Invalid font specification: {font}"
-        )
+        self.assertGreaterEqual(len(parts), 1, msg or f"Invalid font specification: {font}")
 
     def assert_size_valid(self, size: str, msg: Optional[str] = None) -> None:
         """Assert that a size specification is valid.
@@ -629,16 +588,14 @@ class ThemedTestCase(unittest.TestCase):
         self.assertIsInstance(size, str, "Size must be string")
 
         # Should contain number and unit
-        valid_units = ['px', 'pt', 'em', 'rem', '%']
+        valid_units = ["px", "pt", "em", "rem", "%"]
         has_valid_unit = any(size.endswith(unit) for unit in valid_units)
 
-        self.assertTrue(
-            has_valid_unit,
-            msg or f"Invalid size specification: {size}"
-        )
+        self.assertTrue(has_valid_unit, msg or f"Invalid size specification: {size}")
 
 
 # Utility functions for testing
+
 
 def assert_theme_property(widget: Any, property_key: str, expected_value: Any) -> None:
     """Standalone assertion for theme property values.
@@ -649,9 +606,9 @@ def assert_theme_property(widget: Any, property_key: str, expected_value: Any) -
         expected_value: Expected property value.
 
     """
-    if hasattr(widget, 'get_theme_property'):
+    if hasattr(widget, "get_theme_property"):
         actual_value = widget.get_theme_property(property_key)
-    elif hasattr(widget, 'get_property'):
+    elif hasattr(widget, "get_property"):
         actual_value = widget.get_property(property_key)
     else:
         raise AssertionError(f"Widget {widget} does not support theme property access")
@@ -663,9 +620,7 @@ def assert_theme_property(widget: Any, property_key: str, expected_value: Any) -
 
 
 def assert_performance_requirement(
-    operation: Callable[[], Any],
-    max_time: float,
-    iterations: int = 100
+    operation: Callable[[], Any], max_time: float, iterations: int = 100
 ) -> None:
     """Standalone assertion for performance requirements.
 
@@ -683,14 +638,13 @@ def assert_performance_requirement(
         times.append(end_time - start_time)
 
     avg_time = sum(times) / len(times)
-    assert avg_time < max_time, (
-        f"Performance requirement not met: avg {avg_time:.6f}s > {max_time:.6f}s"
-    )
+    assert (
+        avg_time < max_time
+    ), f"Performance requirement not met: avg {avg_time:.6f}s > {max_time:.6f}s"
 
 
 def generate_test_theme(
-    base_theme: str = "default",
-    overrides: Optional[Dict[str, Any]] = None
+    base_theme: str = "default", overrides: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Generate test theme data with optional overrides.
 
@@ -703,21 +657,21 @@ def generate_test_theme(
 
     """
     base_themes = {
-        'default': {
+        "default": {
             "primary_color": "#007acc",
             "background": "#ffffff",
             "foreground": "#000000",
             "font_family": "Segoe UI",
             "font_size": "12px",
         },
-        'dark': {
+        "dark": {
             "primary_color": "#0078d4",
             "background": "#1e1e1e",
             "foreground": "#ffffff",
             "font_family": "Segoe UI",
             "font_size": "12px",
         },
-        'light': {
+        "light": {
             "primary_color": "#0066cc",
             "background": "#f8f9fa",
             "foreground": "#24292f",

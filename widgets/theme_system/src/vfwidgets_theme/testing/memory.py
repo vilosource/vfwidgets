@@ -46,7 +46,7 @@ class MemorySnapshot:
     weakref_count: int
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def compare_to(self, other: 'MemorySnapshot') -> 'MemoryDelta':
+    def compare_to(self, other: "MemorySnapshot") -> "MemoryDelta":
         """Compare this snapshot to another and return the delta.
 
         Args:
@@ -101,7 +101,7 @@ class MemoryDelta:
 
         # Check object count growth
         for obj_type, delta in self.object_deltas.items():
-            if delta > threshold_objects and obj_type not in ['str', 'int', 'float']:
+            if delta > threshold_objects and obj_type not in ["str", "int", "float"]:
                 return True
 
         return False
@@ -217,7 +217,7 @@ class MemoryProfiler:
                 reference_counts=ref_counts,
                 tracked_objects=len(self._tracked_objects),
                 weakref_count=live_weakrefs,
-                metadata={'label': label}
+                metadata={"label": label},
             )
 
             self._snapshots.append(snapshot)
@@ -261,7 +261,9 @@ class MemoryProfiler:
                     # Object doesn't support weak references
                     pass
 
-    def track_widget_lifecycle(self, widget_factory: Callable[[], Any], count: int = 100) -> Dict[str, Any]:
+    def track_widget_lifecycle(
+        self, widget_factory: Callable[[], Any], count: int = 100
+    ) -> Dict[str, Any]:
         """Track widget creation and destruction lifecycle.
 
         Args:
@@ -284,7 +286,7 @@ class MemoryProfiler:
 
             # Simulate some theme operations
             for widget in widgets:
-                if hasattr(widget, 'on_theme_changed'):
+                if hasattr(widget, "on_theme_changed"):
                     widget.on_theme_changed()
 
             operated_snapshot = self.take_snapshot("theme_operations_done")
@@ -305,11 +307,11 @@ class MemoryProfiler:
                         break
 
             return {
-                'widgets_created': count,
-                'widgets_still_alive': live_objects,
-                'creation_memory_delta': operated_snapshot.compare_to(created_snapshot),
-                'cleanup_memory_delta': cleaned_snapshot.compare_to(operated_snapshot),
-                'total_memory_delta': cleaned_snapshot.compare_to(created_snapshot),
+                "widgets_created": count,
+                "widgets_still_alive": live_objects,
+                "creation_memory_delta": operated_snapshot.compare_to(created_snapshot),
+                "cleanup_memory_delta": cleaned_snapshot.compare_to(operated_snapshot),
+                "total_memory_delta": cleaned_snapshot.compare_to(created_snapshot),
             }
 
     def detect_leaks(self, sensitivity: float = 1.0) -> List[str]:
@@ -374,32 +376,34 @@ class MemoryProfiler:
 
         """
         requirements = {
-            'max_memory_per_widget': 1024,  # 1KB per widget
-            'max_memory_growth_per_operation': 512,  # 512 bytes per operation
-            'max_object_growth_per_operation': 5,  # 5 objects per operation
+            "max_memory_per_widget": 1024,  # 1KB per widget
+            "max_memory_growth_per_operation": 512,  # 512 bytes per operation
+            "max_object_growth_per_operation": 5,  # 5 objects per operation
         }
 
         # Check memory per widget from operation profiles
-        widget_operations = ['widget_creation', 'widget_lifecycle']
+        widget_operations = ["widget_creation", "widget_lifecycle"]
         for operation_name in widget_operations:
             if operation_name in self._operation_profiles:
                 deltas = self._operation_profiles[operation_name]
                 for delta in deltas:
-                    avg_memory_per_widget = abs(delta.memory_delta) / max(1, abs(delta.tracked_objects_delta))
-                    if avg_memory_per_widget > requirements['max_memory_per_widget']:
+                    avg_memory_per_widget = abs(delta.memory_delta) / max(
+                        1, abs(delta.tracked_objects_delta)
+                    )
+                    if avg_memory_per_widget > requirements["max_memory_per_widget"]:
                         return False
 
         # Check memory growth per operation
         for operation_name, deltas in self._operation_profiles.items():
             for delta in deltas:
-                if delta.memory_delta > requirements['max_memory_growth_per_operation']:
+                if delta.memory_delta > requirements["max_memory_growth_per_operation"]:
                     return False
 
                 # Check object growth
                 total_object_growth = sum(
                     count for count in delta.object_deltas.values() if count > 0
                 )
-                if total_object_growth > requirements['max_object_growth_per_operation']:
+                if total_object_growth > requirements["max_object_growth_per_operation"]:
                     return False
 
         return True
@@ -435,21 +439,25 @@ class MemoryProfiler:
         last_snapshot = self._snapshots[-1]
         overall_delta = last_snapshot.compare_to(first_snapshot)
 
-        report_lines.extend([
-            f"Time Period: {overall_delta.time_delta:.2f} seconds",
-            f"Total Memory Change: {overall_delta.memory_delta:+} bytes",
-            f"Peak Memory Change: {overall_delta.peak_delta:+} bytes",
-            f"Tracked Objects Change: {overall_delta.tracked_objects_delta:+}",
-            f"WeakRef Count Change: {overall_delta.weakref_delta:+}",
-            "",
-        ])
+        report_lines.extend(
+            [
+                f"Time Period: {overall_delta.time_delta:.2f} seconds",
+                f"Total Memory Change: {overall_delta.memory_delta:+} bytes",
+                f"Peak Memory Change: {overall_delta.peak_delta:+} bytes",
+                f"Tracked Objects Change: {overall_delta.tracked_objects_delta:+}",
+                f"WeakRef Count Change: {overall_delta.weakref_delta:+}",
+                "",
+            ]
+        )
 
         # Object type changes
         if overall_delta.object_deltas:
-            report_lines.extend([
-                "Object Count Changes:",
-                "-" * 25,
-            ])
+            report_lines.extend(
+                [
+                    "Object Count Changes:",
+                    "-" * 25,
+                ]
+            )
 
             for obj_type, delta in sorted(overall_delta.object_deltas.items()):
                 if delta != 0:
@@ -459,55 +467,65 @@ class MemoryProfiler:
 
         # Operation profiles
         if self._operation_profiles:
-            report_lines.extend([
-                "Operation Memory Profiles:",
-                "-" * 30,
-            ])
+            report_lines.extend(
+                [
+                    "Operation Memory Profiles:",
+                    "-" * 30,
+                ]
+            )
 
             for operation_name, deltas in self._operation_profiles.items():
                 if deltas:
                     avg_memory = sum(d.memory_delta for d in deltas) / len(deltas)
-                    avg_objects = sum(
-                        sum(d.object_deltas.values()) for d in deltas
-                    ) / len(deltas)
+                    avg_objects = sum(sum(d.object_deltas.values()) for d in deltas) / len(deltas)
 
-                    report_lines.extend([
-                        f"  {operation_name}:",
-                        f"    Executions: {len(deltas)}",
-                        f"    Avg Memory Delta: {avg_memory:+.0f} bytes",
-                        f"    Avg Object Delta: {avg_objects:+.0f}",
-                        "",
-                    ])
+                    report_lines.extend(
+                        [
+                            f"  {operation_name}:",
+                            f"    Executions: {len(deltas)}",
+                            f"    Avg Memory Delta: {avg_memory:+.0f} bytes",
+                            f"    Avg Object Delta: {avg_objects:+.0f}",
+                            "",
+                        ]
+                    )
 
         # Leak detection results
         leaks = self.detect_leaks()
         if leaks:
-            report_lines.extend([
-                "Potential Memory Leaks:",
-                "-" * 25,
-            ])
+            report_lines.extend(
+                [
+                    "Potential Memory Leaks:",
+                    "-" * 25,
+                ]
+            )
             for leak in leaks:
                 report_lines.append(f"  ⚠️  {leak}")
             report_lines.append("")
         else:
-            report_lines.extend([
-                "Memory Leak Detection: ✓ CLEAN",
-                "",
-            ])
+            report_lines.extend(
+                [
+                    "Memory Leak Detection: ✓ CLEAN",
+                    "",
+                ]
+            )
 
         # Requirements validation
         meets_requirements = self.validate_memory_requirements()
-        report_lines.extend([
-            f"Memory Requirements: {'✓ PASS' if meets_requirements else '✗ FAIL'}",
-            "",
-        ])
+        report_lines.extend(
+            [
+                f"Memory Requirements: {'✓ PASS' if meets_requirements else '✗ FAIL'}",
+                "",
+            ]
+        )
 
         # Live object summary
         live_weakrefs = sum(1 for ref in self._weakrefs if ref() is not None)
-        report_lines.extend([
-            f"Live Tracked Objects: {live_weakrefs}/{len(self._weakrefs)}",
-            "=" * 50,
-        ])
+        report_lines.extend(
+            [
+                f"Live Tracked Objects: {live_weakrefs}/{len(self._weakrefs)}",
+                "=" * 50,
+            ]
+        )
 
         return "\n".join(report_lines)
 
@@ -526,6 +544,7 @@ class MemoryProfiler:
 
 
 # Convenience functions for common memory testing patterns
+
 
 def detect_memory_leaks(operation: Callable[[], None], iterations: int = 100) -> List[str]:
     """Detect memory leaks in a repeated operation.
@@ -596,6 +615,7 @@ def validate_memory_requirements(test_function: Callable[[], None]) -> bool:
 
 # Memory testing decorators
 
+
 def memory_leak_test(iterations: int = 100, max_leaks: int = 0):
     """Decorator for memory leak testing.
 
@@ -610,17 +630,19 @@ def memory_leak_test(iterations: int = 100, max_leaks: int = 0):
             widget.on_theme_changed()
 
     """
+
     def decorator(test_func):
         def wrapper(*args, **kwargs):
             def test_operation():
                 return test_func(*args, **kwargs)
 
             leaks = detect_memory_leaks(test_operation, iterations)
-            assert len(leaks) <= max_leaks, (
-                f"Memory leaks detected in {test_func.__name__}: {leaks}"
-            )
+            assert (
+                len(leaks) <= max_leaks
+            ), f"Memory leaks detected in {test_func.__name__}: {leaks}"
 
         return wrapper
+
     return decorator
 
 
@@ -637,16 +659,18 @@ def widget_lifecycle_test(widget_count: int = 100, max_alive_percent: float = 10
             return MockWidget()  # Return widget factory
 
     """
+
     def decorator(test_func):
         def wrapper(*args, **kwargs):
             widget_factory = lambda: test_func(*args, **kwargs)
             stats = track_widget_lifecycle(widget_factory, widget_count)
 
-            alive_percent = (stats['widgets_still_alive'] / widget_count) * 100
+            alive_percent = (stats["widgets_still_alive"] / widget_count) * 100
             assert alive_percent <= max_alive_percent, (
                 f"Too many widgets still alive in {test_func.__name__}: "
                 f"{alive_percent:.1f}% (max {max_alive_percent}%)"
             )
 
         return wrapper
+
     return decorator

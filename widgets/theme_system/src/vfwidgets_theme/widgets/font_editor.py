@@ -50,6 +50,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -99,17 +100,19 @@ class FontEditorWidget(ThemedWidget, QWidget):
         # Font weight
         props_layout.addWidget(QLabel("Weight:"), 2, 0)
         self._weight_combo = QComboBox()
-        self._weight_combo.addItems([
-            "Thin (100)",
-            "Extra Light (200)",
-            "Light (300)",
-            "Normal (400)",
-            "Medium (500)",
-            "Semi Bold (600)",
-            "Bold (700)",
-            "Extra Bold (800)",
-            "Black (900)",
-        ])
+        self._weight_combo.addItems(
+            [
+                "Thin (100)",
+                "Extra Light (200)",
+                "Light (300)",
+                "Normal (400)",
+                "Medium (500)",
+                "Semi Bold (600)",
+                "Bold (700)",
+                "Extra Bold (800)",
+                "Black (900)",
+            ]
+        )
         self._weight_combo.setCurrentIndex(3)  # Normal
         self._weight_combo.currentIndexChanged.connect(self._on_weight_changed)
         props_layout.addWidget(self._weight_combo, 2, 1)
@@ -140,16 +143,27 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             List of monospace font family names
+
         """
         database = QFontDatabase()
         all_families = database.families()
 
         # Common monospace fonts (prefer these)
         preferred = [
-            "Consolas", "Monaco", "Menlo", "Courier New", "Courier",
-            "DejaVu Sans Mono", "Liberation Mono", "Ubuntu Mono",
-            "Fira Code", "Source Code Pro", "JetBrains Mono",
-            "Cascadia Code", "SF Mono", "Roboto Mono"
+            "Consolas",
+            "Monaco",
+            "Menlo",
+            "Courier New",
+            "Courier",
+            "DejaVu Sans Mono",
+            "Liberation Mono",
+            "Ubuntu Mono",
+            "Fira Code",
+            "Source Code Pro",
+            "JetBrains Mono",
+            "Cascadia Code",
+            "SF Mono",
+            "Roboto Mono",
         ]
 
         # Find monospace fonts
@@ -178,6 +192,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Args:
             family: New font family
+
         """
         self._current_font.setFamily(family)
         self._update_preview()
@@ -188,6 +203,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Args:
             size: New font size in points
+
         """
         self._current_font.setPointSize(size)
         self._update_preview()
@@ -198,6 +214,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Args:
             index: Weight combo index
+
         """
         weights = [100, 200, 300, 400, 500, 600, 700, 800, 900]
         weight = weights[index] if index < len(weights) else 400
@@ -220,6 +237,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             CSS font string (e.g., "12pt 'Consolas'")
+
         """
         family = self._current_font.family()
         size = self._current_font.pointSize()
@@ -251,6 +269,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Parsed QFont
+
         """
         # Simple parser for common formats:
         # "12pt Consolas"
@@ -284,6 +303,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Args:
             font: New font
+
         """
         self._current_font = font
 
@@ -323,6 +343,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             True if successfully parsed
+
         """
         try:
             font = self._css_to_font(css_string)
@@ -338,6 +359,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
         Args:
             token_path: Token path (e.g., "editor.font")
             token_value: Current token value (CSS font string)
+
         """
         self._token_path = token_path
         self._token_label.setText(f"Editing: {token_path}")
@@ -356,6 +378,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Current QFont
+
         """
         return self._current_font
 
@@ -364,6 +387,7 @@ class FontEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             CSS font string
+
         """
         return self._font_to_css()
 

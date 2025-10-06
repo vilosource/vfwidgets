@@ -144,7 +144,8 @@ class TestThemeButtonGroup:
         button_group = ThemeButtonGroup()
         # Find dark theme button and check if it's checked
         checked_buttons = [
-            btn for btn in button_group.findChildren(type(button_group.layout().itemAt(0).widget()))
+            btn
+            for btn in button_group.findChildren(type(button_group.layout().itemAt(0).widget()))
             if hasattr(btn, "isChecked") and btn.isChecked()
         ]
         assert len(checked_buttons) > 0

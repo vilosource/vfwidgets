@@ -39,32 +39,21 @@ class TestVSCodeThemeImporter:
                 "input.background": "#3c3c3c",
                 "button.background": "#0e639c",
                 "list.activeSelectionBackground": "#094771",
-                "focusBorder": "#007fd4"
+                "focusBorder": "#007fd4",
             },
             "tokenColors": [
                 {
                     "name": "Comment",
                     "scope": "comment",
-                    "settings": {
-                        "foreground": "#6A9955",
-                        "fontStyle": "italic"
-                    }
+                    "settings": {"foreground": "#6A9955", "fontStyle": "italic"},
                 },
                 {
                     "name": "String",
                     "scope": ["string", "string.quoted"],
-                    "settings": {
-                        "foreground": "#ce9178"
-                    }
+                    "settings": {"foreground": "#ce9178"},
                 },
-                {
-                    "name": "Keyword",
-                    "scope": "keyword",
-                    "settings": {
-                        "foreground": "#569cd6"
-                    }
-                }
-            ]
+                {"name": "Keyword", "scope": "keyword", "settings": {"foreground": "#569cd6"}},
+            ],
         }
 
     @pytest.fixture
@@ -77,9 +66,9 @@ class TestVSCodeThemeImporter:
                 "editor.background": "#ffffff",
                 "editor.foreground": "#000000",
                 "activityBar.background": "#f3f3f3",
-                "sideBar.background": "#f8f8f8"
+                "sideBar.background": "#f8f8f8",
             },
-            "tokenColors": []
+            "tokenColors": [],
         }
 
     def test_determine_theme_type_explicit(self, importer):
@@ -205,7 +194,7 @@ class TestVSCodeThemeImporter:
 
     def test_import_from_file(self, importer, sample_vscode_theme):
         """Test importing theme from file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(sample_vscode_theme, f)
             theme_path = Path(f.name)
 
@@ -226,7 +215,7 @@ class TestVSCodeThemeImporter:
 
     def test_import_from_invalid_json(self, importer):
         """Test importing from invalid JSON raises error."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("invalid json {")
             invalid_path = Path(f.name)
 
@@ -240,10 +229,7 @@ class TestVSCodeThemeImporter:
     def test_add_color_fallbacks(self, importer):
         """Test color fallback addition."""
         mapped_colors = {}
-        vscode_colors = {
-            "editor.background": "#282a36",
-            "editor.foreground": "#f8f8f2"
-        }
+        vscode_colors = {"editor.background": "#282a36", "editor.foreground": "#f8f8f2"}
 
         importer._add_color_fallbacks(mapped_colors, vscode_colors)
 
@@ -272,7 +258,7 @@ class TestVSCodeThemeImporter:
         theme = importer.import_theme(sample_vscode_theme, "Test Theme")
 
         # Export to temporary file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             output_path = Path(f.name)
 
         try:
@@ -323,9 +309,7 @@ class TestVSCodeThemeImporter:
         assert token.settings is None
 
         token = VSCodeTokenColor(
-            name="Comment",
-            scope=["comment"],
-            settings={"foreground": "#6A9955"}
+            name="Comment", scope=["comment"], settings={"foreground": "#6A9955"}
         )
         assert token.name == "Comment"
         assert token.scope == ["comment"]

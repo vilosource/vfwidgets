@@ -29,20 +29,20 @@ def test_example_runs(script_path):
     print(f"\nTesting {script_path}...")
 
     # Create temp file for stderr to capture ALL output
-    stderr_fd, stderr_path = tempfile.mkstemp(suffix='.log', prefix='test_')
+    stderr_fd, stderr_path = tempfile.mkstemp(suffix=".log", prefix="test_")
 
     # Variable to track if we need to clean up
     cleanup_done = False
 
     try:
-        with open(stderr_path, 'w') as stderr_file:
+        with open(stderr_path, "w") as stderr_file:
             try:
                 result = subprocess.run(
                     [sys.executable, script_path],
                     stdout=subprocess.DEVNULL,  # Discard stdout
                     stderr=stderr_file,  # Write stderr to file
                     timeout=2,
-                    check=False  # Don't raise, we check manually
+                    check=False,  # Don't raise, we check manually
                 )
                 # If we get here, no timeout occurred
                 timeout_occurred = False
@@ -69,7 +69,7 @@ def test_example_runs(script_path):
             print(f"  {msg}")
             if "Traceback" in stderr_content:
                 print("  Traceback found in stderr:")
-                for line in stderr_content.split('\n')[:10]:  # First 10 lines
+                for line in stderr_content.split("\n")[:10]:  # First 10 lines
                     if line.strip():
                         print(f"    {line}")
             return False, msg
@@ -79,12 +79,12 @@ def test_example_runs(script_path):
             msg = "✗ IGNORED EXCEPTION DETECTED"
             print(f"  {msg}")
             # Show the exception
-            lines = stderr_content.split('\n')
+            lines = stderr_content.split("\n")
             for i, line in enumerate(lines):
-                if 'Exception ignored' in line:
+                if "Exception ignored" in line:
                     # Show context (5 lines)
                     start = max(0, i)
-                    end = min(len(lines), i+6)
+                    end = min(len(lines), i + 6)
                     print("  Exception context:")
                     for context_line in lines[start:end]:
                         if context_line.strip():
@@ -109,14 +109,14 @@ def test_example_runs(script_path):
                 msg = f"✗ ERROR PATTERN: {description}"
                 print(f"  {msg}")
                 # Show first occurrence with context
-                lines = stderr_content.split('\n')
+                lines = stderr_content.split("\n")
                 for i, line in enumerate(lines):
                     if pattern in line:
-                        start = max(0, i-2)
-                        end = min(len(lines), i+3)
+                        start = max(0, i - 2)
+                        end = min(len(lines), i + 3)
                         print("  Error context:")
                         for context_line in lines[start:end]:
-                            if context_line.strip() and not context_line.startswith('[DEBUG]'):
+                            if context_line.strip() and not context_line.startswith("[DEBUG]"):
                                 print(f"    {context_line}")
                         break
                 return False, msg
@@ -146,12 +146,12 @@ def test_example_runs(script_path):
 def main():
     """Run all example tests."""
     examples = [
-        '01_hello_world.py',
-        '02_buttons_and_layout.py',
-        '03_theme_switching.py',
-        '04_input_forms.py',
-        '05_vscode_editor.py',
-        '06_role_markers.py'
+        "01_hello_world.py",
+        "02_buttons_and_layout.py",
+        "03_theme_switching.py",
+        "04_input_forms.py",
+        "05_vscode_editor.py",
+        "06_role_markers.py",
     ]
 
     print("=" * 70)
@@ -192,5 +192,5 @@ def main():
         return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

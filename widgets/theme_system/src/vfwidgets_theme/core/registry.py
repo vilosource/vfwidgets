@@ -36,7 +36,7 @@ from ..protocols import ThemeableWidget
 
 logger = get_debug_logger(__name__)
 
-T = TypeVar('T', bound=ThemeableWidget)
+T = TypeVar("T", bound=ThemeableWidget)
 
 
 class RegistryEventType(Enum):
@@ -122,7 +122,7 @@ class ThemeWidgetRegistry:
         self,
         widget: ThemeableWidget,
         theme_metadata: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Callable[[], None]]] = None
+        callbacks: Optional[List[Callable[[], None]]] = None,
     ) -> str:
         """Register a themed widget with metadata.
 
@@ -151,7 +151,7 @@ class ThemeWidgetRegistry:
                 widget_type=type(widget).__name__,
                 registration_time=time.time(),
                 theme_metadata=theme_metadata or {},
-                callbacks=callbacks or []
+                callbacks=callbacks or [],
             )
 
             self._entries[widget_id] = entry
@@ -304,7 +304,9 @@ class DefaultRegistryEventHandler:
 
 
 # Factory function for creating widget registry
-def create_widget_registry(base_registry: Optional[BaseWidgetRegistry] = None) -> ThemeWidgetRegistry:
+def create_widget_registry(
+    base_registry: Optional[BaseWidgetRegistry] = None,
+) -> ThemeWidgetRegistry:
     """Create theme widget registry with default configuration.
 
     Implementation will be completed in Task 8.

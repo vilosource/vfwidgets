@@ -31,11 +31,7 @@ class TestVisualFramework:
         baseline_dir = temp_dir / "baselines"
         output_dir = temp_dir / "output"
 
-        return VisualTestFramework(
-            baseline_dir=baseline_dir,
-            output_dir=output_dir,
-            tolerance=0.01
-        )
+        return VisualTestFramework(baseline_dir=baseline_dir, output_dir=output_dir, tolerance=0.01)
 
     @pytest.fixture
     def app(self):
@@ -93,11 +89,7 @@ class TestVisualFramework:
         widget = QLabel("Baseline Test")
         widget.resize(150, 75)
 
-        result = visual_framework.run_visual_test(
-            "test_baseline",
-            widget,
-            update_baseline=True
-        )
+        result = visual_framework.run_visual_test("test_baseline", widget, update_baseline=True)
 
         assert result.result == ComparisonResult.IDENTICAL
         assert result.difference_percentage == 0.0
@@ -110,17 +102,10 @@ class TestVisualFramework:
         widget.resize(150, 75)
 
         # Create baseline
-        result1 = visual_framework.run_visual_test(
-            "test_comparison",
-            widget,
-            update_baseline=True
-        )
+        result1 = visual_framework.run_visual_test("test_comparison", widget, update_baseline=True)
 
         # Test against same widget (should be identical)
-        result2 = visual_framework.run_visual_test(
-            "test_comparison",
-            widget
-        )
+        result2 = visual_framework.run_visual_test("test_comparison", widget)
 
         assert result2.result == ComparisonResult.IDENTICAL
         assert result2.difference_percentage == 0.0
@@ -128,9 +113,7 @@ class TestVisualFramework:
     def test_themed_widget_test(self, visual_framework, app):
         """Test themed widget visual testing."""
         result = visual_framework.test_themed_widget(
-            widget_class=ThemedWidget,
-            theme_name="default",
-            size=QSize(200, 100)
+            widget_class=ThemedWidget, theme_name="default", size=QSize(200, 100)
         )
 
         assert result is not None
@@ -139,9 +122,7 @@ class TestVisualFramework:
     def test_batch_theme_testing(self, visual_framework, app):
         """Test batch testing with multiple themes."""
         results = visual_framework.batch_test_themes(
-            widget_class=ThemedWidget,
-            theme_names=["default", "dark"],
-            size=QSize(150, 80)
+            widget_class=ThemedWidget, theme_names=["default", "dark"], size=QSize(150, 80)
         )
 
         assert len(results) == 2
@@ -178,11 +159,11 @@ class TestImageComparator:
             from PIL import Image
 
             # Create identical images
-            img1 = Image.new('RGB', (100, 100), color='red')
-            img2 = Image.new('RGB', (100, 100), color='red')
+            img1 = Image.new("RGB", (100, 100), color="red")
+            img2 = Image.new("RGB", (100, 100), color="red")
 
             # Create different image
-            img3 = Image.new('RGB', (100, 100), color='blue')
+            img3 = Image.new("RGB", (100, 100), color="blue")
 
             return img1, img2, img3
         except ImportError:
@@ -229,8 +210,7 @@ def test_visual_framework_integration():
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create framework
         framework = VisualTestFramework(
-            baseline_dir=Path(temp_dir) / "baselines",
-            output_dir=Path(temp_dir) / "output"
+            baseline_dir=Path(temp_dir) / "baselines", output_dir=Path(temp_dir) / "output"
         )
 
         # Create test widget
@@ -242,11 +222,7 @@ def test_visual_framework_integration():
         widget.resize(120, 40)
 
         # Run visual test
-        result = framework.run_visual_test(
-            "integration_test",
-            widget,
-            update_baseline=True
-        )
+        result = framework.run_visual_test("integration_test", widget, update_baseline=True)
 
         assert result.result == ComparisonResult.IDENTICAL
         assert result.baseline_path.exists()

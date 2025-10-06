@@ -38,7 +38,7 @@ def demo_application_api():
     # Discover available themes
     print("\n2. Discover available themes")
     themes = app.get_available_themes()
-    theme_names = [t.name if hasattr(t, 'name') else str(t) for t in themes]
+    theme_names = [t.name if hasattr(t, "name") else str(t) for t in themes]
     print(f"   📋 Found {len(themes)} themes: {theme_names}")
 
     # Get current theme
@@ -152,7 +152,7 @@ def demo_complete_workflow():
     print("\nStep 3: Switch themes")
     themes = app.get_available_themes()
     for theme in themes[:2]:  # Show first 2
-        theme_name = theme.name if hasattr(theme, 'name') else str(theme)
+        theme_name = theme.name if hasattr(theme, "name") else str(theme)
         print(f"   app.set_theme('{theme_name}')")
         app.set_theme(theme_name)
     print("   ✅ ALL themed widgets update automatically")

@@ -35,9 +35,7 @@ logger = get_debug_logger(__name__)
 
 
 def add_theme_menu(
-    window: QMainWindow,
-    menu_name: str = "Theme",
-    parent_menu: Optional[QMenu] = None
+    window: QMainWindow, menu_name: str = "Theme", parent_menu: Optional[QMenu] = None
 ) -> QMenu:
     """Add a theme selection menu to a window.
 
@@ -98,9 +96,7 @@ def add_theme_menu(
             action.setChecked(True)
 
         # Connect to theme switching
-        action.triggered.connect(
-            lambda checked, name=theme_name: app.set_theme(name)
-        )
+        action.triggered.connect(lambda checked, name=theme_name: app.set_theme(name))
 
         # Add to group and menu
         action_group.addAction(action)
@@ -124,9 +120,7 @@ def add_theme_menu(
 
 
 def add_theme_toolbar(
-    window: QMainWindow,
-    toolbar_name: str = "Theme",
-    widget_type: str = "combo"
+    window: QMainWindow, toolbar_name: str = "Theme", widget_type: str = "combo"
 ) -> QToolBar:
     """Add a theme selection toolbar to a window.
 
@@ -219,7 +213,7 @@ class ThemePreview:
         logger.debug(f"Previewing theme: {theme_name}")
 
         # Emit preview started signal if first preview
-        if hasattr(self._app, 'theme_preview_started'):
+        if hasattr(self._app, "theme_preview_started"):
             self._app.theme_preview_started.emit(theme_name)
 
     def commit(self) -> None:
@@ -236,7 +230,7 @@ class ThemePreview:
             logger.debug(f"Committed preview, keeping theme: {self._app.current_theme_name}")
 
             # Emit preview ended signal
-            if hasattr(self._app, 'theme_preview_ended'):
+            if hasattr(self._app, "theme_preview_ended"):
                 self._app.theme_preview_ended.emit(self._app.current_theme_name)
 
             self._original_theme = None
@@ -258,7 +252,7 @@ class ThemePreview:
             self._app.set_theme(self._original_theme)
 
             # Emit preview ended signal
-            if hasattr(self._app, 'theme_preview_ended'):
+            if hasattr(self._app, "theme_preview_ended"):
                 self._app.theme_preview_ended.emit(self._original_theme)
 
             self._original_theme = None
@@ -302,12 +296,7 @@ class ThemeSettings:
 
     """
 
-    def __init__(
-        self,
-        organization: str,
-        application: str,
-        auto_save: bool = False
-    ):
+    def __init__(self, organization: str, application: str, auto_save: bool = False):
         """Initialize theme settings manager."""
         self._settings = QSettings(organization, application)
         self._app = ThemedApplication.instance()

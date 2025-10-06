@@ -16,16 +16,16 @@ from .runner import IntegrationTestRunner
 from .theme_switching import ThemeSwitchingScenario
 
 __all__ = [
-    'ComplexApplicationScenario',
-    'ThemeSwitchingScenario',
-    'ErrorRecoveryScenario',
-    'MigrationScenario',
-    'PluginIntegrationScenario',
-    'PerformanceStressScenario',
-    'IntegrationTestRunner'
+    "ComplexApplicationScenario",
+    "ThemeSwitchingScenario",
+    "ErrorRecoveryScenario",
+    "MigrationScenario",
+    "PluginIntegrationScenario",
+    "PerformanceStressScenario",
+    "IntegrationTestRunner",
 ]
 
 # Version information
-__version__ = '1.0.0'
-__author__ = 'VFWidgets Theme System'
-__description__ = 'Integration test scenarios for theme system validation'
+__version__ = "1.0.0"
+__author__ = "VFWidgets Theme System"
+__description__ = "Integration test scenarios for theme system validation"

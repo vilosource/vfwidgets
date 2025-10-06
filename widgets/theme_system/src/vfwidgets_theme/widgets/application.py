@@ -42,6 +42,7 @@ import yaml
 try:
     from PySide6.QtCore import QObject, QTimer, Signal
     from PySide6.QtWidgets import QApplication
+
     pyqtSignal = Signal  # PySide6 uses Signal, not pyqtSignal
     QT_AVAILABLE = True
 except ImportError:
@@ -91,6 +92,7 @@ except ImportError:
         def stop(self):
             pass
 
+
 # Import foundation modules
 from ..core.manager import ThemeManager
 from ..core.theme import Theme
@@ -123,18 +125,18 @@ class ApplicationConfig:
 class ApplicationThemeManager:
     """Internal manager for application-level theme coordination."""
 
-    def __init__(self, application: 'ThemedApplication'):
+    def __init__(self, application: "ThemedApplication"):
         self._application = weakref.ref(application)
         self._lock = threading.RLock()
         self._widget_count = 0
         self._last_theme_switch_time = 0.0
         self._theme_switch_count = 0
         self._performance_stats = {
-            'theme_switches': 0,
-            'widgets_updated': 0,
-            'average_switch_time': 0.0,
-            'cache_hits': 0,
-            'cache_misses': 0
+            "theme_switches": 0,
+            "widgets_updated": 0,
+            "average_switch_time": 0.0,
+            "cache_hits": 0,
+            "cache_misses": 0,
         }
 
     def coordinate_theme_switch(self, theme: Theme) -> bool:
@@ -162,16 +164,18 @@ class ApplicationThemeManager:
                 self._last_theme_switch_time = switch_time
 
                 # Update statistics
-                self._performance_stats['theme_switches'] += 1
-                self._performance_stats['widgets_updated'] += widget_count
+                self._performance_stats["theme_switches"] += 1
+                self._performance_stats["widgets_updated"] += widget_count
 
                 # Update average
-                total_switches = self._performance_stats['theme_switches']
-                old_avg = self._performance_stats['average_switch_time']
+                total_switches = self._performance_stats["theme_switches"]
+                old_avg = self._performance_stats["average_switch_time"]
                 new_avg = (old_avg * (total_switches - 1) + switch_time) / total_switches
-                self._performance_stats['average_switch_time'] = new_avg
+                self._performance_stats["average_switch_time"] = new_avg
 
-                logger.debug(f"Theme switch coordinated: {widget_count} widgets in {switch_time:.3f}s")
+                logger.debug(
+                    f"Theme switch coordinated: {widget_count} widgets in {switch_time:.3f}s"
+                )
                 return True
 
         except Exception as e:
@@ -182,11 +186,13 @@ class ApplicationThemeManager:
         """Get performance statistics."""
         with self._lock:
             stats = self._performance_stats.copy()
-            stats.update({
-                'current_widget_count': self._widget_count,
-                'last_switch_time': self._last_theme_switch_time,
-                'total_switches': self._theme_switch_count
-            })
+            stats.update(
+                {
+                    "current_widget_count": self._widget_count,
+                    "last_switch_time": self._last_theme_switch_time,
+                    "total_switches": self._theme_switch_count,
+                }
+            )
             return stats
 
 
@@ -194,12 +200,13 @@ def detect_system_theme() -> Optional[str]:
     """Detect system theme preference."""
     try:
         # Windows
-        if os.name == 'nt':
+        if os.name == "nt":
             try:
                 import winreg
+
                 key = winreg.OpenKey(
                     winreg.HKEY_CURRENT_USER,
-                    r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+                    r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
                 )
                 value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
                 winreg.CloseKey(key)
@@ -208,13 +215,17 @@ def detect_system_theme() -> Optional[str]:
                 pass
 
         # macOS
-        elif os.name == 'posix':
+        elif os.name == "posix":
             try:
                 import subprocess
-                result = subprocess.run([
-                    'defaults', 'read', '-g', 'AppleInterfaceStyle'
-                ], capture_output=True, text=True, timeout=5)
-                if result.returncode == 0 and 'Dark' in result.stdout:
+
+                result = subprocess.run(
+                    ["defaults", "read", "-g", "AppleInterfaceStyle"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.returncode == 0 and "Dark" in result.stdout:
                     return "dark"
                 else:
                     return "light"
@@ -224,11 +235,11 @@ def detect_system_theme() -> Optional[str]:
         # Linux/X11
         try:
             # Check for common dark theme indicators
-            desktop = os.environ.get('XDG_CURRENT_DESKTOP', '').lower()
-            if 'gnome' in desktop or 'gtk' in desktop:
+            desktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+            if "gnome" in desktop or "gtk" in desktop:
                 # Try to detect GTK theme
-                theme = os.environ.get('GTK_THEME', '').lower()
-                if 'dark' in theme:
+                theme = os.environ.get("GTK_THEME", "").lower()
+                if "dark" in theme:
                     return "dark"
                 else:
                     return "light"
@@ -253,7 +264,7 @@ def find_vscode_themes() -> List[Path]:
             home / ".vscode" / "extensions",
             home / "AppData" / "Roaming" / "Code" / "User" / "extensions",  # Windows
             home / "Library" / "Application Support" / "Code" / "User" / "extensions",  # macOS
-            home / ".config" / "Code" / "User" / "extensions"  # Linux
+            home / ".config" / "Code" / "User" / "extensions",  # Linux
         ]
 
         for vscode_path in vscode_paths:
@@ -279,7 +290,7 @@ def save_theme_preference(theme_name: str) -> bool:
         config_dir.mkdir(exist_ok=True)
 
         config_file = config_dir / "theme_preference.json"
-        with open(config_file, 'w') as f:
+        with open(config_file, "w") as f:
             json.dump({"preferred_theme": theme_name}, f)
 
         return True
@@ -325,12 +336,14 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
     # Qt signals for application-wide theme events
     if QT_AVAILABLE:
-        theme_changed = pyqtSignal(str)           # Emitted when theme changes
-        theme_loaded = pyqtSignal(str)           # Emitted when new theme is loaded
+        theme_changed = pyqtSignal(str)  # Emitted when theme changes
+        theme_loaded = pyqtSignal(str)  # Emitted when new theme is loaded
         theme_import_completed = pyqtSignal(str)  # Emitted when theme import completes
-        system_theme_detected = pyqtSignal(str)   # Emitted when system theme detected
-        theme_preview_started = pyqtSignal(str)   # Emitted when theme preview starts
-        theme_preview_ended = pyqtSignal(bool)    # Emitted when preview ends (True=committed, False=cancelled)
+        system_theme_detected = pyqtSignal(str)  # Emitted when system theme detected
+        theme_preview_started = pyqtSignal(str)  # Emitted when theme preview starts
+        theme_preview_ended = pyqtSignal(
+            bool
+        )  # Emitted when preview ends (True=committed, False=cancelled)
     else:
         theme_changed = Signal(str)
         theme_loaded = Signal()
@@ -387,6 +400,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         # Metadata system
         from .metadata import ThemeMetadataProvider
+
         self._metadata_provider = ThemeMetadataProvider()
 
         # Preview system state
@@ -406,7 +420,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         logger.debug("ThemedApplication created")
 
     @classmethod
-    def instance(cls) -> Optional['ThemedApplication']:
+    def instance(cls) -> Optional["ThemedApplication"]:
         """Get the current application instance."""
         with cls._instance_lock:
             return cls._instance
@@ -473,9 +487,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             error_manager.handle_error(
                 ThemeError(f"Theme system initialization failed: {e}"),
                 operation="initialize_theme_system",
-                context={"application": True, "config": self._config.__dict__}
+                context={"application": True, "config": self._config.__dict__},
             )
-
 
     @property
     def available_themes(self) -> List[str]:
@@ -487,7 +500,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
     @property
     def current_theme_name(self) -> Optional[str]:
         """Get current theme name."""
-        if self._current_theme and hasattr(self._current_theme, 'name'):
+        if self._current_theme and hasattr(self._current_theme, "name"):
             return self._current_theme.name
         elif isinstance(self._current_theme, str):
             return self._current_theme
@@ -555,16 +568,20 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Emit signals
             self.theme_changed.emit(theme_name)
 
-            logger.debug(f"Successfully changed theme from '{old_theme.name if old_theme else None}' to '{theme_name}'")
+            logger.debug(
+                f"Successfully changed theme from '{old_theme.name if old_theme else None}' to '{theme_name}'"
+            )
             return True
 
         except Exception as e:
             logger.error(f"Error setting theme '{theme}': {e}")
 
             # Graceful fallback to minimal theme
-            if (hasattr(self, '_current_theme') and
-                self._current_theme and
-                self._current_theme.name != "minimal"):
+            if (
+                hasattr(self, "_current_theme")
+                and self._current_theme
+                and self._current_theme.name != "minimal"
+            ):
                 try:
                     if self._theme_manager.has_theme("minimal"):
                         minimal_theme = self._theme_manager.get_theme("minimal")
@@ -623,8 +640,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.debug(f"Loading theme from file: {path}")
 
             # Load file content
-            with open(path, encoding='utf-8') as f:
-                if path.suffix.lower() == '.yaml' or path.suffix.lower() == '.yml':
+            with open(path, encoding="utf-8") as f:
+                if path.suffix.lower() == ".yaml" or path.suffix.lower() == ".yml":
                     theme_data = yaml.safe_load(f)
                 else:
                     theme_data = json.load(f)
@@ -672,8 +689,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             theme_data = self._current_theme.to_dict()
 
             # Save based on file extension
-            with open(path, 'w', encoding='utf-8') as f:
-                if path.suffix.lower() == '.yaml' or path.suffix.lower() == '.yml':
+            with open(path, "w", encoding="utf-8") as f:
+                if path.suffix.lower() == ".yaml" or path.suffix.lower() == ".yml":
                     yaml.dump(theme_data, f, default_flow_style=False)
                 else:
                     json.dump(theme_data, f, indent=2)
@@ -708,7 +725,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             loaded_count = 0
 
             # Find theme files
-            theme_extensions = ['.json', '.yaml', '.yml']
+            theme_extensions = [".json", ".yaml", ".yml"]
             for ext in theme_extensions:
                 for theme_file in path.glob(f"*{ext}"):
                     if self.load_theme_file(theme_file):
@@ -744,25 +761,25 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.debug(f"Importing VSCode theme: {path}")
 
             # Load VSCode theme
-            with open(path, encoding='utf-8') as f:
+            with open(path, encoding="utf-8") as f:
                 vscode_data = json.load(f)
 
             # Convert VSCode theme to VFWidgets format
-            theme_name = vscode_data.get('name', path.stem)
-            theme_type = vscode_data.get('type', 'dark')
+            theme_name = vscode_data.get("name", path.stem)
+            theme_type = vscode_data.get("type", "dark")
 
             # Extract colors from VSCode format
-            vscode_colors = vscode_data.get('colors', {})
+            vscode_colors = vscode_data.get("colors", {})
             colors = {}
 
             # Map common VSCode colors to VFWidgets format
             color_mapping = {
-                'editor.background': 'background',
-                'editor.foreground': 'foreground',
-                'activityBar.background': 'primary',
-                'button.background': 'accent',
-                'focusBorder': 'focus',
-                'selection.background': 'selection'
+                "editor.background": "background",
+                "editor.foreground": "foreground",
+                "activityBar.background": "primary",
+                "button.background": "accent",
+                "focusBorder": "focus",
+                "selection.background": "selection",
             }
 
             for vscode_key, vf_key in color_mapping.items():
@@ -770,19 +787,16 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                     colors[vf_key] = vscode_colors[vscode_key]
 
             # Set defaults based on theme type
-            if theme_type == 'dark':
-                colors.setdefault('background', '#1e1e1e')
-                colors.setdefault('foreground', '#d4d4d4')
+            if theme_type == "dark":
+                colors.setdefault("background", "#1e1e1e")
+                colors.setdefault("foreground", "#d4d4d4")
             else:
-                colors.setdefault('background', '#ffffff')
-                colors.setdefault('foreground', '#000000')
+                colors.setdefault("background", "#ffffff")
+                colors.setdefault("foreground", "#000000")
 
             # Create basic styles
             styles = {
-                'window': {
-                    'background-color': '@colors.background',
-                    'color': '@colors.foreground'
-                }
+                "window": {"background-color": "@colors.background", "color": "@colors.foreground"}
             }
 
             # Create theme
@@ -791,11 +805,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 description=f"Imported from VSCode theme: {path.name}",
                 colors=colors,
                 styles=styles,
-                metadata={
-                    'source': 'vscode',
-                    'original_path': str(path),
-                    'theme_type': theme_type
-                }
+                metadata={"source": "vscode", "original_path": str(path), "theme_type": theme_type},
             )
 
             # Add to ThemeManager
@@ -900,7 +910,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             if not self._system_theme_monitoring:
                 return True  # Already disabled
 
-            if hasattr(self, '_system_theme_timer'):
+            if hasattr(self, "_system_theme_timer"):
                 self._system_theme_timer.stop()
                 self._system_theme_timer = None
 
@@ -916,9 +926,11 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         """Periodic check for system theme changes."""
         try:
             detected_theme = detect_system_theme()
-            if (detected_theme and
-                self._theme_manager.has_theme(detected_theme) and
-                (not self._current_theme or detected_theme != self._current_theme.name)):
+            if (
+                detected_theme
+                and self._theme_manager.has_theme(detected_theme)
+                and (not self._current_theme or detected_theme != self._current_theme.name)
+            ):
 
                 logger.debug(f"System theme changed to: {detected_theme}")
                 self.set_theme(detected_theme)
@@ -940,12 +952,12 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             theme_name = self._current_theme.name
 
             # Try to reload from metadata if available
-            metadata = getattr(self._current_theme, 'metadata', {})
-            source_path = metadata.get('original_path')
+            metadata = getattr(self._current_theme, "metadata", {})
+            source_path = metadata.get("original_path")
 
             if source_path and Path(source_path).exists():
                 # Reload from file
-                if metadata.get('source') == 'vscode':
+                if metadata.get("source") == "vscode":
                     success = self.import_vscode_theme(source_path)
                 else:
                     success = self.load_theme_file(source_path)
@@ -973,16 +985,20 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Add application-level stats
             theme_manager = ThemeManager.get_instance()
             registry = theme_manager._widget_registry if theme_manager else None
-            stats.update({
-                'total_themes': len(self._theme_manager.list_themes()),
-                'theme_directories': len(self._theme_directories),
-                'system_monitoring': self._system_theme_monitoring,
-                'total_widgets': registry.count() if registry else 0,
-                'initialized': self._is_initialized,
-                # Task 18: Hot reload stats
-                'hot_reload_enabled': self._hot_reload_enabled,
-                'hot_reload_stats': self._hot_reloader.get_statistics() if self._hot_reloader else {}
-            })
+            stats.update(
+                {
+                    "total_themes": len(self._theme_manager.list_themes()),
+                    "theme_directories": len(self._theme_directories),
+                    "system_monitoring": self._system_theme_monitoring,
+                    "total_widgets": registry.count() if registry else 0,
+                    "initialized": self._is_initialized,
+                    # Task 18: Hot reload stats
+                    "hot_reload_enabled": self._hot_reload_enabled,
+                    "hot_reload_stats": (
+                        self._hot_reloader.get_statistics() if self._hot_reloader else {}
+                    ),
+                }
+            )
 
             return stats
 
@@ -994,7 +1010,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
     # Theme Metadata Methods
     # ================================================================
 
-    def get_theme_info(self, theme_name: Optional[str] = None) -> Optional['ThemeInfo']:
+    def get_theme_info(self, theme_name: Optional[str] = None) -> Optional["ThemeInfo"]:
         """Get metadata information for a theme.
 
         Args:
@@ -1035,7 +1051,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error getting theme info for '{theme_name}': {e}")
             return None
 
-    def get_all_theme_info(self) -> Dict[str, 'ThemeInfo']:
+    def get_all_theme_info(self) -> Dict[str, "ThemeInfo"]:
         """Get metadata for all available themes.
 
         Returns:
@@ -1392,12 +1408,12 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         if self._hot_reloader:
             return self._hot_reloader.get_statistics()
         return {
-            'enabled': False,
-            'total_reloads': 0,
-            'successful_reloads': 0,
-            'success_rate': 0,
-            'watched_files': 0,
-            'watched_directories': 0
+            "enabled": False,
+            "total_reloads": 0,
+            "successful_reloads": 0,
+            "success_rate": 0,
+            "watched_files": 0,
+            "watched_directories": 0,
         }
 
     def _hot_reload_theme_file(self, file_path: Path) -> bool:
@@ -1428,8 +1444,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                     # Find the newly loaded theme
                     for name in self._theme_manager.list_themes():
                         theme = self._theme_manager.get_theme(name)
-                        metadata = getattr(theme, 'metadata', {})
-                        if metadata.get('original_path') == str(file_path):
+                        metadata = getattr(theme, "metadata", {})
+                        if metadata.get("original_path") == str(file_path):
                             theme_name = name
                             break
                 return success
@@ -1437,10 +1453,14 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Reload existing theme
             if theme_name:
                 # Check if this is a VSCode theme
-                current_theme = self._theme_manager.get_theme(theme_name) if self._theme_manager.has_theme(theme_name) else None
-                if current_theme and hasattr(current_theme, 'metadata'):
+                current_theme = (
+                    self._theme_manager.get_theme(theme_name)
+                    if self._theme_manager.has_theme(theme_name)
+                    else None
+                )
+                if current_theme and hasattr(current_theme, "metadata"):
                     metadata = current_theme.metadata
-                    if metadata.get('source') == 'vscode':
+                    if metadata.get("source") == "vscode":
                         success = self.import_vscode_theme(file_path)
                     else:
                         success = self.load_theme_file(file_path)
@@ -1469,7 +1489,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 logger.warning(f"Failed to hot reload theme from: {file_path}")
 
             # Emit custom signal if needed
-            if hasattr(self, 'theme_hot_reloaded'):
+            if hasattr(self, "theme_hot_reloaded"):
                 self.theme_hot_reloaded.emit(file_path, success)
 
         except Exception as e:
@@ -1481,13 +1501,15 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Hot reload error for {file_path}: {error_message}")
 
             # Emit custom signal if needed
-            if hasattr(self, 'theme_reload_error'):
+            if hasattr(self, "theme_reload_error"):
                 self.theme_reload_error.emit(file_path, error_message)
 
         except Exception as e:
             logger.error(f"Error handling reload error signal: {e}")
 
-    def watch_theme_file(self, file_path: Union[str, Path], theme_name: Optional[str] = None) -> bool:
+    def watch_theme_file(
+        self, file_path: Union[str, Path], theme_name: Optional[str] = None
+    ) -> bool:
         """Add a theme file to hot reload watching.
 
         Args:
@@ -1631,7 +1653,7 @@ def get_global_available_themes() -> List[str]:
     app = get_themed_application()
     if app:
         themes = app.get_available_themes()
-        return [theme.name if hasattr(theme, 'name') else str(theme) for theme in themes]
+        return [theme.name if hasattr(theme, "name") else str(theme) for theme in themes]
     return ["minimal"]
 
 

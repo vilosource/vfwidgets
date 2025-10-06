@@ -26,9 +26,7 @@ def test_simple_visual():
 
         # Create framework
         framework = VisualTestFramework(
-            baseline_dir=temp_path / "baselines",
-            output_dir=temp_path / "output",
-            tolerance=0.01
+            baseline_dir=temp_path / "baselines", output_dir=temp_path / "output", tolerance=0.01
         )
 
         print("Framework initialized")
@@ -36,20 +34,20 @@ def test_simple_visual():
         # Create a simple widget
         widget = QLabel("Visual Test")
         widget.resize(150, 50)
-        widget.setStyleSheet("QLabel { background-color: lightblue; color: black; font-size: 14px; }")
+        widget.setStyleSheet(
+            "QLabel { background-color: lightblue; color: black; font-size: 14px; }"
+        )
 
         print("Widget created")
 
         # Capture and test
-        result = framework.run_visual_test(
-            "simple_test",
-            widget,
-            update_baseline=True
-        )
+        result = framework.run_visual_test("simple_test", widget, update_baseline=True)
 
         print(f"Test result: {result.result.value}")
         print(f"Difference: {result.difference_percentage:.2%}")
-        print(f"Baseline exists: {result.baseline_path.exists() if result.baseline_path else False}")
+        print(
+            f"Baseline exists: {result.baseline_path.exists() if result.baseline_path else False}"
+        )
         print(f"Actual exists: {result.actual_path.exists() if result.actual_path else False}")
 
         # Test again (should be identical)
@@ -77,4 +75,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Visual framework test ERROR: {e}")
         import traceback
+
         traceback.print_exc()

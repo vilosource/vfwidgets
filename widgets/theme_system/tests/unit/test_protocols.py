@@ -44,23 +44,20 @@ class TestThemeProviderProtocol:
         assert isinstance(ThemeProvider, type) and issubclass(ThemeProvider, Protocol)
 
         # Test that protocol has required abstract methods
-        required_methods = {
-            'get_current_theme',
-            'get_property',
-            'subscribe',
-            'unsubscribe'
-        }
+        required_methods = {"get_current_theme", "get_property", "subscribe", "unsubscribe"}
 
         # Get all abstract methods from the protocol
         abstract_methods = set()
         for method_name in dir(ThemeProvider):
-            if not method_name.startswith('_'):  # Skip private methods
+            if not method_name.startswith("_"):  # Skip private methods
                 method = getattr(ThemeProvider, method_name)
-                if hasattr(method, '__isabstractmethod__') and method.__isabstractmethod__:
+                if hasattr(method, "__isabstractmethod__") and method.__isabstractmethod__:
                     abstract_methods.add(method_name)
 
         # All required methods should be in the protocol
-        assert required_methods.issubset(abstract_methods), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(
+            abstract_methods
+        ), f"Missing methods: {required_methods - abstract_methods}"
 
     def test_theme_provider_mock_implementation(self):
         """Test that mock objects can implement ThemeProvider protocol."""
@@ -116,22 +113,24 @@ class TestThemeableWidgetProtocol:
 
         # Test required abstract methods and properties
         required_items = {
-            'theme_config',
-            'theme_provider',
-            'on_theme_changed',
-            'get_theme_color',
-            'get_theme_property'
+            "theme_config",
+            "theme_provider",
+            "on_theme_changed",
+            "get_theme_color",
+            "get_theme_property",
         }
 
         # Get all abstract items from the protocol
         abstract_items = set()
         for item_name in dir(ThemeableWidget):
-            if not item_name.startswith('_'):  # Skip private methods
+            if not item_name.startswith("_"):  # Skip private methods
                 item = getattr(ThemeableWidget, item_name)
-                if hasattr(item, '__isabstractmethod__') and item.__isabstractmethod__:
+                if hasattr(item, "__isabstractmethod__") and item.__isabstractmethod__:
                     abstract_items.add(item_name)
 
-        assert required_items.issubset(abstract_items), f"Missing items: {required_items - abstract_items}"
+        assert required_items.issubset(
+            abstract_items
+        ), f"Missing items: {required_items - abstract_items}"
 
     def test_themeable_widget_mock_implementation(self):
         """Test mock implementation of ThemeableWidget."""
@@ -143,8 +142,8 @@ class TestThemeableWidgetProtocol:
         mock_widget.get_theme_property.return_value = "Arial"
 
         # Test interface availability
-        assert hasattr(mock_widget, 'theme_config')
-        assert hasattr(mock_widget, 'theme_provider')
+        assert hasattr(mock_widget, "theme_config")
+        assert hasattr(mock_widget, "theme_provider")
         assert callable(mock_widget.on_theme_changed)
         assert callable(mock_widget.get_theme_color)
         assert callable(mock_widget.get_theme_property)
@@ -187,21 +186,19 @@ class TestColorProviderProtocol:
         assert isinstance(ColorProvider, type) and issubclass(ColorProvider, Protocol)
 
         # Test required abstract methods
-        required_methods = {
-            'resolve_color',
-            'get_fallback_color',
-            'validate_color'
-        }
+        required_methods = {"resolve_color", "get_fallback_color", "validate_color"}
 
         # Get all abstract methods from the protocol
         abstract_methods = set()
         for method_name in dir(ColorProvider):
-            if not method_name.startswith('_'):  # Skip private methods
+            if not method_name.startswith("_"):  # Skip private methods
                 method = getattr(ColorProvider, method_name)
-                if hasattr(method, '__isabstractmethod__') and method.__isabstractmethod__:
+                if hasattr(method, "__isabstractmethod__") and method.__isabstractmethod__:
                     abstract_methods.add(method_name)
 
-        assert required_methods.issubset(abstract_methods), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(
+            abstract_methods
+        ), f"Missing methods: {required_methods - abstract_methods}"
 
     def test_color_provider_mock_implementation(self):
         """Test mock implementation of ColorProvider."""
@@ -254,28 +251,28 @@ class TestStyleGeneratorProtocol:
         assert isinstance(StyleGenerator, type) and issubclass(StyleGenerator, Protocol)
 
         # Test required abstract methods
-        required_methods = {
-            'generate_stylesheet',
-            'get_selector',
-            'merge_styles'
-        }
+        required_methods = {"generate_stylesheet", "get_selector", "merge_styles"}
 
         # Get all abstract methods from the protocol
         abstract_methods = set()
         for method_name in dir(StyleGenerator):
-            if not method_name.startswith('_'):  # Skip private methods
+            if not method_name.startswith("_"):  # Skip private methods
                 method = getattr(StyleGenerator, method_name)
-                if hasattr(method, '__isabstractmethod__') and method.__isabstractmethod__:
+                if hasattr(method, "__isabstractmethod__") and method.__isabstractmethod__:
                     abstract_methods.add(method_name)
 
-        assert required_methods.issubset(abstract_methods), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(
+            abstract_methods
+        ), f"Missing methods: {required_methods - abstract_methods}"
 
     def test_style_generator_mock_implementation(self):
         """Test mock implementation of StyleGenerator."""
         mock_generator = Mock()
         mock_generator.generate_stylesheet.return_value = "QPushButton { color: #007acc; }"
         mock_generator.get_selector.return_value = "QPushButton"
-        mock_generator.merge_styles.return_value = "QPushButton { color: #007acc; background: #ffffff; }"
+        mock_generator.merge_styles.return_value = (
+            "QPushButton { color: #007acc; background: #ffffff; }"
+        )
 
         # Test interface availability
         assert callable(mock_generator.generate_stylesheet)
@@ -313,7 +310,7 @@ class TestStyleGeneratorProtocol:
         styles = [
             "QPushButton { color: #007acc; }",
             "QPushButton { background: #ffffff; }",
-            "QPushButton { font-size: 12px; }"
+            "QPushButton { font-size: 12px; }",
         ]
 
         result = mock_generator.merge_styles(styles)
@@ -442,6 +439,7 @@ class TestTypeHintsAndAliases:
 
         # Test with actual callback
         called_with = []
+
         def test_callback(theme_name: str) -> None:
             called_with.append(theme_name)
 
@@ -514,6 +512,7 @@ class TestProtocolPerformanceRequirements:
 
         # Direct method call should be very fast
         import time
+
         start_time = time.perf_counter()
         result = mock_widget.get_theme_color("primary")
         end_time = time.perf_counter()
@@ -534,11 +533,12 @@ class TestThreadSafety:
 
         # Multiple threads should be able to check protocol compliance
         import threading
+
         results = []
 
         def check_protocol():
             # Simulate protocol checking
-            has_method = hasattr(mock_provider, 'get_current_theme')
+            has_method = hasattr(mock_provider, "get_current_theme")
             results.append(has_method)
 
         threads = [threading.Thread(target=check_protocol) for _ in range(10)]
@@ -570,5 +570,6 @@ class TestUtilityFunctions:
 
         # Test that version follows semver pattern
         import re
-        semver_pattern = r'^\d+\.\d+\.\d+'
+
+        semver_pattern = r"^\d+\.\d+\.\d+"
         assert re.match(semver_pattern, version)

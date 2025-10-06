@@ -22,26 +22,27 @@ logger = logging.getLogger(__name__)
 class ValidationMode(Enum):
     """Validation operating modes."""
 
-    DEBUG = auto()      # Full validation, detailed logging
-    PRODUCTION = auto() # Essential validation only
-    STRICT = auto()     # Maximum validation, fail fast
-    DISABLED = auto()   # No validation (for performance)
+    DEBUG = auto()  # Full validation, detailed logging
+    PRODUCTION = auto()  # Essential validation only
+    STRICT = auto()  # Maximum validation, fail fast
+    DISABLED = auto()  # No validation (for performance)
 
 
 class ValidationType(Enum):
     """Types of validation."""
 
-    SCHEMA = auto()      # Data structure validation
-    CONTRACT = auto()    # Protocol/interface validation
-    RUNTIME = auto()     # Runtime state validation
-    PERFORMANCE = auto() # Performance constraint validation
+    SCHEMA = auto()  # Data structure validation
+    CONTRACT = auto()  # Protocol/interface validation
+    RUNTIME = auto()  # Runtime state validation
+    PERFORMANCE = auto()  # Performance constraint validation
 
 
 class ValidationError(Exception):
     """Base exception for validation errors."""
 
-    def __init__(self, message: str, validation_type: ValidationType = None,
-                 context: Dict[str, Any] = None):
+    def __init__(
+        self, message: str, validation_type: ValidationType = None, context: Dict[str, Any] = None
+    ):
         super().__init__(message)
         self.validation_type = validation_type
         self.context = context or {}
@@ -87,21 +88,25 @@ class ValidationResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""
         return {
-            'passed': self.passed,
-            'validation_type': self.validation_type.name,
-            'message': self.message,
-            'errors': self.errors,
-            'warnings': self.warnings,
-            'context': self.context,
-            'duration_ms': self.duration_ms
+            "passed": self.passed,
+            "validation_type": self.validation_type.name,
+            "message": self.message,
+            "errors": self.errors,
+            "warnings": self.warnings,
+            "context": self.context,
+            "duration_ms": self.duration_ms,
         }
 
 
 class ValidationContext:
     """Context manager for validation operations."""
 
-    def __init__(self, framework: 'ValidationFramework', validation_type: ValidationType,
-                 context: Dict[str, Any] = None):
+    def __init__(
+        self,
+        framework: "ValidationFramework",
+        validation_type: ValidationType,
+        context: Dict[str, Any] = None,
+    ):
         self.framework = framework
         self.validation_type = validation_type
         self.context = context or {}
@@ -111,9 +116,7 @@ class ValidationContext:
     def __enter__(self) -> ValidationResult:
         self.start_time = time.perf_counter()
         self.result = ValidationResult(
-            passed=True,
-            validation_type=self.validation_type,
-            context=self.context.copy()
+            passed=True, validation_type=self.validation_type, context=self.context.copy()
         )
         return self.result
 
@@ -134,14 +137,16 @@ class ValidationContext:
 
     def _log_result(self):
         """Log validation result."""
-        level = logging.ERROR if self.result.has_errors else (
-            logging.WARNING if self.result.has_warnings else logging.DEBUG
+        level = (
+            logging.ERROR
+            if self.result.has_errors
+            else (logging.WARNING if self.result.has_warnings else logging.DEBUG)
         )
         logger.log(
             level,
             f"Validation {self.validation_type.name}: "
             f"{'PASS' if self.result.passed else 'FAIL'} "
-            f"({self.result.duration_ms:.2f}ms)"
+            f"({self.result.duration_ms:.2f}ms)",
         )
 
 
@@ -152,7 +157,7 @@ class ValidationFramework:
     with different operating modes for development vs production use.
     """
 
-    _instance: Optional['ValidationFramework'] = None
+    _instance: Optional["ValidationFramework"] = None
     _lock = threading.Lock()
 
     def __new__(cls, mode: ValidationMode = ValidationMode.PRODUCTION):
@@ -171,27 +176,27 @@ class ValidationFramework:
             ValidationType.SCHEMA: [],
             ValidationType.CONTRACT: [],
             ValidationType.RUNTIME: [],
-            ValidationType.PERFORMANCE: []
+            ValidationType.PERFORMANCE: [],
         }
 
         self._results: List[ValidationResult] = []
         self._performance_thresholds = {
-            'property_access': 0.001,  # 1ms
-            'theme_switch': 0.1,       # 100ms
-            'widget_creation': 0.01,   # 10ms
+            "property_access": 0.001,  # 1ms
+            "theme_switch": 0.1,  # 100ms
+            "widget_creation": 0.01,  # 10ms
         }
 
         self._validation_stats = {
-            'total_validations': 0,
-            'failed_validations': 0,
-            'validation_time_ms': 0.0
+            "total_validations": 0,
+            "failed_validations": 0,
+            "validation_time_ms": 0.0,
         }
 
         self._initialized = True
         logger.info(f"ValidationFramework initialized in {mode.name} mode")
 
     @classmethod
-    def get_instance(cls) -> 'ValidationFramework':
+    def get_instance(cls) -> "ValidationFramework":
         """Get singleton instance of validation framework."""
         if cls._instance is None:
             cls._instance = cls()
@@ -233,15 +238,12 @@ class ValidationFramework:
             logger.debug(f"Unregistered {validation_type.name} validator: {validator.__name__}")
 
     @contextmanager
-    def validation_context(self, validation_type: ValidationType,
-                          context: Dict[str, Any] = None):
+    def validation_context(self, validation_type: ValidationType, context: Dict[str, Any] = None):
         """Create a validation context for tracking and logging."""
         if not self.is_validation_enabled(validation_type):
             # Create a no-op result when validation is disabled
             result = ValidationResult(
-                passed=True,
-                validation_type=validation_type,
-                message="Validation disabled"
+                passed=True, validation_type=validation_type, message="Validation disabled"
             )
             yield result
             return
@@ -256,32 +258,34 @@ class ValidationFramework:
 
     def _update_stats(self, result: ValidationResult):
         """Update validation statistics."""
-        self._validation_stats['total_validations'] += 1
-        self._validation_stats['validation_time_ms'] += result.duration_ms
+        self._validation_stats["total_validations"] += 1
+        self._validation_stats["validation_time_ms"] += result.duration_ms
 
         if result.has_errors:
-            self._validation_stats['failed_validations'] += 1
+            self._validation_stats["failed_validations"] += 1
 
     def validate_theme_structure(self, theme: Any) -> ValidationResult:
         """Validate theme conforms to expected structure."""
-        with self.validation_context(ValidationType.SCHEMA, {'theme_name': getattr(theme, 'name', 'unknown')}) as result:
+        with self.validation_context(
+            ValidationType.SCHEMA, {"theme_name": getattr(theme, "name", "unknown")}
+        ) as result:
             try:
                 # Check basic structure
-                if not hasattr(theme, 'name'):
+                if not hasattr(theme, "name"):
                     result.add_error("Theme missing 'name' attribute")
 
-                if not hasattr(theme, 'colors'):
+                if not hasattr(theme, "colors"):
                     result.add_error("Theme missing 'colors' attribute")
                 elif not isinstance(theme.colors, dict):
                     result.add_error("Theme 'colors' must be a dictionary")
 
-                if not hasattr(theme, 'styles'):
+                if not hasattr(theme, "styles"):
                     result.add_error("Theme missing 'styles' attribute")
                 elif not isinstance(theme.styles, dict):
                     result.add_error("Theme 'styles' must be a dictionary")
 
                 # Validate colors
-                if hasattr(theme, 'colors') and isinstance(theme.colors, dict):
+                if hasattr(theme, "colors") and isinstance(theme.colors, dict):
                     for color_name, color_value in theme.colors.items():
                         if not isinstance(color_name, str):
                             result.add_error(f"Color name must be string, got {type(color_name)}")
@@ -289,7 +293,7 @@ class ValidationFramework:
                             result.add_warning(f"Questionable color value: {color_value}")
 
                 # Validate styles
-                if hasattr(theme, 'styles') and isinstance(theme.styles, dict):
+                if hasattr(theme, "styles") and isinstance(theme.styles, dict):
                     for style_name, style_value in theme.styles.items():
                         if not isinstance(style_name, str):
                             result.add_error(f"Style name must be string, got {type(style_name)}")
@@ -311,18 +315,23 @@ class ValidationFramework:
 
     def validate_contract_implementation(self, obj: Any, protocol: Type) -> ValidationResult:
         """Validate object implements a protocol/contract."""
-        with self.validation_context(ValidationType.CONTRACT,
-                                   {'object_type': type(obj).__name__, 'protocol': protocol.__name__}) as result:
+        with self.validation_context(
+            ValidationType.CONTRACT,
+            {"object_type": type(obj).__name__, "protocol": protocol.__name__},
+        ) as result:
             try:
                 # Basic protocol checking using hasattr
-                if hasattr(protocol, '__annotations__'):
+                if hasattr(protocol, "__annotations__"):
                     for attr_name in protocol.__annotations__:
                         if not hasattr(obj, attr_name):
                             result.add_error(f"Missing required attribute: {attr_name}")
 
                 # Check for required methods (basic implementation)
-                required_methods = [name for name in dir(protocol)
-                                  if not name.startswith('_') and callable(getattr(protocol, name, None))]
+                required_methods = [
+                    name
+                    for name in dir(protocol)
+                    if not name.startswith("_") and callable(getattr(protocol, name, None))
+                ]
 
                 for method_name in required_methods:
                     if not hasattr(obj, method_name):
@@ -347,8 +356,9 @@ class ValidationFramework:
 
     def validate_runtime_state(self, obj: Any, expected_state: Dict[str, Any]) -> ValidationResult:
         """Validate object runtime state against expectations."""
-        with self.validation_context(ValidationType.RUNTIME,
-                                   {'object_type': type(obj).__name__}) as result:
+        with self.validation_context(
+            ValidationType.RUNTIME, {"object_type": type(obj).__name__}
+        ) as result:
             try:
                 for state_name, expected_value in expected_state.items():
                     if not hasattr(obj, state_name):
@@ -362,8 +372,10 @@ class ValidationFramework:
                         if not expected_value(actual_value):
                             result.add_error(f"State validation failed for {state_name}")
                     elif actual_value != expected_value:
-                        result.add_warning(f"State mismatch for {state_name}: "
-                                         f"expected {expected_value}, got {actual_value}")
+                        result.add_warning(
+                            f"State mismatch for {state_name}: "
+                            f"expected {expected_value}, got {actual_value}"
+                        )
 
                 # Run custom runtime validators
                 for validator in self._validators[ValidationType.RUNTIME]:
@@ -380,24 +392,33 @@ class ValidationFramework:
 
         return result
 
-    def validate_performance_constraints(self, operation_name: str, duration_ms: float) -> ValidationResult:
+    def validate_performance_constraints(
+        self, operation_name: str, duration_ms: float
+    ) -> ValidationResult:
         """Validate operation performance against thresholds."""
-        with self.validation_context(ValidationType.PERFORMANCE,
-                                   {'operation': operation_name, 'duration_ms': duration_ms}) as result:
+        with self.validation_context(
+            ValidationType.PERFORMANCE, {"operation": operation_name, "duration_ms": duration_ms}
+        ) as result:
             try:
                 threshold = self._performance_thresholds.get(operation_name)
                 if threshold is None:
-                    result.add_warning(f"No performance threshold set for operation: {operation_name}")
+                    result.add_warning(
+                        f"No performance threshold set for operation: {operation_name}"
+                    )
                     return result
 
                 threshold_ms = threshold * 1000  # Convert to milliseconds
 
                 if duration_ms > threshold_ms:
-                    result.add_error(f"Performance violation: {operation_name} took {duration_ms:.2f}ms "
-                                   f"(threshold: {threshold_ms:.2f}ms)")
+                    result.add_error(
+                        f"Performance violation: {operation_name} took {duration_ms:.2f}ms "
+                        f"(threshold: {threshold_ms:.2f}ms)"
+                    )
                 elif duration_ms > threshold_ms * 0.8:  # 80% threshold warning
-                    result.add_warning(f"Performance warning: {operation_name} took {duration_ms:.2f}ms "
-                                     f"(80% of threshold: {threshold_ms:.2f}ms)")
+                    result.add_warning(
+                        f"Performance warning: {operation_name} took {duration_ms:.2f}ms "
+                        f"(80% of threshold: {threshold_ms:.2f}ms)"
+                    )
 
                 # Run custom performance validators
                 for validator in self._validators[ValidationType.PERFORMANCE]:
@@ -418,14 +439,14 @@ class ValidationFramework:
         """Basic color validation."""
         if isinstance(color_value, str):
             # Check for hex colors
-            if color_value.startswith('#') and len(color_value) in (4, 7, 9):
+            if color_value.startswith("#") and len(color_value) in (4, 7, 9):
                 try:
                     int(color_value[1:], 16)
                     return True
                 except ValueError:
                     pass
             # Check for named colors (basic set)
-            named_colors = {'red', 'green', 'blue', 'white', 'black', 'transparent'}
+            named_colors = {"red", "green", "blue", "white", "black", "transparent"}
             return color_value.lower() in named_colors
 
         return False
@@ -438,17 +459,16 @@ class ValidationFramework:
     def get_validation_stats(self) -> Dict[str, Any]:
         """Get validation statistics."""
         stats = self._validation_stats.copy()
-        if stats['total_validations'] > 0:
-            stats['success_rate'] = (
-                (stats['total_validations'] - stats['failed_validations']) /
-                stats['total_validations']
-            )
-            stats['average_validation_time_ms'] = (
-                stats['validation_time_ms'] / stats['total_validations']
+        if stats["total_validations"] > 0:
+            stats["success_rate"] = (
+                stats["total_validations"] - stats["failed_validations"]
+            ) / stats["total_validations"]
+            stats["average_validation_time_ms"] = (
+                stats["validation_time_ms"] / stats["total_validations"]
             )
         else:
-            stats['success_rate'] = 0.0
-            stats['average_validation_time_ms'] = 0.0
+            stats["success_rate"] = 0.0
+            stats["average_validation_time_ms"] = 0.0
 
         return stats
 
@@ -460,9 +480,9 @@ class ValidationFramework:
         """Clear stored validation results."""
         self._results.clear()
         self._validation_stats = {
-            'total_validations': 0,
-            'failed_validations': 0,
-            'validation_time_ms': 0.0
+            "total_validations": 0,
+            "failed_validations": 0,
+            "validation_time_ms": 0.0,
         }
         logger.debug("Cleared validation results and statistics")
 
@@ -470,12 +490,12 @@ class ValidationFramework:
         """Export validation results to file."""
         try:
             results_data = {
-                'stats': self.get_validation_stats(),
-                'results': [result.to_dict() for result in self._results],
-                'export_timestamp': time.time()
+                "stats": self.get_validation_stats(),
+                "results": [result.to_dict() for result in self._results],
+                "export_timestamp": time.time(),
             }
 
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(results_data, f, indent=2)
 
             logger.info(f"Exported {len(self._results)} validation results to {filepath}")
@@ -487,6 +507,8 @@ class ValidationFramework:
 
     def __repr__(self):
         stats = self.get_validation_stats()
-        return (f"ValidationFramework(mode={self.mode.name}, "
-                f"validations={stats['total_validations']}, "
-                f"success_rate={stats['success_rate']:.1%})")
+        return (
+            f"ValidationFramework(mode={self.mode.name}, "
+            f"validations={stats['total_validations']}, "
+            f"success_rate={stats['success_rate']:.1%})"
+        )

@@ -37,13 +37,17 @@ if TYPE_CHECKING:
 try:
     from PySide6.QtCore import QObject
     from PySide6.QtWidgets import QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     class QObject:
         pass
+
     class QWidget:
         pass
+
 
 from ..errors import ThemeError
 from ..logging import get_debug_logger
@@ -61,15 +65,15 @@ class MappingError(ThemeError):
 class SelectorType(Enum):
     """Types of CSS selectors supported."""
 
-    ID = "id"                    # #widget_id
-    CLASS = "class"              # .class_name
-    TYPE = "type"                # QPushButton
-    ATTRIBUTE = "attribute"      # [attr=value]
-    PSEUDO = "pseudo"            # :hover, :disabled
-    DESCENDANT = "descendant"    # parent child
-    CHILD = "child"              # parent > child
-    SIBLING = "sibling"          # element ~ sibling
-    UNIVERSAL = "universal"      # *
+    ID = "id"  # #widget_id
+    CLASS = "class"  # .class_name
+    TYPE = "type"  # QPushButton
+    ATTRIBUTE = "attribute"  # [attr=value]
+    PSEUDO = "pseudo"  # :hover, :disabled
+    DESCENDANT = "descendant"  # parent child
+    CHILD = "child"  # parent > child
+    SIBLING = "sibling"  # element ~ sibling
+    UNIVERSAL = "universal"  # *
 
 
 class MappingPriority(IntEnum):
@@ -86,11 +90,11 @@ class MappingPriority(IntEnum):
 class ConflictResolution(Enum):
     """Strategies for resolving mapping conflicts."""
 
-    PRIORITY = "priority"         # Use highest priority mapping
-    MERGE = "merge"              # Merge all applicable mappings
+    PRIORITY = "priority"  # Use highest priority mapping
+    MERGE = "merge"  # Merge all applicable mappings
     FIRST_MATCH = "first_match"  # Use first matching mapping
-    LAST_MATCH = "last_match"    # Use last matching mapping
-    MOST_SPECIFIC = "specific"   # Use most specific selector
+    LAST_MATCH = "last_match"  # Use last matching mapping
+    MOST_SPECIFIC = "specific"  # Use most specific selector
 
 
 @dataclass
@@ -123,7 +127,7 @@ class MappingRule:
     name: Optional[str] = None
     description: Optional[str] = None
     enabled: bool = True
-    conditions: List[Callable[['ThemedWidget'], bool]] = field(default_factory=list)
+    conditions: List[Callable[["ThemedWidget"], bool]] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
 
 
@@ -137,7 +141,7 @@ class SelectorMatcher:
         self._cache_hits = 0
         self._cache_misses = 0
 
-    def matches(self, selector: ParsedSelector, widget: 'ThemedWidget') -> bool:
+    def matches(self, selector: ParsedSelector, widget: "ThemedWidget") -> bool:
         """Check if widget matches the CSS selector."""
         # Generate cache key
         widget_signature = self._get_widget_signature(widget)
@@ -166,7 +170,7 @@ class SelectorMatcher:
 
         return result
 
-    def _matches_uncached(self, selector: ParsedSelector, widget: 'ThemedWidget') -> bool:
+    def _matches_uncached(self, selector: ParsedSelector, widget: "ThemedWidget") -> bool:
         """Perform actual selector matching without caching."""
         try:
             # For now, implement basic selector matching
@@ -183,14 +187,14 @@ class SelectorMatcher:
             logger.warning(f"Selector matching error: {e}")
             return False
 
-    def _matches_selector_part(self, part: SelectorPart, widget: 'ThemedWidget') -> bool:
+    def _matches_selector_part(self, part: SelectorPart, widget: "ThemedWidget") -> bool:
         """Check if widget matches a single selector part."""
         if part.type == SelectorType.ID:
-            widget_id = getattr(widget, '_widget_id', None)
+            widget_id = getattr(widget, "_widget_id", None)
             return widget_id == part.value
 
         elif part.type == SelectorType.CLASS:
-            widget_classes = getattr(widget, '_theme_classes', set())
+            widget_classes = getattr(widget, "_theme_classes", set())
             return part.value in widget_classes
 
         elif part.type == SelectorType.TYPE:
@@ -199,7 +203,7 @@ class SelectorMatcher:
 
         elif part.type == SelectorType.ATTRIBUTE:
             # Check if widget has attributes that match
-            widget_attrs = getattr(widget, '_theme_attributes', {})
+            widget_attrs = getattr(widget, "_theme_attributes", {})
             for attr_name, attr_value in part.attributes.items():
                 if attr_name not in widget_attrs:
                     return False
@@ -219,7 +223,7 @@ class SelectorMatcher:
 
         return False
 
-    def _matches_complex_selector(self, selector: ParsedSelector, widget: 'ThemedWidget') -> bool:
+    def _matches_complex_selector(self, selector: ParsedSelector, widget: "ThemedWidget") -> bool:
         """Handle complex selectors with combinators."""
         # Simplified implementation - full CSS selector matching is complex
         # For now, just check if the last part matches the widget
@@ -227,32 +231,32 @@ class SelectorMatcher:
             return self._matches_selector_part(selector.parts[-1], widget)
         return False
 
-    def _check_pseudo_class(self, pseudo: str, widget: 'ThemedWidget') -> bool:
+    def _check_pseudo_class(self, pseudo: str, widget: "ThemedWidget") -> bool:
         """Check pseudo-class conditions."""
         try:
             if pseudo == "enabled":
-                return getattr(widget, 'isEnabled', lambda: True)()
+                return getattr(widget, "isEnabled", lambda: True)()
             elif pseudo == "disabled":
-                return not getattr(widget, 'isEnabled', lambda: True)()
+                return not getattr(widget, "isEnabled", lambda: True)()
             elif pseudo == "visible":
-                return getattr(widget, 'isVisible', lambda: True)()
+                return getattr(widget, "isVisible", lambda: True)()
             elif pseudo == "hidden":
-                return not getattr(widget, 'isVisible', lambda: True)()
+                return not getattr(widget, "isVisible", lambda: True)()
             elif pseudo == "focused":
-                return getattr(widget, 'hasFocus', lambda: False)()
+                return getattr(widget, "hasFocus", lambda: False)()
             # Add more pseudo-classes as needed
         except Exception:
             pass
 
         return False
 
-    def _get_widget_signature(self, widget: 'ThemedWidget') -> str:
+    def _get_widget_signature(self, widget: "ThemedWidget") -> str:
         """Generate a signature for caching."""
         parts = [
             type(widget).__name__,
-            str(getattr(widget, '_widget_id', id(widget))),
-            str(getattr(widget, '_theme_classes', set())),
-            str(hash(frozenset(getattr(widget, '_theme_attributes', {}).items()))),
+            str(getattr(widget, "_widget_id", id(widget))),
+            str(getattr(widget, "_theme_classes", set())),
+            str(hash(frozenset(getattr(widget, "_theme_attributes", {}).items()))),
         ]
         return "::".join(parts)
 
@@ -263,11 +267,11 @@ class SelectorMatcher:
             hit_rate = self._cache_hits / total if total > 0 else 0.0
 
             return {
-                'cache_size': len(self._cache),
-                'max_cache_size': self._max_cache_size,
-                'hits': self._cache_hits,
-                'misses': self._cache_misses,
-                'hit_rate': hit_rate
+                "cache_size": len(self._cache),
+                "max_cache_size": self._max_cache_size,
+                "hits": self._cache_hits,
+                "misses": self._cache_misses,
+                "hit_rate": hit_rate,
             }
 
     def clear_cache(self):
@@ -282,13 +286,15 @@ class SelectorParser:
     """CSS selector parser with validation."""
 
     # Regex patterns for different selector parts
-    ID_PATTERN = re.compile(r'#([a-zA-Z_][a-zA-Z0-9_-]*)')
-    CLASS_PATTERN = re.compile(r'\.([a-zA-Z_][a-zA-Z0-9_-]*)')
-    TYPE_PATTERN = re.compile(r'^([a-zA-Z_][a-zA-Z0-9_]*|\*)')
-    ATTRIBUTE_PATTERN = re.compile(r'\[([a-zA-Z_][a-zA-Z0-9_-]*)\s*([=~|^$*]?)\s*["\']?([^"\'\]]*)["\']?\]')
-    PSEUDO_PATTERN = re.compile(r':([a-zA-Z_][a-zA-Z0-9_-]*)')
+    ID_PATTERN = re.compile(r"#([a-zA-Z_][a-zA-Z0-9_-]*)")
+    CLASS_PATTERN = re.compile(r"\.([a-zA-Z_][a-zA-Z0-9_-]*)")
+    TYPE_PATTERN = re.compile(r"^([a-zA-Z_][a-zA-Z0-9_]*|\*)")
+    ATTRIBUTE_PATTERN = re.compile(
+        r'\[([a-zA-Z_][a-zA-Z0-9_-]*)\s*([=~|^$*]?)\s*["\']?([^"\'\]]*)["\']?\]'
+    )
+    PSEUDO_PATTERN = re.compile(r":([a-zA-Z_][a-zA-Z0-9_-]*)")
 
-    COMBINATOR_PATTERN = re.compile(r'(\s+|>|\+|~)')
+    COMBINATOR_PATTERN = re.compile(r"(\s+|>|\+|~)")
 
     def parse(self, selector: str) -> ParsedSelector:
         """Parse a CSS selector string."""
@@ -302,7 +308,7 @@ class SelectorParser:
             parsed_parts = []
 
             for part_str in parts:
-                if part_str.strip() in [' ', '>', '+', '~']:
+                if part_str.strip() in [" ", ">", "+", "~"]:
                     # This is a combinator
                     if parsed_parts:
                         parsed_parts[-1].combinator = part_str.strip()
@@ -314,9 +320,7 @@ class SelectorParser:
             specificity = self._calculate_specificity(parsed_parts)
 
             return ParsedSelector(
-                parts=parsed_parts,
-                specificity=specificity,
-                raw_selector=selector
+                parts=parsed_parts, specificity=specificity, raw_selector=selector
             )
 
         except Exception as e:
@@ -337,14 +341,14 @@ class SelectorParser:
                     parts.append(current.strip())
                 parts.append(char)
                 current = ""
-            elif char == ' ':
+            elif char == " ":
                 if current.strip():
                     parts.append(current.strip())
                 # Look ahead for multiple spaces
-                while i + 1 < len(selector) and selector[i + 1] == ' ':
+                while i + 1 < len(selector) and selector[i + 1] == " ":
                     i += 1
                 if current.strip():
-                    parts.append(' ')  # Descendant combinator
+                    parts.append(" ")  # Descendant combinator
                 current = ""
             else:
                 current += char
@@ -365,12 +369,9 @@ class SelectorParser:
         pseudo_classes = set()
 
         # Check for universal selector first
-        if original_part == '*':
+        if original_part == "*":
             return SelectorPart(
-                type=SelectorType.UNIVERSAL,
-                value='*',
-                attributes={},
-                pseudo_classes=set()
+                type=SelectorType.UNIVERSAL, value="*", attributes={}, pseudo_classes=set()
             )
 
         # Check for ID selector
@@ -378,7 +379,7 @@ class SelectorParser:
         if id_match:
             selector_type = SelectorType.ID
             value = id_match.group(1)
-            part = part.replace(id_match.group(0), '')
+            part = part.replace(id_match.group(0), "")
 
         # Check for class selectors
         class_matches = self.CLASS_PATTERN.findall(part)
@@ -386,7 +387,7 @@ class SelectorParser:
             selector_type = SelectorType.CLASS
             value = class_matches[0]  # Use first class for simplicity
             for match in class_matches:
-                part = part.replace(f'.{match}', '')
+                part = part.replace(f".{match}", "")
 
         # Check for attribute selectors
         attr_matches = self.ATTRIBUTE_PATTERN.findall(part)
@@ -406,20 +407,17 @@ class SelectorParser:
         # Check for type selector
         if not value and not attributes and not pseudo_classes:
             type_match = self.TYPE_PATTERN.match(original_part)
-            if type_match and type_match.group(1) != '*':
+            if type_match and type_match.group(1) != "*":
                 selector_type = SelectorType.TYPE
                 value = type_match.group(1)
 
         # If still no value, treat as universal
         if not value and not attributes and not pseudo_classes:
             selector_type = SelectorType.UNIVERSAL
-            value = '*'
+            value = "*"
 
         return SelectorPart(
-            type=selector_type,
-            value=value,
-            attributes=attributes,
-            pseudo_classes=pseudo_classes
+            type=selector_type, value=value, attributes=attributes, pseudo_classes=pseudo_classes
         )
 
     def _calculate_specificity(self, parts: List[SelectorPart]) -> Tuple[int, int, int, int]:
@@ -438,7 +436,7 @@ class SelectorParser:
                 class_attr_count += len(part.attributes)
             elif part.type == SelectorType.PSEUDO:
                 class_attr_count += len(part.pseudo_classes)
-            elif part.type == SelectorType.TYPE and part.value != '*':
+            elif part.type == SelectorType.TYPE and part.value != "*":
                 element_count += 1
 
         return (inline, id_count, class_attr_count, element_count)
@@ -447,7 +445,9 @@ class SelectorParser:
 class ConflictResolver:
     """Resolves conflicts when multiple mappings apply to a widget."""
 
-    def resolve(self, rules: List[MappingRule], strategy: ConflictResolution) -> Dict[PropertyKey, PropertyValue]:
+    def resolve(
+        self, rules: List[MappingRule], strategy: ConflictResolution
+    ) -> Dict[PropertyKey, PropertyValue]:
         """Resolve conflicts and return final property mapping."""
         if not rules:
             return {}
@@ -473,9 +473,7 @@ class ConflictResolver:
         """Resolve by priority, then by specificity."""
         # Sort by priority (descending), then by specificity (descending)
         sorted_rules = sorted(
-            rules,
-            key=lambda r: (r.priority.value, r.selector.specificity),
-            reverse=True
+            rules, key=lambda r: (r.priority.value, r.selector.specificity), reverse=True
         )
 
         result = {}
@@ -493,11 +491,7 @@ class ConflictResolver:
 
     def _resolve_by_specificity(self, rules: List[MappingRule]) -> Dict[PropertyKey, PropertyValue]:
         """Resolve by CSS specificity rules."""
-        sorted_rules = sorted(
-            rules,
-            key=lambda r: r.selector.specificity,
-            reverse=True
-        )
+        sorted_rules = sorted(rules, key=lambda r: r.selector.specificity, reverse=True)
 
         result = {}
         for rule in reversed(sorted_rules):  # Apply least specific first
@@ -517,9 +511,11 @@ class ThemeMapping:
     - Runtime validation and error recovery
     """
 
-    def __init__(self,
-                 conflict_resolution: ConflictResolution = ConflictResolution.PRIORITY,
-                 debug: bool = False):
+    def __init__(
+        self,
+        conflict_resolution: ConflictResolution = ConflictResolution.PRIORITY,
+        debug: bool = False,
+    ):
         """Initialize theme mapping system.
 
         Args:
@@ -547,11 +543,11 @@ class ThemeMapping:
         self._mapping_cache: Dict[str, Dict[PropertyKey, PropertyValue]] = {}
         self._cache_lock = threading.RLock()
         self._stats = {
-            'rules_applied': 0,
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'mapping_failures': 0,
-            'last_mapping_time': 0.0
+            "rules_applied": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "mapping_failures": 0,
+            "last_mapping_time": 0.0,
         }
 
         # Validation
@@ -560,11 +556,15 @@ class ThemeMapping:
         if self.debug:
             logger.debug("ThemeMapping initialized")
 
-    def add_rule(self, selector: str, properties: Dict[PropertyKey, PropertyValue],
-                 priority: MappingPriority = MappingPriority.NORMAL,
-                 name: Optional[str] = None,
-                 description: Optional[str] = None,
-                 conditions: List[Callable[['ThemedWidget'], bool]] = None) -> int:
+    def add_rule(
+        self,
+        selector: str,
+        properties: Dict[PropertyKey, PropertyValue],
+        priority: MappingPriority = MappingPriority.NORMAL,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        conditions: List[Callable[["ThemedWidget"], bool]] = None,
+    ) -> int:
         """Add a mapping rule.
 
         Args:
@@ -616,7 +616,7 @@ class ThemeMapping:
             return rule_index
 
         except Exception as e:
-            self._stats['mapping_failures'] += 1
+            self._stats["mapping_failures"] += 1
             raise MappingError(f"Failed to add rule '{selector}': {e}")
 
     def remove_rule(self, rule_index: int) -> bool:
@@ -643,7 +643,7 @@ class ThemeMapping:
             logger.error(f"Failed to remove rule {rule_index}: {e}")
             return False
 
-    def get_mapping(self, widget: 'ThemedWidget') -> Dict[PropertyKey, PropertyValue]:
+    def get_mapping(self, widget: "ThemedWidget") -> Dict[PropertyKey, PropertyValue]:
         """Get resolved theme mapping for a widget.
 
         Args:
@@ -670,10 +670,10 @@ class ThemeMapping:
                 # Check cache first
                 with self._cache_lock:
                     if widget_signature in self._mapping_cache:
-                        self._stats['cache_hits'] += 1
+                        self._stats["cache_hits"] += 1
                         return self._mapping_cache[widget_signature].copy()
 
-                self._stats['cache_misses'] += 1
+                self._stats["cache_misses"] += 1
 
             # Resolve conflicts
             resolved_mapping = self._resolver.resolve(matching_rules, self.conflict_resolution)
@@ -684,24 +684,26 @@ class ThemeMapping:
                     self._mapping_cache[widget_signature] = resolved_mapping.copy()
 
             # Update stats
-            self._stats['rules_applied'] += len(matching_rules)
-            self._stats['last_mapping_time'] = time.perf_counter() - start_time
+            self._stats["rules_applied"] += len(matching_rules)
+            self._stats["last_mapping_time"] = time.perf_counter() - start_time
 
             # Notify event system
-            widget_id = getattr(widget, '_widget_id', f'widget_{id(widget)}')
+            widget_id = getattr(widget, "_widget_id", f"widget_{id(widget)}")
             self._notify_mapping_applied(widget_id, len(matching_rules), resolved_mapping)
 
             if self.debug:
-                logger.debug(f"Mapped {len(matching_rules)} rules to widget {widget_id}: {len(resolved_mapping)} properties")
+                logger.debug(
+                    f"Mapped {len(matching_rules)} rules to widget {widget_id}: {len(resolved_mapping)} properties"
+                )
 
             return resolved_mapping
 
         except Exception as e:
-            self._stats['mapping_failures'] += 1
+            self._stats["mapping_failures"] += 1
             logger.error(f"Failed to get mapping for widget: {e}")
             return {}
 
-    def get_applicable_rules(self, widget: 'ThemedWidget') -> List[Tuple[int, MappingRule]]:
+    def get_applicable_rules(self, widget: "ThemedWidget") -> List[Tuple[int, MappingRule]]:
         """Get all rules that apply to a widget (for debugging)."""
         try:
             matching_rules = self._find_matching_rules(widget)
@@ -714,12 +716,9 @@ class ThemeMapping:
         """Add a rule validator."""
         self._validators.append(validator)
 
-    def compose_with(self, other: 'ThemeMapping') -> 'ThemeMapping':
+    def compose_with(self, other: "ThemeMapping") -> "ThemeMapping":
         """Create a new mapping that combines this one with another."""
-        composed = ThemeMapping(
-            conflict_resolution=self.conflict_resolution,
-            debug=self.debug
-        )
+        composed = ThemeMapping(conflict_resolution=self.conflict_resolution, debug=self.debug)
 
         # Copy all rules from both mappings
         with self._rules_lock, other._rules_lock:
@@ -749,17 +748,17 @@ class ThemeMapping:
             active_rules = sum(1 for rule in self._rules if rule is not None)
 
             return {
-                'total_rules': len(self._rules),
-                'active_rules': active_rules,
-                'cached_mappings': len(self._mapping_cache),
-                'conflict_resolution': self.conflict_resolution.value,
-                'matcher_stats': self._matcher.get_cache_stats(),
-                'performance_stats': self._stats.copy(),
+                "total_rules": len(self._rules),
+                "active_rules": active_rules,
+                "cached_mappings": len(self._mapping_cache),
+                "conflict_resolution": self.conflict_resolution.value,
+                "matcher_stats": self._matcher.get_cache_stats(),
+                "performance_stats": self._stats.copy(),
             }
 
     # Private methods
 
-    def _find_matching_rules(self, widget: 'ThemedWidget') -> List[MappingRule]:
+    def _find_matching_rules(self, widget: "ThemedWidget") -> List[MappingRule]:
         """Find all rules that match the widget."""
         matching_rules = []
 
@@ -802,21 +801,21 @@ class ThemeMapping:
             if not isinstance(key, str):
                 raise MappingError(f"Property key must be string, got {type(key)}")
 
-    def _get_widget_signature(self, widget: 'ThemedWidget') -> str:
+    def _get_widget_signature(self, widget: "ThemedWidget") -> str:
         """Generate a signature for caching."""
         parts = [
             type(widget).__name__,
-            str(getattr(widget, '_widget_id', id(widget))),
-            str(getattr(widget, '_theme_classes', set())),
-            str(hash(frozenset(getattr(widget, '_theme_attributes', {}).items()))),
+            str(getattr(widget, "_widget_id", id(widget))),
+            str(getattr(widget, "_theme_classes", set())),
+            str(hash(frozenset(getattr(widget, "_theme_attributes", {}).items()))),
         ]
 
         # Include dynamic state for pseudo-class matching
         try:
             dynamic_state = [
-                str(getattr(widget, 'isEnabled', lambda: True)()),
-                str(getattr(widget, 'isVisible', lambda: True)()),
-                str(getattr(widget, 'hasFocus', lambda: False)()),
+                str(getattr(widget, "isEnabled", lambda: True)()),
+                str(getattr(widget, "isVisible", lambda: True)()),
+                str(getattr(widget, "hasFocus", lambda: False)()),
             ]
             parts.extend(dynamic_state)
         except Exception:
@@ -834,6 +833,7 @@ class ThemeMapping:
         """Notify event system of rule addition."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
             # Custom notification for mapping events
             # Note: This would need corresponding signals in the event system
@@ -845,16 +845,20 @@ class ThemeMapping:
         """Notify event system of rule removal."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
             # Custom notification for mapping events
         except Exception as e:
             if self.debug:
                 logger.warning(f"Failed to notify rule removed: {e}")
 
-    def _notify_mapping_applied(self, widget_id: str, rule_count: int, mapping: Dict[str, Any]) -> None:
+    def _notify_mapping_applied(
+        self, widget_id: str, rule_count: int, mapping: Dict[str, Any]
+    ) -> None:
         """Notify event system of mapping application."""
         try:
             from ..events.system import get_global_event_system
+
             event_system = get_global_event_system()
             # Custom notification for mapping events
         except Exception as e:
@@ -868,9 +872,9 @@ class ThemeMappingVisualizer:
     def __init__(self, mapping: ThemeMapping):
         self.mapping = mapping
 
-    def generate_debug_report(self, widget: 'ThemedWidget') -> Dict[str, Any]:
+    def generate_debug_report(self, widget: "ThemedWidget") -> Dict[str, Any]:
         """Generate a comprehensive debug report for a widget."""
-        widget_id = getattr(widget, '_widget_id', f'widget_{id(widget)}')
+        widget_id = getattr(widget, "_widget_id", f"widget_{id(widget)}")
 
         # Get applicable rules
         applicable_rules = self.mapping.get_applicable_rules(widget)
@@ -880,33 +884,37 @@ class ThemeMappingVisualizer:
 
         # Generate widget info
         widget_info = {
-            'id': widget_id,
-            'type': type(widget).__name__,
-            'classes': getattr(widget, '_theme_classes', set()),
-            'attributes': getattr(widget, '_theme_attributes', {}),
+            "id": widget_id,
+            "type": type(widget).__name__,
+            "classes": getattr(widget, "_theme_classes", set()),
+            "attributes": getattr(widget, "_theme_attributes", {}),
         }
 
         # Rule details
         rule_details = []
         for i, rule in applicable_rules:
-            rule_details.append({
-                'index': i,
-                'name': rule.name,
-                'selector': rule.selector.raw_selector,
-                'specificity': rule.selector.specificity,
-                'priority': rule.priority.value,
-                'properties': rule.properties,
-                'enabled': rule.enabled,
-            })
+            rule_details.append(
+                {
+                    "index": i,
+                    "name": rule.name,
+                    "selector": rule.selector.raw_selector,
+                    "specificity": rule.selector.specificity,
+                    "priority": rule.priority.value,
+                    "properties": rule.properties,
+                    "enabled": rule.enabled,
+                }
+            )
 
         return {
-            'widget': widget_info,
-            'applicable_rules': rule_details,
-            'final_mapping': final_mapping,
-            'stats': self.mapping.get_statistics(),
+            "widget": widget_info,
+            "applicable_rules": rule_details,
+            "final_mapping": final_mapping,
+            "stats": self.mapping.get_statistics(),
         }
 
-    def explain_property_source(self, widget: 'ThemedWidget', property_key: PropertyKey) -> Dict[str, Any]:
+    def explain_property_source(
+        self, widget: "ThemedWidget", property_key: PropertyKey
+    ) -> Dict[str, Any]:
         """Explain where a property value comes from."""
         applicable_rules = self.mapping.get_applicable_rules(widget)
 
@@ -914,38 +922,42 @@ class ThemeMappingVisualizer:
         contributing_rules = []
         for i, rule in applicable_rules:
             if property_key in rule.properties:
-                contributing_rules.append({
-                    'index': i,
-                    'name': rule.name,
-                    'selector': rule.selector.raw_selector,
-                    'specificity': rule.selector.specificity,
-                    'priority': rule.priority.value,
-                    'value': rule.properties[property_key],
-                })
+                contributing_rules.append(
+                    {
+                        "index": i,
+                        "name": rule.name,
+                        "selector": rule.selector.raw_selector,
+                        "specificity": rule.selector.specificity,
+                        "priority": rule.priority.value,
+                        "value": rule.properties[property_key],
+                    }
+                )
 
         # Get final value
         final_mapping = self.mapping.get_mapping(widget)
         final_value = final_mapping.get(property_key)
 
         return {
-            'property': property_key,
-            'final_value': final_value,
-            'contributing_rules': contributing_rules,
-            'conflict_resolution': self.mapping.conflict_resolution.value,
+            "property": property_key,
+            "final_value": final_value,
+            "contributing_rules": contributing_rules,
+            "conflict_resolution": self.mapping.conflict_resolution.value,
         }
 
-    def generate_css_like_output(self, widget: 'ThemedWidget') -> str:
+    def generate_css_like_output(self, widget: "ThemedWidget") -> str:
         """Generate CSS-like output showing applied styles."""
         applicable_rules = self.mapping.get_applicable_rules(widget)
 
         output = []
-        widget_id = getattr(widget, '_widget_id', f'widget_{id(widget)}')
+        widget_id = getattr(widget, "_widget_id", f"widget_{id(widget)}")
 
         output.append(f"/* Widget: {widget_id} ({type(widget).__name__}) */")
 
         for i, rule in applicable_rules:
             output.append(f"\n/* Rule {i}: {rule.name or 'unnamed'} */")
-            output.append(f"/* Priority: {rule.priority.value}, Specificity: {rule.selector.specificity} */")
+            output.append(
+                f"/* Priority: {rule.priority.value}, Specificity: {rule.selector.specificity} */"
+            )
             output.append(f"{rule.selector.raw_selector} {{")
 
             for prop, value in rule.properties.items():
@@ -970,21 +982,26 @@ class ThemeMappingVisualizer:
 
 # Utility functions for creating common selectors
 
+
 def css_selector(selector: str) -> str:
     """Return a CSS selector string (for readability)."""
     return selector
+
 
 def id_selector(widget_id: str) -> str:
     """Create an ID selector."""
     return f"#{widget_id}"
 
+
 def class_selector(class_name: str) -> str:
     """Create a class selector."""
     return f".{class_name}"
 
+
 def type_selector(widget_type: str) -> str:
     """Create a type selector."""
     return widget_type
+
 
 def attribute_selector(attr_name: str, attr_value: str = None, operator: str = "=") -> str:
     """Create an attribute selector."""

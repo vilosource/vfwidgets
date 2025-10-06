@@ -48,18 +48,22 @@ def test_simple_benchmarks():
     print(f"Total time: {report['total_time']:.3f}s")
 
     # Check performance validation
-    validation = report['performance_validation']
+    validation = report["performance_validation"]
     print(f"Performance validation: {'PASS' if validation['overall_pass'] else 'FAIL'}")
 
-    if validation['failed']:
+    if validation["failed"]:
         print("Failed benchmarks:")
-        for failure in validation['failed']:
-            print(f"  {failure['benchmark']}: {failure['actual']*1000:.2f}ms > {failure['requirement']*1000:.2f}ms")
+        for failure in validation["failed"]:
+            print(
+                f"  {failure['benchmark']}: {failure['actual']*1000:.2f}ms > {failure['requirement']*1000:.2f}ms"
+            )
 
-    if validation['passed']:
+    if validation["passed"]:
         print("Passed benchmarks:")
-        for passed in validation['passed']:
-            print(f"  {passed['benchmark']}: {passed['actual']*1000:.2f}ms < {passed['requirement']*1000:.2f}ms")
+        for passed in validation["passed"]:
+            print(
+                f"  {passed['benchmark']}: {passed['actual']*1000:.2f}ms < {passed['requirement']*1000:.2f}ms"
+            )
 
     print(f"Results saved to: {suite.results_db}")
     return True
@@ -90,8 +94,10 @@ def test_regression_detection():
     print(f"Detected {len(regressions)} regressions")
 
     for regression in regressions:
-        print(f"  {regression['name']}: {regression['current_time']*1000:.2f}ms vs {regression['baseline_time']*1000:.2f}ms "
-              f"({regression['threshold_exceeded']:.1f}% slower)")
+        print(
+            f"  {regression['name']}: {regression['current_time']*1000:.2f}ms vs {regression['baseline_time']*1000:.2f}ms "
+            f"({regression['threshold_exceeded']:.1f}% slower)"
+        )
 
     return len(regressions) > 0
 
@@ -121,4 +127,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Benchmark test ERROR: {e}")
         import traceback
+
         traceback.print_exc()

@@ -27,13 +27,13 @@ class ThemedButton(ThemedWidget, QPushButton):
 
     # Map theme properties to semantic names
     theme_config = {
-        'bg': 'button.background',
-        'fg': 'button.foreground',
-        'border': 'button.border',
-        'hover_bg': 'button.hover.background',
-        'hover_fg': 'button.hover.foreground',
-        'pressed_bg': 'button.pressed.background',
-        'font': 'button.font'
+        "bg": "button.background",
+        "fg": "button.foreground",
+        "border": "button.border",
+        "hover_bg": "button.hover.background",
+        "hover_fg": "button.hover.foreground",
+        "pressed_bg": "button.pressed.background",
+        "font": "button.font",
     }
 
     def __init__(self, text="Themed Button", parent=None):
@@ -51,13 +51,13 @@ class ThemedButton(ThemedWidget, QPushButton):
     def update_styling(self):
         """Update button styling based on current theme."""
         # Get theme colors with fallbacks
-        bg_color = self.theme.get('bg', '#e0e0e0')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
-        hover_bg = self.theme.get('hover_bg', '#d0d0d0')
-        hover_fg = self.theme.get('hover_fg', '#000000')
-        pressed_bg = self.theme.get('pressed_bg', '#c0c0c0')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#e0e0e0")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
+        hover_bg = self.theme.get("hover_bg", "#d0d0d0")
+        hover_fg = self.theme.get("hover_fg", "#000000")
+        pressed_bg = self.theme.get("pressed_bg", "#c0c0c0")
+        font = self.theme.get("font", "Arial, sans-serif")
 
         # Generate stylesheet
         stylesheet = f"""
@@ -105,7 +105,7 @@ class ButtonDemo(ThemedWidget):
         buttons = [
             ThemedButton("Primary Button"),
             ThemedButton("Secondary Button"),
-            ThemedButton("Action Button")
+            ThemedButton("Action Button"),
         ]
 
         # Add buttons to layout
@@ -117,12 +117,12 @@ class ButtonDemo(ThemedWidget):
 
         # Light theme button
         light_btn = ThemedButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         theme_layout.addWidget(light_btn)
 
         # Dark theme button
         dark_btn = ThemedButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         theme_layout.addWidget(dark_btn)
 
         layout.addLayout(theme_layout)
@@ -146,45 +146,35 @@ def main():
 
     # Register basic themes
     light_theme = {
-        'name': 'light',
-        'button': {
-            'background': '#f0f0f0',
-            'foreground': '#333333',
-            'border': '#cccccc',
-            'hover': {
-                'background': '#e0e0e0',
-                'foreground': '#000000'
-            },
-            'pressed': {
-                'background': '#d0d0d0'
-            },
-            'font': 'Arial, sans-serif'
-        }
+        "name": "light",
+        "button": {
+            "background": "#f0f0f0",
+            "foreground": "#333333",
+            "border": "#cccccc",
+            "hover": {"background": "#e0e0e0", "foreground": "#000000"},
+            "pressed": {"background": "#d0d0d0"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'button': {
-            'background': '#555555',
-            'foreground': '#ffffff',
-            'border': '#777777',
-            'hover': {
-                'background': '#666666',
-                'foreground': '#ffffff'
-            },
-            'pressed': {
-                'background': '#444444'
-            },
-            'font': 'Arial, sans-serif'
-        }
+        "name": "dark",
+        "button": {
+            "background": "#555555",
+            "foreground": "#ffffff",
+            "border": "#777777",
+            "hover": {"background": "#666666", "foreground": "#ffffff"},
+            "pressed": {"background": "#444444"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     # Register themes with application
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = ButtonDemo()
@@ -193,5 +183,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

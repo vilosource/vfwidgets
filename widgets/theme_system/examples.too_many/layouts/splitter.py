@@ -35,10 +35,10 @@ class ThemedSplitter(ThemedWidget, QSplitter):
     """A themed splitter with styled handles."""
 
     theme_config = {
-        'bg': 'splitter.background',
-        'handle_bg': 'splitter.handle.background',
-        'handle_hover': 'splitter.handle.hover',
-        'handle_pressed': 'splitter.handle.pressed'
+        "bg": "splitter.background",
+        "handle_bg": "splitter.handle.background",
+        "handle_hover": "splitter.handle.hover",
+        "handle_pressed": "splitter.handle.pressed",
     }
 
     def __init__(self, orientation=Qt.Horizontal, parent=None):
@@ -53,10 +53,10 @@ class ThemedSplitter(ThemedWidget, QSplitter):
 
     def update_styling(self):
         """Update splitter styling based on current theme."""
-        bg_color = self.theme.get('bg', '#f0f0f0')
-        handle_bg = self.theme.get('handle_bg', '#cccccc')
-        handle_hover = self.theme.get('handle_hover', '#bbbbbb')
-        handle_pressed = self.theme.get('handle_pressed', '#aaaaaa')
+        bg_color = self.theme.get("bg", "#f0f0f0")
+        handle_bg = self.theme.get("handle_bg", "#cccccc")
+        handle_hover = self.theme.get("handle_hover", "#bbbbbb")
+        handle_pressed = self.theme.get("handle_pressed", "#aaaaaa")
 
         stylesheet = f"""
         QSplitter {{
@@ -94,9 +94,9 @@ class SplitterPane(ThemedWidget, QFrame):
     """A themed pane for use in splitters."""
 
     theme_config = {
-        'bg': 'splitter.pane.background',
-        'fg': 'splitter.pane.foreground',
-        'border': 'splitter.pane.border'
+        "bg": "splitter.pane.background",
+        "fg": "splitter.pane.foreground",
+        "border": "splitter.pane.border",
     }
 
     def __init__(self, title="Pane", content_type="text", parent=None):
@@ -137,18 +137,20 @@ class SplitterPane(ThemedWidget, QFrame):
 
     def update_styling(self):
         """Update pane styling."""
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QFrame {{
             background-color: {bg_color};
             color: {fg_color};
             border: 1px solid {border_color};
             border-radius: 4px;
         }}
-        """)
+        """
+        )
 
 
 class SplitterDemo(ThemedWidget):
@@ -209,11 +211,11 @@ class SplitterDemo(ThemedWidget):
 
         # Theme controls
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         layout.addLayout(controls_layout)
@@ -240,42 +242,26 @@ def main():
 
     # Define themes
     light_theme = {
-        'name': 'light',
-        'splitter': {
-            'background': '#f5f5f5',
-            'handle': {
-                'background': '#cccccc',
-                'hover': '#bbbbbb',
-                'pressed': '#aaaaaa'
-            },
-            'pane': {
-                'background': '#ffffff',
-                'foreground': '#000000',
-                'border': '#dddddd'
-            }
-        }
+        "name": "light",
+        "splitter": {
+            "background": "#f5f5f5",
+            "handle": {"background": "#cccccc", "hover": "#bbbbbb", "pressed": "#aaaaaa"},
+            "pane": {"background": "#ffffff", "foreground": "#000000", "border": "#dddddd"},
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'splitter': {
-            'background': '#2d2d2d',
-            'handle': {
-                'background': '#555555',
-                'hover': '#666666',
-                'pressed': '#444444'
-            },
-            'pane': {
-                'background': '#3a3a3a',
-                'foreground': '#ffffff',
-                'border': '#555555'
-            }
-        }
+        "name": "dark",
+        "splitter": {
+            "background": "#2d2d2d",
+            "handle": {"background": "#555555", "hover": "#666666", "pressed": "#444444"},
+            "pane": {"background": "#3a3a3a", "foreground": "#ffffff", "border": "#555555"},
+        },
     }
 
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.set_theme('light')
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.set_theme("light")
 
     demo = SplitterDemo()
     demo.show()
@@ -283,5 +269,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

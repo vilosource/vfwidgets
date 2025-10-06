@@ -112,6 +112,7 @@ class TestDemoWidget(ThemedTestCase):
         """Test error recovery with invalid theme data."""
         # Inject an error
         from vfwidgets_theme.protocols import ThemePropertyError
+
         self.theme_provider.inject_error("get_property", ThemePropertyError("Test error"))
 
         widget = DemoThemedWidget(self.theme_provider)
@@ -155,6 +156,7 @@ def demonstrate_mock_objects():
 
     # Test error injection
     from vfwidgets_theme.protocols import ThemePropertyError
+
     provider.inject_error("get_property", ThemePropertyError("Injected error"))
 
     try:
@@ -245,7 +247,7 @@ def demonstrate_memory_profiling():
     try:
         report = profiler.generate_report()
         print("\n--- Memory Report Summary ---")
-        lines = report.split('\n')
+        lines = report.split("\n")
         for line in lines[:10]:  # Show first 10 lines
             print(line)
         if len(lines) > 10:
@@ -333,6 +335,7 @@ def main():
     except Exception as e:
         print(f"✗ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

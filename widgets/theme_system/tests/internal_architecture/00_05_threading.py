@@ -24,7 +24,7 @@ import threading
 import time
 from typing import Any, Dict, List
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from vfwidgets_theme.threading import (
     AsyncThemeLoader,
@@ -90,10 +90,9 @@ class ThreadSafetyDemo:
             instances.append((thread_id, id(manager)))
 
             # Configure manager from each thread
-            manager.configure({
-                f"thread_{thread_id}_setting": f"value_{thread_id}",
-                "timestamp": time.time()
-            })
+            manager.configure(
+                {f"thread_{thread_id}_setting": f"value_{thread_id}", "timestamp": time.time()}
+            )
 
         # Create 8 concurrent threads
         threads = []
@@ -115,12 +114,14 @@ class ThreadSafetyDemo:
         manager = ThreadSafeThemeManager.get_instance()
         config = manager.get_configuration()
         print(f"✅ Final configuration has {len(config)} settings")
-        print(f"✅ Thread-safe configuration updates: {len([k for k in config.keys() if k.startswith('thread_')]) == 8}")
+        print(
+            f"✅ Thread-safe configuration updates: {len([k for k in config.keys() if k.startswith('thread_')]) == 8}"
+        )
 
-        self.results['singleton'] = {
-            'instances_created': len(instances),
-            'unique_instances': len(unique_instances),
-            'configuration_entries': len(config)
+        self.results["singleton"] = {
+            "instances_created": len(instances),
+            "unique_instances": len(unique_instances),
+            "configuration_entries": len(config),
         }
 
     def demo_concurrent_theme_caching(self):
@@ -136,12 +137,12 @@ class ThreadSafetyDemo:
             property_cache = PropertyCache()
 
             thread_result = {
-                'thread_id': thread_id,
-                'themes_cached': 0,
-                'styles_cached': 0,
-                'properties_cached': 0,
-                'cache_hits': 0,
-                'total_accesses': 0
+                "thread_id": thread_id,
+                "themes_cached": 0,
+                "styles_cached": 0,
+                "properties_cached": 0,
+                "cache_hits": 0,
+                "total_accesses": 0,
             }
 
             # Cache themes specific to this thread
@@ -150,30 +151,30 @@ class ThreadSafetyDemo:
                 theme_data = {
                     "colors": {"primary": f"#00{thread_id:02X}{i:02X}FF"},
                     "thread_id": thread_id,
-                    "theme_index": i
+                    "theme_index": i,
                 }
                 theme_cache.set_theme(theme_name, theme_data)
-                thread_result['themes_cached'] += 1
+                thread_result["themes_cached"] += 1
 
                 # Cache corresponding styles
                 style_key = f"style_{thread_id}_{i}"
                 style_data = f"QWidget {{ background-color: {theme_data['colors']['primary']}; }}"
                 style_cache.set_style(style_key, style_data)
-                thread_result['styles_cached'] += 1
+                thread_result["styles_cached"] += 1
 
                 # Cache properties
                 widget_id = f"widget_{thread_id}_{i}"
-                property_cache.set_property(widget_id, "color", theme_data['colors']['primary'])
-                thread_result['properties_cached'] += 1
+                property_cache.set_property(widget_id, "color", theme_data["colors"]["primary"])
+                thread_result["properties_cached"] += 1
 
             # Test cache access patterns (90% should hit)
             for i in range(1000):
                 theme_name = f"theme_{thread_id}_{i % 45}"  # 90% will hit existing
                 theme = theme_cache.get_theme(theme_name)
 
-                thread_result['total_accesses'] += 1
+                thread_result["total_accesses"] += 1
                 if theme is not None:
-                    thread_result['cache_hits'] += 1
+                    thread_result["cache_hits"] += 1
 
             cache_results.append(thread_result)
 
@@ -188,11 +189,11 @@ class ThreadSafetyDemo:
             thread.join()
 
         # Analyze results
-        total_themes = sum(r['themes_cached'] for r in cache_results)
-        total_styles = sum(r['styles_cached'] for r in cache_results)
-        total_properties = sum(r['properties_cached'] for r in cache_results)
-        total_hits = sum(r['cache_hits'] for r in cache_results)
-        total_accesses = sum(r['total_accesses'] for r in cache_results)
+        total_themes = sum(r["themes_cached"] for r in cache_results)
+        total_styles = sum(r["styles_cached"] for r in cache_results)
+        total_properties = sum(r["properties_cached"] for r in cache_results)
+        total_hits = sum(r["cache_hits"] for r in cache_results)
+        total_accesses = sum(r["total_accesses"] for r in cache_results)
 
         hit_rate = total_hits / total_accesses if total_accesses > 0 else 0
 
@@ -202,12 +203,12 @@ class ThreadSafetyDemo:
         print(f"✅ Cache hit rate: {hit_rate:.2%} (target: >90%)")
         print("✅ Thread isolation: Each thread has independent cache")
 
-        self.results['caching'] = {
-            'total_themes': total_themes,
-            'total_styles': total_styles,
-            'total_properties': total_properties,
-            'hit_rate': hit_rate,
-            'threads': len(cache_results)
+        self.results["caching"] = {
+            "total_themes": total_themes,
+            "total_styles": total_styles,
+            "total_properties": total_properties,
+            "hit_rate": hit_rate,
+            "threads": len(cache_results),
         }
 
     def demo_cross_thread_notifications(self):
@@ -220,11 +221,13 @@ class ThreadSafetyDemo:
         signal_results = []
 
         def signal_handler(theme_name: str, theme_data: Dict[str, Any]):
-            signal_results.append({
-                'theme_name': theme_name,
-                'thread_id': threading.current_thread().ident,
-                'timestamp': time.time()
-            })
+            signal_results.append(
+                {
+                    "theme_name": theme_name,
+                    "thread_id": threading.current_thread().ident,
+                    "timestamp": time.time(),
+                }
+            )
 
         signal_manager.connect_theme_handler(signal_handler)
 
@@ -233,11 +236,13 @@ class ThreadSafetyDemo:
         notification_results = []
 
         def notification_handler(message: str, data: Any):
-            notification_results.append({
-                'message': message,
-                'data': data,
-                'handler_thread': threading.current_thread().ident
-            })
+            notification_results.append(
+                {
+                    "message": message,
+                    "data": data,
+                    "handler_thread": threading.current_thread().ident,
+                }
+            )
 
         cross_notifier.add_handler(notification_handler)
 
@@ -262,23 +267,19 @@ class ThreadSafetyDemo:
             # Signal manager notifications
             for i in range(5):
                 signal_manager.emit_theme_changed(
-                    f"theme_{thread_id}_{i}",
-                    {"thread_id": thread_id, "index": i}
+                    f"theme_{thread_id}_{i}", {"thread_id": thread_id, "index": i}
                 )
 
             # Cross-thread notifications
             for i in range(3):
                 cross_notifier.notify(
-                    f"message_{thread_id}_{i}",
-                    {"thread_id": thread_id, "data": f"data_{i}"}
+                    f"message_{thread_id}_{i}", {"thread_id": thread_id, "data": f"data_{i}"}
                 )
 
             # Widget notifications
             for i, widget in enumerate(widgets[:3]):
                 widget_proxy.notify_property_changed(
-                    widget,
-                    f"property_{thread_id}",
-                    f"value_{thread_id}_{i}"
+                    widget, f"property_{thread_id}", f"value_{thread_id}_{i}"
                 )
 
         # Run notification operations
@@ -300,10 +301,10 @@ class ThreadSafetyDemo:
         print("✅ Widget notifications processed")
         print(f"✅ Widgets registered: {widget_proxy.get_registered_count()}")
 
-        self.results['notifications'] = {
-            'signal_count': len(signal_results),
-            'cross_thread_count': len(notification_results),
-            'registered_widgets': widget_proxy.get_registered_count()
+        self.results["notifications"] = {
+            "signal_count": len(signal_results),
+            "cross_thread_count": len(notification_results),
+            "registered_widgets": widget_proxy.get_registered_count(),
         }
 
     def demo_async_theme_loading(self):
@@ -352,21 +353,23 @@ class ThreadSafetyDemo:
             load_queue.process_queue()
 
             return {
-                'concurrent_load_time': load_time,
-                'themes_loaded': len(loaded_themes),
-                'queue_processed': len(queue_results),
-                'progress_updates': len(progress_updates)
+                "concurrent_load_time": load_time,
+                "themes_loaded": len(loaded_themes),
+                "queue_processed": len(queue_results),
+                "progress_updates": len(progress_updates),
             }
 
         # Run async demo
         async_result = asyncio.run(async_loading_demo())
 
         print(f"✅ Loaded {async_result['themes_loaded']} themes concurrently")
-        print(f"✅ Total load time: {async_result['concurrent_load_time']:.3f}s (target: <0.5s each)")
+        print(
+            f"✅ Total load time: {async_result['concurrent_load_time']:.3f}s (target: <0.5s each)"
+        )
         print(f"✅ Queue processed {async_result['queue_processed']} themes")
         print(f"✅ Progress tracking updates: {async_result['progress_updates']}")
 
-        self.results['async_loading'] = async_result
+        self.results["async_loading"] = async_result
 
     def demo_high_load_performance(self):
         """Demo 5: Performance under high concurrent load."""
@@ -448,14 +451,14 @@ class ThreadSafetyDemo:
         print(f"✅ Operations per second: {len(operation_times)/total_time:.0f}")
         print("✅ Concurrent threads supported: 10 (target: 8+)")
 
-        self.results['performance'] = {
-            'total_operations': len(operation_times),
-            'total_time': total_time,
-            'avg_operation_time': avg_operation_time,
-            'avg_lock_time': avg_lock_time,
-            'widgets_registered': total_widgets,
-            'operations_per_second': len(operation_times) / total_time,
-            'concurrent_threads': 10
+        self.results["performance"] = {
+            "total_operations": len(operation_times),
+            "total_time": total_time,
+            "avg_operation_time": avg_operation_time,
+            "avg_lock_time": avg_lock_time,
+            "widgets_registered": total_widgets,
+            "operations_per_second": len(operation_times) / total_time,
+            "concurrent_threads": 10,
         }
 
     def demo_deadlock_prevention(self):
@@ -510,11 +513,11 @@ class ThreadSafetyDemo:
         successful_ops = [r for r in operation_results if "success" in r]
         print(f"✅ Successful operations: {len(successful_ops)}/{len(operation_results)}")
 
-        self.results['deadlock_prevention'] = {
-            'operations_completed': len(operation_results),
-            'warnings_detected': len(warnings),
-            'successful_operations': len(successful_ops),
-            'threads_tracked': len(lock_graph)
+        self.results["deadlock_prevention"] = {
+            "operations_completed": len(operation_results),
+            "warnings_detected": len(warnings),
+            "successful_operations": len(successful_ops),
+            "threads_tracked": len(lock_graph),
         }
 
     def demo_memory_efficiency(self):
@@ -540,32 +543,36 @@ class ThreadSafetyDemo:
             # Fill caches with substantial data
             for i in range(200):
                 # Theme data
-                theme_cache.set_theme(f"theme_{thread_id}_{i}", {
-                    "colors": {f"color_{j}": f"#FF{j:04X}" for j in range(20)},
-                    "properties": {f"prop_{j}": f"value_{j}" * 10 for j in range(10)}
-                })
+                theme_cache.set_theme(
+                    f"theme_{thread_id}_{i}",
+                    {
+                        "colors": {f"color_{j}": f"#FF{j:04X}" for j in range(20)},
+                        "properties": {f"prop_{j}": f"value_{j}" * 10 for j in range(10)},
+                    },
+                )
 
                 # Style data
-                style_cache.set_style(f"style_{thread_id}_{i}",
-                    f"QWidget {{ /* Style {i} */ }} " * 5)
+                style_cache.set_style(
+                    f"style_{thread_id}_{i}", f"QWidget {{ /* Style {i} */ }} " * 5
+                )
 
                 # Property data
                 for j in range(10):
                     property_cache.set_property(
-                        f"widget_{thread_id}_{i}_{j}",
-                        f"property_{j}",
-                        f"value_{thread_id}_{i}_{j}"
+                        f"widget_{thread_id}_{i}_{j}", f"property_{j}", f"value_{thread_id}_{i}_{j}"
                     )
 
             # Get cache statistics
             theme_stats = theme_cache.get_cache_stats()
             style_count = style_cache.get_cache_size()
 
-            memory_results.append({
-                'thread_id': thread_id,
-                'themes_cached': theme_stats['cached_themes'],
-                'styles_cached': style_count
-            })
+            memory_results.append(
+                {
+                    "thread_id": thread_id,
+                    "themes_cached": theme_stats["cached_themes"],
+                    "styles_cached": style_count,
+                }
+            )
 
         # Run memory-intensive operations
         threads = []
@@ -580,21 +587,27 @@ class ThreadSafetyDemo:
         final_memory = process.memory_info().rss
         memory_increase = final_memory - initial_memory
 
-        total_themes = sum(r['themes_cached'] for r in memory_results)
-        total_styles = sum(r['styles_cached'] for r in memory_results)
+        total_themes = sum(r["themes_cached"] for r in memory_results)
+        total_styles = sum(r["styles_cached"] for r in memory_results)
 
         print(f"✅ Memory increase: {memory_increase / (1024*1024):.2f} MB")
         print(f"✅ Themes cached across all threads: {total_themes}")
         print(f"✅ Styles cached across all threads: {total_styles}")
-        print(f"✅ Memory per cached item: {memory_increase / (total_themes + total_styles):.0f} bytes")
+        print(
+            f"✅ Memory per cached item: {memory_increase / (total_themes + total_styles):.0f} bytes"
+        )
         print("✅ Thread-local isolation: Each thread has independent caches")
 
-        self.results['memory_efficiency'] = {
-            'memory_increase_mb': memory_increase / (1024*1024),
-            'total_themes': total_themes,
-            'total_styles': total_styles,
-            'memory_per_item': memory_increase / (total_themes + total_styles) if (total_themes + total_styles) > 0 else 0,
-            'threads': len(memory_results)
+        self.results["memory_efficiency"] = {
+            "memory_increase_mb": memory_increase / (1024 * 1024),
+            "total_themes": total_themes,
+            "total_styles": total_styles,
+            "memory_per_item": (
+                memory_increase / (total_themes + total_styles)
+                if (total_themes + total_styles) > 0
+                else 0
+            ),
+            "threads": len(memory_results),
         }
 
     def show_final_results(self):
@@ -606,34 +619,64 @@ class ThreadSafetyDemo:
         perf_metrics = get_performance_metrics()
 
         print("\n📊 Performance Requirements Validation:")
-        print(f"{'✅' if self.results['performance']['avg_lock_time'] < 0.000001 else '❌'} Lock acquisition: {self.results['performance']['avg_lock_time']*1000000:.2f}μs (target: <1μs)")
-        print(f"{'✅' if self.results['caching']['hit_rate'] > 0.9 else '❌'} Cache hit rate: {self.results['caching']['hit_rate']:.1%} (target: >90%)")
-        print(f"{'✅' if self.results['performance']['concurrent_threads'] >= 8 else '❌'} Concurrent threads: {self.results['performance']['concurrent_threads']} (target: 8+)")
-        print(f"{'✅' if self.results['async_loading']['concurrent_load_time'] < 2.5 else '❌'} Async loading: {self.results['async_loading']['concurrent_load_time']:.3f}s (target: <0.5s each)")
+        print(
+            f"{'✅' if self.results['performance']['avg_lock_time'] < 0.000001 else '❌'} Lock acquisition: {self.results['performance']['avg_lock_time']*1000000:.2f}μs (target: <1μs)"
+        )
+        print(
+            f"{'✅' if self.results['caching']['hit_rate'] > 0.9 else '❌'} Cache hit rate: {self.results['caching']['hit_rate']:.1%} (target: >90%)"
+        )
+        print(
+            f"{'✅' if self.results['performance']['concurrent_threads'] >= 8 else '❌'} Concurrent threads: {self.results['performance']['concurrent_threads']} (target: 8+)"
+        )
+        print(
+            f"{'✅' if self.results['async_loading']['concurrent_load_time'] < 2.5 else '❌'} Async loading: {self.results['async_loading']['concurrent_load_time']:.3f}s (target: <0.5s each)"
+        )
 
         print("\n📈 Overall Performance:")
-        print(f"  • Operations per second: {self.results['performance']['operations_per_second']:.0f}")
-        print(f"  • Memory efficiency: {self.results['memory_efficiency']['memory_per_item']:.0f} bytes per item")
+        print(
+            f"  • Operations per second: {self.results['performance']['operations_per_second']:.0f}"
+        )
+        print(
+            f"  • Memory efficiency: {self.results['memory_efficiency']['memory_per_item']:.0f} bytes per item"
+        )
         print("  • Thread safety: All operations completed successfully")
-        print(f"  • Deadlock prevention: {self.results['deadlock_prevention']['successful_operations']} successful operations")
+        print(
+            f"  • Deadlock prevention: {self.results['deadlock_prevention']['successful_operations']} successful operations"
+        )
 
         print("\n🎉 Thread Safety Infrastructure Validation:")
-        print(f"  ✅ Singleton pattern: Thread-safe across {self.results['singleton']['instances_created']} accesses")
-        print(f"  ✅ Thread-local caching: {self.results['caching']['total_themes']} themes cached efficiently")
-        print(f"  ✅ Cross-thread notifications: {self.results['notifications']['signal_count']} signals processed")
-        print(f"  ✅ Async operations: {self.results['async_loading']['themes_loaded']} themes loaded concurrently")
-        print(f"  ✅ High-load performance: {self.results['performance']['widgets_registered']} widgets managed")
-        print(f"  ✅ Deadlock prevention: {len(self.results['deadlock_prevention'])} warnings detected")
-        print(f"  ✅ Memory efficiency: {self.results['memory_efficiency']['memory_increase_mb']:.2f}MB for {self.results['memory_efficiency']['threads']} threads")
+        print(
+            f"  ✅ Singleton pattern: Thread-safe across {self.results['singleton']['instances_created']} accesses"
+        )
+        print(
+            f"  ✅ Thread-local caching: {self.results['caching']['total_themes']} themes cached efficiently"
+        )
+        print(
+            f"  ✅ Cross-thread notifications: {self.results['notifications']['signal_count']} signals processed"
+        )
+        print(
+            f"  ✅ Async operations: {self.results['async_loading']['themes_loaded']} themes loaded concurrently"
+        )
+        print(
+            f"  ✅ High-load performance: {self.results['performance']['widgets_registered']} widgets managed"
+        )
+        print(
+            f"  ✅ Deadlock prevention: {len(self.results['deadlock_prevention'])} warnings detected"
+        )
+        print(
+            f"  ✅ Memory efficiency: {self.results['memory_efficiency']['memory_increase_mb']:.2f}MB for {self.results['memory_efficiency']['threads']} threads"
+        )
 
         # Check if all requirements met
         all_passed = (
-            self.results['performance']['avg_lock_time'] < 0.000001 and
-            self.results['caching']['hit_rate'] > 0.9 and
-            self.results['performance']['concurrent_threads'] >= 8
+            self.results["performance"]["avg_lock_time"] < 0.000001
+            and self.results["caching"]["hit_rate"] > 0.9
+            and self.results["performance"]["concurrent_threads"] >= 8
         )
 
-        print(f"\n{'🎯 ALL REQUIREMENTS MET' if all_passed else '⚠️  Some requirements need attention'}")
+        print(
+            f"\n{'🎯 ALL REQUIREMENTS MET' if all_passed else '⚠️  Some requirements need attention'}"
+        )
         print("\n" + "=" * 60)
 
         print("\n💡 Integration with ThemedWidget:")

@@ -54,6 +54,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -98,7 +99,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         # Extract all tokens from Tokens class
         for attr_name in dir(Tokens):
-            if attr_name.startswith('_'):
+            if attr_name.startswith("_"):
                 continue
 
             token_value = getattr(Tokens, attr_name)
@@ -106,33 +107,33 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
                 continue
 
             # Categorize token based on prefix
-            if attr_name.startswith('COLORS_'):
+            if attr_name.startswith("COLORS_"):
                 category = "BASE COLORS"
-            elif attr_name.startswith('BUTTON_'):
+            elif attr_name.startswith("BUTTON_"):
                 category = "BUTTON COLORS"
-            elif attr_name.startswith(('INPUT_', 'DROPDOWN_', 'COMBOBOX_')):
+            elif attr_name.startswith(("INPUT_", "DROPDOWN_", "COMBOBOX_")):
                 category = "INPUT/DROPDOWN COLORS"
-            elif attr_name.startswith(('LIST_', 'TREE_', 'TABLE_')):
+            elif attr_name.startswith(("LIST_", "TREE_", "TABLE_")):
                 category = "LIST/TREE COLORS"
-            elif attr_name.startswith('EDITOR_'):
+            elif attr_name.startswith("EDITOR_"):
                 category = "EDITOR COLORS"
-            elif attr_name.startswith('SIDEBAR_'):
+            elif attr_name.startswith("SIDEBAR_"):
                 category = "SIDEBAR COLORS"
-            elif attr_name.startswith('PANEL_'):
+            elif attr_name.startswith("PANEL_"):
                 category = "PANEL COLORS"
-            elif attr_name.startswith('TAB_'):
+            elif attr_name.startswith("TAB_"):
                 category = "TAB COLORS"
-            elif attr_name.startswith('ACTIVITYBAR_'):
+            elif attr_name.startswith("ACTIVITYBAR_"):
                 category = "ACTIVITY BAR COLORS"
-            elif attr_name.startswith('STATUSBAR_'):
+            elif attr_name.startswith("STATUSBAR_"):
                 category = "STATUS BAR COLORS"
-            elif attr_name.startswith('TITLEBAR_'):
+            elif attr_name.startswith("TITLEBAR_"):
                 category = "TITLE BAR COLORS"
-            elif attr_name.startswith(('MENU_', 'MENUBAR_')):
+            elif attr_name.startswith(("MENU_", "MENUBAR_")):
                 category = "MENU COLORS"
-            elif attr_name.startswith('SCROLLBAR_'):
+            elif attr_name.startswith("SCROLLBAR_"):
                 category = "SCROLLBAR COLORS"
-            elif attr_name.startswith('TERMINAL_'):
+            elif attr_name.startswith("TERMINAL_"):
                 category = "TERMINAL COLORS"
             else:
                 category = "MISCELLANEOUS COLORS"
@@ -170,6 +171,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Args:
             filter_text: Search filter text
+
         """
         self._tree.clear()
         filter_lower = filter_text.lower()
@@ -178,7 +180,8 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
             # Filter tokens if search text provided
             if filter_text:
                 filtered_tokens = [
-                    (name, path) for name, path in tokens
+                    (name, path)
+                    for name, path in tokens
                     if filter_lower in name.lower() or filter_lower in path.lower()
                 ]
             else:
@@ -206,6 +209,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Args:
             text: New search text
+
         """
         self._current_filter = text
         self._populate_tree(text)
@@ -233,6 +237,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Args:
             item: Expanded tree item
+
         """
         category_name = item.data(0, Qt.ItemDataRole.UserRole)
         if category_name and category_name in self._categories:
@@ -244,6 +249,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Returns:
             Selected token path or None
+
         """
         selected_items = self._tree.selectedItems()
         if not selected_items:
@@ -262,6 +268,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Returns:
             True if token found and selected
+
         """
         if token_path not in self._all_tokens:
             logger.warning(f"Token not found: {token_path}")
@@ -293,6 +300,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Returns:
             Total token count
+
         """
         return len(self._all_tokens)
 
@@ -301,5 +309,6 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         Returns:
             Category count
+
         """
         return len([cat for cat, tokens in self._categories.items() if tokens])

@@ -41,30 +41,43 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 try:
     from PySide6.QtCore import QMetaObject, QObject, Qt, QThread, QTimer, Signal
     from PySide6.QtWidgets import QApplication, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Create mock classes for headless testing
     class QObject:
         def __init__(self):
             self.signals = {}
-        def connect(self, slot): pass
-        def disconnect(self, slot): pass
-        def emit(self, *args): pass
+
+        def connect(self, slot):
+            pass
+
+        def disconnect(self, slot):
+            pass
+
+        def emit(self, *args):
+            pass
+
     class Signal:
         def __init__(self, *types):
             self._slots = []
+
         def connect(self, slot):
             self._slots.append(slot)
+
         def disconnect(self, slot):
             if slot in self._slots:
                 self._slots.remove(slot)
+
         def emit(self, *args):
             for slot in self._slots:
                 try:
                     slot(*args)
                 except Exception:
                     pass
+
 
 # Import foundation modules
 from ..logging import get_debug_logger
@@ -136,7 +149,7 @@ class WidgetNotificationManager:
                 self._widgets[widget_id] = widget_ref
 
                 # Create theme change signal for widget
-                if hasattr(widget, 'theme_changed'):
+                if hasattr(widget, "theme_changed"):
                     self._widget_signals[widget_id] = widget.theme_changed
                 else:
                     # Create signal if widget doesn't have one
@@ -310,7 +323,7 @@ class CallbackRegistry:
             "registered_callbacks": 0,
             "total_calls": 0,
             "successful_calls": 0,
-            "failed_calls": 0
+            "failed_calls": 0,
         }
         logger.debug("CallbackRegistry initialized")
 
@@ -398,7 +411,9 @@ class CallbackRegistry:
         with self._lock:
             self._stats["total_calls"] += len(callbacks_to_call)
 
-    def set_callback_filter(self, callback_id: str, filter_func: Callable[[str, str], bool]) -> bool:
+    def set_callback_filter(
+        self, callback_id: str, filter_func: Callable[[str, str], bool]
+    ) -> bool:
         """Set filter for specific callback.
 
         Args:
@@ -511,7 +526,9 @@ class NotificationQueue:
         """Set single notification processor."""
         self._processor = processor
 
-    def set_batch_processor(self, processor: Callable[[List[tuple]], None], batch_size: int = 10) -> None:
+    def set_batch_processor(
+        self, processor: Callable[[List[tuple]], None], batch_size: int = 10
+    ) -> None:
         """Set batch notification processor."""
         self._batch_processor = processor
         self._batch_size = batch_size
@@ -604,11 +621,7 @@ class EventFilter:
         """Initialize event filter."""
         self._theme_filters: List[Callable[[str], bool]] = []
         self._widget_filters: List[Callable[[str], bool]] = []
-        self._stats = {
-            "total_checks": 0,
-            "notifications_allowed": 0,
-            "notifications_blocked": 0
-        }
+        self._stats = {"total_checks": 0, "notifications_allowed": 0, "notifications_blocked": 0}
         self._lock = threading.RLock()
         logger.debug("EventFilter initialized")
 
@@ -730,6 +743,7 @@ class CrossThreadNotifier:
             widget_id: Widget ID
 
         """
+
         def notify_worker():
             """Worker function for async notification."""
             with self._lock:
@@ -774,7 +788,9 @@ class NotificationBatcher:
         self._lock = threading.RLock()
         self._last_flush = time.time()
         self._flush_timer: Optional[threading.Timer] = None
-        logger.debug(f"NotificationBatcher initialized: batch_size={batch_size}, flush_interval={flush_interval}")
+        logger.debug(
+            f"NotificationBatcher initialized: batch_size={batch_size}, flush_interval={flush_interval}"
+        )
 
     def set_batch_processor(self, processor: Callable[[List[tuple]], None]) -> None:
         """Set batch processor function."""
@@ -861,7 +877,7 @@ class ThemeNotifier:
         queue: Optional[NotificationQueue] = None,
         event_filter: Optional[EventFilter] = None,
         cross_thread_notifier: Optional[CrossThreadNotifier] = None,
-        batcher: Optional[NotificationBatcher] = None
+        batcher: Optional[NotificationBatcher] = None,
     ):
         """Initialize theme notifier with dependency injection.
 
@@ -1106,14 +1122,16 @@ class ThemeNotifier:
                 "batched_notifications": self._stats.batched_notifications,
                 "average_time_per_notification": (
                     self._stats.total_time / max(1, self._stats.notifications_sent)
-                )
+                ),
             }
 
             # Add component statistics
-            base_stats.update({
-                "callback_stats": self._callback_registry.get_statistics(),
-                "filter_stats": self._event_filter.get_statistics()
-            })
+            base_stats.update(
+                {
+                    "callback_stats": self._callback_registry.get_statistics(),
+                    "filter_stats": self._event_filter.get_statistics(),
+                }
+            )
 
             return base_stats
 
@@ -1149,9 +1167,7 @@ class ThemeNotifier:
 
 
 def create_theme_notifier(
-    max_queue_size: int = 1000,
-    batch_size: int = 10,
-    flush_interval: float = 0.1
+    max_queue_size: int = 1000, batch_size: int = 10, flush_interval: float = 0.1
 ) -> ThemeNotifier:
     """Factory function for creating theme notifier with defaults.
 
@@ -1178,7 +1194,7 @@ def create_theme_notifier(
         queue=queue,
         event_filter=event_filter,
         cross_thread_notifier=cross_thread_notifier,
-        batcher=batcher
+        batcher=batcher,
     )
 
     logger.debug("Created theme notifier with default configuration")

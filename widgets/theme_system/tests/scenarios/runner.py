@@ -28,6 +28,7 @@ from vfwidgets_theme.validation import ValidationFramework, ValidationMode
 @dataclass
 class ScenarioResult:
     """Result of a single integration test scenario."""
+
     name: str
     success: bool
     duration_ms: float
@@ -62,32 +63,33 @@ class IntegrationTestRunner:
             "complex_application": {
                 "class": ComplexApplicationScenario,
                 "description": "Complex application with 100+ widgets",
-                "priority": 1
+                "priority": 1,
             },
             "theme_switching": {
                 "class": ThemeSwitchingScenario,
                 "description": "Rapid theme switching under load",
-                "priority": 2
+                "priority": 2,
             },
             "error_recovery": {
                 "class": self._mock_error_recovery_scenario,
                 "description": "Error recovery and graceful degradation",
-                "priority": 3
+                "priority": 3,
             },
             "migration": {
                 "class": self._mock_migration_scenario,
                 "description": "Theme system migration scenarios",
-                "priority": 4
+                "priority": 4,
             },
             "plugin_integration": {
                 "class": self._mock_plugin_integration_scenario,
                 "description": "Plugin integration testing",
-                "priority": 5
-            }
+                "priority": 5,
+            },
         }
 
     def _mock_error_recovery_scenario(self):
         """Mock error recovery scenario for demonstration."""
+
         class MockErrorRecoveryScenario:
             def run_full_scenario(self):
                 time.sleep(0.1)  # Simulate work
@@ -96,13 +98,13 @@ class IntegrationTestRunner:
                     "error_handling_tests": [
                         {"test": "corrupt_theme_file", "passed": True},
                         {"test": "invalid_theme_data", "passed": True},
-                        {"test": "missing_theme_resources", "passed": True}
+                        {"test": "missing_theme_resources", "passed": True},
                     ],
                     "recovery_tests": [
                         {"test": "fallback_to_default", "passed": True},
-                        {"test": "graceful_degradation", "passed": True}
+                        {"test": "graceful_degradation", "passed": True},
                     ],
-                    "overall_success": True
+                    "overall_success": True,
                 }
 
             def cleanup(self):
@@ -112,6 +114,7 @@ class IntegrationTestRunner:
 
     def _mock_migration_scenario(self):
         """Mock migration scenario for demonstration."""
+
         class MockMigrationScenario:
             def run_full_scenario(self):
                 time.sleep(0.15)  # Simulate work
@@ -119,13 +122,13 @@ class IntegrationTestRunner:
                     "setup_success": True,
                     "migration_tests": [
                         {"from_version": "1.0", "to_version": "2.0", "passed": True},
-                        {"from_version": "2.0", "to_version": "3.0", "passed": True}
+                        {"from_version": "2.0", "to_version": "3.0", "passed": True},
                     ],
                     "compatibility_tests": [
                         {"test": "backward_compatibility", "passed": True},
-                        {"test": "theme_format_upgrade", "passed": True}
+                        {"test": "theme_format_upgrade", "passed": True},
                     ],
-                    "overall_success": True
+                    "overall_success": True,
                 }
 
             def cleanup(self):
@@ -135,6 +138,7 @@ class IntegrationTestRunner:
 
     def _mock_plugin_integration_scenario(self):
         """Mock plugin integration scenario for demonstration."""
+
         class MockPluginIntegrationScenario:
             def run_full_scenario(self):
                 time.sleep(0.2)  # Simulate work
@@ -143,13 +147,13 @@ class IntegrationTestRunner:
                     "plugin_tests": [
                         {"plugin": "custom_theme_provider", "passed": True},
                         {"plugin": "theme_validator", "passed": True},
-                        {"plugin": "widget_theme_adapter", "passed": True}
+                        {"plugin": "widget_theme_adapter", "passed": True},
                     ],
                     "integration_tests": [
                         {"test": "plugin_loading", "passed": True},
-                        {"test": "plugin_communication", "passed": True}
+                        {"test": "plugin_communication", "passed": True},
                     ],
-                    "overall_success": True
+                    "overall_success": True,
                 }
 
             def cleanup(self):
@@ -211,7 +215,7 @@ class IntegrationTestRunner:
                 summary=summary,
                 details=results,
                 errors=errors,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
             self.results.append(result)
@@ -243,7 +247,7 @@ class IntegrationTestRunner:
                 summary={},
                 details={"exception": str(e), "traceback": traceback.format_exc()},
                 errors=[str(e)],
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
             self.results.append(result)
@@ -251,7 +255,7 @@ class IntegrationTestRunner:
 
         finally:
             # Cleanup
-            if scenario_instance and hasattr(scenario_instance, 'cleanup'):
+            if scenario_instance and hasattr(scenario_instance, "cleanup"):
                 try:
                     scenario_instance.cleanup()
                 except Exception as e:
@@ -311,7 +315,7 @@ class IntegrationTestRunner:
         performance_stats = {
             "fastest_scenario": None,
             "slowest_scenario": None,
-            "average_duration_ms": total_duration / total_scenarios if total_scenarios > 0 else 0
+            "average_duration_ms": total_duration / total_scenarios if total_scenarios > 0 else 0,
         }
 
         if self.results:
@@ -319,29 +323,31 @@ class IntegrationTestRunner:
             slowest = max(self.results, key=lambda r: r.duration_ms)
             performance_stats["fastest_scenario"] = {
                 "name": fastest.name,
-                "duration_ms": fastest.duration_ms
+                "duration_ms": fastest.duration_ms,
             }
             performance_stats["slowest_scenario"] = {
                 "name": slowest.name,
-                "duration_ms": slowest.duration_ms
+                "duration_ms": slowest.duration_ms,
             }
 
         # Scenario details
         scenario_details = []
         for result in self.results:
-            scenario_details.append({
-                "name": result.name,
-                "success": result.success,
-                "duration_ms": result.duration_ms,
-                "summary": result.summary,
-                "error_count": len(result.errors),
-                "timestamp": result.timestamp.isoformat()
-            })
+            scenario_details.append(
+                {
+                    "name": result.name,
+                    "success": result.success,
+                    "duration_ms": result.duration_ms,
+                    "summary": result.summary,
+                    "error_count": len(result.errors),
+                    "timestamp": result.timestamp.isoformat(),
+                }
+            )
 
         # System information
         system_info = {
             "validation_framework_mode": self.validation_framework.mode.name,
-            "validation_stats": self.validation_framework.get_validation_stats()
+            "validation_stats": self.validation_framework.get_validation_stats(),
         }
 
         report = {
@@ -352,12 +358,12 @@ class IntegrationTestRunner:
                 "failed_scenarios": failed_scenarios,
                 "success_rate": passed_scenarios / total_scenarios if total_scenarios > 0 else 0,
                 "total_duration_ms": total_duration,
-                "total_errors": len(all_errors)
+                "total_errors": len(all_errors),
             },
             "performance": performance_stats,
             "scenarios": scenario_details,
             "system_info": system_info,
-            "errors": all_errors[:20]  # Limit errors in report
+            "errors": all_errors[:20],  # Limit errors in report
         }
 
         return report
@@ -372,7 +378,7 @@ class IntegrationTestRunner:
         report = self.generate_report()
 
         try:
-            with open(report_path, 'w') as f:
+            with open(report_path, "w") as f:
                 json.dump(report, f, indent=2)
 
             print(f"\nReport saved to: {report_path}")
@@ -430,11 +436,7 @@ class IntegrationTestRunner:
     def get_scenario_list(self) -> List[Dict[str, Any]]:
         """Get list of available scenarios."""
         return [
-            {
-                "name": name,
-                "description": info["description"],
-                "priority": info["priority"]
-            }
+            {"name": name, "description": info["description"], "priority": info["priority"]}
             for name, info in sorted(self.scenarios.items(), key=lambda x: x[1]["priority"])
         ]
 
@@ -447,7 +449,7 @@ if __name__ == "__main__":
     for scenario in runner.get_scenario_list():
         print(f"  {scenario['priority']}. {scenario['name']}: {scenario['description']}")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
 
     # Run all scenarios
     results = runner.run_all_scenarios()

@@ -34,14 +34,18 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 try:
     from PySide6.QtCore import QMutex, QMutexLocker, QObject, QThread, QTimer, Signal
     from PySide6.QtWidgets import QApplication
+
     QT_AVAILABLE = True
 except ImportError:
     # Fallback for testing without Qt
     QT_AVAILABLE = False
+
     class QObject:
         pass
+
     def Signal(*args):
         return lambda: None
+
 
 from .errors import ThemeError
 from .protocols import ThemeProvider
@@ -57,11 +61,11 @@ class ThreadSafeThemeManager:
     multiple threads without performance degradation.
     """
 
-    _instance: Optional['ThreadSafeThemeManager'] = None
+    _instance: Optional["ThreadSafeThemeManager"] = None
     _lock: threading.Lock = threading.Lock()
     _initialized: bool = False
 
-    def __new__(cls) -> 'ThreadSafeThemeManager':
+    def __new__(cls) -> "ThreadSafeThemeManager":
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -79,7 +83,7 @@ class ThreadSafeThemeManager:
                     ThreadSafeThemeManager._initialized = True
 
     @classmethod
-    def get_instance(cls) -> 'ThreadSafeThemeManager':
+    def get_instance(cls) -> "ThreadSafeThemeManager":
         """Get the singleton instance (thread-safe)."""
         if cls._instance is None:
             return cls()
@@ -108,13 +112,13 @@ class ThreadSafeThemeManager:
     def clear_cache(self) -> None:
         """Clear all cached data (thread-safe)."""
         # Clear thread-local data
-        if hasattr(self._thread_local, 'cache'):
-            delattr(self._thread_local, 'cache')
+        if hasattr(self._thread_local, "cache"):
+            delattr(self._thread_local, "cache")
 
     @property
     def thread_cache(self) -> Dict[str, Any]:
         """Get thread-local cache."""
-        if not hasattr(self._thread_local, 'cache'):
+        if not hasattr(self._thread_local, "cache"):
             self._thread_local.cache = {}
         return self._thread_local.cache
 
@@ -318,7 +322,7 @@ class ThemeCache:
     @property
     def _cache(self) -> Dict[str, Dict[str, Any]]:
         """Get thread-local cache."""
-        if not hasattr(self._thread_local, 'cache'):
+        if not hasattr(self._thread_local, "cache"):
             self._thread_local.cache = {}
         return self._thread_local.cache
 
@@ -343,7 +347,7 @@ class ThemeCache:
         return {
             "cached_themes": len(self._cache),
             "theme_names": list(self._cache.keys()),
-            "thread_id": threading.current_thread().ident
+            "thread_id": threading.current_thread().ident,
         }
 
 
@@ -360,7 +364,7 @@ class StyleCache:
     @property
     def _cache(self) -> Dict[str, str]:
         """Get thread-local style cache."""
-        if not hasattr(self._thread_local, 'style_cache'):
+        if not hasattr(self._thread_local, "style_cache"):
             self._thread_local.style_cache = {}
         return self._thread_local.style_cache
 
@@ -400,7 +404,7 @@ class PropertyCache:
     @property
     def _cache(self) -> Dict[str, Dict[str, Any]]:
         """Get thread-local property cache."""
-        if not hasattr(self._thread_local, 'property_cache'):
+        if not hasattr(self._thread_local, "property_cache"):
             self._thread_local.property_cache = {}
         return self._thread_local.property_cache
 
@@ -506,7 +510,9 @@ class ThemeLoadQueue:
         self._queue_lock = threading.Lock()
         self._processing = False
 
-    def enqueue_load(self, theme_name: str, callback: Callable[[str, Dict[str, Any]], None]) -> None:
+    def enqueue_load(
+        self, theme_name: str, callback: Callable[[str, Dict[str, Any]], None]
+    ) -> None:
         """Enqueue a theme for loading."""
         with self._queue_lock:
             self._queue.append((theme_name, callback))
@@ -541,7 +547,7 @@ class ThemeLoadQueue:
         return {
             "name": theme_name,
             "colors": {"primary": "#007ACC", "background": "#1E1E1E"},
-            "fonts": {"primary": "Segoe UI", "monospace": "Consolas"}
+            "fonts": {"primary": "Segoe UI", "monospace": "Consolas"},
         }
 
     def get_queue_size(self) -> int:
@@ -568,11 +574,7 @@ class AsyncThemeLoader:
 
         # Create future for this load
         loop = asyncio.get_event_loop()
-        future = loop.run_in_executor(
-            self._executor,
-            self._load_theme_sync,
-            theme_name
-        )
+        future = loop.run_in_executor(self._executor, self._load_theme_sync, theme_name)
 
         self._active_loads[theme_name] = future
 
@@ -598,13 +600,13 @@ class AsyncThemeLoader:
                     "primary": "#007ACC",
                     "secondary": "#4A90E2",
                     "background": "#1E1E1E",
-                    "surface": "#252526"
+                    "surface": "#252526",
                 },
                 "fonts": {
                     "primary": "Segoe UI",
                     "secondary": "Segoe UI Light",
-                    "monospace": "Consolas"
-                }
+                    "monospace": "Consolas",
+                },
             }
 
         except Exception as e:
@@ -625,6 +627,7 @@ class AsyncThemeLoader:
 
 # Qt Signal/Slot Integration
 if QT_AVAILABLE:
+
     class ThemeSignalManager(QObject):
         """Thread-safe Qt signal management for theme changes.
 
@@ -667,6 +670,7 @@ if QT_AVAILABLE:
             return self._connection_count
 
 else:
+
     class ThemeSignalManager:
         """Fallback signal manager when Qt is not available."""
 
@@ -793,16 +797,16 @@ class WidgetNotificationProxy:
         """Handle property change from Qt signal."""
         # Find widget by ID and apply change
         for widget in self._registered_widgets:
-            if hasattr(widget, 'widget_id') and widget.widget_id == widget_id:
+            if hasattr(widget, "widget_id") and widget.widget_id == widget_id:
                 self._apply_property_change(widget, property_name, value)
                 break
 
     def _apply_property_change(self, widget: Any, property_name: str, value: Any) -> None:
         """Apply property change to widget."""
         try:
-            if hasattr(widget, 'set_theme_property'):
+            if hasattr(widget, "set_theme_property"):
                 widget.set_theme_property(property_name, value)
-            elif hasattr(widget, 'theme_properties'):
+            elif hasattr(widget, "theme_properties"):
                 widget.theme_properties[property_name] = value
         except Exception as e:
             logger.error(f"Error applying property {property_name} to widget: {e}")
@@ -915,26 +919,26 @@ class ConcurrentRegistry:
 
     def register(self, widget: Any) -> None:
         """Register widget in registry."""
-        widget_id = getattr(widget, 'widget_id', id(widget))
+        widget_id = getattr(widget, "widget_id", id(widget))
 
         with self._rw_lock.write_lock():
             self._widgets[widget_id] = weakref.ref(widget)
             self._metadata[widget_id] = {
-                'registered_at': time.time(),
-                'thread_id': threading.current_thread().ident
+                "registered_at": time.time(),
+                "thread_id": threading.current_thread().ident,
             }
 
-        self._counter.increment_counter('total_widgets')
+        self._counter.increment_counter("total_widgets")
 
     def unregister(self, widget: Any) -> None:
         """Unregister widget from registry."""
-        widget_id = getattr(widget, 'widget_id', id(widget))
+        widget_id = getattr(widget, "widget_id", id(widget))
 
         with self._rw_lock.write_lock():
             self._widgets.pop(widget_id, None)
             self._metadata.pop(widget_id, None)
 
-        self._counter.decrement_counter('total_widgets')
+        self._counter.decrement_counter("total_widgets")
 
     def get_widget(self, widget_id: str) -> Optional[Any]:
         """Get widget by ID."""
@@ -946,7 +950,7 @@ class ConcurrentRegistry:
 
     def get_widget_count(self) -> int:
         """Get total widget count."""
-        return self._counter.get_counter('total_widgets')
+        return self._counter.get_counter("total_widgets")
 
     def get_all_widgets(self) -> List[Any]:
         """Get all registered widgets."""
@@ -972,7 +976,7 @@ class ConcurrentRegistry:
                 for widget_id in stale_ids:
                     self._widgets.pop(widget_id, None)
                     self._metadata.pop(widget_id, None)
-                    self._counter.decrement_counter('total_widgets')
+                    self._counter.decrement_counter("total_widgets")
 
         return len(stale_ids)
 
@@ -1024,8 +1028,10 @@ class DeadlockDetection:
 
                 # Potential deadlock if there's a circular dependency
                 if thread_locks and owner_locks:
-                    warning = f"Potential deadlock: Thread {thread_id} wants {lock_name} " \
-                             f"owned by {current_owner}, while holding {thread_locks}"
+                    warning = (
+                        f"Potential deadlock: Thread {thread_id} wants {lock_name} "
+                        f"owned by {current_owner}, while holding {thread_locks}"
+                    )
                     self._warnings.append(warning)
                     logger.warning(warning)
 
@@ -1107,11 +1113,19 @@ class ThreadingPerformanceMetrics:
 
     def get_average_lock_time(self) -> float:
         """Get average lock acquisition time."""
-        return sum(self.lock_acquisition_times) / len(self.lock_acquisition_times) if self.lock_acquisition_times else 0.0
+        return (
+            sum(self.lock_acquisition_times) / len(self.lock_acquisition_times)
+            if self.lock_acquisition_times
+            else 0.0
+        )
 
     def get_average_cache_time(self) -> float:
         """Get average cache access time."""
-        return sum(self.cache_access_times) / len(self.cache_access_times) if self.cache_access_times else 0.0
+        return (
+            sum(self.cache_access_times) / len(self.cache_access_times)
+            if self.cache_access_times
+            else 0.0
+        )
 
     def meets_requirements(self) -> bool:
         """Check if performance meets requirements."""
@@ -1119,10 +1133,10 @@ class ThreadingPerformanceMetrics:
         avg_cache_time = self.get_average_cache_time()
 
         return (
-            avg_lock_time < 0.000001 and  # < 1μs
-            avg_cache_time < 0.0000001 and  # < 100ns
-            self.cache_hit_rate > 0.9 and  # > 90%
-            self.concurrent_thread_count >= 8  # 8+ threads
+            avg_lock_time < 0.000001  # < 1μs
+            and avg_cache_time < 0.0000001  # < 100ns
+            and self.cache_hit_rate > 0.9  # > 90%
+            and self.concurrent_thread_count >= 8  # 8+ threads
         )
 
 

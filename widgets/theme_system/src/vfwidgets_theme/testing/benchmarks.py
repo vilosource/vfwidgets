@@ -71,14 +71,14 @@ class BenchmarkResult:
             True if all applicable requirements are met.
 
         """
-        operation_type = self.operation_name.lower().replace(' ', '_')
+        operation_type = self.operation_name.lower().replace(" ", "_")
 
         # Check timing requirements
         timing_map = {
-            'theme_switch': 'theme_switch_time',
-            'property_access': 'property_access_time',
-            'callback_registration': 'callback_registration_time',
-            'style_generation': 'style_generation_time',
+            "theme_switch": "theme_switch_time",
+            "property_access": "property_access_time",
+            "callback_registration": "callback_registration_time",
+            "style_generation": "style_generation_time",
         }
 
         for pattern, req_key in timing_map.items():
@@ -91,8 +91,8 @@ class BenchmarkResult:
                     return False
 
         # Check memory requirements
-        if 'memory_overhead_per_widget' in requirements:
-            max_memory = requirements['memory_overhead_per_widget']
+        if "memory_overhead_per_widget" in requirements:
+            max_memory = requirements["memory_overhead_per_widget"]
             if self.memory_usage_bytes > max_memory:
                 self.errors.append(
                     f"Memory usage {self.memory_usage_bytes} bytes exceeds "
@@ -101,8 +101,8 @@ class BenchmarkResult:
                 return False
 
         # Check cache hit rate
-        if 'cache_hit_rate' in requirements:
-            min_hit_rate = requirements['cache_hit_rate'] * 100  # Convert to percentage
+        if "cache_hit_rate" in requirements:
+            min_hit_rate = requirements["cache_hit_rate"] * 100  # Convert to percentage
             if self.cache_hit_rate < min_hit_rate:
                 self.errors.append(
                     f"Cache hit rate {self.cache_hit_rate:.1f}% below "
@@ -115,21 +115,21 @@ class BenchmarkResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert benchmark result to dictionary for serialization."""
         return {
-            'operation_name': self.operation_name,
-            'total_time': self.total_time,
-            'iterations': self.iterations,
-            'min_time': self.min_time,
-            'max_time': self.max_time,
-            'average_time': self.average_time,
-            'median_time': self.median_time,
-            'p95_time': self.p95_time,
-            'p99_time': self.p99_time,
-            'operations_per_second': self.operations_per_second,
-            'memory_usage_bytes': self.memory_usage_bytes,
-            'cache_hit_rate': self.cache_hit_rate,
-            'errors': self.errors,
-            'warnings': self.warnings,
-            'metadata': self.metadata,
+            "operation_name": self.operation_name,
+            "total_time": self.total_time,
+            "iterations": self.iterations,
+            "min_time": self.min_time,
+            "max_time": self.max_time,
+            "average_time": self.average_time,
+            "median_time": self.median_time,
+            "p95_time": self.p95_time,
+            "p99_time": self.p99_time,
+            "operations_per_second": self.operations_per_second,
+            "memory_usage_bytes": self.memory_usage_bytes,
+            "cache_hit_rate": self.cache_hit_rate,
+            "errors": self.errors,
+            "warnings": self.warnings,
+            "metadata": self.metadata,
         }
 
 
@@ -164,12 +164,12 @@ class ThemeBenchmark:
         self.enable_memory_tracking = enable_memory_tracking
         self._results: List[BenchmarkResult] = []
         self._performance_requirements = {
-            'theme_switch_time': 0.1,  # 100ms for 100 widgets
-            'property_access_time': 0.000001,  # 1μs
-            'memory_overhead_per_widget': 1024,  # 1KB
-            'cache_hit_rate': 0.9,  # 90%
-            'callback_registration_time': 0.00001,  # 10μs
-            'style_generation_time': 0.01,  # 10ms
+            "theme_switch_time": 0.1,  # 100ms for 100 widgets
+            "property_access_time": 0.000001,  # 1μs
+            "memory_overhead_per_widget": 1024,  # 1KB
+            "cache_hit_rate": 0.9,  # 90%
+            "callback_registration_time": 0.00001,  # 10μs
+            "style_generation_time": 0.01,  # 10ms
         }
 
     @contextmanager
@@ -184,19 +184,19 @@ class ThemeBenchmark:
 
         """
         measurement_data = {
-            'times': [],
-            'memory_start': 0,
-            'memory_peak': 0,
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'errors': [],
-            'warnings': [],
+            "times": [],
+            "memory_start": 0,
+            "memory_peak": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "errors": [],
+            "warnings": [],
         }
 
         # Start memory tracking
         if self.enable_memory_tracking:
             tracemalloc.start()
-            measurement_data['memory_start'] = tracemalloc.get_traced_memory()[0]
+            measurement_data["memory_start"] = tracemalloc.get_traced_memory()[0]
 
         gc.collect()  # Clean slate for memory measurements
 
@@ -206,14 +206,11 @@ class ThemeBenchmark:
             # Stop memory tracking
             if self.enable_memory_tracking:
                 current, peak = tracemalloc.get_traced_memory()
-                measurement_data['memory_peak'] = peak - measurement_data['memory_start']
+                measurement_data["memory_peak"] = peak - measurement_data["memory_start"]
                 tracemalloc.stop()
 
     def benchmark_theme_switch(
-        self,
-        widgets: List[Any],
-        iterations: int = 50,
-        themes: Optional[List[str]] = None
+        self, widgets: List[Any], iterations: int = 50, themes: Optional[List[str]] = None
     ) -> BenchmarkResult:
         """Benchmark theme switching performance across multiple widgets.
 
@@ -226,7 +223,7 @@ class ThemeBenchmark:
             BenchmarkResult with comprehensive timing statistics.
 
         """
-        themes = themes or ['default', 'dark', 'light']
+        themes = themes or ["default", "dark", "light"]
         operation_name = f"Theme Switch ({len(widgets)} widgets)"
 
         with self._measure_performance(operation_name) as data:
@@ -238,31 +235,26 @@ class ThemeBenchmark:
                 # Simulate theme switch by calling on_theme_changed on all widgets
                 for widget in widgets:
                     try:
-                        if hasattr(widget, 'on_theme_changed'):
+                        if hasattr(widget, "on_theme_changed"):
                             widget.on_theme_changed()
-                        elif hasattr(widget, 'setStyleSheet'):
+                        elif hasattr(widget, "setStyleSheet"):
                             # Simulate QSS update
                             widget.setStyleSheet(f"color: {theme_name};")
                     except Exception as e:
-                        data['errors'].append(f"Widget update error: {str(e)}")
+                        data["errors"].append(f"Widget update error: {str(e)}")
 
                 end_time = time.perf_counter()
-                data['times'].append(end_time - start_time)
+                data["times"].append(end_time - start_time)
 
                 # Validate performance requirement during benchmark
                 elapsed = end_time - start_time
-                if elapsed > self._performance_requirements['theme_switch_time']:
-                    data['warnings'].append(
-                        f"Iteration {i} exceeded time limit: {elapsed:.3f}s"
-                    )
+                if elapsed > self._performance_requirements["theme_switch_time"]:
+                    data["warnings"].append(f"Iteration {i} exceeded time limit: {elapsed:.3f}s")
 
         return self._create_benchmark_result(operation_name, data, iterations)
 
     def benchmark_property_access(
-        self,
-        provider: Any,
-        properties: Optional[List[str]] = None,
-        iterations: int = 1000
+        self, provider: Any, properties: Optional[List[str]] = None, iterations: int = 1000
     ) -> BenchmarkResult:
         """Benchmark theme property access performance.
 
@@ -276,7 +268,11 @@ class ThemeBenchmark:
 
         """
         properties = properties or [
-            'primary_color', 'background', 'foreground', 'font_size', 'border_radius'
+            "primary_color",
+            "background",
+            "foreground",
+            "font_size",
+            "border_radius",
         ]
         operation_name = f"Property Access ({len(properties)} properties)"
 
@@ -288,24 +284,21 @@ class ThemeBenchmark:
                     try:
                         value = provider.get_property(prop)
                         # Track cache statistics if available
-                        if hasattr(provider, '_cache_hits'):
-                            data['cache_hits'] += getattr(provider, '_cache_hits', 0)
-                        if hasattr(provider, '_cache_misses'):
-                            data['cache_misses'] += getattr(provider, '_cache_misses', 0)
+                        if hasattr(provider, "_cache_hits"):
+                            data["cache_hits"] += getattr(provider, "_cache_hits", 0)
+                        if hasattr(provider, "_cache_misses"):
+                            data["cache_misses"] += getattr(provider, "_cache_misses", 0)
                     except Exception as e:
-                        data['errors'].append(f"Property access error for {prop}: {str(e)}")
+                        data["errors"].append(f"Property access error for {prop}: {str(e)}")
 
                     end_time = time.perf_counter()
-                    data['times'].append(end_time - start_time)
+                    data["times"].append(end_time - start_time)
 
         total_operations = len(properties) * iterations
         return self._create_benchmark_result(operation_name, data, total_operations)
 
     def benchmark_memory_usage(
-        self,
-        widget_factory: Callable[[], Any],
-        widget_count: int = 100,
-        theme_switches: int = 10
+        self, widget_factory: Callable[[], Any], widget_count: int = 100, theme_switches: int = 10
     ) -> BenchmarkResult:
         """Benchmark memory usage during widget creation and theme switching.
 
@@ -331,10 +324,10 @@ class ThemeBenchmark:
                     widget = widget_factory()
                     widgets.append(widget)
                 except Exception as e:
-                    data['errors'].append(f"Widget creation error: {str(e)}")
+                    data["errors"].append(f"Widget creation error: {str(e)}")
 
                 end_time = time.perf_counter()
-                data['times'].append(end_time - start_time)
+                data["times"].append(end_time - start_time)
 
             # Perform theme switches and measure memory stability
             for switch in range(theme_switches):
@@ -342,13 +335,13 @@ class ThemeBenchmark:
 
                 for widget in widgets:
                     try:
-                        if hasattr(widget, 'on_theme_changed'):
+                        if hasattr(widget, "on_theme_changed"):
                             widget.on_theme_changed()
                     except Exception as e:
-                        data['errors'].append(f"Theme switch error: {str(e)}")
+                        data["errors"].append(f"Theme switch error: {str(e)}")
 
                 switch_end = time.perf_counter()
-                data['times'].append(switch_end - switch_start)
+                data["times"].append(switch_end - switch_start)
 
             # Clean up and measure memory release
             widgets.clear()
@@ -359,15 +352,12 @@ class ThemeBenchmark:
 
         # Calculate memory per widget
         if widget_count > 0:
-            result.metadata['memory_per_widget'] = result.memory_usage_bytes / widget_count
+            result.metadata["memory_per_widget"] = result.memory_usage_bytes / widget_count
 
         return result
 
     def benchmark_callback_registration(
-        self,
-        provider: Any,
-        callback_count: int = 100,
-        iterations: int = 10
+        self, provider: Any, callback_count: int = 100, iterations: int = 10
     ) -> BenchmarkResult:
         """Benchmark callback registration and unregistration performance.
 
@@ -398,10 +388,10 @@ class ThemeBenchmark:
                         provider.subscribe(callback)
                         callbacks.append(callback)
                     except Exception as e:
-                        data['errors'].append(f"Callback registration error: {str(e)}")
+                        data["errors"].append(f"Callback registration error: {str(e)}")
                     end_time = time.perf_counter()
 
-                    data['times'].append(end_time - start_time)
+                    data["times"].append(end_time - start_time)
 
                 # Unregistration phase
                 for callback in callbacks:
@@ -409,10 +399,10 @@ class ThemeBenchmark:
                     try:
                         provider.unsubscribe(callback)
                     except Exception as e:
-                        data['errors'].append(f"Callback unregistration error: {str(e)}")
+                        data["errors"].append(f"Callback unregistration error: {str(e)}")
                     end_time = time.perf_counter()
 
-                    data['times'].append(end_time - start_time)
+                    data["times"].append(end_time - start_time)
 
         total_operations = callback_count * iterations * 2  # registration + unregistration
         return self._create_benchmark_result(operation_name, data, total_operations)
@@ -422,7 +412,7 @@ class ThemeBenchmark:
         generator: Any,
         theme_data: Dict[str, Any],
         widget_types: Optional[List[str]] = None,
-        iterations: int = 100
+        iterations: int = 100,
     ) -> BenchmarkResult:
         """Benchmark QSS style generation performance.
 
@@ -436,11 +426,12 @@ class ThemeBenchmark:
             BenchmarkResult with style generation timing statistics.
 
         """
-        widget_types = widget_types or ['button', 'label', 'edit', 'text', 'combo']
+        widget_types = widget_types or ["button", "label", "edit", "text", "combo"]
         operation_name = f"Style Generation ({len(widget_types)} widget types)"
 
         # Create mock widgets for each type
         from .mocks import MockWidget
+
         widgets = [MockWidget(widget_type) for widget_type in widget_types]
 
         with self._measure_performance(operation_name) as data:
@@ -452,21 +443,20 @@ class ThemeBenchmark:
                         stylesheet = generator.generate_stylesheet(theme_data, widget)
                         # Validate stylesheet is not empty
                         if not stylesheet.strip():
-                            data['warnings'].append(f"Empty stylesheet generated for {widget.widget_type}")
+                            data["warnings"].append(
+                                f"Empty stylesheet generated for {widget.widget_type}"
+                            )
                     except Exception as e:
-                        data['errors'].append(f"Style generation error: {str(e)}")
+                        data["errors"].append(f"Style generation error: {str(e)}")
 
                     end_time = time.perf_counter()
-                    data['times'].append(end_time - start_time)
+                    data["times"].append(end_time - start_time)
 
         total_operations = len(widget_types) * iterations
         return self._create_benchmark_result(operation_name, data, total_operations)
 
     def benchmark_concurrent_access(
-        self,
-        provider: Any,
-        thread_count: int = 10,
-        operations_per_thread: int = 100
+        self, provider: Any, thread_count: int = 10, operations_per_thread: int = 100
     ) -> BenchmarkResult:
         """Benchmark concurrent theme access performance.
 
@@ -484,7 +474,7 @@ class ThemeBenchmark:
         def worker_function(thread_id: int) -> List[float]:
             """Worker function for concurrent testing."""
             times = []
-            properties = ['primary_color', 'background', 'foreground']
+            properties = ["primary_color", "background", "foreground"]
 
             for i in range(operations_per_thread):
                 prop = properties[i % len(properties)]
@@ -514,24 +504,21 @@ class ThemeBenchmark:
                 for future in as_completed(futures):
                     try:
                         thread_times = future.result()
-                        data['times'].extend(thread_times)
+                        data["times"].extend(thread_times)
                     except Exception as e:
-                        data['errors'].append(f"Thread execution error: {str(e)}")
+                        data["errors"].append(f"Thread execution error: {str(e)}")
 
                 end_time = time.perf_counter()
 
         total_operations = thread_count * operations_per_thread
         result = self._create_benchmark_result(operation_name, data, total_operations)
-        result.metadata['thread_count'] = thread_count
-        result.metadata['total_execution_time'] = end_time - start_time
+        result.metadata["thread_count"] = thread_count
+        result.metadata["total_execution_time"] = end_time - start_time
 
         return result
 
     def _create_benchmark_result(
-        self,
-        operation_name: str,
-        measurement_data: Dict[str, Any],
-        iterations: int
+        self, operation_name: str, measurement_data: Dict[str, Any], iterations: int
     ) -> BenchmarkResult:
         """Create a BenchmarkResult from measurement data.
 
@@ -544,7 +531,7 @@ class ThemeBenchmark:
             Formatted BenchmarkResult instance.
 
         """
-        times = measurement_data['times']
+        times = measurement_data["times"]
 
         if not times:
             # Handle case where no measurements were taken
@@ -559,11 +546,11 @@ class ThemeBenchmark:
                 p95_time=0.0,
                 p99_time=0.0,
                 operations_per_second=0.0,
-                memory_usage_bytes=measurement_data.get('memory_peak', 0),
-                cache_hits=measurement_data.get('cache_hits', 0),
-                cache_misses=measurement_data.get('cache_misses', 0),
-                errors=measurement_data.get('errors', []),
-                warnings=measurement_data.get('warnings', []),
+                memory_usage_bytes=measurement_data.get("memory_peak", 0),
+                cache_hits=measurement_data.get("cache_hits", 0),
+                cache_misses=measurement_data.get("cache_misses", 0),
+                errors=measurement_data.get("errors", []),
+                warnings=measurement_data.get("warnings", []),
             )
 
         total_time = sum(times)
@@ -578,14 +565,22 @@ class ThemeBenchmark:
             max_time=max(times),
             average_time=average_time,
             median_time=statistics.median(times),
-            p95_time=sorted_times[int(len(sorted_times) * 0.95)] if len(sorted_times) > 20 else max(times),
-            p99_time=sorted_times[int(len(sorted_times) * 0.99)] if len(sorted_times) > 100 else max(times),
+            p95_time=(
+                sorted_times[int(len(sorted_times) * 0.95)]
+                if len(sorted_times) > 20
+                else max(times)
+            ),
+            p99_time=(
+                sorted_times[int(len(sorted_times) * 0.99)]
+                if len(sorted_times) > 100
+                else max(times)
+            ),
             operations_per_second=len(times) / total_time if total_time > 0 else 0,
-            memory_usage_bytes=measurement_data.get('memory_peak', 0),
-            cache_hits=measurement_data.get('cache_hits', 0),
-            cache_misses=measurement_data.get('cache_misses', 0),
-            errors=measurement_data.get('errors', []),
-            warnings=measurement_data.get('warnings', []),
+            memory_usage_bytes=measurement_data.get("memory_peak", 0),
+            cache_hits=measurement_data.get("cache_hits", 0),
+            cache_misses=measurement_data.get("cache_misses", 0),
+            errors=measurement_data.get("errors", []),
+            warnings=measurement_data.get("warnings", []),
         )
 
         self._results.append(result)
@@ -602,7 +597,9 @@ class ThemeBenchmark:
             True if all results meet requirements.
 
         """
-        return all(result.meets_requirements(self._performance_requirements) for result in self._results)
+        return all(
+            result.meets_requirements(self._performance_requirements) for result in self._results
+        )
 
     def generate_report(self) -> str:
         """Generate a comprehensive performance report.
@@ -621,50 +618,45 @@ class ThemeBenchmark:
         ]
 
         for result in self._results:
-            report_lines.extend([
-                f"Operation: {result.operation_name}",
-                f"Iterations: {result.iterations}",
-                f"Average Time: {result.average_time:.6f}s",
-                f"Min Time: {result.min_time:.6f}s",
-                f"Max Time: {result.max_time:.6f}s",
-                f"95th Percentile: {result.p95_time:.6f}s",
-                f"Operations/Second: {result.operations_per_second:.0f}",
-                f"Memory Usage: {result.memory_usage_bytes} bytes",
-                f"Cache Hit Rate: {result.cache_hit_rate:.1f}%",
-                ""
-            ])
+            report_lines.extend(
+                [
+                    f"Operation: {result.operation_name}",
+                    f"Iterations: {result.iterations}",
+                    f"Average Time: {result.average_time:.6f}s",
+                    f"Min Time: {result.min_time:.6f}s",
+                    f"Max Time: {result.max_time:.6f}s",
+                    f"95th Percentile: {result.p95_time:.6f}s",
+                    f"Operations/Second: {result.operations_per_second:.0f}",
+                    f"Memory Usage: {result.memory_usage_bytes} bytes",
+                    f"Cache Hit Rate: {result.cache_hit_rate:.1f}%",
+                    "",
+                ]
+            )
 
             if result.errors:
-                report_lines.extend([
-                    "Errors:",
-                    *[f"  - {error}" for error in result.errors],
-                    ""
-                ])
+                report_lines.extend(["Errors:", *[f"  - {error}" for error in result.errors], ""])
 
             if result.warnings:
-                report_lines.extend([
-                    "Warnings:",
-                    *[f"  - {warning}" for warning in result.warnings],
-                    ""
-                ])
+                report_lines.extend(
+                    ["Warnings:", *[f"  - {warning}" for warning in result.warnings], ""]
+                )
 
             meets_reqs = result.meets_requirements(self._performance_requirements)
-            report_lines.extend([
-                f"Requirements Met: {'✓' if meets_reqs else '✗'}",
-                "-" * 30,
-                ""
-            ])
+            report_lines.extend([f"Requirements Met: {'✓' if meets_reqs else '✗'}", "-" * 30, ""])
 
         overall_pass = self.validate_all_requirements()
-        report_lines.extend([
-            f"Overall Performance: {'PASS' if overall_pass else 'FAIL'}",
-            "=" * 50,
-        ])
+        report_lines.extend(
+            [
+                f"Overall Performance: {'PASS' if overall_pass else 'FAIL'}",
+                "=" * 50,
+            ]
+        )
 
         return "\n".join(report_lines)
 
 
 # Convenience functions for quick benchmarking
+
 
 def benchmark_theme_switch(widgets: List[Any], iterations: int = 50) -> BenchmarkResult:
     """Quick benchmark for theme switching performance.
@@ -696,7 +688,9 @@ def benchmark_property_access(provider: Any, iterations: int = 1000) -> Benchmar
     return benchmark.benchmark_property_access(provider, iterations=iterations)
 
 
-def benchmark_memory_usage(widget_factory: Callable[[], Any], widget_count: int = 100) -> BenchmarkResult:
+def benchmark_memory_usage(
+    widget_factory: Callable[[], Any], widget_count: int = 100
+) -> BenchmarkResult:
     """Quick benchmark for memory usage.
 
     Args:
@@ -722,26 +716,26 @@ def validate_performance_requirements(results: List[BenchmarkResult]) -> Dict[st
 
     """
     requirements = {
-        'theme_switch_time': 0.1,
-        'property_access_time': 0.000001,
-        'memory_overhead_per_widget': 1024,
-        'cache_hit_rate': 0.9,
-        'callback_registration_time': 0.00001,
-        'style_generation_time': 0.01,
+        "theme_switch_time": 0.1,
+        "property_access_time": 0.000001,
+        "memory_overhead_per_widget": 1024,
+        "cache_hit_rate": 0.9,
+        "callback_registration_time": 0.00001,
+        "style_generation_time": 0.01,
     }
 
     validation_results = {}
 
     for req_name, threshold in requirements.items():
         validation_results[req_name] = all(
-            result.meets_requirements({req_name: threshold})
-            for result in results
+            result.meets_requirements({req_name: threshold}) for result in results
         )
 
     return validation_results
 
 
 # Performance testing decorators
+
 
 def performance_test(max_time: float):
     """Decorator for marking performance test methods.
@@ -756,6 +750,7 @@ def performance_test(max_time: float):
             pass
 
     """
+
     def decorator(test_func):
         def wrapper(*args, **kwargs):
             start_time = time.perf_counter()
@@ -764,12 +759,13 @@ def performance_test(max_time: float):
 
             elapsed = end_time - start_time
             assert elapsed < max_time, (
-                f"Test {test_func.__name__} took {elapsed:.6f}s, "
-                f"expected < {max_time:.6f}s"
+                f"Test {test_func.__name__} took {elapsed:.6f}s, " f"expected < {max_time:.6f}s"
             )
 
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -786,6 +782,7 @@ def memory_test(max_memory_mb: float):
             pass
 
     """
+
     def decorator(test_func):
         def wrapper(*args, **kwargs):
             tracemalloc.start()
@@ -800,5 +797,7 @@ def memory_test(max_memory_mb: float):
             )
 
             return result
+
         return wrapper
+
     return decorator

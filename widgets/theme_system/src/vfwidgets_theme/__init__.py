@@ -137,29 +137,27 @@ __all__ = [
     # ======================================
     # PRIMARY API - THE way to use theming
     # ======================================
-    "ThemedWidget",           # THE way to create themed widgets (flexible, multiple inheritance)
-    "ThemedQWidget",          # Convenience class for themed QWidget (single inheritance)
-    "ThemedMainWindow",       # Convenience class for themed QMainWindow (single inheritance)
-    "ThemedDialog",           # Convenience class for themed QDialog (single inheritance)
-    "ThemedApplication",      # THE way to manage themes
-    "create_themed_widget",   # Factory for themed widgets
+    "ThemedWidget",  # THE way to create themed widgets (flexible, multiple inheritance)
+    "ThemedQWidget",  # Convenience class for themed QWidget (single inheritance)
+    "ThemedMainWindow",  # Convenience class for themed QMainWindow (single inheritance)
+    "ThemedDialog",  # Convenience class for themed QDialog (single inheritance)
+    "ThemedApplication",  # THE way to manage themes
+    "create_themed_widget",  # Factory for themed widgets
     "create_themed_application",  # Factory for themed application
     "get_global_themed_application",  # Global application access
-    "set_global_theme",       # Convenience function for global theming
-    "get_global_theme",       # Get current global theme
+    "set_global_theme",  # Convenience function for global theming
+    "get_global_theme",  # Get current global theme
     "get_global_available_themes",  # List available themes
-    "Tokens",                 # Token constants for IDE autocomplete (NEW in 2.0.0-rc4)
-    "WidgetRole",             # Type-safe widget roles enum (NEW in 2.0.0-rc4)
-    "set_widget_role",        # Helper to set widget role with style refresh (NEW in 2.0.0-rc4)
-    "get_widget_role",        # Helper to get widget role (NEW in 2.0.0-rc4)
-
+    "Tokens",  # Token constants for IDE autocomplete (NEW in 2.0.0-rc4)
+    "WidgetRole",  # Type-safe widget roles enum (NEW in 2.0.0-rc4)
+    "set_widget_role",  # Helper to set widget role with style refresh (NEW in 2.0.0-rc4)
+    "get_widget_role",  # Helper to get widget role (NEW in 2.0.0-rc4)
     # ======================================
     # Version and metadata
     # ======================================
     "__version__",
     "__author__",
     "__description__",
-
     # ======================================
     # Advanced usage (protocols, errors, etc.)
     # ======================================
@@ -170,33 +168,28 @@ __all__ = [
     "PropertyKey",
     "PropertyValue",
     "QSSStyle",
-
     # Exceptions from protocols
     "ThemeError",
     "ThemeValidationError",
     "ColorResolveError",
     "StyleGenerationError",
     "ThemePropertyError",
-
     # Extended exceptions from errors
     "ThemeNotFoundError",
     "ThemeLoadError",
     "PropertyNotFoundError",
     "InvalidThemeFormatError",
     "ThemeSystemNotInitializedError",
-
     # Protocols (for advanced usage)
     "ThemeProvider",
     "ThemeableWidget",
     "ColorProvider",
     "StyleGenerator",
-
     # Error recovery system
     "ErrorRecoveryManager",
     "create_error_recovery_manager",
     "get_global_error_recovery_manager",
     "notify_user",
-
     # Fallback system
     "MINIMAL_THEME",
     "FallbackColorSystem",
@@ -208,7 +201,6 @@ __all__ = [
     "validate_theme_completeness",
     "get_safe_color_palette",
     "is_valid_hex_color",
-
     # Logging system
     "ThemeLogger",
     "create_theme_logger",
@@ -221,7 +213,6 @@ __all__ = [
     "PerformanceTracker",
     "get_global_performance_tracker",
     "configure_theme_logging",
-
     # Utilities
     "validate_performance_requirements",
     "get_protocol_version",

@@ -80,8 +80,8 @@ class StylesheetGenerator:
 
     def _generate_widget_styles(self) -> str:
         """Generate styles for the widget itself."""
-        bg = ColorTokenRegistry.get('colors.background', self.theme)
-        fg = ColorTokenRegistry.get('colors.foreground', self.theme)
+        bg = ColorTokenRegistry.get("colors.background", self.theme)
+        fg = ColorTokenRegistry.get("colors.foreground", self.theme)
         # Use sensible defaults for fonts - no font tokens exist yet
         font_family = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
         font_size = "14px"
@@ -101,34 +101,34 @@ class StylesheetGenerator:
         prefix = self.widget_class_name
 
         # Get button tokens
-        btn_bg = ColorTokenRegistry.get('button.background', self.theme)
-        btn_fg = ColorTokenRegistry.get('button.foreground', self.theme)
-        btn_border = ColorTokenRegistry.get('button.border', self.theme)
-        btn_hover_bg = ColorTokenRegistry.get('button.hoverBackground', self.theme)
-        btn_pressed_bg = ColorTokenRegistry.get('button.pressedBackground', self.theme)
-        btn_disabled_bg = ColorTokenRegistry.get('button.disabledBackground', self.theme)
-        btn_disabled_fg = ColorTokenRegistry.get('button.disabledForeground', self.theme)
+        btn_bg = ColorTokenRegistry.get("button.background", self.theme)
+        btn_fg = ColorTokenRegistry.get("button.foreground", self.theme)
+        btn_border = ColorTokenRegistry.get("button.border", self.theme)
+        btn_hover_bg = ColorTokenRegistry.get("button.hoverBackground", self.theme)
+        btn_pressed_bg = ColorTokenRegistry.get("button.pressedBackground", self.theme)
+        btn_disabled_bg = ColorTokenRegistry.get("button.disabledBackground", self.theme)
+        btn_disabled_fg = ColorTokenRegistry.get("button.disabledForeground", self.theme)
 
         # Secondary button
-        btn_sec_bg = ColorTokenRegistry.get('button.secondary.background', self.theme)
-        btn_sec_fg = ColorTokenRegistry.get('button.secondary.foreground', self.theme)
-        btn_sec_hover = ColorTokenRegistry.get('button.secondary.hoverBackground', self.theme)
+        btn_sec_bg = ColorTokenRegistry.get("button.secondary.background", self.theme)
+        btn_sec_fg = ColorTokenRegistry.get("button.secondary.foreground", self.theme)
+        btn_sec_hover = ColorTokenRegistry.get("button.secondary.hoverBackground", self.theme)
 
         # Danger button
-        btn_danger_bg = ColorTokenRegistry.get('button.danger.background', self.theme)
-        btn_danger_hover = ColorTokenRegistry.get('button.danger.hoverBackground', self.theme)
+        btn_danger_bg = ColorTokenRegistry.get("button.danger.background", self.theme)
+        btn_danger_hover = ColorTokenRegistry.get("button.danger.hoverBackground", self.theme)
 
         # Success button
-        btn_success_bg = ColorTokenRegistry.get('button.success.background', self.theme)
-        btn_success_hover = ColorTokenRegistry.get('button.success.hoverBackground', self.theme)
+        btn_success_bg = ColorTokenRegistry.get("button.success.background", self.theme)
+        btn_success_hover = ColorTokenRegistry.get("button.success.hoverBackground", self.theme)
 
         # Warning button
-        btn_warning_bg = ColorTokenRegistry.get('button.warning.background', self.theme)
-        btn_warning_fg = ColorTokenRegistry.get('button.warning.foreground', self.theme)
-        btn_warning_hover = ColorTokenRegistry.get('button.warning.hoverBackground', self.theme)
+        btn_warning_bg = ColorTokenRegistry.get("button.warning.background", self.theme)
+        btn_warning_fg = ColorTokenRegistry.get("button.warning.foreground", self.theme)
+        btn_warning_hover = ColorTokenRegistry.get("button.warning.hoverBackground", self.theme)
 
         # Focus border
-        focus_border = ColorTokenRegistry.get('colors.focusBorder', self.theme)
+        focus_border = ColorTokenRegistry.get("colors.focusBorder", self.theme)
 
         # Font - use sensible defaults
         btn_font = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
@@ -241,18 +241,18 @@ class StylesheetGenerator:
         prefix = self.widget_class_name
 
         # Input tokens
-        input_bg = ColorTokenRegistry.get('input.background', self.theme)
-        input_fg = ColorTokenRegistry.get('input.foreground', self.theme)
-        input_border = ColorTokenRegistry.get('input.border', self.theme)
-        ColorTokenRegistry.get('input.placeholderForeground', self.theme)
-        input_focus_border = ColorTokenRegistry.get('input.focusBorder', self.theme)
-        input_disabled_bg = ColorTokenRegistry.get('input.disabledBackground', self.theme)
-        input_disabled_fg = ColorTokenRegistry.get('input.disabledForeground', self.theme)
+        input_bg = ColorTokenRegistry.get("input.background", self.theme)
+        input_fg = ColorTokenRegistry.get("input.foreground", self.theme)
+        input_border = ColorTokenRegistry.get("input.border", self.theme)
+        ColorTokenRegistry.get("input.placeholderForeground", self.theme)
+        input_focus_border = ColorTokenRegistry.get("input.focusBorder", self.theme)
+        input_disabled_bg = ColorTokenRegistry.get("input.disabledBackground", self.theme)
+        input_disabled_fg = ColorTokenRegistry.get("input.disabledForeground", self.theme)
 
         # Editor tokens (for role="editor")
-        editor_bg = ColorTokenRegistry.get('editor.background', self.theme)
-        editor_fg = ColorTokenRegistry.get('editor.foreground', self.theme)
-        editor_selection = ColorTokenRegistry.get('editor.selectionBackground', self.theme)
+        editor_bg = ColorTokenRegistry.get("editor.background", self.theme)
+        editor_fg = ColorTokenRegistry.get("editor.foreground", self.theme)
+        editor_selection = ColorTokenRegistry.get("editor.selectionBackground", self.theme)
         # Use sensible defaults for fonts - no font tokens exist yet
         editor_font = "'Consolas', 'Monaco', 'Courier New', monospace"
         editor_font_size = "13px"
@@ -349,12 +349,14 @@ QPlainTextEdit[role="editor"],
         prefix = self.widget_class_name
 
         # List tokens
-        list_bg = ColorTokenRegistry.get('list.background', self.theme)
-        list_fg = ColorTokenRegistry.get('list.foreground', self.theme)
-        list_sel_bg = ColorTokenRegistry.get('list.activeSelectionBackground', self.theme)
-        list_sel_fg = ColorTokenRegistry.get('list.activeSelectionForeground', self.theme)
-        list_inactive_sel_bg = ColorTokenRegistry.get('list.inactiveSelectionBackground', self.theme)
-        list_hover_bg = ColorTokenRegistry.get('list.hoverBackground', self.theme)
+        list_bg = ColorTokenRegistry.get("list.background", self.theme)
+        list_fg = ColorTokenRegistry.get("list.foreground", self.theme)
+        list_sel_bg = ColorTokenRegistry.get("list.activeSelectionBackground", self.theme)
+        list_sel_fg = ColorTokenRegistry.get("list.activeSelectionForeground", self.theme)
+        list_inactive_sel_bg = ColorTokenRegistry.get(
+            "list.inactiveSelectionBackground", self.theme
+        )
+        list_hover_bg = ColorTokenRegistry.get("list.hoverBackground", self.theme)
 
         # Font - use sensible defaults
         list_font = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
@@ -453,11 +455,11 @@ QPlainTextEdit[role="editor"],
         """Generate styles for combobox."""
         prefix = self.widget_class_name
 
-        combo_bg = ColorTokenRegistry.get('combobox.background', self.theme)
-        combo_fg = ColorTokenRegistry.get('combobox.foreground', self.theme)
-        combo_border = ColorTokenRegistry.get('combobox.border', self.theme)
-        combo_arrow = ColorTokenRegistry.get('combobox.arrowForeground', self.theme)
-        dropdown_bg = ColorTokenRegistry.get('dropdown.listBackground', self.theme)
+        combo_bg = ColorTokenRegistry.get("combobox.background", self.theme)
+        combo_fg = ColorTokenRegistry.get("combobox.foreground", self.theme)
+        combo_border = ColorTokenRegistry.get("combobox.border", self.theme)
+        combo_arrow = ColorTokenRegistry.get("combobox.arrowForeground", self.theme)
+        dropdown_bg = ColorTokenRegistry.get("dropdown.listBackground", self.theme)
 
         return f"""
 /* QComboBox */
@@ -506,12 +508,12 @@ QPlainTextEdit[role="editor"],
         prefix = self.widget_class_name
 
         # Tab tokens
-        tab_active_bg = ColorTokenRegistry.get('tab.activeBackground', self.theme)
-        tab_active_fg = ColorTokenRegistry.get('tab.activeForeground', self.theme)
-        tab_inactive_bg = ColorTokenRegistry.get('tab.inactiveBackground', self.theme)
-        tab_inactive_fg = ColorTokenRegistry.get('tab.inactiveForeground', self.theme)
-        tab_hover_bg = ColorTokenRegistry.get('tab.hoverBackground', self.theme)
-        tab_border = ColorTokenRegistry.get('tab.border', self.theme)
+        tab_active_bg = ColorTokenRegistry.get("tab.activeBackground", self.theme)
+        tab_active_fg = ColorTokenRegistry.get("tab.activeForeground", self.theme)
+        tab_inactive_bg = ColorTokenRegistry.get("tab.inactiveBackground", self.theme)
+        tab_inactive_fg = ColorTokenRegistry.get("tab.inactiveForeground", self.theme)
+        tab_hover_bg = ColorTokenRegistry.get("tab.hoverBackground", self.theme)
+        tab_border = ColorTokenRegistry.get("tab.border", self.theme)
 
         # Font - use sensible defaults
         tab_font = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
@@ -553,16 +555,16 @@ QPlainTextEdit[role="editor"],
         prefix = self.widget_class_name
 
         # Menu tokens
-        menu_bg = ColorTokenRegistry.get('menu.background', self.theme)
-        menu_fg = ColorTokenRegistry.get('menu.foreground', self.theme)
-        menu_border = ColorTokenRegistry.get('menu.border', self.theme)
-        menu_sel_bg = ColorTokenRegistry.get('menu.selectionBackground', self.theme)
-        menu_sel_fg = ColorTokenRegistry.get('menu.selectionForeground', self.theme)
+        menu_bg = ColorTokenRegistry.get("menu.background", self.theme)
+        menu_fg = ColorTokenRegistry.get("menu.foreground", self.theme)
+        menu_border = ColorTokenRegistry.get("menu.border", self.theme)
+        menu_sel_bg = ColorTokenRegistry.get("menu.selectionBackground", self.theme)
+        menu_sel_fg = ColorTokenRegistry.get("menu.selectionForeground", self.theme)
 
         # Font - use sensible defaults
         menu_font = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
         menu_font_size = "14px"
-        menubar_bg = ColorTokenRegistry.get('menubar.background', self.theme)
+        menubar_bg = ColorTokenRegistry.get("menubar.background", self.theme)
 
         return f"""
 /* QMenuBar */
@@ -621,9 +623,9 @@ QPlainTextEdit[role="editor"],
         """Generate styles for scrollbars."""
         prefix = self.widget_class_name
 
-        scrollbar_bg = ColorTokenRegistry.get('scrollbarSlider.background', self.theme)
-        scrollbar_hover = ColorTokenRegistry.get('scrollbarSlider.hoverBackground', self.theme)
-        scrollbar_active = ColorTokenRegistry.get('scrollbarSlider.activeBackground', self.theme)
+        scrollbar_bg = ColorTokenRegistry.get("scrollbarSlider.background", self.theme)
+        scrollbar_hover = ColorTokenRegistry.get("scrollbarSlider.hoverBackground", self.theme)
+        scrollbar_active = ColorTokenRegistry.get("scrollbarSlider.activeBackground", self.theme)
 
         return f"""
 /* QScrollBar - Vertical */
@@ -695,10 +697,10 @@ QPlainTextEdit[role="editor"],
         """Generate styles for container widgets."""
         prefix = self.widget_class_name
 
-        border_color = ColorTokenRegistry.get('colors.contrastBorder', self.theme)
-        bg_color = ColorTokenRegistry.get('colors.background', self.theme)
-        fg_color = ColorTokenRegistry.get('colors.foreground', self.theme)
-        splitter_bg = ColorTokenRegistry.get('splitter.background', self.theme)
+        border_color = ColorTokenRegistry.get("colors.contrastBorder", self.theme)
+        bg_color = ColorTokenRegistry.get("colors.background", self.theme)
+        fg_color = ColorTokenRegistry.get("colors.foreground", self.theme)
+        splitter_bg = ColorTokenRegistry.get("splitter.background", self.theme)
 
         return f"""
 /* QGroupBox */
@@ -756,7 +758,7 @@ QPlainTextEdit[role="editor"],
         """Generate styles for text widgets."""
         prefix = self.widget_class_name
 
-        fg_color = ColorTokenRegistry.get('colors.foreground', self.theme)
+        fg_color = ColorTokenRegistry.get("colors.foreground", self.theme)
 
         return f"""
 /* QLabel */
@@ -774,7 +776,7 @@ QPlainTextEdit[role="editor"],
         """Generate styles for miscellaneous widgets."""
         prefix = self.widget_class_name
 
-        progress_bg = ColorTokenRegistry.get('progressBar.background', self.theme)
+        progress_bg = ColorTokenRegistry.get("progressBar.background", self.theme)
 
         return f"""
 /* QProgressBar */

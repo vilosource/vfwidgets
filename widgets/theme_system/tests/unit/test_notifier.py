@@ -20,30 +20,43 @@ import pytest
 try:
     from PySide6.QtCore import QObject, QThread, QTimer, Signal
     from PySide6.QtWidgets import QApplication, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
+
     # Create mock classes for headless testing
     class QObject:
         def __init__(self):
             self.signals = {}
-        def connect(self, slot): pass
-        def disconnect(self, slot): pass
-        def emit(self, *args): pass
+
+        def connect(self, slot):
+            pass
+
+        def disconnect(self, slot):
+            pass
+
+        def emit(self, *args):
+            pass
+
     class Signal:
         def __init__(self, *types):
             self._slots = []
+
         def connect(self, slot):
             self._slots.append(slot)
+
         def disconnect(self, slot):
             if slot in self._slots:
                 self._slots.remove(slot)
+
         def emit(self, *args):
             for slot in self._slots:
                 try:
                     slot(*args)
                 except Exception:
                     pass
+
 
 # Import the modules under test
 from vfwidgets_theme.core.notifier import (
@@ -83,12 +96,14 @@ class TestThemeNotifier(ThemedTestCase):
         self.notifier = ThemeNotifier()
 
         # Create sample theme
-        self.sample_theme = Theme.from_dict({
-            "name": "test-theme",
-            "version": "1.0.0",
-            "colors": {"primary": "#007acc"},
-            "styles": {"QPushButton": "background-color: @colors.primary;"}
-        })
+        self.sample_theme = Theme.from_dict(
+            {
+                "name": "test-theme",
+                "version": "1.0.0",
+                "colors": {"primary": "#007acc"},
+                "styles": {"QPushButton": "background-color: @colors.primary;"},
+            }
+        )
 
     def test_notifier_initialization(self):
         """Test notifier initialization with default settings."""
@@ -105,9 +120,7 @@ class TestThemeNotifier(ThemedTestCase):
         custom_queue = NotificationQueue()
 
         notifier = ThemeNotifier(
-            widget_manager=custom_manager,
-            callback_registry=custom_registry,
-            queue=custom_queue
+            widget_manager=custom_manager, callback_registry=custom_registry, queue=custom_queue
         )
 
         self.assertIs(notifier._widget_manager, custom_manager)
@@ -149,6 +162,7 @@ class TestThemeNotifier(ThemedTestCase):
 
     def test_unregister_callback(self):
         """Test unregistering theme change callback."""
+
         def test_callback(theme_name: str, widget_id: str):
             pass
 
@@ -419,6 +433,7 @@ class TestCallbackRegistry(ThemedTestCase):
 
     def test_unregister_callback(self):
         """Test unregistering callback."""
+
         def test_callback(theme_name: str, widget_id: str):
             pass
 
@@ -491,8 +506,12 @@ class TestCallbackRegistry(ThemedTestCase):
 
     def test_callback_statistics(self):
         """Test callback registry statistics."""
-        def callback1(theme_name: str, widget_id: str): pass
-        def callback2(theme_name: str, widget_id: str): pass
+
+        def callback1(theme_name: str, widget_id: str):
+            pass
+
+        def callback2(theme_name: str, widget_id: str):
+            pass
 
         self.registry.register_callback(callback1)
         self.registry.register_callback(callback2)
@@ -739,6 +758,7 @@ class TestCrossThreadNotifier(ThemedTestCase):
 
         def register_worker(worker_id: int):
             try:
+
                 def handler(theme_name: str, widget_id: str):
                     pass
 
@@ -773,7 +793,9 @@ class TestCrossThreadNotifier(ThemedTestCase):
 
         # Send notifications from multiple threads
         def notify_worker(order_id: int):
-            self.cross_thread_notifier.notify_async(f"ordered-theme-{order_id}", f"widget-{order_id}")
+            self.cross_thread_notifier.notify_async(
+                f"ordered-theme-{order_id}", f"widget-{order_id}"
+            )
 
         threads = []
         for i in range(5):

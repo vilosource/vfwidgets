@@ -21,7 +21,7 @@ import sys
 from typing import Any, List
 from unittest.mock import Mock
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from vfwidgets_theme.protocols import (
     ColorProvider,
@@ -169,32 +169,32 @@ class SimpleStyleGenerator:
         """Generate QSS stylesheet for a widget from theme data."""
         try:
             # Get widget type - in real implementation would inspect widget
-            widget_type = getattr(widget, 'widget_type', 'widget')
+            widget_type = getattr(widget, "widget_type", "widget")
             selector = self.get_selector(widget_type)
 
             styles = []
 
             # Background color
-            if 'background' in theme:
-                bg_color = self._color_provider.resolve_color('background')
+            if "background" in theme:
+                bg_color = self._color_provider.resolve_color("background")
                 if self._color_provider.validate_color(bg_color):
                     styles.append(f"background-color: {bg_color};")
 
             # Text color
-            if 'foreground' in theme:
-                fg_color = self._color_provider.resolve_color('foreground')
+            if "foreground" in theme:
+                fg_color = self._color_provider.resolve_color("foreground")
                 if self._color_provider.validate_color(fg_color):
                     styles.append(f"color: {fg_color};")
 
             # Border
-            if 'border_color' in theme:
-                border_color = self._color_provider.resolve_color('border_color')
+            if "border_color" in theme:
+                border_color = self._color_provider.resolve_color("border_color")
                 if self._color_provider.validate_color(border_color):
                     styles.append(f"border: 1px solid {border_color};")
 
             # Font size
-            if 'font_size' in theme:
-                font_size = theme.get('font_size', 12)
+            if "font_size" in theme:
+                font_size = theme.get("font_size", 12)
                 styles.append(f"font-size: {font_size}px;")
 
             # Combine into QSS

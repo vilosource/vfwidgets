@@ -114,33 +114,25 @@ def demonstrate_error_recovery():
 
     # Test 1: Theme not found recovery
     error = ThemeNotFoundError("missing-theme")
-    recovered_theme = recovery_manager.recover_from_error(
-        error, operation="load_theme"
-    )
+    recovered_theme = recovery_manager.recover_from_error(error, operation="load_theme")
     print(f"✓ Theme not found → Recovered with {len(recovered_theme)} properties")
 
     # Test 2: Property not found recovery
     error = PropertyNotFoundError("missing_color")
     recovered_color = recovery_manager.recover_from_error(
-        error,
-        operation="get_property",
-        context={"property_key": "missing_color"}
+        error, operation="get_property", context={"property_key": "missing_color"}
     )
     print(f"✓ Property not found → Recovered color: {recovered_color}")
 
     # Test 3: Invalid theme format recovery
     corrupted_theme = {"invalid": "data", "colors": {"bad_color": "invalid"}}
     error = InvalidThemeFormatError("Bad theme data", invalid_data=corrupted_theme)
-    recovered_theme = recovery_manager.recover_from_error(
-        error, operation="validate_theme"
-    )
+    recovered_theme = recovery_manager.recover_from_error(error, operation="validate_theme")
     print(f"✓ Invalid format → Recovered theme with {len(recovered_theme)} sections")
 
     # Test 4: System not initialized recovery
     error = ThemeSystemNotInitializedError()
-    recovered_theme = recovery_manager.recover_from_error(
-        error, operation="initialize_system"
-    )
+    recovered_theme = recovery_manager.recover_from_error(error, operation="initialize_system")
     print("✓ System not initialized → Recovered with minimal theme")
 
     print()
@@ -200,9 +192,7 @@ def demonstrate_thread_safety():
         try:
             for i in range(100):
                 error = PropertyNotFoundError(f"property_{thread_id}_{i}")
-                result = recovery_manager.recover_from_error(
-                    error, operation="thread_test"
-                )
+                result = recovery_manager.recover_from_error(error, operation="thread_test")
                 results.append((thread_id, i, result is not None))
         except Exception as e:
             errors.append((thread_id, e))
@@ -271,9 +261,7 @@ def demonstrate_graceful_degradation():
         # Missing spacing section
     }
 
-    corrected_theme = recovery_manager.apply_graceful_degradation(
-        partial_theme, "validate_theme"
-    )
+    corrected_theme = recovery_manager.apply_graceful_degradation(partial_theme, "validate_theme")
 
     print(f"✓ Original theme sections: {len(partial_theme)}")
     print(f"✓ Corrected theme sections: {len(corrected_theme)}")
@@ -282,9 +270,9 @@ def demonstrate_graceful_degradation():
     print(f"✓ Spacing in corrected theme: {len(corrected_theme['spacing'])}")
 
     # Verify essential properties exist
-    essential_colors = ['primary', 'background', 'text', 'border']
+    essential_colors = ["primary", "background", "text", "border"]
     for color in essential_colors:
-        if color in corrected_theme['colors']:
+        if color in corrected_theme["colors"]:
             print(f"  ✓ {color}: {corrected_theme['colors'][color]}")
 
     print()

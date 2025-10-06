@@ -20,6 +20,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from vfwidgets_theme.widgets.application import ThemedApplication
+
         self.ThemedApplication = ThemedApplication
 
     def test_application_creation(self):
@@ -44,12 +45,13 @@ class TestThemedApplicationOnly(unittest.TestCase):
         self.assertIsInstance(available_themes, list)
         self.assertGreater(len(available_themes), 0)
 
-        theme_names = [theme.name if hasattr(theme, 'name') else str(theme)
-                      for theme in available_themes]
+        theme_names = [
+            theme.name if hasattr(theme, "name") else str(theme) for theme in available_themes
+        ]
         print(f"✅ Found {len(available_themes)} themes: {theme_names}")
 
         # Should have basic built-in themes
-        expected_themes = ['default', 'dark', 'light', 'minimal']
+        expected_themes = ["default", "dark", "light", "minimal"]
         for expected in expected_themes:
             found = any(expected in str(theme_name).lower() for theme_name in theme_names)
             self.assertTrue(found, f"Expected theme '{expected}' not found in {theme_names}")
@@ -66,8 +68,9 @@ class TestThemedApplicationOnly(unittest.TestCase):
         app = self.ThemedApplication()
 
         available_themes = app.get_available_themes()
-        theme_names = [theme.name if hasattr(theme, 'name') else str(theme)
-                      for theme in available_themes]
+        theme_names = [
+            theme.name if hasattr(theme, "name") else str(theme) for theme in available_themes
+        ]
 
         successful_switches = 0
 
@@ -101,7 +104,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
             self.assertIsInstance(stats, dict)
 
             # Check for expected stats
-            expected_stats = ['total_themes', 'initialized']
+            expected_stats = ["total_themes", "initialized"]
             found_stats = []
 
             for stat in expected_stats:
@@ -127,7 +130,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
         initial_theme = app.get_current_theme()
         if initial_theme:
             print(f"   Initial theme: {initial_theme.name}")
-            self.assertTrue(hasattr(initial_theme, 'name'))
+            self.assertTrue(hasattr(initial_theme, "name"))
             print("✅ Current theme has required attributes")
         else:
             print("   ⚠️ No initial theme set")
@@ -136,7 +139,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
         available_themes = app.get_available_themes()
         if available_themes:
             first_theme = available_themes[0]
-            theme_name = first_theme.name if hasattr(first_theme, 'name') else str(first_theme)
+            theme_name = first_theme.name if hasattr(first_theme, "name") else str(first_theme)
 
             success = app.set_theme(theme_name)
             if success:
@@ -161,8 +164,11 @@ class TestThemedApplicationOnly(unittest.TestCase):
 
         # Check that it has the expected public methods
         expected_methods = [
-            'set_theme', 'get_current_theme', 'get_available_themes',
-            'get_performance_statistics', 'cleanup'
+            "set_theme",
+            "get_current_theme",
+            "get_available_themes",
+            "get_performance_statistics",
+            "cleanup",
         ]
 
         missing_methods = []
@@ -172,8 +178,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
             else:
                 print(f"   ✅ Has method: {method}")
 
-        self.assertEqual(len(missing_methods), 0,
-                        f"Missing methods: {missing_methods}")
+        self.assertEqual(len(missing_methods), 0, f"Missing methods: {missing_methods}")
 
         print("✅ All expected public methods present")
 
@@ -189,6 +194,7 @@ class TestThemedApplicationOnly(unittest.TestCase):
 
         # Try to get instance reference
         from vfwidgets_theme.widgets.application import ThemedApplication
+
         instance = ThemedApplication.instance()
 
         if instance:
@@ -237,6 +243,6 @@ def run_application_test():
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     success = run_application_test()
     sys.exit(0 if success else 1)

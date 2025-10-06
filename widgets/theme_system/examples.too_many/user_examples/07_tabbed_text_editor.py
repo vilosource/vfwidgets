@@ -31,7 +31,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
@@ -56,10 +56,10 @@ class ThemedTextEdit(ThemedWidget, QTextEdit):
     """Text editor that automatically themes itself."""
 
     theme_config = {
-        'editor_bg': 'colors.background',
-        'editor_fg': 'colors.foreground',
-        'selection_bg': 'colors.primary',
-        'border': 'colors.border'
+        "editor_bg": "colors.background",
+        "editor_fg": "colors.foreground",
+        "selection_bg": "colors.primary",
+        "border": "colors.border",
     }
 
     def __init__(self, parent=None):
@@ -74,7 +74,8 @@ class ThemedTextEdit(ThemedWidget, QTextEdit):
         selection = self.theme.selection_bg
         border = self.theme.border
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {bg};
                 color: {fg};
@@ -86,7 +87,8 @@ class ThemedTextEdit(ThemedWidget, QTextEdit):
             QTextEdit:focus {{
                 border: 2px solid {selection};
             }}
-        """)
+        """
+        )
 
     def on_theme_changed(self):
         """Called automatically when theme changes."""
@@ -97,12 +99,12 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
     """Tab widget that themes itself and its tabs."""
 
     theme_config = {
-        'tab_bg': 'colors.background',
-        'tab_fg': 'colors.foreground',
-        'tab_selected_bg': 'colors.primary',
-        'tab_selected_fg': 'colors.background',
-        'tab_hover': 'colors.accent',
-        'border': 'colors.border'
+        "tab_bg": "colors.background",
+        "tab_fg": "colors.foreground",
+        "tab_selected_bg": "colors.primary",
+        "tab_selected_fg": "colors.background",
+        "tab_hover": "colors.accent",
+        "border": "colors.border",
     }
 
     def __init__(self, parent=None):
@@ -120,7 +122,8 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
         hover = self.theme.tab_hover
         border = self.theme.border
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: 1px solid {border};
                 background: {bg};
@@ -150,7 +153,8 @@ class ThemedTabWidget(ThemedWidget, QTabWidget):
                 image: url(none);
                 subcontrol-position: right;
             }}
-        """)
+        """
+        )
 
     def on_theme_changed(self):
         """Called automatically when theme changes."""
@@ -161,10 +165,10 @@ class ThemePropertiesDialog(ThemedDialog):
     """Dialog for selecting and previewing themes."""
 
     theme_config = {
-        'dialog_bg': 'colors.background',
-        'dialog_fg': 'colors.foreground',
-        'preview_border': 'colors.border',
-        'button_bg': 'colors.primary'
+        "dialog_bg": "colors.background",
+        "dialog_fg": "colors.foreground",
+        "preview_border": "colors.border",
+        "button_bg": "colors.primary",
     }
 
     def __init__(self, parent=None):
@@ -200,7 +204,7 @@ class ThemePropertiesDialog(ThemedDialog):
             for t in themes:
                 if isinstance(t, str):
                     theme_names.append(t)
-                elif hasattr(t, 'name'):
+                elif hasattr(t, "name"):
                     theme_names.append(t.name)
 
             self.theme_combo.addItems(theme_names)
@@ -209,7 +213,7 @@ class ThemePropertiesDialog(ThemedDialog):
             if app.current_theme_name:
                 # Get theme name as string
                 current_name = app.current_theme_name
-                if hasattr(current_name, 'name'):
+                if hasattr(current_name, "name"):
                     current_name = current_name.name
                 elif not isinstance(current_name, str):
                     current_name = str(current_name)
@@ -266,8 +270,9 @@ class ThemePropertiesDialog(ThemedDialog):
         button_bg = self.theme.button_bg
 
         # Update preview area styling
-        if hasattr(self, 'preview_label'):
-            self.preview_label.setStyleSheet(f"""
+        if hasattr(self, "preview_label"):
+            self.preview_label.setStyleSheet(
+                f"""
                 QLabel {{
                     background-color: {bg};
                     color: {fg};
@@ -275,12 +280,14 @@ class ThemePropertiesDialog(ThemedDialog):
                     border-radius: 4px;
                     padding: 16px;
                 }}
-            """)
+            """
+            )
 
         # Style buttons
         for button in [self.apply_button, self.ok_button, self.cancel_button]:
             if button:
-                button.setStyleSheet(f"""
+                button.setStyleSheet(
+                    f"""
                     QPushButton {{
                         background-color: {button_bg};
                         color: {bg};
@@ -296,7 +303,8 @@ class ThemePropertiesDialog(ThemedDialog):
                     QPushButton:pressed {{
                         background-color: {border};
                     }}
-                """)
+                """
+                )
 
     def on_theme_changed(self):
         """Called automatically when theme changes."""
@@ -323,7 +331,7 @@ class ThemePropertiesDialog(ThemedDialog):
     def update_info_label(self):
         """Update the current theme info label."""
         app = ThemedApplication.instance()
-        if app and hasattr(self, 'info_label'):
+        if app and hasattr(self, "info_label"):
             theme_name = app.current_theme_name or "unknown"
             self.info_label.setText(f"Current active theme: {theme_name}")
 
@@ -332,11 +340,11 @@ class ThemedTextEditor(ThemedMainWindow):
     """Professional themed tabbed text editor."""
 
     theme_config = {
-        'window_bg': 'colors.background',
-        'window_fg': 'colors.foreground',
-        'toolbar_bg': 'colors.background',
-        'statusbar_bg': 'colors.background',
-        'accent': 'colors.primary'
+        "window_bg": "colors.background",
+        "window_fg": "colors.foreground",
+        "toolbar_bg": "colors.background",
+        "statusbar_bg": "colors.background",
+        "accent": "colors.primary",
     }
 
     def __init__(self):
@@ -468,7 +476,8 @@ class ThemedTextEditor(ThemedMainWindow):
         accent = self.theme.accent
 
         # Style the main window
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QMainWindow {{
                 background-color: {bg};
                 color: {fg};
@@ -548,7 +557,8 @@ class ThemedTextEditor(ThemedMainWindow):
                 color: {fg};
                 border-top: 1px solid {accent};
             }}
-        """)
+        """
+        )
 
     def on_theme_changed(self):
         """Called automatically when theme changes."""
@@ -571,7 +581,7 @@ class ThemedTextEditor(ThemedMainWindow):
 
         if file_path:
             try:
-                with open(file_path, encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
                 editor = ThemedTextEdit()
@@ -617,7 +627,7 @@ class ThemedTextEditor(ThemedMainWindow):
     def _save_to_path(self, editor, file_path):
         """Internal method to save editor content to a file path."""
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(editor.toPlainText())
 
             self.open_files[editor] = file_path
@@ -690,7 +700,7 @@ def main():
     app = ThemedApplication(sys.argv)
 
     # Set initial theme
-    app.set_theme('default')
+    app.set_theme("default")
 
     # Create and show the editor
     editor = ThemedTextEditor()
@@ -699,5 +709,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

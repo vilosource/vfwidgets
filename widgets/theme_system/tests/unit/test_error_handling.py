@@ -212,10 +212,10 @@ class TestLoggingInfrastructure(unittest.TestCase):
         self.assertEqual(logger.logger.name, "vftheme.test_component")
 
         # Should support different log levels
-        self.assertTrue(hasattr(logger, 'debug'))
-        self.assertTrue(hasattr(logger, 'info'))
-        self.assertTrue(hasattr(logger, 'warning'))
-        self.assertTrue(hasattr(logger, 'error'))
+        self.assertTrue(hasattr(logger, "debug"))
+        self.assertTrue(hasattr(logger, "info"))
+        self.assertTrue(hasattr(logger, "warning"))
+        self.assertTrue(hasattr(logger, "error"))
 
     def test_structured_logging(self):
         """Test structured logging with proper formatting."""
@@ -227,10 +227,10 @@ class TestLoggingInfrastructure(unittest.TestCase):
         logger.logger.setLevel(logging.DEBUG)
 
         # Test structured log entry
-        logger.error("Theme loading failed", extra={
-            "theme_name": "dark-mode",
-            "error_type": "ThemeLoadError"
-        })
+        logger.error(
+            "Theme loading failed",
+            extra={"theme_name": "dark-mode", "error_type": "ThemeLoadError"},
+        )
 
         log_output = self.log_stream.getvalue()
         self.assertIn("Theme loading failed", log_output)
@@ -289,9 +289,7 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
         # Simulate theme load failure
         error = ThemeLoadError("Corrupted theme file")
 
-        recovered_theme = self.recovery_manager.recover_from_error(
-            error, operation="load_theme"
-        )
+        recovered_theme = self.recovery_manager.recover_from_error(error, operation="load_theme")
 
         # Should return minimal theme
         self.assertEqual(recovered_theme, MINIMAL_THEME)
@@ -302,9 +300,7 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
         error = PropertyNotFoundError("custom_border_color")
 
         recovered_value = self.recovery_manager.recover_from_error(
-            error,
-            operation="get_property",
-            context={"property_key": "custom_border_color"}
+            error, operation="get_property", context={"property_key": "custom_border_color"}
         )
 
         # Should return fallback color
@@ -313,7 +309,7 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
 
     def test_silent_recovery_with_logging(self):
         """Test that recovery is silent but logged."""
-        with patch('vfwidgets_theme.logging.get_performance_logger') as mock_logger:
+        with patch("vfwidgets_theme.logging.get_performance_logger") as mock_logger:
             mock_logger_instance = Mock()
             mock_logger.return_value = mock_logger_instance
 
@@ -327,11 +323,9 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
         """Test user notification system for critical errors."""
         critical_error = ThemeSystemNotInitializedError()
 
-        with patch('vfwidgets_theme.errors.notify_user') as mock_notify:
+        with patch("vfwidgets_theme.errors.notify_user") as mock_notify:
             self.recovery_manager.recover_from_error(
-                critical_error,
-                operation="initialize_theme_system",
-                notify_user=True
+                critical_error, operation="initialize_theme_system", notify_user=True
             )
 
             # Should notify user for critical errors
@@ -358,9 +352,7 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
         def worker():
             try:
                 error = ThemeLoadError("Thread test error")
-                result = self.recovery_manager.recover_from_error(
-                    error, operation="load_theme"
-                )
+                result = self.recovery_manager.recover_from_error(error, operation="load_theme")
                 results.append(result)
             except Exception as e:
                 errors.append(e)
@@ -389,9 +381,7 @@ class TestErrorRecoveryStrategies(unittest.TestCase):
         # Test partial theme application
         corrupted_theme = {"colors": {"primary": "#invalid"}}
 
-        result = self.recovery_manager.apply_graceful_degradation(
-            corrupted_theme, "apply_theme"
-        )
+        result = self.recovery_manager.apply_graceful_degradation(corrupted_theme, "apply_theme")
 
         # Should fix invalid colors
         self.assertNotEqual(result["colors"]["primary"], "#invalid")
@@ -428,7 +418,7 @@ class TestErrorHandlingIntegration(unittest.TestCase):
     def test_end_to_end_error_recovery(self):
         """Test complete error recovery workflow."""
         # Simulate complete system failure
-        with patch('vfwidgets_theme.fallbacks.get_fallback_theme') as mock_fallback:
+        with patch("vfwidgets_theme.fallbacks.get_fallback_theme") as mock_fallback:
             mock_fallback.return_value = MINIMAL_THEME
 
             # Create error recovery manager
@@ -437,9 +427,7 @@ class TestErrorHandlingIntegration(unittest.TestCase):
             # Simulate theme system failure
             error = ThemeSystemNotInitializedError()
             result = recovery_manager.recover_from_error(
-                error,
-                operation="get_theme",
-                fallback_data=None
+                error, operation="get_theme", fallback_data=None
             )
 
             # Should return working theme
@@ -454,31 +442,25 @@ class TestErrorHandlingIntegration(unittest.TestCase):
         errors = [
             ThemeLoadError("Primary theme failed"),
             ThemeLoadError("Fallback theme failed"),
-            PropertyNotFoundError("Fallback property missing")
+            PropertyNotFoundError("Fallback property missing"),
         ]
 
         # Should handle cascading errors without crashing
         for error in errors:
-            result = recovery_manager.recover_from_error(
-                error, operation="cascade_test"
-            )
+            result = recovery_manager.recover_from_error(error, operation="cascade_test")
             # Should always get a valid result
             self.assertIsNotNone(result)
 
     def test_error_reporting_integration(self):
         """Test integration with logging and reporting systems."""
-        with patch('vfwidgets_theme.logging.create_theme_logger') as mock_logger_factory:
+        with patch("vfwidgets_theme.logging.create_theme_logger") as mock_logger_factory:
             mock_logger = Mock()
             mock_logger_factory.return_value = mock_logger
 
             recovery_manager = create_error_recovery_manager()
             error = InvalidThemeFormatError("Bad format")
 
-            recovery_manager.recover_from_error(
-                error,
-                operation="validate_theme",
-                log_error=True
-            )
+            recovery_manager.recover_from_error(error, operation="validate_theme", log_error=True)
 
             # Should have logged the error
             mock_logger.error.assert_called()

@@ -32,8 +32,13 @@ class AssertionError(Exception):
 class RuntimeAssertion:
     """Runtime assertion with context tracking."""
 
-    def __init__(self, name: str, assertion_func: Callable[[Any], bool],
-                 message: str = "", context: Dict[str, Any] = None):
+    def __init__(
+        self,
+        name: str,
+        assertion_func: Callable[[Any], bool],
+        message: str = "",
+        context: Dict[str, Any] = None,
+    ):
         self.name = name
         self.assertion_func = assertion_func
         self.message = message or f"Assertion '{name}' failed"
@@ -80,11 +85,11 @@ class RuntimeAssertion:
     def get_stats(self) -> Dict[str, Any]:
         """Get assertion statistics."""
         return {
-            'name': self.name,
-            'call_count': self.call_count,
-            'failure_count': self.failure_count,
-            'success_rate': (self.call_count - self.failure_count) / max(1, self.call_count),
-            'enabled': self.enabled
+            "name": self.name,
+            "call_count": self.call_count,
+            "failure_count": self.failure_count,
+            "success_rate": (self.call_count - self.failure_count) / max(1, self.call_count),
+            "enabled": self.enabled,
         }
 
 
@@ -113,7 +118,9 @@ class AssertionContext:
             # Log context completion
             if self.framework.mode == ValidationMode.DEBUG:
                 success_count = len(self.assertions) - len(self.errors)
-                print(f"AssertionContext '{self.name}': {success_count}/{len(self.assertions)} passed ({duration_ms:.2f}ms)")
+                print(
+                    f"AssertionContext '{self.name}': {success_count}/{len(self.assertions)} passed ({duration_ms:.2f}ms)"
+                )
 
             # In strict mode, re-raise any assertion errors
             if exc_type == AssertionError and self.framework.mode == ValidationMode.STRICT:
@@ -216,8 +223,12 @@ class AssertionRegistry:
 _assertion_registry = AssertionRegistry()
 
 
-def register_assertion(name: str, assertion_func: Callable[[Any], bool],
-                      message: str = "", context: Dict[str, Any] = None) -> RuntimeAssertion:
+def register_assertion(
+    name: str,
+    assertion_func: Callable[[Any], bool],
+    message: str = "",
+    context: Dict[str, Any] = None,
+) -> RuntimeAssertion:
     """Register a runtime assertion.
 
     Args:
@@ -270,6 +281,7 @@ def assertion_decorator(assertion_name: str):
         assertion_name: Name of the assertion to check
 
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -291,22 +303,25 @@ def assertion_decorator(assertion_name: str):
             return result
 
         return wrapper
+
     return decorator
 
 
 # Predefined theme system assertions
 def _theme_has_required_structure(theme: Any) -> bool:
     """Assert theme has required structure."""
-    return (hasattr(theme, 'name') and
-            hasattr(theme, 'colors') and
-            hasattr(theme, 'styles') and
-            isinstance(theme.colors, dict) and
-            isinstance(theme.styles, dict))
+    return (
+        hasattr(theme, "name")
+        and hasattr(theme, "colors")
+        and hasattr(theme, "styles")
+        and isinstance(theme.colors, dict)
+        and isinstance(theme.styles, dict)
+    )
 
 
 def _theme_has_valid_colors(theme: Any) -> bool:
     """Assert theme has valid color values."""
-    if not hasattr(theme, 'colors') or not isinstance(theme.colors, dict):
+    if not hasattr(theme, "colors") or not isinstance(theme.colors, dict):
         return False
 
     framework = ValidationFramework.get_instance()
@@ -320,14 +335,15 @@ def _theme_has_valid_colors(theme: Any) -> bool:
 
 def _widget_is_themeable(widget: Any) -> bool:
     """Assert widget is themeable."""
-    required_methods = ['apply_theme']
-    return all(hasattr(widget, method) and callable(getattr(widget, method))
-               for method in required_methods)
+    required_methods = ["apply_theme"]
+    return all(
+        hasattr(widget, method) and callable(getattr(widget, method)) for method in required_methods
+    )
 
 
 def _widget_has_current_theme(widget: Any) -> bool:
     """Assert widget has a current theme set."""
-    if not hasattr(widget, 'get_current_theme'):
+    if not hasattr(widget, "get_current_theme"):
         return False
     current_theme = widget.get_current_theme()
     return current_theme is not None
@@ -335,7 +351,7 @@ def _widget_has_current_theme(widget: Any) -> bool:
 
 def _application_has_theme_manager(app: Any) -> bool:
     """Assert application has theme management capabilities."""
-    required_attrs = ['set_theme', 'get_current_theme']
+    required_attrs = ["set_theme", "get_current_theme"]
     return all(hasattr(app, attr) for attr in required_attrs)
 
 
@@ -346,13 +362,11 @@ def theme_assertions() -> List[RuntimeAssertion]:
         RuntimeAssertion(
             "theme_structure",
             _theme_has_required_structure,
-            "Theme must have name, colors, and styles attributes"
+            "Theme must have name, colors, and styles attributes",
         ),
         RuntimeAssertion(
-            "theme_valid_colors",
-            _theme_has_valid_colors,
-            "Theme colors must be valid color values"
-        )
+            "theme_valid_colors", _theme_has_valid_colors, "Theme colors must be valid color values"
+        ),
     ]
 
 
@@ -362,39 +376,38 @@ def widget_assertions() -> List[RuntimeAssertion]:
         RuntimeAssertion(
             "widget_themeable",
             _widget_is_themeable,
-            "Widget must be themeable (have apply_theme method)"
+            "Widget must be themeable (have apply_theme method)",
         ),
         RuntimeAssertion(
-            "widget_has_theme",
-            _widget_has_current_theme,
-            "Widget must have a current theme"
-        )
+            "widget_has_theme", _widget_has_current_theme, "Widget must have a current theme"
+        ),
     ]
 
 
 def performance_assertions() -> List[RuntimeAssertion]:
     """Get performance-related assertions."""
+
     def _theme_switch_fast_enough(context: Dict[str, Any]) -> bool:
         """Assert theme switch completed within time limit."""
-        duration_ms = context.get('duration_ms', 0)
+        duration_ms = context.get("duration_ms", 0)
         return duration_ms < 100  # 100ms threshold
 
     def _memory_usage_reasonable(context: Dict[str, Any]) -> bool:
         """Assert memory usage is within reasonable bounds."""
-        memory_mb = context.get('memory_mb', 0)
+        memory_mb = context.get("memory_mb", 0)
         return memory_mb < 10  # 10MB threshold for theme operations
 
     return [
         RuntimeAssertion(
             "theme_switch_performance",
             _theme_switch_fast_enough,
-            "Theme switch must complete within 100ms"
+            "Theme switch must complete within 100ms",
         ),
         RuntimeAssertion(
             "memory_usage",
             _memory_usage_reasonable,
-            "Theme operations must use less than 10MB memory"
-        )
+            "Theme operations must use less than 10MB memory",
+        ),
     ]
 
 
@@ -414,6 +427,7 @@ def initialize_theme_assertions():
 # Performance monitoring with assertions
 def monitor_theme_operation(operation_name: str):
     """Decorator to monitor theme operations with assertions."""
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -432,9 +446,9 @@ def monitor_theme_operation(operation_name: str):
 
             # Create performance context for assertions
             perf_context = {
-                'operation': operation_name,
-                'duration_ms': (end_time - start_time) * 1000,
-                'memory_mb': max(0, end_memory - start_memory)
+                "operation": operation_name,
+                "duration_ms": (end_time - start_time) * 1000,
+                "memory_mb": max(0, end_memory - start_memory),
             }
 
             # Check performance assertions
@@ -444,6 +458,7 @@ def monitor_theme_operation(operation_name: str):
             return result
 
         return wrapper
+
     return decorator
 
 
@@ -451,6 +466,7 @@ def _get_memory_usage() -> float:
     """Get current memory usage in MB."""
     try:
         import psutil
+
         process = psutil.Process()
         return process.memory_info().rss / 1024 / 1024
     except ImportError:

@@ -13,8 +13,4 @@ from .comparison import ImageComparator
 from .diff_generator import DiffGenerator
 from .framework import VisualTestFramework
 
-__all__ = [
-    "VisualTestFramework",
-    "ImageComparator",
-    "DiffGenerator"
-]
+__all__ = ["VisualTestFramework", "ImageComparator", "DiffGenerator"]

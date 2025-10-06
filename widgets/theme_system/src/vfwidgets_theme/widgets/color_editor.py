@@ -6,10 +6,9 @@ format conversion and validation.
 Phase 2: Color Editing
 """
 
-import re
 from typing import Optional
 
-from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import QSize, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QColorDialog,
@@ -56,6 +55,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -144,10 +144,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         # Open picker
         color = QColorDialog.getColor(
-            initial_color,
-            self,
-            "Choose Color",
-            QColorDialog.ColorDialogOption.ShowAlphaChannel
+            initial_color, self, "Choose Color", QColorDialog.ColorDialogOption.ShowAlphaChannel
         )
 
         if color.isValid():
@@ -159,6 +156,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Args:
             format_type: Format that changed ("hex", "rgb", "rgba")
+
         """
         # Get input value
         if format_type == "hex":
@@ -184,6 +182,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             QColor if valid, None otherwise
+
         """
         value = value.strip()
 
@@ -213,6 +212,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Args:
             color: New color
+
         """
         self._current_color = color
 
@@ -244,6 +244,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Args:
             color: New color
+
         """
         self._update_color_silent(color)
 
@@ -266,6 +267,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             True if successfully parsed and set
+
         """
         color = self._parse_color_string(value)
         if color and color.isValid():
@@ -290,6 +292,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
         Args:
             token_path: Token path (e.g., "button.background")
             token_value: Current token value
+
         """
         self._token_path = token_path
         self._token_label.setText(f"Editing: {token_path}")
@@ -308,6 +311,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Current QColor or None
+
         """
         return self._current_color
 
@@ -319,6 +323,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         Returns:
             Color string in requested format
+
         """
         if not self._current_color:
             return ""

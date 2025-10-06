@@ -59,15 +59,11 @@ class TestThemeManager(ThemedTestCase):
         self.sample_theme_data = {
             "name": "manager-test-theme",
             "version": "1.0.0",
-            "colors": {
-                "primary": "#007acc",
-                "secondary": "#ffffff",
-                "background": "#f5f5f5"
-            },
+            "colors": {"primary": "#007acc", "secondary": "#ffffff", "background": "#f5f5f5"},
             "styles": {
                 "QPushButton": "background-color: @colors.primary; color: @colors.secondary;",
-                "QLabel": "color: @colors.primary;"
-            }
+                "QLabel": "color: @colors.primary;",
+            },
         }
 
         self.sample_theme = Theme.from_dict(self.sample_theme_data)
@@ -91,10 +87,7 @@ class TestThemeManager(ThemedTestCase):
         provider = DefaultThemeProvider()
 
         manager = ThemeManager(
-            repository=repository,
-            applicator=applicator,
-            notifier=notifier,
-            provider=provider
+            repository=repository, applicator=applicator, notifier=notifier, provider=provider
         )
 
         self.assertIs(manager._repository, repository)
@@ -203,8 +196,9 @@ class TestThemeManager(ThemedTestCase):
         manager = ThemeManager()
 
         # Create temporary theme file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             import json
+
             json.dump(self.sample_theme_data, f)
             temp_path = f.name
 
@@ -229,7 +223,7 @@ class TestThemeManager(ThemedTestCase):
         manager = ThemeManager()
         manager.add_theme(self.sample_theme)
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             temp_path = f.name
 
         try:
@@ -240,6 +234,7 @@ class TestThemeManager(ThemedTestCase):
 
             # Load and verify content
             import json
+
             with open(temp_path) as f:
                 saved_data = json.load(f)
 
@@ -260,6 +255,7 @@ class TestThemeManager(ThemedTestCase):
             theme2_data = {**self.sample_theme_data, "name": "discovered-2"}
 
             import json
+
             (temp_path / "theme1.json").write_text(json.dumps(theme1_data))
             (temp_path / "theme2.json").write_text(json.dumps(theme2_data))
 
@@ -394,10 +390,7 @@ class TestThemeManager(ThemedTestCase):
             """Worker function for concurrent testing."""
             try:
                 # Create worker-specific theme
-                worker_theme_data = {
-                    **self.sample_theme_data,
-                    "name": f"worker-theme-{worker_id}"
-                }
+                worker_theme_data = {**self.sample_theme_data, "name": f"worker-theme-{worker_id}"}
                 worker_theme = Theme.from_dict(worker_theme_data)
 
                 # Add theme
@@ -441,7 +434,7 @@ class TestThemeManager(ThemedTestCase):
             "name": "",  # Invalid empty name
             "version": "1.0.0",
             "colors": {},
-            "styles": {}
+            "styles": {},
         }
 
         try:
@@ -546,9 +539,7 @@ class TestThemeManagerFactory(ThemedTestCase):
         notifier = ThemeNotifier()
 
         manager = create_theme_manager(
-            repository=repository,
-            applicator=applicator,
-            notifier=notifier
+            repository=repository, applicator=applicator, notifier=notifier
         )
 
         self.assertIsNotNone(manager)
@@ -581,8 +572,9 @@ class TestThemeManagerPerformance(ThemedTestCase):
         """Test theme loading meets < 200ms requirement."""
         manager = create_theme_manager()
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             import json
+
             json.dump(self.sample_theme_data, f)
             temp_path = f.name
 

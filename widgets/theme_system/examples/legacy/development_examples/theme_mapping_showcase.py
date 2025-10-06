@@ -50,19 +50,11 @@ class MockThemedWidget:
 
         # Sample theme properties using PropertyDescriptor
         self.theme_color = PropertyDescriptor(
-            "theme_color",
-            str,
-            validator=color_validator(),
-            default="#000000",
-            debug=True
+            "theme_color", str, validator=color_validator(), default="#000000", debug=True
         )
 
         self.theme_size = PropertyDescriptor(
-            "theme_size",
-            int,
-            validator=min_max_validator(8, 72),
-            default=12,
-            debug=True
+            "theme_size", int, validator=min_max_validator(8, 72), default=12, debug=True
         )
 
     def add_class(self, class_name: str):
@@ -110,8 +102,12 @@ def demonstrate_css_selectors():
     mapping = ThemeMapping(debug=True)
 
     # Create sample widgets
-    primary_button = MockThemedWidget("primary-btn", "Button").add_class("primary").add_class("button")
-    secondary_button = MockThemedWidget("secondary-btn", "Button").add_class("secondary").add_class("button")
+    primary_button = (
+        MockThemedWidget("primary-btn", "Button").add_class("primary").add_class("button")
+    )
+    secondary_button = (
+        MockThemedWidget("secondary-btn", "Button").add_class("secondary").add_class("button")
+    )
     form_input = MockThemedWidget("email-input", "Input").set_attribute("type", "email")
 
     # Add rules with different selectors
@@ -119,35 +115,35 @@ def demonstrate_css_selectors():
         id_selector("primary-btn"),
         {"color": "#ffffff", "background": "#007acc"},
         priority=MappingPriority.HIGH,
-        name="Primary Button ID Rule"
+        name="Primary Button ID Rule",
     )
 
     mapping.add_rule(
         class_selector("button"),
         {"padding": "8px", "border-radius": "4px"},
         priority=MappingPriority.NORMAL,
-        name="All Buttons Rule"
+        name="All Buttons Rule",
     )
 
     mapping.add_rule(
         class_selector("primary"),
         {"font-weight": "bold"},
         priority=MappingPriority.NORMAL,
-        name="Primary Elements Rule"
+        name="Primary Elements Rule",
     )
 
     mapping.add_rule(
         type_selector("Input"),
         {"border": "1px solid #ccc", "padding": "4px"},
         priority=MappingPriority.NORMAL,
-        name="All Inputs Rule"
+        name="All Inputs Rule",
     )
 
     mapping.add_rule(
         attribute_selector("type", "email"),
         {"border-color": "#007acc"},
         priority=MappingPriority.HIGH,
-        name="Email Input Rule"
+        name="Email Input Rule",
     )
 
     # Demonstrate mapping resolution
@@ -177,7 +173,7 @@ def demonstrate_conflict_resolution():
         ConflictResolution.MERGE,
         ConflictResolution.MOST_SPECIFIC,
         ConflictResolution.FIRST_MATCH,
-        ConflictResolution.LAST_MATCH
+        ConflictResolution.LAST_MATCH,
     ]
 
     for strategy in strategies:
@@ -188,21 +184,21 @@ def demonstrate_conflict_resolution():
             id_selector("test-widget"),
             {"color": "red", "font-size": "16px"},
             priority=MappingPriority.HIGH,
-            name="ID Rule"
+            name="ID Rule",
         )
 
         mapping.add_rule(
             class_selector("button"),
             {"color": "blue", "background": "white"},
             priority=MappingPriority.LOW,
-            name="Class Rule"
+            name="Class Rule",
         )
 
         mapping.add_rule(
             class_selector("primary"),
             {"color": "green", "font-weight": "bold"},
             priority=MappingPriority.NORMAL,
-            name="Primary Rule"
+            name="Primary Rule",
         )
 
         result = mapping.get_mapping(widget)
@@ -225,21 +221,21 @@ def demonstrate_conditional_rules():
     mapping.add_rule(
         class_selector("button"),
         {"background": "#f0f0f0", "color": "#666"},
-        name="Button Base Rule"
+        name="Button Base Rule",
     )
 
     mapping.add_rule(
         class_selector("button"),
         {"background": "#007acc", "color": "white"},
         conditions=[enabled_condition],
-        name="Enabled Button Rule"
+        name="Enabled Button Rule",
     )
 
     mapping.add_rule(
         class_selector("button"),
         {"border": "2px solid #007acc"},
         conditions=[focused_condition],
-        name="Focused Button Rule"
+        name="Focused Button Rule",
     )
 
     # Create widget and test different states
@@ -267,7 +263,7 @@ def demonstrate_composition():
     button_mapping.add_rule(
         class_selector("button"),
         {"padding": "8px", "border-radius": "4px", "cursor": "pointer"},
-        name="Base Button Style"
+        name="Base Button Style",
     )
 
     # Create color scheme mapping
@@ -275,12 +271,12 @@ def demonstrate_composition():
     color_mapping.add_rule(
         class_selector("primary"),
         {"background": "#007acc", "color": "white"},
-        name="Primary Color Scheme"
+        name="Primary Color Scheme",
     )
     color_mapping.add_rule(
         class_selector("secondary"),
         {"background": "#6c757d", "color": "white"},
-        name="Secondary Color Scheme"
+        name="Secondary Color Scheme",
     )
 
     # Compose mappings
@@ -309,7 +305,7 @@ def demonstrate_visual_debugging():
         {"color": "red"},
         priority=MappingPriority.HIGH,
         name="ID Override",
-        description="High priority color override"
+        description="High priority color override",
     )
 
     mapping.add_rule(
@@ -317,7 +313,7 @@ def demonstrate_visual_debugging():
         {"font-size": "14px", "margin": "4px"},
         priority=MappingPriority.NORMAL,
         name="Component Base",
-        description="Base styling for components"
+        description="Base styling for components",
     )
 
     mapping.add_rule(
@@ -325,13 +321,11 @@ def demonstrate_visual_debugging():
         {"cursor": "pointer", "color": "blue"},
         priority=MappingPriority.LOW,
         name="Interactive Elements",
-        description="Styling for interactive elements"
+        description="Styling for interactive elements",
     )
 
     # Create widget with multiple applicable rules
-    widget = (MockThemedWidget("debug-widget")
-              .add_class("component")
-              .add_class("interactive"))
+    widget = MockThemedWidget("debug-widget").add_class("component").add_class("interactive")
 
     # Create visualizer
     visualizer = ThemeMappingVisualizer(mapping)
@@ -348,7 +342,9 @@ def demonstrate_visual_debugging():
     color_explanation = visualizer.explain_property_source(widget, "color")
     print("\nColor property explanation:")
     print(f"Final value: {color_explanation['final_value']}")
-    print(f"Contributing rules: {[rule['name'] for rule in color_explanation['contributing_rules']]}")
+    print(
+        f"Contributing rules: {[rule['name'] for rule in color_explanation['contributing_rules']]}"
+    )
 
     # Generate CSS-like output
     css_output = visualizer.generate_css_like_output(widget)
@@ -367,11 +363,7 @@ def demonstrate_performance():
     start_time = time.perf_counter()
 
     for i in range(1000):
-        mapping.add_rule(
-            f".class-{i}",
-            {f"property-{i}": f"value-{i}"},
-            name=f"Rule {i}"
-        )
+        mapping.add_rule(f".class-{i}", {f"property-{i}": f"value-{i}"}, name=f"Rule {i}")
 
     add_time = (time.perf_counter() - start_time) * 1000
     print(f"Time to add 1000 rules: {add_time:.2f}ms")
@@ -415,7 +407,7 @@ def demonstrate_integration():
     mapping.add_rule(
         id_selector("integrated-widget"),
         {"theme_color": "#ff0000", "theme_size": 16},
-        name="Integration Test Rule"
+        name="Integration Test Rule",
     )
 
     # Create widget with PropertyDescriptors

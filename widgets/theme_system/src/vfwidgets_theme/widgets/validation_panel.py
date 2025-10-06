@@ -5,19 +5,15 @@ This module provides the ValidationPanel for displaying accessibility validation
 Phase 4: Validation & Accessibility
 """
 
-import re
 from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QGroupBox,
     QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
-    QPushButton,
-    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -53,6 +49,7 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -112,16 +109,15 @@ class ValidationPanel(ThemedWidget, QWidget):
         Args:
             badge: Badge label widget
             passes: Whether compliance check passes
+
         """
         if passes:
             badge.setStyleSheet(
-                "background-color: #4caf50; color: white; "
-                "font-weight: bold; border-radius: 3px;"
+                "background-color: #4caf50; color: white; " "font-weight: bold; border-radius: 3px;"
             )
         else:
             badge.setStyleSheet(
-                "background-color: #f44336; color: white; "
-                "font-weight: bold; border-radius: 3px;"
+                "background-color: #f44336; color: white; " "font-weight: bold; border-radius: 3px;"
             )
 
     def validate_theme(self, theme_colors: Dict[str, str]) -> None:
@@ -129,6 +125,7 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Args:
             theme_colors: Dict of token_path -> color_value
+
         """
         self._current_issues = []
         errors = 0
@@ -152,27 +149,31 @@ class ValidationPanel(ThemedWidget, QWidget):
 
                     # Check AA compliance
                     if ratio < aa_ratio:
-                        self._current_issues.append({
-                            "level": "error",
-                            "description": f"{description}: Contrast ratio {ratio:.2f}:1 (needs {aa_ratio}:1 for AA)",
-                            "tokens": [fg_token, bg_token],
-                            "ratio": ratio,
-                            "required_aa": aa_ratio,
-                            "required_aaa": aaa_ratio,
-                        })
+                        self._current_issues.append(
+                            {
+                                "level": "error",
+                                "description": f"{description}: Contrast ratio {ratio:.2f}:1 (needs {aa_ratio}:1 for AA)",
+                                "tokens": [fg_token, bg_token],
+                                "ratio": ratio,
+                                "required_aa": aa_ratio,
+                                "required_aaa": aaa_ratio,
+                            }
+                        )
                         errors += 1
                         self._wcag_aa_pass = False
 
                     # Check AAA compliance
                     elif ratio < aaa_ratio:
-                        self._current_issues.append({
-                            "level": "warning",
-                            "description": f"{description}: Contrast ratio {ratio:.2f}:1 (needs {aaa_ratio}:1 for AAA)",
-                            "tokens": [fg_token, bg_token],
-                            "ratio": ratio,
-                            "required_aa": aa_ratio,
-                            "required_aaa": aaa_ratio,
-                        })
+                        self._current_issues.append(
+                            {
+                                "level": "warning",
+                                "description": f"{description}: Contrast ratio {ratio:.2f}:1 (needs {aaa_ratio}:1 for AAA)",
+                                "tokens": [fg_token, bg_token],
+                                "ratio": ratio,
+                                "required_aa": aa_ratio,
+                                "required_aaa": aaa_ratio,
+                            }
+                        )
                         warnings += 1
                         self._wcag_aaa_pass = False
 
@@ -191,6 +192,7 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Returns:
             QColor if valid, None otherwise
+
         """
         if not color_str:
             return None
@@ -222,7 +224,9 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Returns:
             Contrast ratio (1.0 to 21.0)
+
         """
+
         # Calculate relative luminance
         def luminance(color: QColor) -> float:
             r, g, b = color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0
@@ -279,6 +283,7 @@ class ValidationPanel(ThemedWidget, QWidget):
         Args:
             errors: Number of errors
             warnings: Number of warnings
+
         """
         if errors > 0:
             self._summary_label.setText(f"{errors} error(s), {warnings} warning(s)")
@@ -295,6 +300,7 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Args:
             item: Clicked list item
+
         """
         issue = item.data(Qt.ItemDataRole.UserRole)
         if issue and "tokens" in issue:
@@ -318,6 +324,7 @@ class ValidationPanel(ThemedWidget, QWidget):
 
         Returns:
             Tuple of (errors, warnings)
+
         """
         errors = sum(1 for issue in self._current_issues if issue["level"] == "error")
         warnings = sum(1 for issue in self._current_issues if issue["level"] == "warning")

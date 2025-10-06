@@ -41,15 +41,15 @@ class ThemedDialog(ThemedWidget, QDialog):
     """Base themed dialog class."""
 
     theme_config = {
-        'bg': 'dialog.background',
-        'fg': 'dialog.foreground',
-        'border': 'dialog.border',
-        'title_bg': 'dialog.title.background',
-        'title_fg': 'dialog.title.foreground',
-        'button_bg': 'dialog.button.background',
-        'button_fg': 'dialog.button.foreground',
-        'button_border': 'dialog.button.border',
-        'font': 'dialog.font'
+        "bg": "dialog.background",
+        "fg": "dialog.foreground",
+        "border": "dialog.border",
+        "title_bg": "dialog.title.background",
+        "title_fg": "dialog.title.foreground",
+        "button_bg": "dialog.button.background",
+        "button_fg": "dialog.button.foreground",
+        "button_border": "dialog.button.border",
+        "font": "dialog.font",
     }
 
     def __init__(self, title="Dialog", parent=None):
@@ -68,10 +68,10 @@ class ThemedDialog(ThemedWidget, QDialog):
     def update_styling(self):
         """Update dialog styling based on current theme."""
         # Get theme colors
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
-        font = self.theme.get('font', 'Arial, sans-serif')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
+        font = self.theme.get("font", "Arial, sans-serif")
 
         # Generate stylesheet
         stylesheet = f"""
@@ -196,9 +196,7 @@ class InputDialog(ThemedDialog):
         layout.addWidget(self.input_field)
 
         # Button box
-        button_box = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         layout.addWidget(button_box)
@@ -280,25 +278,25 @@ class SettingsDialog(ThemedDialog):
 
     def load_settings(self):
         """Load settings into the dialog."""
-        self.name_edit.setText(self._settings.get('name', ''))
+        self.name_edit.setText(self._settings.get("name", ""))
 
-        theme = self._settings.get('theme', 'Light')
+        theme = self._settings.get("theme", "Light")
         index = self.theme_combo.findText(theme)
         if index >= 0:
             self.theme_combo.setCurrentIndex(index)
 
-        self.font_size_spin.setValue(self._settings.get('font_size', 12))
-        self.auto_save_check.setChecked(self._settings.get('auto_save', False))
-        self.notes_edit.setPlainText(self._settings.get('notes', ''))
+        self.font_size_spin.setValue(self._settings.get("font_size", 12))
+        self.auto_save_check.setChecked(self._settings.get("auto_save", False))
+        self.notes_edit.setPlainText(self._settings.get("notes", ""))
 
     def get_settings(self):
         """Get current settings from the dialog."""
         return {
-            'name': self.name_edit.text(),
-            'theme': self.theme_combo.currentText(),
-            'font_size': self.font_size_spin.value(),
-            'auto_save': self.auto_save_check.isChecked(),
-            'notes': self.notes_edit.toPlainText()
+            "name": self.name_edit.text(),
+            "theme": self.theme_combo.currentText(),
+            "font_size": self.font_size_spin.value(),
+            "auto_save": self.auto_save_check.isChecked(),
+            "notes": self.notes_edit.toPlainText(),
         }
 
     def apply_settings(self):
@@ -323,11 +321,11 @@ class DialogDemo(ThemedWidget):
 
         # Current settings
         self.settings = {
-            'name': 'Demo User',
-            'theme': 'Light',
-            'font_size': 12,
-            'auto_save': True,
-            'notes': 'This is a demo application.'
+            "name": "Demo User",
+            "theme": "Light",
+            "font_size": 12,
+            "auto_save": True,
+            "notes": "This is a demo application.",
         }
 
         self.setup_ui()
@@ -387,19 +385,14 @@ class DialogDemo(ThemedWidget):
             "Information",
             "This is a themed message dialog.\n\nIt adapts to the current theme automatically.",
             "info",
-            self
+            self,
         )
         dialog.exec()
         self.status_label.setText("Message dialog closed")
 
     def show_input_dialog(self):
         """Show an input dialog."""
-        text, ok = InputDialog.get_text(
-            self,
-            "Input Required",
-            "Enter your name:",
-            "Default Name"
-        )
+        text, ok = InputDialog.get_text(self, "Input Required", "Enter your name:", "Default Name")
 
         if ok:
             self.status_label.setText(f"Input received: {text}")
@@ -424,7 +417,7 @@ class DialogDemo(ThemedWidget):
             "Confirmation",
             "Do you want to continue with this action?",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
 
         if reply == QMessageBox.Yes:
@@ -459,15 +452,15 @@ class DialogDemo(ThemedWidget):
 
         # Theme buttons
         light_btn = QPushButton("Light Theme")
-        light_btn.clicked.connect(lambda: self.switch_theme('light'))
+        light_btn.clicked.connect(lambda: self.switch_theme("light"))
         controls_layout.addWidget(light_btn)
 
         dark_btn = QPushButton("Dark Theme")
-        dark_btn.clicked.connect(lambda: self.switch_theme('dark'))
+        dark_btn.clicked.connect(lambda: self.switch_theme("dark"))
         controls_layout.addWidget(dark_btn)
 
         blue_btn = QPushButton("Blue Theme")
-        blue_btn.clicked.connect(lambda: self.switch_theme('blue'))
+        blue_btn.clicked.connect(lambda: self.switch_theme("blue"))
         controls_layout.addWidget(blue_btn)
 
         layout.addLayout(controls_layout)
@@ -490,48 +483,48 @@ def main():
 
     # Define themes with dialog styling
     light_theme = {
-        'name': 'light',
-        'dialog': {
-            'background': '#ffffff',
-            'foreground': '#333333',
-            'border': '#cccccc',
-            'title': {'background': '#f0f0f0', 'foreground': '#000000'},
-            'button': {'background': '#f0f0f0', 'foreground': '#333333', 'border': '#cccccc'},
-            'font': 'Arial, sans-serif'
-        }
+        "name": "light",
+        "dialog": {
+            "background": "#ffffff",
+            "foreground": "#333333",
+            "border": "#cccccc",
+            "title": {"background": "#f0f0f0", "foreground": "#000000"},
+            "button": {"background": "#f0f0f0", "foreground": "#333333", "border": "#cccccc"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'dialog': {
-            'background': '#2d2d2d',
-            'foreground': '#ffffff',
-            'border': '#555555',
-            'title': {'background': '#3a3a3a', 'foreground': '#ffffff'},
-            'button': {'background': '#555555', 'foreground': '#ffffff', 'border': '#777777'},
-            'font': 'Arial, sans-serif'
-        }
+        "name": "dark",
+        "dialog": {
+            "background": "#2d2d2d",
+            "foreground": "#ffffff",
+            "border": "#555555",
+            "title": {"background": "#3a3a3a", "foreground": "#ffffff"},
+            "button": {"background": "#555555", "foreground": "#ffffff", "border": "#777777"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     blue_theme = {
-        'name': 'blue',
-        'dialog': {
-            'background': '#f0f6ff',
-            'foreground': '#003366',
-            'border': '#b3d9ff',
-            'title': {'background': '#e6f2ff', 'foreground': '#003366'},
-            'button': {'background': '#e6f2ff', 'foreground': '#003366', 'border': '#b3d9ff'},
-            'font': 'Arial, sans-serif'
-        }
+        "name": "blue",
+        "dialog": {
+            "background": "#f0f6ff",
+            "foreground": "#003366",
+            "border": "#b3d9ff",
+            "title": {"background": "#e6f2ff", "foreground": "#003366"},
+            "button": {"background": "#e6f2ff", "foreground": "#003366", "border": "#b3d9ff"},
+            "font": "Arial, sans-serif",
+        },
     }
 
     # Register themes
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.register_theme('blue', blue_theme)
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.register_theme("blue", blue_theme)
 
     # Set initial theme
-    app.set_theme('light')
+    app.set_theme("light")
 
     # Create and show demo
     demo = DialogDemo()
@@ -540,5 +533,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

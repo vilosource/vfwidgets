@@ -21,12 +21,13 @@ try:
     print(f"Set theme result: {result}")
 
     current = app.current_theme_name
-    if hasattr(current, 'name'):
+    if hasattr(current, "name"):
         current = current.name
     print(f"Current theme: {current}")
 except Exception as e:
     print(f"Error setting theme: {e}")
     import traceback
+
     traceback.print_exc()
 
 # Create window to test theme

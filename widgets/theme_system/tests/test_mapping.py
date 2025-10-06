@@ -34,8 +34,9 @@ from src.vfwidgets_theme.mapping.mapper import (
 class MockWidget:
     """Mock widget for testing."""
 
-    def __init__(self, widget_id=None, widget_type="MockWidget",
-                 theme_classes=None, attributes=None):
+    def __init__(
+        self, widget_id=None, widget_type="MockWidget", theme_classes=None, attributes=None
+    ):
         self._widget_id = widget_id or f"widget_{id(self)}"
         self._widget_type = widget_type
         self._theme_classes = theme_classes or set()
@@ -221,7 +222,7 @@ class TestSelectorMatcher:
         assert result2
 
         stats = self.matcher.get_cache_stats()
-        assert stats['hits'] > 0
+        assert stats["hits"] > 0
 
 
 class TestConflictResolver:
@@ -234,11 +235,7 @@ class TestConflictResolver:
     def create_rule(self, selector_str, properties, priority=MappingPriority.NORMAL):
         """Helper to create mapping rule."""
         selector = self.parser.parse(selector_str)
-        return MappingRule(
-            selector=selector,
-            properties=properties,
-            priority=priority
-        )
+        return MappingRule(selector=selector, properties=properties, priority=priority)
 
     def test_priority_resolution(self):
         """Test priority-based conflict resolution."""
@@ -265,8 +262,8 @@ class TestConflictResolver:
     def test_specificity_resolution(self):
         """Test specificity-based conflict resolution."""
         rules = [
-            self.create_rule("#button", {"color": "red"}),      # ID: specificity (0,1,0,0)
-            self.create_rule(".button", {"color": "blue"}),     # Class: specificity (0,0,1,0)
+            self.create_rule("#button", {"color": "red"}),  # ID: specificity (0,1,0,0)
+            self.create_rule(".button", {"color": "blue"}),  # Class: specificity (0,0,1,0)
         ]
 
         result = self.resolver.resolve(rules, ConflictResolution.MOST_SPECIFIC)
@@ -305,13 +302,13 @@ class TestThemeMapping:
             "#test-button",
             {"color": "red", "font-size": "14px"},
             priority=MappingPriority.HIGH,
-            name="Test Button Style"
+            name="Test Button Style",
         )
 
         assert rule_index == 0
 
         stats = self.mapping.get_statistics()
-        assert stats['active_rules'] == 1
+        assert stats["active_rules"] == 1
 
     def test_remove_rule(self):
         """Test removing mapping rules."""
@@ -319,7 +316,7 @@ class TestThemeMapping:
         assert self.mapping.remove_rule(rule_index)
 
         stats = self.mapping.get_statistics()
-        assert stats['active_rules'] == 0
+        assert stats["active_rules"] == 0
 
     def test_get_mapping_single_rule(self):
         """Test getting mapping with single matching rule."""
@@ -336,10 +333,7 @@ class TestThemeMapping:
         self.mapping.add_rule(".button", {"color": "blue"}, MappingPriority.LOW)
         self.mapping.add_rule("#test-button", {"color": "red"}, MappingPriority.HIGH)
 
-        widget = MockWidget(
-            widget_id="test-button",
-            theme_classes={"button"}
-        )
+        widget = MockWidget(widget_id="test-button", theme_classes={"button"})
         mapping = self.mapping.get_mapping(widget)
 
         assert mapping["color"] == "red"  # Higher priority wins
@@ -353,14 +347,11 @@ class TestThemeMapping:
 
     def test_conditional_rules(self):
         """Test rules with runtime conditions."""
+
         def enabled_condition(widget):
             return widget.isEnabled()
 
-        self.mapping.add_rule(
-            "#test-button",
-            {"color": "red"},
-            conditions=[enabled_condition]
-        )
+        self.mapping.add_rule("#test-button", {"color": "red"}, conditions=[enabled_condition])
 
         # Enabled widget should match
         widget = MockWidget(widget_id="test-button")
@@ -388,7 +379,7 @@ class TestThemeMapping:
         assert mapping1 == mapping2
 
         stats = self.mapping.get_statistics()
-        assert stats['performance_stats']['cache_hits'] > 0
+        assert stats["performance_stats"]["cache_hits"] > 0
 
     def test_mapping_composition(self):
         """Test mapping composition."""
@@ -401,7 +392,7 @@ class TestThemeMapping:
         composed = mapping1.compose_with(mapping2)
 
         stats = composed.get_statistics()
-        assert stats['active_rules'] == 2
+        assert stats["active_rules"] == 2
 
     def test_rule_validation(self):
         """Test rule validation."""
@@ -414,6 +405,7 @@ class TestThemeMapping:
 
     def test_custom_validator(self):
         """Test custom rule validators."""
+
         def validate_color_properties(rule):
             return "color" in rule.properties
 
@@ -439,17 +431,14 @@ class TestThemeMappingVisualizer:
         self.mapping.add_rule("#test-button", {"color": "red"}, name="Test Rule")
         self.mapping.add_rule(".button", {"font-size": "12px"}, name="Button Rule")
 
-        widget = MockWidget(
-            widget_id="test-button",
-            theme_classes={"button"}
-        )
+        widget = MockWidget(widget_id="test-button", theme_classes={"button"})
 
         report = self.visualizer.generate_debug_report(widget)
 
-        assert report['widget']['id'] == "test-button"
-        assert len(report['applicable_rules']) == 2
-        assert "color" in report['final_mapping']
-        assert "font-size" in report['final_mapping']
+        assert report["widget"]["id"] == "test-button"
+        assert len(report["applicable_rules"]) == 2
+        assert "color" in report["final_mapping"]
+        assert "font-size" in report["final_mapping"]
 
     def test_property_source_explanation(self):
         """Test explaining property sources."""
@@ -460,9 +449,9 @@ class TestThemeMappingVisualizer:
 
         explanation = self.visualizer.explain_property_source(widget, "color")
 
-        assert explanation['property'] == "color"
-        assert explanation['final_value'] == "red"  # Higher priority wins
-        assert len(explanation['contributing_rules']) == 2
+        assert explanation["property"] == "color"
+        assert explanation["final_value"] == "red"  # Higher priority wins
+        assert len(explanation["contributing_rules"]) == 2
 
     def test_css_like_output(self):
         """Test generating CSS-like debug output."""
@@ -582,7 +571,7 @@ class TestErrorRecovery:
         self.mapping.add_rule("#valid", {"color": "blue"})
 
         stats = self.mapping.get_statistics()
-        assert stats['active_rules'] == 1
+        assert stats["active_rules"] == 1
 
     def test_widget_matching_error_recovery(self):
         """Test recovery from widget matching errors."""
@@ -591,7 +580,7 @@ class TestErrorRecovery:
 
         # Create widget that might cause issues
         widget = MockWidget()
-        widget.isEnabled = lambda: 1/0  # Will raise exception
+        widget.isEnabled = lambda: 1 / 0  # Will raise exception
 
         # Should return empty mapping instead of crashing
         mapping = self.mapping.get_mapping(widget)

@@ -17,7 +17,7 @@ import os
 import sys
 
 # Add the parent directory to sys.path so we can import vfwidgets_theme
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QComboBox, QLabel, QPushButton, QVBoxLayout
@@ -39,9 +39,9 @@ class HelloThemeWidget(ThemedWidget):
     # Define what theme properties this widget uses
     # This maps semantic names to theme property paths
     theme_config = {
-        'bg_color': 'colors.background',      # Background color from colors
-        'text_color': 'colors.foreground',    # Text color from colors
-        'accent_color': 'colors.accent'       # Accent color from colors
+        "bg_color": "colors.background",  # Background color from colors
+        "text_color": "colors.foreground",  # Text color from colors
+        "accent_color": "colors.accent",  # Accent color from colors
     }
 
     def __init__(self, parent=None):
@@ -65,8 +65,7 @@ class HelloThemeWidget(ThemedWidget):
 
         # Description
         self.desc_label = QLabel(
-            "This is your first themed widget.\n"
-            "Watch how it changes when you switch themes!"
+            "This is your first themed widget.\n" "Watch how it changes when you switch themes!"
         )
         self.desc_label.setAlignment(Qt.AlignCenter)
         self.desc_label.setWordWrap(True)
@@ -108,39 +107,45 @@ class HelloThemeWidget(ThemedWidget):
         """
         # Access theme properties through the theme config mapping
         # The theme system automatically resolves these to actual values
-        bg_color = getattr(self.theme, 'bg_color', '#ffffff')
-        text_color = getattr(self.theme, 'text_color', '#000000')
-        accent_color = getattr(self.theme, 'accent_color', '#0066cc')
+        bg_color = getattr(self.theme, "bg_color", "#ffffff")
+        text_color = getattr(self.theme, "text_color", "#000000")
+        accent_color = getattr(self.theme, "accent_color", "#0066cc")
 
         print(f"Applying theme colors: bg={bg_color}, text={text_color}, accent={accent_color}")
 
         # Apply colors using Qt stylesheets
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         HelloThemeWidget {{
             background-color: {bg_color};
             color: {text_color};
             padding: 20px;
             border-radius: 8px;
         }}
-        """)
+        """
+        )
 
         # Style individual widgets
-        self.title_label.setStyleSheet(f"""
+        self.title_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {accent_color};
             font-size: 24px;
             font-weight: bold;
             margin: 10px;
         }}
-        """)
+        """
+        )
 
-        self.desc_label.setStyleSheet(f"""
+        self.desc_label.setStyleSheet(
+            f"""
         QLabel {{
             color: {text_color};
             font-size: 14px;
             margin: 10px;
         }}
-        """)
+        """
+        )
 
         # Update theme display
         app = ThemedApplication.instance()
@@ -189,7 +194,7 @@ def main():
 
     # Step 3: Set the initial theme
     # You can use any of the built-in themes
-    app.set_theme('light')
+    app.set_theme("light")
     print("Set initial theme to 'light'")
 
     # Step 4: Create and show the themed widget
@@ -210,7 +215,7 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     This is where the magic happens!
 

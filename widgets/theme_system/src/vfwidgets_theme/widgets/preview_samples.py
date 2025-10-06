@@ -54,6 +54,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 
@@ -95,6 +96,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with button samples
+
         """
         group = QGroupBox("Buttons")
         layout = QHBoxLayout(group)
@@ -132,6 +134,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with input samples
+
         """
         group = QGroupBox("Inputs")
         layout = QGridLayout(group)
@@ -173,18 +176,21 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with list samples
+
         """
         group = QGroupBox("Lists")
         layout = QVBoxLayout(group)
 
         list_widget = QListWidget()
-        list_widget.addItems([
-            "List Item 1",
-            "List Item 2 (Selected)",
-            "List Item 3",
-            "List Item 4",
-            "List Item 5",
-        ])
+        list_widget.addItems(
+            [
+                "List Item 1",
+                "List Item 2 (Selected)",
+                "List Item 3",
+                "List Item 4",
+                "List Item 5",
+            ]
+        )
         list_widget.setCurrentRow(1)  # Select second item
         list_widget.setMaximumHeight(120)
         layout.addWidget(list_widget)
@@ -196,6 +202,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with tab samples
+
         """
         group = QGroupBox("Tabs")
         layout = QVBoxLayout(group)
@@ -229,6 +236,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with control samples
+
         """
         group = QGroupBox("Controls")
         layout = QVBoxLayout(group)
@@ -281,6 +289,7 @@ class PreviewSampleGenerator(ThemedWidget, QWidget):
 
         Returns:
             Widget with editor sample
+
         """
         group = QGroupBox("Text Editor")
         layout = QVBoxLayout(group)
@@ -316,6 +325,7 @@ class ThemePreviewWidget(ThemedWidget, QWidget):
 
         Args:
             parent: Parent widget
+
         """
         super().__init__(parent)
 

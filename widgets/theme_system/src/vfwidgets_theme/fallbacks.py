@@ -31,114 +31,97 @@ MINIMAL_THEME: Dict[str, Any] = {
     "version": "1.0.0",
     "metadata": {
         "description": "Hardcoded minimal theme for error recovery",
-        "author": "VFWidgets Theme System"
+        "author": "VFWidgets Theme System",
     },
-
     "colors": {
         # Primary colors - safe, accessible defaults (NAMESPACED keys)
-        "colors.primary": "#007acc",      # Blue - widely recognizable as primary
-        "colors.secondary": "#6c757d",    # Gray - neutral secondary
-        "colors.background": "#ffffff",   # White - maximum contrast
-        "colors.surface": "#f8f9fa",      # Light gray - subtle surface
-        "colors.text": "#212529",         # Dark gray - high contrast text
+        "colors.primary": "#007acc",  # Blue - widely recognizable as primary
+        "colors.secondary": "#6c757d",  # Gray - neutral secondary
+        "colors.background": "#ffffff",  # White - maximum contrast
+        "colors.surface": "#f8f9fa",  # Light gray - subtle surface
+        "colors.text": "#212529",  # Dark gray - high contrast text
         "colors.text_secondary": "#6c757d",  # Medium gray - secondary text
-
         # Status colors - standard, accessible
-        "colors.success": "#28a745",      # Green - universally understood
-        "colors.warning": "#ffc107",      # Yellow - attention without alarm
-        "colors.error": "#dc3545",        # Red - clear error indication
-        "colors.info": "#17a2b8",         # Teal - informational
-
+        "colors.success": "#28a745",  # Green - universally understood
+        "colors.warning": "#ffc107",  # Yellow - attention without alarm
+        "colors.error": "#dc3545",  # Red - clear error indication
+        "colors.info": "#17a2b8",  # Teal - informational
         # UI element colors
-        "colors.border": "#dee2e6",       # Light gray - subtle borders
-        "colors.divider": "#e9ecef",      # Very light gray - content separation
-        "colors.shadow": "#00000010",     # Transparent black - subtle shadows
-        "colors.focus": "#007acc40",      # Semi-transparent primary - focus rings
-
+        "colors.border": "#dee2e6",  # Light gray - subtle borders
+        "colors.divider": "#e9ecef",  # Very light gray - content separation
+        "colors.shadow": "#00000010",  # Transparent black - subtle shadows
+        "colors.focus": "#007acc40",  # Semi-transparent primary - focus rings
         # Interactive states
-        "colors.hover": "#0056b3",        # Darker blue - clear hover state
-        "colors.active": "#004085",       # Even darker blue - active state
-        "colors.disabled": "#6c757d",     # Gray - clearly disabled
+        "colors.hover": "#0056b3",  # Darker blue - clear hover state
+        "colors.active": "#004085",  # Even darker blue - active state
+        "colors.disabled": "#6c757d",  # Gray - clearly disabled
         "colors.disabled_bg": "#e9ecef",  # Light gray - disabled background
     },
-
     "fonts": {
         # Safe, widely available fonts
         "default": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         "monospace": "'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace",
         "heading": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-
         # Font sizes in pixels (absolute, predictable)
         "size": 14,
         "size_small": 12,
         "size_large": 16,
         "size_heading": 20,
-
         # Font weights
         "weight_normal": 400,
         "weight_medium": 500,
         "weight_bold": 600,
-
         # Line heights (unitless for scalability)
         "line_height": 1.5,
         "line_height_tight": 1.25,
         "line_height_loose": 1.75,
     },
-
     "spacing": {
         # Spacing scale in pixels (8px base unit)
-        "xs": 4,      # Extra small
-        "sm": 8,      # Small
+        "xs": 4,  # Extra small
+        "sm": 8,  # Small
         "default": 16,  # Default/medium
-        "md": 16,     # Medium (alias for default)
-        "lg": 24,     # Large
-        "xl": 32,     # Extra large
-        "xxl": 48,    # Extra extra large
-
+        "md": 16,  # Medium (alias for default)
+        "lg": 24,  # Large
+        "xl": 32,  # Extra large
+        "xxl": 48,  # Extra extra large
         # Component-specific spacing
         "padding": 16,
         "margin": 16,
         "gap": 8,
         "border_radius": 4,
-
         # Layout spacing
         "container_padding": 24,
         "section_gap": 32,
         "component_gap": 16,
     },
-
     "dimensions": {
         # Standard component dimensions
         "button_height": 36,
         "input_height": 36,
         "icon_size": 20,
         "avatar_size": 32,
-
         # Border widths
         "border_width": 1,
         "border_width_thick": 2,
         "focus_ring_width": 2,
-
         # Z-index scale
         "z_dropdown": 1000,
         "z_modal": 2000,
         "z_tooltip": 3000,
         "z_toast": 4000,
     },
-
     "animation": {
         # Animation durations in milliseconds
         "duration_fast": 150,
         "duration_normal": 300,
         "duration_slow": 500,
-
         # Easing functions (CSS-compatible)
         "easing_ease": "ease",
         "easing_ease_in": "ease-in",
         "easing_ease_out": "ease-out",
         "easing_ease_in_out": "ease-in-out",
     },
-
     "shadows": {
         # Box shadow definitions (CSS-compatible)
         "none": "none",
@@ -147,7 +130,7 @@ MINIMAL_THEME: Dict[str, Any] = {
         "md": "0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06)",
         "lg": "0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
         "xl": "0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04)",
-    }
+    },
 }
 
 
@@ -246,21 +229,39 @@ class FallbackColorSystem:
         color = color.strip().lower()
 
         # Check hex colors
-        if color.startswith('#'):
+        if color.startswith("#"):
             if len(color) not in [4, 7]:
                 return False
-            return all(c in '0123456789abcdef' for c in color[1:])
+            return all(c in "0123456789abcdef" for c in color[1:])
 
         # Check rgb/rgba colors (basic validation)
-        if color.startswith(('rgb(', 'rgba(')):
+        if color.startswith(("rgb(", "rgba(")):
             return True
 
         # Check named colors (common ones)
         named_colors = {
-            'red', 'green', 'blue', 'black', 'white', 'gray', 'grey',
-            'yellow', 'orange', 'purple', 'brown', 'pink', 'cyan',
-            'magenta', 'lime', 'navy', 'olive', 'teal', 'silver',
-            'maroon', 'aqua', 'fuchsia'
+            "red",
+            "green",
+            "blue",
+            "black",
+            "white",
+            "gray",
+            "grey",
+            "yellow",
+            "orange",
+            "purple",
+            "brown",
+            "pink",
+            "cyan",
+            "magenta",
+            "lime",
+            "navy",
+            "olive",
+            "teal",
+            "silver",
+            "maroon",
+            "aqua",
+            "fuchsia",
         }
         return color in named_colors
 
@@ -371,7 +372,7 @@ def get_fallback_property(property_path: str) -> Any:
     """
     try:
         # Split path and navigate through theme
-        parts = property_path.split('.')
+        parts = property_path.split(".")
         current = MINIMAL_THEME
 
         for part in parts:
@@ -427,11 +428,7 @@ def _deep_merge(target: Dict[str, Any], source: Dict[str, Any]) -> None:
 
     """
     for key, value in source.items():
-        if (
-            key in target
-            and isinstance(target[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in target and isinstance(target[key], dict) and isinstance(value, dict):
             _deep_merge(target[key], value)
         else:
             target[key] = value
@@ -480,7 +477,7 @@ def reset_fallback_system() -> None:
 # Performance optimization: pre-compile color validation regex
 import re
 
-_hex_color_pattern = re.compile(r'^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
+_hex_color_pattern = re.compile(r"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 
 
 def is_valid_hex_color(color: str) -> bool:
@@ -502,19 +499,16 @@ def is_valid_hex_color(color: str) -> bool:
 __all__ = [
     # Core fallback data
     "MINIMAL_THEME",
-
     # Fallback color system
     "FallbackColorSystem",
     "create_fallback_color_system",
     "get_global_fallback_color_system",
-
     # Convenience functions
     "get_fallback_theme",
     "get_fallback_color",
     "get_fallback_property",
     "validate_theme_completeness",
     "get_safe_color_palette",
-
     # Utilities
     "is_valid_hex_color",
     "reset_fallback_system",

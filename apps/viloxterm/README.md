@@ -187,15 +187,36 @@ All planned phases have been successfully implemented:
 ✅ Dynamic split panes (horizontal/vertical)
 ✅ Multiple terminals sharing one server (memory efficient)
 ✅ VSCode-compatible theme system (4 built-in themes)
+✅ Terminal color & font customization (Ctrl+Shift+,)
+✅ Terminal behavior preferences with presets (Ctrl+,)
 ✅ User-customizable keyboard shortcuts
-✅ Auto-save settings (keybindings persist)
+✅ Auto-save settings (keybindings, terminal preferences, terminal themes persist)
 ✅ Clean shutdown (no zombie processes)
+
+### Terminal Customization
+
+**Terminal Colors & Fonts (Ctrl+Shift+,)**:
+- 18 customizable colors (background, foreground, cursor, 16 ANSI colors)
+- Font family and size selection
+- Live preview of changes
+- Save custom themes
+- Set default theme for new terminals
+- Themes stored in `~/.config/viloxterm/terminal_themes/`
+
+**Terminal Preferences (Ctrl+,)**:
+- Scrollback buffer (100-200k lines)
+- Cursor style (block/underline/bar) and blinking
+- Scroll sensitivity and fast scroll settings
+- Tab width configuration
+- Bell style (none/visual/sound)
+- Right-click behavior
+- 7 built-in presets: default, developer, power_user, minimal, accessible, log_viewer, remote
+- Preferences stored in `~/.config/viloxterm/terminal_preferences.json`
 
 ### Known Limitations
 
 - No session persistence (terminals don't survive app restart)
 - No tab rename functionality
-- No configuration file (settings hardcoded)
 - No remote server support (local terminals only)
 
 ## Key Integration Patterns
@@ -368,16 +389,138 @@ cd apps/viloxterm
 python -m viloxterm
 ```
 
+## Building Binary Distribution
+
+ViloxTerm can be packaged as a single executable binary for distribution using **pyside6-deploy**, Qt's official deployment tool.
+
+### Quick Build
+
+```bash
+cd apps/viloxterm
+./build.sh
+```
+
+This creates a standalone binary:
+- **Linux**: `ViloXTerm` or `ViloXTerm.bin`
+- **Windows**: `ViloXTerm.exe`
+- **macOS**: `ViloXTerm.app`
+
+### Manual Build
+
+```bash
+# Install in development mode
+pip install -e .
+
+# Build with pyside6-deploy
+pyside6-deploy -c pysidedeploy.spec -f
+```
+
+### Build Configuration
+
+The build is configured via `pysidedeploy.spec`:
+
+```ini
+[nuitka]
+mode = onefile        # Single executable
+jobs = 4             # Parallel compilation
+
+[qt]
+modules = Core,Gui,Widgets,WebEngineWidgets,WebEngineCore,WebChannel,Network
+```
+
+### Distribution
+
+**Expected Binary Size:** 150-300 MB (includes Qt WebEngine)
+
+**Distribution Options:**
+- **Linux**: AppImage, tar.gz, or native package
+- **Windows**: Installer (Inno Setup, NSIS) or portable ZIP
+- **macOS**: DMG or notarized .app bundle
+
+### Documentation
+
+See [`docs/building-binary-GUIDE.md`](docs/building-binary-GUIDE.md) for:
+- Platform-specific requirements
+- Size optimization tips
+- Troubleshooting
+- CI/CD integration examples
+
 ## Configuration
 
-*To be implemented*
+ViloxTerm stores user preferences in `~/.config/viloxterm/`:
 
-Configuration will support:
-- Default theme selection
-- Terminal profiles (shell, colors, fonts)
-- Keyboard shortcuts
-- Split layout presets
-- Session persistence settings
+```
+~/.config/viloxterm/
+├── keybindings.json              # Keyboard shortcut customizations
+├── terminal_preferences.json     # Terminal behavior settings
+└── terminal_themes/              # Custom terminal color themes
+    ├── my-theme.json
+    └── viloxterm.json
+```
+
+### Keyboard Shortcuts
+
+Customizable via the KeybindingManager. Default shortcuts:
+
+**Tabs**:
+- New Tab: `Ctrl+T`
+- Close Tab: `Ctrl+Shift+W`
+- Next Tab: `Ctrl+Tab`
+- Previous Tab: `Ctrl+Shift+Tab`
+- Jump to Tab 1-9: `Alt+1` through `Alt+9`
+
+**Panes**:
+- Split Vertical: `Ctrl+Shift+\`
+- Split Horizontal: `Ctrl+Shift+-`
+- Close Pane: `Ctrl+W`
+
+**Appearance**:
+- Terminal Preferences: `Ctrl+,`
+- Terminal Colors & Fonts: `Ctrl+Shift+,`
+
+Shortcuts are stored in `~/.config/viloxterm/keybindings.json` and persist across sessions.
+
+### Terminal Preferences
+
+Access via `Ctrl+,` or hamburger menu → "Terminal Preferences"
+
+**Available Presets**:
+- `default` - Standard settings (1k scrollback, block cursor)
+- `developer` - Developer-optimized (10k scrollback, bar cursor, visual bell)
+- `power_user` - Power user (50k scrollback, fast scrolling)
+- `minimal` - Minimal resources (500 lines, basic features)
+- `accessible` - Accessibility focused (visual bell, high visibility)
+- `log_viewer` - Log viewing (100k scrollback, very fast scrolling)
+- `remote` - Remote connections (balanced settings for SSH)
+
+**Configurable Options**:
+- Scrollback buffer size (0-200k lines)
+- Cursor style and blinking
+- Scroll sensitivity (normal and fast)
+- Tab width
+- Bell style
+- Right-click behavior
+- Line ending conversion
+
+Settings are stored in `~/.config/viloxterm/terminal_preferences.json`
+
+### Terminal Themes
+
+Access via `Ctrl+Shift+,` or hamburger menu → "Terminal Colors & Fonts"
+
+**Bundled Themes**:
+- Default Dark
+- Default Light
+
+**Custom Themes**:
+- Create custom color schemes
+- Configure all 16 ANSI colors
+- Set background, foreground, cursor colors
+- Choose font family and size
+- Save and load custom themes
+- Set default theme for new terminals
+
+Themes are stored as JSON files in `~/.config/viloxterm/terminal_themes/`
 
 ## License
 

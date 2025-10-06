@@ -9,4 +9,4 @@ This module provides theme packaging and distribution management:
 
 from .manager import ThemePackage, ThemePackageManager
 
-__all__ = ['ThemePackageManager', 'ThemePackage']
+__all__ = ["ThemePackageManager", "ThemePackage"]

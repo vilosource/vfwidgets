@@ -18,11 +18,13 @@ def test_example_runs(script_path):
             capture_output=True,
             text=True,
             timeout=2,  # 2 second timeout for GUI apps
-            check=False  # Don't raise on non-zero exit
+            check=False,  # Don't raise on non-zero exit
         )
 
         # Check exit code
-        if result.returncode == 0 or result.returncode == -15:  # -15 is SIGTERM from timeout, which is OK for GUI apps
+        if (
+            result.returncode == 0 or result.returncode == -15
+        ):  # -15 is SIGTERM from timeout, which is OK for GUI apps
             print(f"  ✓ Ran successfully (exit code: {result.returncode})")
             return True
         else:
@@ -31,8 +33,8 @@ def test_example_runs(script_path):
             # Show error output
             if "Traceback" in result.stderr or "Error" in result.stderr:
                 print("  Error output:")
-                for line in result.stderr.split('\n'):
-                    if line and not line.startswith('22:'):  # Skip debug lines
+                for line in result.stderr.split("\n"):
+                    if line and not line.startswith("22:"):  # Skip debug lines
                         print(f"    {line}")
 
             return False
@@ -48,14 +50,14 @@ def test_example_runs(script_path):
 
 def main():
     examples = [
-        '01_minimal_hello_world.py',
-        '02_theme_switching.py',
-        '03_custom_themed_widgets.py',
-        '04_multi_window_application.py',
-        '05_complete_application.py',
-        '06_new_api_simple.py',
-        '07_tabbed_text_editor.py',
-        '08_vscode_theme_showcase.py'
+        "01_minimal_hello_world.py",
+        "02_theme_switching.py",
+        "03_custom_themed_widgets.py",
+        "04_multi_window_application.py",
+        "05_complete_application.py",
+        "06_new_api_simple.py",
+        "07_tabbed_text_editor.py",
+        "08_vscode_theme_showcase.py",
     ]
 
     print("Testing VFWidgets Theme System Examples - ACTUAL RUNTIME")
@@ -90,5 +92,5 @@ def main():
         return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

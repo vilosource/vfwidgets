@@ -30,13 +30,13 @@ def themed_app():
 def app(themed_app):
     """Provide ThemedApplication instance per test function."""
     # Reset preview state before each test
-    if hasattr(themed_app, '_preview_original_theme'):
+    if hasattr(themed_app, "_preview_original_theme"):
         themed_app._preview_original_theme = None
 
     yield themed_app
 
     # Cleanup after each test
-    if hasattr(themed_app, '_preview_original_theme'):
+    if hasattr(themed_app, "_preview_original_theme"):
         themed_app._preview_original_theme = None
 
 
@@ -153,7 +153,7 @@ class TestCycleTheme:
         assert first_cycle_name != initial_theme_name
 
         # Get list of available themes
-        theme_names = [t.name if hasattr(t, 'name') else str(t) for t in app.get_available_themes()]
+        theme_names = [t.name if hasattr(t, "name") else str(t) for t in app.get_available_themes()]
 
         # Cycling through all themes should visit different themes
         visited_themes = {initial_theme_name}

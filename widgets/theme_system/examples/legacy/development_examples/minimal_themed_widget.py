@@ -18,7 +18,7 @@ For real Qt applications with display:
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from vfwidgets_theme import ThemedApplication, ThemedWidget
 
@@ -27,10 +27,7 @@ class MyWidget(ThemedWidget):
     """Your widget - just inherit from ThemedWidget!"""
 
     # Optional: Map theme properties to your widget
-    theme_config = {
-        'bg': 'window.background',
-        'fg': 'window.foreground'
-    }
+    theme_config = {"bg": "window.background", "fg": "window.foreground"}
 
     def on_theme_changed(self):
         """Optional: Called when theme changes."""
@@ -55,7 +52,7 @@ def main():
 
     # Switch themes - widget updates automatically!
     print("\nSwitching themes...")
-    for theme in ['dark', 'light']:
+    for theme in ["dark", "light"]:
         app.set_theme(theme)
         print(f"  Set theme to '{theme}'")
 
@@ -70,5 +67,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

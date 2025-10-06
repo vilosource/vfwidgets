@@ -180,10 +180,7 @@ class ThemeMetadataProvider:
             ...     print(theme.display_name)
 
         """
-        return [
-            info for info in self._metadata.values()
-            if info.type == theme_type
-        ]
+        return [info for info in self._metadata.values() if info.type == theme_type]
 
     def filter_by_tag(self, tag: str) -> List[ThemeInfo]:
         """Filter themes by tag.
@@ -201,10 +198,7 @@ class ThemeMetadataProvider:
             ...     print(theme.display_name)
 
         """
-        return [
-            info for info in self._metadata.values()
-            if tag in info.tags
-        ]
+        return [info for info in self._metadata.values() if tag in info.tags]
 
     def create_from_theme(self, theme: Theme) -> ThemeInfo:
         """Create ThemeInfo from a Theme object.

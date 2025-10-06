@@ -217,9 +217,7 @@ class TestThemeSettings:
     def test_auto_save_on_theme_change(self, app):
         """Test automatic saving when app theme changes."""
         settings = ThemeSettings(
-            organization="TestOrgAuto",
-            application="TestAppAuto",
-            auto_save=True
+            organization="TestOrgAuto", application="TestAppAuto", auto_save=True
         )
 
         # Change theme

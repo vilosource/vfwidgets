@@ -34,11 +34,11 @@ class ThemedDockWidget(ThemedWidget, QDockWidget):
     """A themed dock widget."""
 
     theme_config = {
-        'bg': 'dock.background',
-        'fg': 'dock.foreground',
-        'title_bg': 'dock.title.background',
-        'title_fg': 'dock.title.foreground',
-        'border': 'dock.border'
+        "bg": "dock.background",
+        "fg": "dock.foreground",
+        "title_bg": "dock.title.background",
+        "title_fg": "dock.title.foreground",
+        "border": "dock.border",
     }
 
     def __init__(self, title, parent=None):
@@ -52,13 +52,14 @@ class ThemedDockWidget(ThemedWidget, QDockWidget):
 
     def update_styling(self):
         """Update dock styling."""
-        bg_color = self.theme.get('bg', '#ffffff')
-        fg_color = self.theme.get('fg', '#000000')
-        title_bg = self.theme.get('title_bg', '#e0e0e0')
-        title_fg = self.theme.get('title_fg', '#000000')
-        border_color = self.theme.get('border', '#cccccc')
+        bg_color = self.theme.get("bg", "#ffffff")
+        fg_color = self.theme.get("fg", "#000000")
+        title_bg = self.theme.get("title_bg", "#e0e0e0")
+        title_fg = self.theme.get("title_fg", "#000000")
+        border_color = self.theme.get("border", "#cccccc")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
         QDockWidget {{
             background-color: {bg_color};
             color: {fg_color};
@@ -71,7 +72,8 @@ class ThemedDockWidget(ThemedWidget, QDockWidget):
             padding: 5px;
             border-bottom: 1px solid {border_color};
         }}
-        """)
+        """
+        )
 
 
 class DockDemo(ThemedWidget, QMainWindow):
@@ -138,13 +140,13 @@ class DockDemo(ThemedWidget, QMainWindow):
         menubar = self.menuBar()
 
         # Theme menu
-        theme_menu = menubar.addMenu('Theme')
+        theme_menu = menubar.addMenu("Theme")
 
-        light_action = theme_menu.addAction('Light')
-        light_action.triggered.connect(lambda: self.switch_theme('light'))
+        light_action = theme_menu.addAction("Light")
+        light_action.triggered.connect(lambda: self.switch_theme("light"))
 
-        dark_action = theme_menu.addAction('Dark')
-        dark_action.triggered.connect(lambda: self.switch_theme('dark'))
+        dark_action = theme_menu.addAction("Dark")
+        dark_action.triggered.connect(lambda: self.switch_theme("dark"))
 
     def switch_theme(self, theme_name):
         """Switch theme."""
@@ -158,28 +160,28 @@ def main():
     app = ThemedApplication(sys.argv)
 
     light_theme = {
-        'name': 'light',
-        'dock': {
-            'background': '#ffffff',
-            'foreground': '#000000',
-            'title': {'background': '#e0e0e0', 'foreground': '#000000'},
-            'border': '#cccccc'
-        }
+        "name": "light",
+        "dock": {
+            "background": "#ffffff",
+            "foreground": "#000000",
+            "title": {"background": "#e0e0e0", "foreground": "#000000"},
+            "border": "#cccccc",
+        },
     }
 
     dark_theme = {
-        'name': 'dark',
-        'dock': {
-            'background': '#3a3a3a',
-            'foreground': '#ffffff',
-            'title': {'background': '#2a2a2a', 'foreground': '#ffffff'},
-            'border': '#555555'
-        }
+        "name": "dark",
+        "dock": {
+            "background": "#3a3a3a",
+            "foreground": "#ffffff",
+            "title": {"background": "#2a2a2a", "foreground": "#ffffff"},
+            "border": "#555555",
+        },
     }
 
-    app.register_theme('light', light_theme)
-    app.register_theme('dark', dark_theme)
-    app.set_theme('light')
+    app.register_theme("light", light_theme)
+    app.register_theme("dark", dark_theme)
+    app.set_theme("light")
 
     demo = DockDemo()
     demo.show()
@@ -187,5 +189,5 @@ def main():
     return app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

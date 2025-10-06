@@ -41,7 +41,7 @@ class TestWidgetRoleEnum:
 
     def test_enum_has_all_roles(self):
         """Test that WidgetRole has all 7 expected roles."""
-        expected_roles = {'DANGER', 'SUCCESS', 'WARNING', 'SECONDARY', 'EDITOR', 'PRIMARY', 'INFO'}
+        expected_roles = {"DANGER", "SUCCESS", "WARNING", "SECONDARY", "EDITOR", "PRIMARY", "INFO"}
         actual_roles = {role.name for role in WidgetRole}
         assert actual_roles == expected_roles, f"Expected {expected_roles}, got {actual_roles}"
 

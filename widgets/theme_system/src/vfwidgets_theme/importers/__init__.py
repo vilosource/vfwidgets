@@ -17,9 +17,9 @@ from .vscode import (
 )
 
 __all__ = [
-    'VSCodeImporter',
-    'VSCodeImportError',
-    'VSCodeThemeInfo',
-    'VSCodeColorMapper',
-    'TokenColorMapper',
+    "VSCodeImporter",
+    "VSCodeImportError",
+    "VSCodeThemeInfo",
+    "VSCodeColorMapper",
+    "TokenColorMapper",
 ]
