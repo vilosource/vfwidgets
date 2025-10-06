@@ -35,6 +35,104 @@ from vfwidgets_terminal import TerminalWidget
 from vfwidgets_theme import ThemedApplication, ThemedMainWindow
 
 
+# Example terminal theme configurations demonstrating lineHeight and letterSpacing
+COMPACT_THEME = {
+    "name": "Compact Dark",
+    "terminal": {
+        "fontFamily": "Monaco, Consolas, 'Courier New', monospace",
+        "fontSize": 13,
+        "lineHeight": 1.0,  # Tight line spacing for maximum content
+        "letterSpacing": 0,  # No extra character spacing
+        "background": "#1e1e1e",
+        "foreground": "#d4d4d4",
+        "cursor": "#ffcc00",
+        "cursorAccent": "#1e1e1e",
+        "selectionBackground": "rgba(38, 79, 120, 0.3)",
+        # ANSI colors
+        "black": "#000000",
+        "red": "#cd3131",
+        "green": "#0dbc79",
+        "yellow": "#e5e510",
+        "blue": "#2472c8",
+        "magenta": "#bc3fbc",
+        "cyan": "#11a8cd",
+        "white": "#e5e5e5",
+        "brightBlack": "#555753",
+        "brightRed": "#f14c4c",
+        "brightGreen": "#23d18b",
+        "brightYellow": "#f5f543",
+        "brightBlue": "#3b8eea",
+        "brightMagenta": "#d670d6",
+        "brightCyan": "#29b8db",
+        "brightWhite": "#f5f5f5",
+    },
+}
+
+RELAXED_THEME = {
+    "name": "Relaxed Dark",
+    "terminal": {
+        "fontFamily": "Monaco, Consolas, 'Courier New', monospace",
+        "fontSize": 14,
+        "lineHeight": 1.5,  # Generous line spacing for readability
+        "letterSpacing": 1,  # 1px between characters for clarity
+        "background": "#1e1e1e",
+        "foreground": "#d4d4d4",
+        "cursor": "#ffcc00",
+        "cursorAccent": "#1e1e1e",
+        "selectionBackground": "rgba(38, 79, 120, 0.3)",
+        # ANSI colors
+        "black": "#000000",
+        "red": "#cd3131",
+        "green": "#0dbc79",
+        "yellow": "#e5e510",
+        "blue": "#2472c8",
+        "magenta": "#bc3fbc",
+        "cyan": "#11a8cd",
+        "white": "#e5e5e5",
+        "brightBlack": "#555753",
+        "brightRed": "#f14c4c",
+        "brightGreen": "#23d18b",
+        "brightYellow": "#f5f543",
+        "brightBlue": "#3b8eea",
+        "brightMagenta": "#d670d6",
+        "brightCyan": "#29b8db",
+        "brightWhite": "#f5f5f5",
+    },
+}
+
+ACCESSIBLE_THEME = {
+    "name": "Accessible High Contrast",
+    "terminal": {
+        "fontFamily": "Monaco, Consolas, 'Courier New', monospace",
+        "fontSize": 15,
+        "lineHeight": 1.6,  # Extra generous spacing for accessibility
+        "letterSpacing": 1.5,  # Clear character separation
+        "background": "#000000",
+        "foreground": "#ffffff",
+        "cursor": "#00ff00",
+        "cursorAccent": "#000000",
+        "selectionBackground": "rgba(255, 255, 0, 0.3)",
+        # ANSI colors (high contrast)
+        "black": "#000000",
+        "red": "#ff0000",
+        "green": "#00ff00",
+        "yellow": "#ffff00",
+        "blue": "#0000ff",
+        "magenta": "#ff00ff",
+        "cyan": "#00ffff",
+        "white": "#ffffff",
+        "brightBlack": "#808080",
+        "brightRed": "#ff8080",
+        "brightGreen": "#80ff80",
+        "brightYellow": "#ffff80",
+        "brightBlue": "#8080ff",
+        "brightMagenta": "#ff80ff",
+        "brightCyan": "#80ffff",
+        "brightWhite": "#ffffff",
+    },
+}
+
+
 class ThemedTerminalWindow(ThemedMainWindow):
     """Terminal window with automatic theme integration.
 
@@ -127,6 +225,29 @@ class ThemedTerminalWindow(ThemedMainWindow):
         close_btn.setProperty("role", "danger")  # Red styling
         close_btn.clicked.connect(lambda: self.terminal.close_terminal())
         toolbar_layout.addWidget(close_btn)
+
+        # Separator
+        toolbar_layout.addWidget(QLabel(" | "))
+
+        # Terminal theme buttons (demonstrate lineHeight/letterSpacing)
+        toolbar_layout.addWidget(QLabel("Terminal Theme:"))
+
+        compact_btn = QPushButton("Compact")
+        compact_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(COMPACT_THEME))
+        compact_btn.setToolTip("Tight spacing (lineHeight: 1.0)")
+        toolbar_layout.addWidget(compact_btn)
+
+        relaxed_btn = QPushButton("Relaxed")
+        relaxed_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(RELAXED_THEME))
+        relaxed_btn.setToolTip("Generous spacing (lineHeight: 1.5, letterSpacing: 1)")
+        toolbar_layout.addWidget(relaxed_btn)
+
+        accessible_btn = QPushButton("Accessible")
+        accessible_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(ACCESSIBLE_THEME))
+        accessible_btn.setToolTip(
+            "High contrast with extra spacing (lineHeight: 1.6, letterSpacing: 1.5)"
+        )
+        toolbar_layout.addWidget(accessible_btn)
 
         return toolbar
 
@@ -226,7 +347,13 @@ def main():
     print("   • Pass theme colors to child components")
     print("   • Demonstrated in _on_terminal_ready()")
     print()
+    print("📏 Terminal Spacing Customization:")
+    print("   • Compact: lineHeight 1.0 (tight)")
+    print("   • Relaxed: lineHeight 1.5 + letterSpacing 1px")
+    print("   • Accessible: lineHeight 1.6 + letterSpacing 1.5px")
+    print()
     print("💡 Try changing themes with the dropdown!")
+    print("💡 Try terminal spacing with the theme buttons!")
     print("=" * 60)
     print()
 

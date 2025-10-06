@@ -16,6 +16,9 @@ DEFAULT_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": False,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.2,  # Standard line spacing (20% extra)
+    "letterSpacing": 0,  # No extra character spacing
 }
 
 # Developer configuration (large scrollback, visual bell)
@@ -30,6 +33,9 @@ DEVELOPER_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": True,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.3,  # Slightly relaxed spacing for readability
+    "letterSpacing": 0.5,  # Slight character spacing for clarity
 }
 
 # Power user configuration (maximum scrollback, fast scrolling)
@@ -44,6 +50,9 @@ POWER_USER_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": True,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.1,  # Compact spacing for maximum content
+    "letterSpacing": 0,  # No extra spacing
 }
 
 # Minimal configuration (low memory, basic features)
@@ -58,6 +67,9 @@ MINIMAL_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": False,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.0,  # Minimal spacing for efficiency
+    "letterSpacing": 0,  # No extra spacing
 }
 
 # Accessibility configuration (high visibility, visual bell)
@@ -72,6 +84,9 @@ ACCESSIBLE_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": True,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.5,  # Generous spacing for readability
+    "letterSpacing": 1,  # Clear character separation
 }
 
 # Log viewer configuration (maximum scrollback, no cursor blink)
@@ -86,6 +101,9 @@ LOG_VIEWER_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": True,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.2,  # Standard spacing for log reading
+    "letterSpacing": 0,  # No extra spacing
 }
 
 # SSH/Remote configuration (balanced settings for remote connections)
@@ -100,6 +118,9 @@ REMOTE_CONFIG = {
     "fastScrollModifier": "shift",
     "rightClickSelectsWord": False,
     "convertEol": False,
+    # Typography
+    "lineHeight": 1.2,  # Balanced spacing for remote work
+    "letterSpacing": 0,  # No extra spacing
 }
 
 # Dictionary of all presets for easy access

@@ -155,19 +155,25 @@ terminal = TerminalWidget(output_parser=json_parser)
 
 ### Terminal Configuration
 
-Configure xterm.js behavior options (scrollback, cursor, scrolling, etc.):
+Configure xterm.js behavior options (scrollback, cursor, scrolling, typography, etc.):
 
 ```python
 # Using configuration dictionary
 terminal = TerminalWidget(
     terminal_config={
+        # Typography & Spacing
+        "lineHeight": 1.3,          # Line spacing (1.0 = tight, 1.5 = relaxed)
+        "letterSpacing": 0.5,        # Character spacing in pixels
+        # Scrolling
         "scrollback": 10000,
-        "cursorStyle": "bar",
-        "cursorBlink": True,
-        "bellStyle": "visual",
-        "tabStopWidth": 4,
         "scrollSensitivity": 2,
         "fastScrollSensitivity": 10,
+        # Cursor
+        "cursorStyle": "bar",
+        "cursorBlink": True,
+        # Behavior
+        "bellStyle": "visual",
+        "tabStopWidth": 4,
         "rightClickSelectsWord": True
     }
 )
@@ -190,34 +196,111 @@ current_config = terminal.get_terminal_config()
 ```
 
 Available configuration options:
+
+**Typography & Spacing:**
+- `lineHeight` (float): Line spacing multiplier (default: 1.2, range: 1.0-2.0)
+  - `1.0`: Tight/compact spacing
+  - `1.2`: Normal spacing (default)
+  - `1.5`: Relaxed/generous spacing
+- `letterSpacing` (float): Horizontal character spacing in pixels (default: 0, range: 0-5)
+
+**Scrolling:**
 - `scrollback` (int): Number of scrollback lines (default: 1000)
-- `cursorBlink` (bool): Whether cursor blinks (default: true)
-- `cursorStyle` (str): 'block', 'underline', or 'bar' (default: 'block')
-- `tabStopWidth` (int): Width of tab stops (default: 4)
-- `bellStyle` (str): 'none', 'sound', or 'visual' (default: 'none')
 - `scrollSensitivity` (int): Mouse wheel scroll speed (default: 1)
 - `fastScrollSensitivity` (int): Shift+scroll speed (default: 5)
 - `fastScrollModifier` (str): 'alt', 'ctrl', or 'shift' (default: 'shift')
+
+**Cursor:**
+- `cursorBlink` (bool): Whether cursor blinks (default: true)
+- `cursorStyle` (str): 'block', 'underline', or 'bar' (default: 'block')
+
+**Behavior:**
+- `tabStopWidth` (int): Width of tab stops (default: 4)
+- `bellStyle` (str): 'none', 'sound', or 'visual' (default: 'none')
 - `rightClickSelectsWord` (bool): Select word on right click (default: false)
 - `convertEol` (bool): Convert \n to \r\n (default: false)
 
 Available presets: `default`, `developer`, `power_user`, `minimal`, `accessible`, `log_viewer`, `remote`
 
-### Themes
+### Theme Configuration
+
+Terminal themes support both colors and typography customization:
 
 ```python
-# Built-in themes
-terminal = TerminalWidget(theme='dark')  # default
-terminal = TerminalWidget(theme='light')
+# Custom theme with spacing customization
+my_theme = {
+    "name": "My Custom Theme",
+    "terminal": {
+        # Typography & Spacing
+        "fontFamily": "Monaco, Consolas, 'Courier New', monospace",
+        "fontSize": 14,
+        "lineHeight": 1.4,       # 40% extra line spacing
+        "letterSpacing": 0.5,    # 0.5px between characters
 
-# Custom theme (future feature)
-custom_theme = {
-    'background': '#282c34',
-    'foreground': '#abb2bf',
-    'cursor': '#528bff',
-    # ... more colors
+        # Colors
+        "background": "#1e1e1e",
+        "foreground": "#d4d4d4",
+        "cursor": "#ffcc00",
+        "cursorAccent": "#1e1e1e",
+        "selectionBackground": "rgba(38, 79, 120, 0.3)",
+
+        # ANSI colors
+        "black": "#000000",
+        "red": "#cd3131",
+        "green": "#0dbc79",
+        "yellow": "#e5e510",
+        "blue": "#2472c8",
+        "magenta": "#bc3fbc",
+        "cyan": "#11a8cd",
+        "white": "#e5e5e5",
+        "brightBlack": "#555753",
+        "brightRed": "#f14c4c",
+        "brightGreen": "#23d18b",
+        "brightYellow": "#f5f543",
+        "brightBlue": "#3b8eea",
+        "brightMagenta": "#d670d6",
+        "brightCyan": "#29b8db",
+        "brightWhite": "#f5f5f5",
+    }
 }
-terminal = TerminalWidget(theme=custom_theme)
+
+# Apply theme
+terminal.set_terminal_theme(my_theme)
+
+# Get current theme
+current_theme = terminal.get_terminal_theme()
+```
+
+**Example Spacing Presets:**
+
+```python
+# Compact theme (tight spacing)
+COMPACT_THEME = {
+    "terminal": {
+        "lineHeight": 1.0,    # No extra spacing
+        "letterSpacing": 0,
+        # ... colors
+    }
+}
+
+# Relaxed theme (generous spacing)
+RELAXED_THEME = {
+    "terminal": {
+        "lineHeight": 1.5,    # 50% extra spacing
+        "letterSpacing": 1,   # 1px between characters
+        # ... colors
+    }
+}
+
+# Accessible theme (maximum readability)
+ACCESSIBLE_THEME = {
+    "terminal": {
+        "fontSize": 15,
+        "lineHeight": 1.6,    # 60% extra spacing
+        "letterSpacing": 1.5, # 1.5px between characters
+        # ... high contrast colors
+    }
+}
 ```
 
 ### Read-Only Mode

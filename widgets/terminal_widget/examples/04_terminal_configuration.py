@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -99,6 +100,10 @@ class TerminalConfigurationWindow(QMainWindow):
 
         layout.addWidget(preset_group)
 
+        # Typography settings (NEW: lineHeight and letterSpacing)
+        typography_group = self._create_typography_group()
+        layout.addWidget(typography_group)
+
         # Scrolling settings
         scroll_group = self._create_scroll_group()
         layout.addWidget(scroll_group)
@@ -120,6 +125,59 @@ class TerminalConfigurationWindow(QMainWindow):
         layout.addStretch()
 
         return widget
+
+    def _create_typography_group(self) -> QGroupBox:
+        """Create typography configuration group for lineHeight and letterSpacing."""
+        group = QGroupBox("Typography & Spacing")
+        layout = QFormLayout(group)
+
+        # Line height control (multiplier: 1.0 to 2.0)
+        self.line_height_spin = QDoubleSpinBox()
+        self.line_height_spin.setRange(1.0, 2.0)
+        self.line_height_spin.setValue(1.2)
+        self.line_height_spin.setSingleStep(0.1)
+        self.line_height_spin.setDecimals(1)
+        self.line_height_spin.setSuffix("x")
+        self.line_height_spin.setToolTip("Line spacing multiplier (1.0 = tight, 1.5 = relaxed)")
+        layout.addRow("Line height:", self.line_height_spin)
+
+        # Letter spacing control (pixels: 0 to 5)
+        self.letter_spacing_spin = QDoubleSpinBox()
+        self.letter_spacing_spin.setRange(0, 5)
+        self.letter_spacing_spin.setValue(0)
+        self.letter_spacing_spin.setSingleStep(0.5)
+        self.letter_spacing_spin.setDecimals(1)
+        self.letter_spacing_spin.setSuffix(" px")
+        self.letter_spacing_spin.setToolTip("Horizontal spacing between characters")
+        layout.addRow("Letter spacing:", self.letter_spacing_spin)
+
+        # Add quick presets
+        presets_layout = QHBoxLayout()
+
+        compact_btn = QPushButton("Compact")
+        compact_btn.setToolTip("lineHeight: 1.0, letterSpacing: 0")
+        compact_btn.clicked.connect(
+            lambda: (self.line_height_spin.setValue(1.0), self.letter_spacing_spin.setValue(0))
+        )
+        presets_layout.addWidget(compact_btn)
+
+        normal_btn = QPushButton("Normal")
+        normal_btn.setToolTip("lineHeight: 1.2, letterSpacing: 0")
+        normal_btn.clicked.connect(
+            lambda: (self.line_height_spin.setValue(1.2), self.letter_spacing_spin.setValue(0))
+        )
+        presets_layout.addWidget(normal_btn)
+
+        relaxed_btn = QPushButton("Relaxed")
+        relaxed_btn.setToolTip("lineHeight: 1.5, letterSpacing: 1")
+        relaxed_btn.clicked.connect(
+            lambda: (self.line_height_spin.setValue(1.5), self.letter_spacing_spin.setValue(1.0))
+        )
+        presets_layout.addWidget(relaxed_btn)
+
+        layout.addRow("Quick presets:", presets_layout)
+
+        return group
 
     def _create_scroll_group(self) -> QGroupBox:
         """Create scrolling configuration group."""
@@ -249,12 +307,18 @@ class TerminalConfigurationWindow(QMainWindow):
             return
 
         config = {
+            # Typography
+            "lineHeight": self.line_height_spin.value(),
+            "letterSpacing": self.letter_spacing_spin.value(),
+            # Scrolling
             "scrollback": self.scrollback_spin.value(),
             "scrollSensitivity": self.scroll_sensitivity_spin.value(),
             "fastScrollSensitivity": self.fast_scroll_spin.value(),
             "fastScrollModifier": self.fast_scroll_modifier.currentText(),
+            # Cursor
             "cursorStyle": self.cursor_style_combo.currentText(),
             "cursorBlink": self.cursor_blink_check.isChecked(),
+            # Behavior
             "tabStopWidth": self.tab_width_spin.value(),
             "bellStyle": self.bell_style_combo.currentText(),
             "rightClickSelectsWord": self.right_click_word_check.isChecked(),
@@ -266,6 +330,11 @@ class TerminalConfigurationWindow(QMainWindow):
 
     def _load_config_into_ui(self, config: dict):
         """Load configuration values into UI controls."""
+        # Typography
+        self.line_height_spin.setValue(config.get("lineHeight", 1.2))
+        self.letter_spacing_spin.setValue(config.get("letterSpacing", 0))
+
+        # Scrolling
         self.scrollback_spin.setValue(config.get("scrollback", 1000))
         self.scroll_sensitivity_spin.setValue(config.get("scrollSensitivity", 1))
         self.fast_scroll_spin.setValue(config.get("fastScrollSensitivity", 5))
@@ -275,12 +344,15 @@ class TerminalConfigurationWindow(QMainWindow):
         if index >= 0:
             self.fast_scroll_modifier.setCurrentIndex(index)
 
+        # Cursor
         cursor_style = config.get("cursorStyle", "block")
         index = self.cursor_style_combo.findText(cursor_style)
         if index >= 0:
             self.cursor_style_combo.setCurrentIndex(index)
 
         self.cursor_blink_check.setChecked(config.get("cursorBlink", True))
+
+        # Behavior
         self.tab_width_spin.setValue(config.get("tabStopWidth", 4))
 
         bell_style = config.get("bellStyle", "none")
