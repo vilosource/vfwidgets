@@ -56,10 +56,7 @@ class GeometryManager:
         return geometries
 
     def _calculate_recursive(
-        self,
-        node: PaneNode,
-        rect: QRect,
-        geometries: dict[str, QRect]
+        self, node: PaneNode, rect: QRect, geometries: dict[str, QRect]
     ) -> None:
         """
         Recursively calculate geometries for a node and its children.
@@ -127,12 +124,7 @@ class GeometryManager:
             # This creates the visual gap for the splitter handle
             section_width = width - (self.HANDLE_WIDTH if i < len(ratios) - 1 else 0)
 
-            section_rect = QRect(
-                current_x,
-                rect.y(),
-                section_width,
-                rect.height()
-            )
+            section_rect = QRect(current_x, rect.y(), section_width, rect.height())
             sections.append(section_rect)
 
             # Move to next section (width includes handle spacing)
@@ -183,12 +175,7 @@ class GeometryManager:
             # This creates the visual gap for the splitter handle
             section_height = height - (self.HANDLE_WIDTH if i < len(ratios) - 1 else 0)
 
-            section_rect = QRect(
-                rect.x(),
-                current_y,
-                rect.width(),
-                section_height
-            )
+            section_rect = QRect(rect.x(), current_y, rect.width(), section_height)
             sections.append(section_rect)
 
             # Move to next section (height includes handle spacing)
@@ -196,7 +183,9 @@ class GeometryManager:
 
         return sections
 
-    def calculate_dividers(self, tree: Optional[PaneNode], viewport: QRect) -> dict[str, list[QRect]]:
+    def calculate_dividers(
+        self, tree: Optional[PaneNode], viewport: QRect
+    ) -> dict[str, list[QRect]]:
         """
         Calculate divider geometries for each SplitNode in the tree.
 
@@ -225,10 +214,7 @@ class GeometryManager:
         return dividers
 
     def _calculate_dividers_recursive(
-        self,
-        node: PaneNode,
-        rect: QRect,
-        dividers: dict[str, list[QRect]]
+        self, node: PaneNode, rect: QRect, dividers: dict[str, list[QRect]]
     ) -> None:
         """
         Recursively calculate divider geometries for a node and its children.
@@ -262,7 +248,7 @@ class GeometryManager:
                         left_child_rect.x() + left_child_rect.width(),  # Start after left child
                         rect.y(),
                         self.HANDLE_WIDTH,
-                        rect.height()
+                        rect.height(),
                     )
                 else:  # VERTICAL
                     # Vertical split = horizontal divider line
@@ -271,7 +257,7 @@ class GeometryManager:
                         rect.x(),
                         left_child_rect.y() + left_child_rect.height(),  # Start after top child
                         rect.width(),
-                        self.HANDLE_WIDTH
+                        self.HANDLE_WIDTH,
                     )
 
                 node_dividers.append(divider_rect)

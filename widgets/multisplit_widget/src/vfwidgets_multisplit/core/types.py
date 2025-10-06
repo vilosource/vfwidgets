@@ -11,26 +11,28 @@ from enum import Enum
 from typing import NewType
 
 # Type aliases
-PaneId = NewType('PaneId', str)
-NodeId = NewType('NodeId', str)
-WidgetId = NewType('WidgetId', str)
+PaneId = NewType("PaneId", str)
+NodeId = NewType("NodeId", str)
+WidgetId = NewType("WidgetId", str)
 
 
 class Orientation(str, Enum):
     """Split orientation."""
+
     HORIZONTAL = "horizontal"
     VERTICAL = "vertical"
 
 
 class WherePosition(str, Enum):
     """Positions for pane placement operations."""
+
     REPLACE = "replace"
     LEFT = "left"
     RIGHT = "right"
     TOP = "top"
     BOTTOM = "bottom"
     BEFORE = "before"  # Insert before target (same parent)
-    AFTER = "after"    # Insert after target (same parent)
+    AFTER = "after"  # Insert after target (same parent)
 
     def to_orientation(self) -> Orientation | None:
         """Convert position to split orientation."""
@@ -43,6 +45,7 @@ class WherePosition(str, Enum):
 
 class Direction(str, Enum):
     """Cardinal directions for focus navigation."""
+
     LEFT = "left"
     RIGHT = "right"
     UP = "up"
@@ -56,11 +59,13 @@ class Direction(str, Enum):
 # Custom exceptions
 class PaneError(Exception):
     """Base exception for pane operations."""
+
     pass
 
 
 class PaneNotFoundError(PaneError):
     """Raised when a pane ID is not found in the tree."""
+
     def __init__(self, pane_id: PaneId):
         self.pane_id = pane_id
         super().__init__(f"Pane not found: {pane_id}")
@@ -68,11 +73,13 @@ class PaneNotFoundError(PaneError):
 
 class InvalidStructureError(PaneError):
     """Raised when tree structure is invalid."""
+
     pass
 
 
 class InvalidRatioError(PaneError):
     """Raised when split ratios are invalid."""
+
     def __init__(self, ratios: list[float], message: str = ""):
         self.ratios = ratios
         msg = f"Invalid ratios: {ratios}"
@@ -83,6 +90,7 @@ class InvalidRatioError(PaneError):
 
 class WidgetProviderError(PaneError):
     """Raised when widget provider fails."""
+
     def __init__(self, widget_id: str, message: str = ""):
         self.widget_id = widget_id
         msg = f"Widget provider failed for: {widget_id}"
@@ -93,15 +101,14 @@ class WidgetProviderError(PaneError):
 
 class CommandExecutionError(PaneError):
     """Raised when a command fails to execute."""
+
     pass
-
-
-
 
 
 @dataclass(frozen=True)
 class Size:
     """Immutable size representation."""
+
     width: int
     height: int
 
@@ -113,6 +120,7 @@ class Size:
 @dataclass(frozen=True)
 class Position:
     """Immutable position representation."""
+
     x: int
     y: int
 
@@ -120,6 +128,7 @@ class Position:
 @dataclass(frozen=True)
 class Rect:
     """Immutable rectangle representation."""
+
     position: Position
     size: Size
 
@@ -143,6 +152,7 @@ class Rect:
 @dataclass(frozen=True)
 class SizeConstraints:
     """Size constraints for panes."""
+
     min_width: int = 50
     min_height: int = 50
     max_width: int | None = None
@@ -171,6 +181,7 @@ class SizeConstraints:
 @dataclass(frozen=True)
 class Bounds:
     """Immutable bounds representation for geometry calculations."""
+
     x: int
     y: int
     width: int
@@ -201,8 +212,7 @@ class Bounds:
         Returns:
             True if point is inside bounds
         """
-        return (self.x <= x < self.right and
-                self.y <= y < self.bottom)
+        return self.x <= x < self.right and self.y <= y < self.bottom
 
     def intersects(self, other: Bounds) -> bool:
         """Check if bounds intersect with another.
@@ -213,10 +223,12 @@ class Bounds:
         Returns:
             True if bounds overlap
         """
-        return not (self.right <= other.x or
-                   other.right <= self.x or
-                   self.bottom <= other.y or
-                   other.bottom <= self.y)
+        return not (
+            self.right <= other.x
+            or other.right <= self.x
+            or self.bottom <= other.y
+            or other.bottom <= self.y
+        )
 
 
 @dataclass(frozen=True)
@@ -293,9 +305,13 @@ class SplitterStyle:
         if self.handle_width < 0:
             raise ValueError(f"handle_width must be non-negative: {self.handle_width}")
         if self.handle_margin_horizontal < 0:
-            raise ValueError(f"handle_margin_horizontal must be non-negative: {self.handle_margin_horizontal}")
+            raise ValueError(
+                f"handle_margin_horizontal must be non-negative: {self.handle_margin_horizontal}"
+            )
         if self.handle_margin_vertical < 0:
-            raise ValueError(f"handle_margin_vertical must be non-negative: {self.handle_margin_vertical}")
+            raise ValueError(
+                f"handle_margin_vertical must be non-negative: {self.handle_margin_vertical}"
+            )
         if self.hit_area_padding < 0:
             raise ValueError(f"hit_area_padding must be non-negative: {self.hit_area_padding}")
         if self.border_width < 0:
@@ -321,7 +337,7 @@ class SplitterStyle:
             handle_margin_horizontal=0,
             handle_margin_vertical=0,
             border_width=0,
-            hit_area_padding=3  # 3px padding on each side = 7px total hit area
+            hit_area_padding=3,  # 3px padding on each side = 7px total hit area
         )
 
     @classmethod
@@ -337,10 +353,7 @@ class SplitterStyle:
             SplitterStyle with compact dimensions
         """
         return cls(
-            handle_width=3,
-            handle_margin_horizontal=1,
-            handle_margin_vertical=1,
-            border_width=1
+            handle_width=3, handle_margin_horizontal=1, handle_margin_vertical=1, border_width=1
         )
 
     @classmethod
@@ -356,10 +369,7 @@ class SplitterStyle:
             SplitterStyle with comfortable dimensions
         """
         return cls(
-            handle_width=6,
-            handle_margin_horizontal=2,
-            handle_margin_vertical=2,
-            border_width=1
+            handle_width=6, handle_margin_horizontal=2, handle_margin_vertical=2, border_width=1
         )
 
 

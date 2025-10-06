@@ -9,6 +9,14 @@ from typing import Optional
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
+try:
+    from vfwidgets_theme.core.manager import ThemeManager
+    from vfwidgets_theme.core.tokens import ColorTokenRegistry
+
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+
 from .controller.controller import PaneController
 from .core.focus import FocusManager
 from .core.model import PaneModel
@@ -47,9 +55,12 @@ class MultisplitWidget(QWidget):
     _focus_manager: FocusManager
     _session_manager: SessionManager
 
-    def __init__(self, provider: Optional[WidgetProvider] = None,
-                 splitter_style: Optional[SplitterStyle] = None,
-                 parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        provider: Optional[WidgetProvider] = None,
+        splitter_style: Optional[SplitterStyle] = None,
+        parent: Optional[QWidget] = None,
+    ):
         """Initialize MultiSplit widget.
 
         Args:
@@ -93,12 +104,13 @@ class MultisplitWidget(QWidget):
         # Core components (private - internal implementation)
         self._model = PaneModel()
         self._controller = PaneController(self._model)
-        self._container = PaneContainer(self._model, provider, self)
+        self._container = PaneContainer(self._model, provider, self, splitter_style=splitter_style)
         self._focus_manager = FocusManager(self._model)
         self._session_manager = SessionManager(self._model)
 
         # Setup layout
         from PySide6.QtWidgets import QVBoxLayout
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._container)
@@ -124,9 +136,7 @@ class MultisplitWidget(QWidget):
             lambda pane_id: self.pane_removed.emit(str(pane_id))
         )
         self._model.signals.focus_changed.connect(self._forward_focus_changed)
-        self._model.signals.structure_changed.connect(
-            lambda: self.layout_changed.emit()
-        )
+        self._model.signals.structure_changed.connect(lambda: self.layout_changed.emit())
         self._model.signals.validation_failed.connect(
             lambda errors: self.validation_failed.emit(errors)
         )
@@ -151,6 +161,38 @@ class MultisplitWidget(QWidget):
 
         command = SetRatiosCommand(self._model, NodeId(node_id), ratios)
         self._controller.execute_command(command)
+
+    def showEvent(self, event):
+        """Override showEvent to apply theme styling when widget is first shown."""
+        super().showEvent(event)
+        # Apply divider styling on first show (theme will be set by now)
+        if THEME_AVAILABLE and not self.styleSheet():
+            self._apply_divider_style()
+
+    def _apply_divider_style(self) -> None:
+        """Apply theme-aware divider background color."""
+        if not THEME_AVAILABLE:
+            return
+
+        try:
+            # Get current theme
+            theme_mgr = ThemeManager.get_instance()
+            current_theme = theme_mgr.current_theme
+
+            # Get editor.background color for dividers (darker than widget.background)
+            divider_color = ColorTokenRegistry.get("editor.background", current_theme)
+
+            # Apply stylesheet
+            self.setStyleSheet(
+                f"""
+                MultisplitWidget {{
+                    background-color: {divider_color};
+                }}
+            """
+            )
+        except Exception:
+            # Fallback if theme system fails
+            pass
 
     # Public API
 
@@ -177,8 +219,9 @@ class MultisplitWidget(QWidget):
         self._model.signals.structure_changed.emit()
         self._model.signals.pane_added.emit(pane_id)
 
-    def split_pane(self, pane_id: str, widget_id: str,
-                  position: WherePosition, ratio: float = 0.5) -> bool:
+    def split_pane(
+        self, pane_id: str, widget_id: str, position: WherePosition, ratio: float = 0.5
+    ) -> bool:
         """Split a pane.
 
         Args:
@@ -240,11 +283,14 @@ class MultisplitWidget(QWidget):
             return self._model.set_focused_pane(target)
         return False
 
-    def set_constraints(self, pane_id: str,
-                       min_width: int = 50,
-                       min_height: int = 50,
-                       max_width: Optional[int] = None,
-                       max_height: Optional[int] = None) -> bool:
+    def set_constraints(
+        self,
+        pane_id: str,
+        min_width: int = 50,
+        min_height: int = 50,
+        max_width: Optional[int] = None,
+        max_height: Optional[int] = None,
+    ) -> bool:
         """Set size constraints for a pane.
 
         Args:
@@ -259,12 +305,8 @@ class MultisplitWidget(QWidget):
         """
         from .controller.commands import SetConstraintsCommand
 
-        constraints = SizeConstraints(
-            min_width, min_height, max_width, max_height
-        )
-        command = SetConstraintsCommand(
-            self._model, PaneId(pane_id), constraints
-        )
+        constraints = SizeConstraints(min_width, min_height, max_width, max_height)
+        command = SetConstraintsCommand(self._model, PaneId(pane_id), constraints)
         return self._controller.execute_command(command)
 
     def undo(self) -> bool:
@@ -346,6 +388,7 @@ class MultisplitWidget(QWidget):
             ...     widget.setText("New content")
         """
         from .core.types import PaneId
+
         return self._container._widget_pool.get_widget(PaneId(pane_id))
 
     def get_all_widgets(self) -> dict[str, QWidget]:

@@ -11,7 +11,7 @@ from ..core.types import Orientation, SplitterStyle
 try:
     from vfwidgets_theme.core.manager import ThemeManager
     from vfwidgets_theme.core.tokens import ColorTokenRegistry
-    from vfwidgets_theme.widgets.base import ThemedWidget
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -33,12 +33,14 @@ class DividerWidget(QWidget):
     resize_requested = Signal(str, int, int)  # LIVE preview during drag
     resize_committed = Signal(str, int, int)  # Final commit when drag completes
 
-    def __init__(self,
-                 node_id: str,
-                 divider_index: int,
-                 orientation: Orientation,
-                 style: Optional[SplitterStyle] = None,
-                 parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        node_id: str,
+        divider_index: int,
+        orientation: Orientation,
+        style: Optional[SplitterStyle] = None,
+        parent: Optional[QWidget] = None,
+    ):
         """Initialize divider widget.
 
         Args:
@@ -134,7 +136,7 @@ class DividerWidget(QWidget):
             try:
                 theme_mgr = ThemeManager.get_instance()
                 current_theme = theme_mgr.current_theme
-                return ColorTokenRegistry.get('editor.background', current_theme)
+                return ColorTokenRegistry.get("editor.background", current_theme)
             except Exception:
                 pass
 
@@ -151,7 +153,7 @@ class DividerWidget(QWidget):
             try:
                 theme_mgr = ThemeManager.get_instance()
                 current_theme = theme_mgr.current_theme
-                return ColorTokenRegistry.get('list.hoverBackground', current_theme)
+                return ColorTokenRegistry.get("list.hoverBackground", current_theme)
             except Exception:
                 pass
 
@@ -164,7 +166,7 @@ class DividerWidget(QWidget):
             try:
                 theme_mgr = ThemeManager.get_instance()
                 current_theme = theme_mgr.current_theme
-                return ColorTokenRegistry.get('widget.border', current_theme)
+                return ColorTokenRegistry.get("widget.border", current_theme)
             except Exception:
                 pass
 
@@ -204,6 +206,7 @@ class DividerWidget(QWidget):
             self._update_style()
             # Start timer to poll mouse position during drag
             from PySide6.QtCore import QTimer
+
             self._drag_timer = QTimer(self)
             self._drag_timer.timeout.connect(self._update_drag_position)
             self._drag_timer.start(16)  # ~60 FPS
@@ -231,7 +234,9 @@ class DividerWidget(QWidget):
         self._drag_current_pos = local_pos
 
         # Emit live resize signal for real-time visual feedback
-        if delta_pixels != 0 and (not hasattr(self, '_last_delta') or self._last_delta != delta_pixels):
+        if delta_pixels != 0 and (
+            not hasattr(self, "_last_delta") or self._last_delta != delta_pixels
+        ):
             self._last_delta = delta_pixels
             self.resize_requested.emit(self.node_id, self.divider_index, delta_pixels)
 
@@ -246,18 +251,18 @@ class DividerWidget(QWidget):
         """Handle mouse release - end drag and commit final resize to model."""
         if event.button() == Qt.MouseButton.LeftButton and self._dragging:
             # Stop drag timer
-            if hasattr(self, '_drag_timer'):
+            if hasattr(self, "_drag_timer"):
                 self._drag_timer.stop()
                 self._drag_timer.deleteLater()
 
             # Emit FINAL commit signal to update model (via SetRatiosCommand)
-            final_delta = getattr(self, '_last_delta', 0)
+            final_delta = getattr(self, "_last_delta", 0)
             self.resize_committed.emit(self.node_id, self.divider_index, final_delta)
 
             self._dragging = False
             self._drag_current_pos = None
-            if hasattr(self, '_last_delta'):
-                delattr(self, '_last_delta')
+            if hasattr(self, "_last_delta"):
+                delattr(self, "_last_delta")
 
             # Update style to remove dragging highlight
             # Check if still hovering
@@ -284,20 +289,10 @@ class DividerWidget(QWidget):
 
             if self.orientation == Orientation.HORIZONTAL:
                 # Vertical divider - center horizontally within widget
-                visible_rect = QRect(
-                    padding,
-                    0,
-                    self.style.handle_width,
-                    self.height()
-                )
+                visible_rect = QRect(padding, 0, self.style.handle_width, self.height())
             else:
                 # Horizontal divider - center vertically within widget
-                visible_rect = QRect(
-                    0,
-                    padding,
-                    self.width(),
-                    self.style.handle_width
-                )
+                visible_rect = QRect(0, padding, self.width(), self.style.handle_width)
 
             # Draw background
             painter.fillRect(visible_rect, bg_color)

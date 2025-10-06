@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QSplitter, QWidget
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -25,14 +26,15 @@ from ..view.visual_renderer import VisualRenderer
 from ..view.widget_pool import WidgetPool
 
 if THEME_AVAILABLE:
+
     class StyledSplitter(ThemedWidget, QSplitter):
         """Splitter with hover states and theme-aware visuals."""
 
         # Theme configuration - maps theme tokens to splitter properties
         theme_config = {
-            'handle_bg': 'widget.background',
-            'handle_hover_bg': 'list.hoverBackground',
-            'handle_border': 'widget.border',
+            "handle_bg": "widget.background",
+            "handle_hover_bg": "list.hoverBackground",
+            "handle_border": "widget.border",
         }
 
         def __init__(self, orientation, parent=None, style: Optional[SplitterStyle] = None):
@@ -54,6 +56,7 @@ if THEME_AVAILABLE:
 
             # Prevent white flash when splitter is created before children are added
             from PySide6.QtCore import Qt
+
             self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
 
             self._is_hovered = False
@@ -86,7 +89,8 @@ if THEME_AVAILABLE:
             border_width = self.style.border_width
             border_radius = self.style.border_radius
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QSplitter::handle {{
                     background-color: {bg};
                     border: {border_width}px solid {border};
@@ -100,7 +104,8 @@ if THEME_AVAILABLE:
                     height: {handle_width}px;
                     margin: 0px {margin_v}px;
                 }}
-            """)
+            """
+            )
 
         def eventFilter(self, obj, event):
             """Handle hover events on splitter handles."""
@@ -109,8 +114,11 @@ if THEME_AVAILABLE:
                 self._is_hovered = True
                 self._update_style(hovered=True)
                 # Change cursor
-                obj.setCursor(Qt.CursorShape.SplitHCursor if self.orientation() == Qt.Orientation.Horizontal
-                            else Qt.CursorShape.SplitVCursor)
+                obj.setCursor(
+                    Qt.CursorShape.SplitHCursor
+                    if self.orientation() == Qt.Orientation.Horizontal
+                    else Qt.CursorShape.SplitVCursor
+                )
 
             elif event.type() == QEvent.Type.Leave:
                 # Mouse left handle
@@ -166,10 +174,13 @@ class PaneContainer(QWidget, ReconcilerOperations):
     pane_focused = Signal(str)  # pane_id
     splitter_moved = Signal(str, list)  # node_id, new_ratios
 
-    def __init__(self, model: PaneModel,
-                 provider: Optional[WidgetProvider] = None,
-                 parent: Optional[QWidget] = None,
-                 splitter_style: Optional['SplitterStyle'] = None):
+    def __init__(
+        self,
+        model: PaneModel,
+        provider: Optional[WidgetProvider] = None,
+        parent: Optional[QWidget] = None,
+        splitter_style: Optional["SplitterStyle"] = None,
+    ):
         """Initialize container."""
         super().__init__(parent)
 
@@ -194,6 +205,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
         # WA_NoSystemBackground: Prevent Qt from erasing widget background (prevents white flash)
         # This is the proper Qt way to prevent flashing when widgets aren't ready to paint yet
         from PySide6.QtCore import Qt
+
         self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
 
         # Enable mouse tracking to receive mouse move events for divider drag
@@ -215,19 +227,24 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
     def _update_view(self):
         """Update view to match model."""
-        logger.debug(f"_update_view: current_tree={type(self._current_tree).__name__ if self._current_tree else 'None'}, "
-                    f"model.root={type(self.model.root).__name__ if self.model.root else 'None'}")
+        logger.debug(
+            f"_update_view: current_tree={type(self._current_tree).__name__ if self._current_tree else 'None'}, "
+            f"model.root={type(self.model.root).__name__ if self.model.root else 'None'}"
+        )
 
         # Get differences
         diff = self.reconciler.diff(self._current_tree, self.model.root)
 
-        logger.debug(f"Reconciler diff: added={diff.added}, removed={diff.removed}, "
-                    f"has_changes={diff.has_changes()}")
+        logger.debug(
+            f"Reconciler diff: added={diff.added}, removed={diff.removed}, "
+            f"has_changes={diff.has_changes()}"
+        )
 
         # Log details if we have unexpected removals
         if diff.removed and self._current_tree and self.model.root:
             logger.warning(f"Unexpected removals detected: {diff.removed}")
             from ..core.logger import log_tree_structure
+
             log_tree_structure(self._current_tree, "Current tree (before update)")
             log_tree_structure(self.model.root, "New tree (model.root)")
 
@@ -299,7 +316,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
         divider_geometries = self._geometry_manager.calculate_dividers(self.model.root, viewport)
         self._update_dividers(divider_geometries)
 
-    def _update_dividers(self, divider_geometries: dict[str, list['QRect']]):
+    def _update_dividers(self, divider_geometries: dict[str, list["QRect"]]):
         """Create/update/remove divider widgets to match tree structure.
 
         Args:
@@ -349,7 +366,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
                     divider_index=divider_index,
                     orientation=split_node.orientation,
                     style=self.splitter_style,
-                    parent=self
+                    parent=self,
                 )
                 # Connect signals
                 divider.resize_requested.connect(self._on_divider_resize)  # LIVE preview
@@ -385,20 +402,10 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
         if orientation == Orientation.HORIZONTAL:
             # Horizontal split = vertical divider = expand width (left/right)
-            return QRect(
-                rect.x() - padding,
-                rect.y(),
-                rect.width() + (2 * padding),
-                rect.height()
-            )
+            return QRect(rect.x() - padding, rect.y(), rect.width() + (2 * padding), rect.height())
         else:  # VERTICAL
             # Vertical split = horizontal divider = expand height (top/bottom)
-            return QRect(
-                rect.x(),
-                rect.y() - padding,
-                rect.width(),
-                rect.height() + (2 * padding)
-            )
+            return QRect(rect.x(), rect.y() - padding, rect.width(), rect.height() + (2 * padding))
 
     def _on_divider_resize(self, node_id: str, divider_index: int, delta_pixels: int):
         """Handle divider drag - DIRECT geometry update for live feedback.
@@ -432,10 +439,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
         # Calculate new ratios for PREVIEW
         new_ratios = self._calculate_new_ratios(
-            split_node.ratios,
-            divider_index,
-            delta_pixels,
-            total_size
+            split_node.ratios, divider_index, delta_pixels, total_size
         )
 
         # CRITICAL: Create a TEMPORARY modified tree for preview calculation
@@ -485,10 +489,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
 
         # Calculate final ratios
         new_ratios = self._calculate_new_ratios(
-            split_node.ratios,
-            divider_index,
-            delta_pixels,
-            total_size
+            split_node.ratios, divider_index, delta_pixels, total_size
         )
 
         # Emit signal to trigger SetRatiosCommand (updates model, triggers structure_changed)
@@ -496,11 +497,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self.splitter_moved.emit(node_id, new_ratios)
 
     def _calculate_new_ratios(
-        self,
-        old_ratios: list[float],
-        divider_index: int,
-        delta_pixels: int,
-        total_size: int
+        self, old_ratios: list[float], divider_index: int, delta_pixels: int, total_size: int
     ) -> list[float]:
         """Convert pixel delta to new ratio distribution.
 
@@ -569,7 +566,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
             # Widget gained focus - find its pane
             pane_id = self._find_widget_pane(obj)
             if pane_id:
-                logger.info(f"FocusIn event: widget {obj.__class__.__name__} in pane {pane_id} gained focus")
+                logger.info(
+                    f"FocusIn event: widget {obj.__class__.__name__} in pane {pane_id} gained focus"
+                )
                 self.pane_focused.emit(pane_id)
                 return False
 
@@ -583,7 +582,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
                     pane_id_str = self._find_widget_pane(obj)
 
                 if pane_id_str:
-                    logger.info(f"Mouse click detected on {obj.__class__.__name__} in pane: {pane_id_str}")
+                    logger.info(
+                        f"Mouse click detected on {obj.__class__.__name__} in pane: {pane_id_str}"
+                    )
 
                     # CRITICAL: Find the actual focusable widget and give it focus
                     # The pane widget is often just a container - we need to focus the child
@@ -657,7 +658,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
             widget.setProperty("event_filter_installed", True)
             widget.setProperty("pane_id", str(pane_id))
 
-            logger.debug(f"Installed filter on {widget.__class__.__name__} at depth {depth} for pane {pane_id}")
+            logger.debug(
+                f"Installed filter on {widget.__class__.__name__} at depth {depth} for pane {pane_id}"
+            )
 
         # Install on all children
         for child in widget.findChildren(QWidget):
@@ -679,29 +682,25 @@ class PaneContainer(QWidget, ReconcilerOperations):
         elif "Editor" in widget_type or "TextEdit" in widget_type or "PlainTextEdit" in widget_type:
             # Text editors may have viewport widgets
             logger.debug(f"Installing text editor focus handler for pane {pane_id}")
-            if hasattr(widget, 'viewport'):
+            if hasattr(widget, "viewport"):
                 viewport = widget.viewport()
                 if viewport:
                     self._install_recursive_filters(viewport, pane_id)
 
             # Also handle document
-            if hasattr(widget, 'document'):
+            if hasattr(widget, "document"):
                 document = widget.document()
-                if document and hasattr(document, 'contentsChanged'):
+                if document and hasattr(document, "contentsChanged"):
                     # Connect to document changes to update focus when typing
-                    document.contentsChanged.connect(
-                        lambda: self.pane_focused.emit(str(pane_id))
-                    )
+                    document.contentsChanged.connect(lambda: self.pane_focused.emit(str(pane_id)))
 
         elif "TabWidget" in widget_type:
             # Tab widgets need monitoring for tab changes
             logger.debug(f"Installing tab widget focus handler for pane {pane_id}")
-            if hasattr(widget, 'currentChanged'):
-                widget.currentChanged.connect(
-                    lambda: self.pane_focused.emit(str(pane_id))
-                )
+            if hasattr(widget, "currentChanged"):
+                widget.currentChanged.connect(lambda: self.pane_focused.emit(str(pane_id)))
             # Also handle individual tab widgets
-            if hasattr(widget, 'count'):
+            if hasattr(widget, "count"):
                 for i in range(widget.count()):
                     tab_widget = widget.widget(i)
                     if tab_widget:
@@ -724,7 +723,9 @@ class PaneContainer(QWidget, ReconcilerOperations):
             # Find children without filters
             for child in widget.findChildren(QWidget):
                 if not child.property("event_filter_installed"):
-                    logger.debug(f"Found new child widget: {child.__class__.__name__} in pane {pane_id}")
+                    logger.debug(
+                        f"Found new child widget: {child.__class__.__name__} in pane {pane_id}"
+                    )
                     self._install_recursive_filters(child, pane_id, 0)
 
         # Check periodically for new children (for highly dynamic widgets)
@@ -755,7 +756,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
             Qt.Key.Key_Left: Direction.LEFT,
             Qt.Key.Key_Right: Direction.RIGHT,
             Qt.Key.Key_Up: Direction.UP,
-            Qt.Key.Key_Down: Direction.DOWN
+            Qt.Key.Key_Down: Direction.DOWN,
         }
 
         if event.key() in direction_map:
@@ -821,12 +822,16 @@ class PaneContainer(QWidget, ReconcilerOperations):
         # Create widget via provider
         widget = None
         if self.provider:
-            logger.info(f"Requesting widget from provider: {pane_node.widget_id} for pane {pane_id}")
+            logger.info(
+                f"Requesting widget from provider: {pane_node.widget_id} for pane {pane_id}"
+            )
             widget = self.provider.provide_widget(pane_node.widget_id, pane_id)
             log_widget_creation(pane_node.widget_id, pane_id, type(widget))
         else:
             # Emit signal or create placeholder
-            logger.warning(f"No provider available, emitting widget_needed signal for {pane_node.widget_id}")
+            logger.warning(
+                f"No provider available, emitting widget_needed signal for {pane_node.widget_id}"
+            )
             self.widget_needed.emit(str(pane_node.widget_id), str(pane_id))
             # Create placeholder
             placeholder = QWidget()
@@ -853,7 +858,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
             widget = self._widget_pool.get_widget(pane_id)
 
             # Call lifecycle hook BEFORE removing widget
-            if widget and widget_id and self.provider and hasattr(self.provider, 'widget_closing'):
+            if widget and widget_id and self.provider and hasattr(self.provider, "widget_closing"):
                 try:
                     logger.debug(f"Calling widget_closing() for {widget_id} in pane {pane_id}")
                     self.provider.widget_closing(widget_id, pane_id, widget)

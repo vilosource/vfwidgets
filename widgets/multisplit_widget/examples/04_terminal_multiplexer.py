@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 terminal_widget_path = Path(__file__).parent.parent.parent / "terminal_widget" / "src"
 sys.path.insert(0, str(terminal_widget_path))
 
+# ruff: noqa: E402 - Imports below are after sys.path manipulation
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QAction, QColor
 from PySide6.QtWidgets import (
@@ -47,6 +48,7 @@ from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition,
 
 try:
     from vfwidgets_terminal import TerminalWidget
+
     TERMINAL_AVAILABLE = True
 except ImportError:
     TERMINAL_AVAILABLE = False
@@ -86,7 +88,8 @@ class TerminalPane(QWidget):
 
         # Header with terminal info
         self.header = QLabel()
-        self.header.setStyleSheet("""
+        self.header.setStyleSheet(
+            """
             QLabel {
                 background-color: #2d2d30;
                 border-bottom: 1px solid #555;
@@ -94,7 +97,8 @@ class TerminalPane(QWidget):
                 font-size: 10px;
                 color: #ccc;
             }
-        """)
+        """
+        )
         self.header.setText(f"🖥️  Terminal {terminal_id} | Pane: {pane_id[:8]}...")
 
         # Create terminal widget
@@ -110,7 +114,9 @@ class TerminalPane(QWidget):
         else:
             # Fallback to placeholder with provided background
             self.terminal = QLabel("Terminal widget not available\nInstall vfwidgets_terminal")
-            self.terminal.setStyleSheet(f"background-color: {background_color}; color: #ccc; padding: 20px;")
+            self.terminal.setStyleSheet(
+                f"background-color: {background_color}; color: #ccc; padding: 20px;"
+            )
 
         # Add to layout
         layout.addWidget(self.header)
@@ -125,7 +131,7 @@ class TerminalPane(QWidget):
         web view, not just the container widget.
         """
         super().setFocus(reason)
-        if TERMINAL_AVAILABLE and hasattr(self, 'terminal'):
+        if TERMINAL_AVAILABLE and hasattr(self, "terminal"):
             self.terminal.setFocus(reason)
 
 
@@ -160,13 +166,14 @@ class TerminalProvider(WidgetProvider):
         if TERMINAL_AVAILABLE:
             try:
                 from vfwidgets_terminal.constants import DARK_THEME_COLORS
-                self._background_color = DARK_THEME_COLORS.get('background', '#1e1e1e')
+
+                self._background_color = DARK_THEME_COLORS.get("background", "#1e1e1e")
                 return self._background_color
             except ImportError:
                 pass
 
         # Fallback
-        self._background_color = '#1e1e1e'
+        self._background_color = "#1e1e1e"
         return self._background_color
 
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
@@ -246,7 +253,9 @@ class TerminalMultiplexerWindow(QMainWindow):
             cursor_on_hover=True,
             hit_area_padding=3,  # 3px padding on each side for easier grabbing (7px total hit area)
         )
-        self.multisplit = MultisplitWidget(provider=self.provider, splitter_style=dark_splitter_style)
+        self.multisplit = MultisplitWidget(
+            provider=self.provider, splitter_style=dark_splitter_style
+        )
 
         # CRITICAL: Set MultisplitWidget container background to match terminal theme
         # This prevents white flash during pane resize/split operations
@@ -400,7 +409,7 @@ class TerminalMultiplexerWindow(QMainWindow):
             "Close Terminal",
             "Close this terminal session?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
 
         if reply == QMessageBox.StandardButton.Yes:

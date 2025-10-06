@@ -21,9 +21,7 @@ pip install -e "./widgets/multisplit_widget[dev]"
 
 ```python
 from PySide6.QtWidgets import QApplication, QTextEdit
-from vfwidgets_multisplit import MultisplitWidget
-from vfwidgets_multisplit.view.container import WidgetProvider
-from vfwidgets_multisplit.core.types import WherePosition  # For split operations
+from vfwidgets_multisplit import MultisplitWidget, WidgetProvider, WherePosition
 
 class TextEditorProvider(WidgetProvider):
     """Provides QTextEdit widgets on demand."""
@@ -47,9 +45,12 @@ app.exec()
 - **Dynamic splitting**: Split panes horizontally or vertically at runtime
 - **Lazy widget creation**: Widgets created on-demand via WidgetProvider pattern
 - **Keyboard navigation**: Vim-inspired focus movement between panes
-- **Drag-to-resize**: Interactive pane resizing with visual feedback
+- **Drag-to-resize**: Interactive pane resizing with live preview - grab dividers with mouse to adjust split ratios in real-time
 - **Focus management**: Track and manage focus across multiple panes
 - **Session persistence**: Save and restore pane layouts
+- **Theme-aware dividers**: Dividers automatically use theme colors with hover effects (vfwidgets_theme integration)
+- **Customizable styling**: Configure divider appearance with SplitterStyle (minimal/compact/comfortable presets)
+- **QWebEngineView optimized**: Smart rendering prevents GPU compositor flash when resizing web-based widgets (terminals, browsers)
 
 ## Critical: WidgetProvider Pattern
 
@@ -83,30 +84,29 @@ See [examples/01_basic_text_editor.py](examples/01_basic_text_editor.py) for the
 
 ### Import Paths
 
+**All public types available from main package** (v0.2.0+):
+
 ```python
-# Main widget
-from vfwidgets_multisplit import MultisplitWidget
-
-# Provider base class
-from vfwidgets_multisplit.view.container import WidgetProvider
-
-# Split position enum (REQUIRED for split operations)
-from vfwidgets_multisplit.core.types import WherePosition
+from vfwidgets_multisplit import (
+    MultisplitWidget,    # Main widget
+    WidgetProvider,      # Provider base class
+    WherePosition,       # Split positions (LEFT/RIGHT/TOP/BOTTOM)
+    Direction,           # Navigation directions (UP/DOWN/LEFT/RIGHT)
+    SplitterStyle,       # Divider styling configuration
+)
 ```
 
-**Common Import Error:**
+**Legacy import paths** (deprecated but still supported):
 ```python
-# ❌ WRONG - WherePosition is NOT exported from main package
-from vfwidgets_multisplit import WherePosition  # ImportError!
-
-# ✅ CORRECT - Import from core.types
+# Old way - still works but not recommended
+from vfwidgets_multisplit.view.container import WidgetProvider
 from vfwidgets_multisplit.core.types import WherePosition
 ```
 
 ### Split Operations
 
 ```python
-from vfwidgets_multisplit.core.types import WherePosition
+from vfwidgets_multisplit import MultisplitWidget, WherePosition
 
 # Split pane horizontally (vertical divider)
 multisplit.split_pane(
@@ -130,6 +130,24 @@ focused_pane = multisplit.get_focused_pane()
 # Remove a pane
 multisplit.remove_pane(pane_id)
 ```
+
+### Drag-to-Resize
+
+Drag-to-resize is **enabled by default** with live preview:
+
+**How it works:**
+1. Hover over any divider between panes - cursor changes to resize arrows
+2. Click and drag the divider to adjust split ratios
+3. Visual feedback updates in real-time as you drag
+4. Release mouse to commit the new ratios (undo/redo supported)
+
+**Behavior:**
+- **Live preview**: Pane sizes update immediately during drag
+- **Smooth interaction**: 60 FPS polling for responsive feel
+- **Theme integration**: Dividers show hover effects (if vfwidgets_theme available)
+- **Constraints**: Respects minimum pane sizes (default 50x50 pixels)
+
+**No configuration needed** - just use the widget and drag dividers!
 
 ### Widget IDs
 
@@ -182,6 +200,47 @@ multisplit.pane_removed    # Signal(str) - emitted when pane is removed
 ```
 
 **Important for QWebEngineView-based widgets**: If your widgets use `QWebEngineView` (terminals, browsers, web views), you need to override `setFocus()` to properly handle programmatic focus. See the [Focus Management Guide](docs/focus-management-GUIDE.md) for details.
+
+### Divider Styling
+
+Customize divider appearance with `SplitterStyle`:
+
+```python
+from vfwidgets_multisplit import MultisplitWidget, SplitterStyle
+
+# Minimal style (1px dividers - good for terminals)
+style = SplitterStyle.minimal()
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+
+# Compact style (3px dividers)
+style = SplitterStyle.compact()
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+
+# Comfortable style (6px dividers - DEFAULT)
+style = SplitterStyle.comfortable()  # This is the default
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+
+# Custom style with specific colors
+style = SplitterStyle(
+    handle_width=4,
+    handle_bg="#1e1e1e",           # Normal background
+    handle_hover_bg="#007acc",      # Hover background
+    handle_hover_border="#0098ff",  # Hover border
+    show_hover_effect=True,
+    cursor_on_hover=True
+)
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+```
+
+**Theme Integration:**
+- If `vfwidgets_theme` is available, dividers automatically use theme colors
+- Custom colors override theme defaults
+- Colors support hex format (`#RRGGBB`) or named colors (`"blue"`)
+
+**Available Presets:**
+- `SplitterStyle.minimal()` - 1px handles, no margins (terminal emulators)
+- `SplitterStyle.compact()` - 3px handles, 1px margins
+- `SplitterStyle.comfortable()` - 6px handles, 2px margins (default)
 
 ## Development
 

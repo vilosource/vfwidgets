@@ -7,13 +7,14 @@
 
 ## Quick Navigation
 
-| Document | Description |
-|----------|-------------|
-| **[QUICKSTART.md](QUICKSTART.md)** | Get started in 5 minutes |
-| **[API.md](API.md)** | Complete API reference |
-| **[GUIDE.md](GUIDE.md)** | Developer guide & best practices |
-| **[MIGRATION.md](MIGRATION.md)** | Version migration & API stability |
-| **[../examples/](../examples/)** | Working example applications |
+| Document | Description | Audience |
+|----------|-------------|----------|
+| **[QUICKSTART.md](QUICKSTART.md)** | Get started in 5 minutes | New users |
+| **[API.md](API.md)** | Complete API reference | All developers |
+| **[GUIDE.md](GUIDE.md)** | Developer guide & best practices | Application developers |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Internal architecture & extension points | Contributors & extenders |
+| **[MIGRATION.md](MIGRATION.md)** | Version migration & API stability | Upgrading users |
+| **[../examples/](../examples/)** | Working example applications | All developers |
 
 ---
 
@@ -294,13 +295,20 @@ multisplit.navigate_focus(Direction.RIGHT)
 
 ## Architecture
 
-MultisplitWidget follows strict **MVC architecture**:
+MultisplitWidget follows strict **MVC architecture** with a **Fixed Container Architecture** for layout:
 
 - **Model** - Tree structure of panes (pure Python, no Qt)
-- **View** - Visual rendering with Qt widgets
-- **Controller** - Mediates between Model and View
+- **View** - Geometry-based rendering without widget reparenting
+- **Controller** - Command pattern for all mutations (undo/redo support)
 
-As a user, you interact with the **public API** only. Internal MVC details are hidden.
+**For application developers**: Use the public API only. Internal details are abstracted.
+
+**For contributors/extenders**: See [ARCHITECTURE.md](ARCHITECTURE.md) for:
+- Fixed Container Architecture (3-layer design)
+- Drag-to-resize implementation (two-phase pattern)
+- Focus management flow
+- Extension points and customization
+- Testing strategy
 
 ---
 

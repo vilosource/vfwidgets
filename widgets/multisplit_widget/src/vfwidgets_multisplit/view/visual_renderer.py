@@ -75,10 +75,21 @@ class VisualRenderer:
             if widget is None:
                 continue
 
+            # Track if widget is newly becoming visible
+            was_hidden = not widget.isVisible()
+
             # CRITICAL: ONLY geometry change, NO reparenting
             widget.setGeometry(geometry)
             widget.setVisible(True)
             widget.raise_()  # Ensure proper z-order (front to back)
+
+            # Only repaint() for newly visible widgets to prevent flash
+            # For already-visible widgets being resized, use update() (async)
+            # This gives QWebEngineView's GPU compositor time to adjust render buffer
+            if was_hidden:
+                widget.repaint()  # Force IMMEDIATE repaint for new widgets
+            else:
+                widget.update()  # Schedule repaint - gives GPU time to adjust
 
             self._pool.mark_visible(pane_id)
 

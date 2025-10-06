@@ -23,16 +23,34 @@ The main widget that manages split panes.
 ### Constructor
 
 ```python
-MultisplitWidget(provider: WidgetProvider = None, parent: QWidget = None)
+MultisplitWidget(
+    provider: WidgetProvider = None,
+    splitter_style: SplitterStyle = None,
+    parent: QWidget = None
+)
 ```
 
 **Parameters:**
-- `provider` - WidgetProvider instance for creating widgets
+- `provider` - WidgetProvider instance for creating widgets (required in constructor)
+- `splitter_style` - Optional SplitterStyle for divider appearance (default: `SplitterStyle.comfortable()`)
 - `parent` - Optional parent QWidget
 
-**Example:**
+**Examples:**
 ```python
+# Basic usage with default styling
 multisplit = MultisplitWidget(provider=MyProvider())
+
+# With minimal divider style (1px)
+style = SplitterStyle.minimal()
+multisplit = MultisplitWidget(provider=MyProvider(), splitter_style=style)
+
+# With custom colors
+style = SplitterStyle(
+    handle_width=4,
+    handle_bg="#1e1e1e",
+    handle_hover_bg="#007acc"
+)
+multisplit = MultisplitWidget(provider=MyProvider(), splitter_style=style)
 ```
 
 ---
@@ -469,23 +487,89 @@ class Direction(Enum):
 
 ### SplitterStyle
 
-Visual style for split handles.
+Visual style for split dividers (the interactive bars between panes).
 
 #### Factory Methods
 
 ```python
-SplitterStyle.minimal()   # Thin, subtle handles
-SplitterStyle.compact()   # Thicker, visible handles
+# Minimal: 1px handles, no margins (terminal emulators)
+SplitterStyle.minimal()
+
+# Compact: 3px handles, 1px margins
+SplitterStyle.compact()
+
+# Comfortable: 6px handles, 2px margins (DEFAULT)
+SplitterStyle.comfortable()
 ```
 
 #### Custom Style
 
 ```python
 SplitterStyle(
-    handle_width: int = 4,
-    handle_color: str = "#ccc",
-    hover_color: str = "#999"
+    # Dimensions
+    handle_width: int = 6,                    # Width of handle in pixels
+    handle_margin_horizontal: int = 2,        # Top/bottom margin for horizontal handles
+    handle_margin_vertical: int = 2,          # Left/right margin for vertical handles
+
+    # Colors (None = use theme defaults)
+    handle_bg: str | None = None,             # Background color
+    handle_hover_bg: str | None = None,       # Hover background color
+    handle_border: str | None = None,         # Border color
+    handle_hover_border: str | None = None,   # Hover border color
+
+    # Border styling
+    border_width: int = 1,                    # Border width in pixels
+    border_radius: int = 0,                   # Corner radius in pixels
+
+    # Behavior
+    show_hover_effect: bool = True,           # Enable hover highlighting
+    cursor_on_hover: bool = True              # Show resize cursor on hover
 )
+```
+
+**Example - Custom terminal style:**
+```python
+style = SplitterStyle(
+    handle_width=1,
+    handle_bg="#1e1e1e",
+    handle_hover_bg="#2d2d30",
+    show_hover_effect=True,
+    cursor_on_hover=True
+)
+```
+
+---
+
+## Interactive Features
+
+### Drag-to-Resize
+
+MultisplitWidget supports interactive drag-to-resize with live preview.
+
+**Behavior:**
+- **Automatic**: Enabled by default, no configuration needed
+- **Live preview**: Pane sizes update in real-time during drag (60 FPS)
+- **Two-phase operation**:
+  1. **During drag**: Visual updates only (no model changes)
+  2. **On release**: Model updated via command pattern (undo/redo supported)
+- **Hover feedback**: Cursor changes to resize arrows when over dividers
+- **Theme integration**: Hover effects use theme colors if available
+
+**Technical Details:**
+- Uses timer-based mouse polling for smooth cross-platform behavior
+- Respects minimum pane sizes (default 50x50 pixels)
+- Dividers positioned in 6px gaps between panes (configurable via `SplitterStyle`)
+- No focus stealing - dividers have `FocusPolicy.NoFocus`
+
+**Customization:**
+```python
+# Disable hover effects
+style = SplitterStyle(show_hover_effect=False, cursor_on_hover=False)
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
+
+# Minimal dividers (1px)
+style = SplitterStyle.minimal()
+multisplit = MultisplitWidget(provider=provider, splitter_style=style)
 ```
 
 ---
