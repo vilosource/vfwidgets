@@ -103,6 +103,64 @@ Grid Layout (2x2):
 
 **Summary**: Only 2 out of ~16 possible navigation operations work correctly, and those are accidental due to tab order alignment with spatial layout.
 
+### Complex Nested Layout Behavior
+
+Using `examples/05_navigation_testing.py` with Complex Nested layout:
+
+**Tree Structure**:
+```python
+initialize_empty("pane_a")              # Creates A (left side)
+split_pane(A, "pane_b", RIGHT, 0.5)    # Creates B on right of A
+split_pane(B, "pane_c", BOTTOM, 0.5)   # Creates C below B
+```
+
+Tree:
+```
+         Root (Horizontal: A | B/C)
+        /                          \
+       A                        Split (Vert: B/C)
+                                 /          \
+                                B            C
+```
+
+**Resulting Tab Order**: A → B → C
+
+**Observed Navigation (from Pane C)**:
+
+Layout visualization:
+```
+┌─────────┬─────────┐
+│         │ Pane B  │
+│ Pane A  │   (TR)  │
+│  (L)    ├─────────┤
+│         │ Pane C  │
+│         │   (BR)  │
+└─────────┴─────────┘
+```
+
+1. **C → UP** (from bottom-right)
+   - Expected: Pane B (directly above C)
+   - Actual: Pane B ✓ (WORKS - previous in tab order C→B)
+
+2. **B → LEFT** (from top-right)
+   - Expected: Pane A (to the left of B)
+   - Actual: Pane A ✓ (WORKS - previous in tab order B→A)
+
+3. **B → UP** (from top-right)
+   - Expected: none (B is at the top)
+   - **Actual: Pane A** ❌ WRONG
+   - Reason: Tab order wraps or navigates to previous (B→A)
+
+**Tab Order Analysis for Nested**:
+- Tab order: A → B → C (linear, matches spatial left-to-right then top-to-bottom)
+- Some navigation works correctly by accident because tab order partially aligns with spatial layout
+- UP/DOWN navigation within right column works (B↔C)
+- LEFT navigation from right column works (B→A, C→A via B)
+- But UP from B incorrectly goes to A instead of none
+- DOWN from C would incorrectly wrap or go nowhere
+
+**Key Issue**: Even when tab order accidentally produces correct results for some directions, it fails for boundary cases (navigating UP when already at top, DOWN when at bottom, etc.).
+
 ---
 
 ## Test Scenarios
