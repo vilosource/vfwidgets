@@ -1,7 +1,8 @@
 # Pane Navigation Testing Plan
 
-**Status**: Investigation Phase
+**Status**: Documented - Wrong Behavior Confirmed
 **Created**: 2025-10-06
+**Updated**: 2025-10-06
 **Issue**: Spatial navigation not implemented - uses simple tab order
 
 ---
@@ -36,6 +37,71 @@ def navigate(self, direction: Direction) -> Optional[PaneId]:
 - RIGHT: moves focus to the pane directly to the right
 - UP: moves focus to the pane directly above
 - DOWN: moves focus to the pane directly below
+
+---
+
+## Observed Wrong Behavior (2025-10-06)
+
+Using `examples/05_navigation_testing.py` with Grid Layout (2x2):
+
+### Tree Structure and Tab Order
+
+The grid layout is created with these operations:
+```python
+initialize_empty("pane_a")              # Creates A
+split_pane(A, "pane_b", RIGHT, 0.5)    # Creates B on right of A
+split_pane(A, "pane_c", BOTTOM, 0.5)   # Creates C below A
+split_pane(B, "pane_d", BOTTOM, 0.5)   # Creates D below B
+```
+
+This creates a tree structure:
+```
+         Root (Horizontal: A|B)
+        /                      \
+   Split (Vert: A/C)        Split (Vert: B/D)
+    /        \               /           \
+   A          C             B             D
+```
+
+**Resulting Tab Order (depth-first traversal)**: A → C → B → D
+
+### Actual Navigation Failures
+
+**Test Case: Starting at Pane D (bottom-right)**
+
+1. **D → UP**
+   - Expected: Pane B (directly above D)
+   - Actual: Pane B ✓ (WORKS - by accident! Previous in tab order: D→B)
+
+2. **B → LEFT** (now at Pane B, top-right)
+   - Expected: Pane A (directly left of B)
+   - **Actual: Pane C** ❌ WRONG
+   - Reason: Tab order previous is B→C, not spatial left
+
+**Root Cause**: Navigation uses `get_previous_pane()` and `get_next_pane()` which traverse the tree in tab order (A→C→B→D), completely ignoring spatial positioning.
+
+### Complete Tab Order Navigation Matrix
+
+Grid Layout (2x2):
+```
+┌─────────┬─────────┐
+│ Pane A  │ Pane B  │  Tab order: A(1) → C(2) → B(3) → D(4)
+├─────────┼─────────┤
+│ Pane C  │ Pane D  │
+└─────────┴─────────┘
+```
+
+**Current (Tab Order) Behavior**:
+- A → LEFT/UP: wraps to D (last pane)
+- A → RIGHT/DOWN: C (next in tab order) ❌ Should be B or C based on direction
+- C → LEFT/UP: A (previous) ❌ Should be none (left) or A (up)
+- C → RIGHT/DOWN: B ❌ Should be D (right) or none (down)
+- B → LEFT/UP: C ❌ Should be A (left) or none (up)
+- B → RIGHT/DOWN: D ✓ (accidentally correct)
+- D → LEFT/UP: B ✓ (accidentally correct for UP, wrong for LEFT)
+- D → RIGHT/DOWN: wraps to A ❌ Should be none for both
+
+**Summary**: Only 2 out of ~16 possible navigation operations work correctly, and those are accidental due to tab order alignment with spatial layout.
 
 ---
 
@@ -139,21 +205,30 @@ Each pane needs its bounding rectangle:
 
 ## Testing Strategy
 
-### Phase 1: Create Visual Test Example
+### Phase 1: Create Visual Test Example ✅ COMPLETED
 
-Create `examples/05_navigation_testing.py` with:
-- Pre-configured tab scenarios (Grid, Nested, Strips)
-- Visual focus indicators (colored borders)
-- Navigation test buttons
-- Log panel showing expected vs actual navigation
-- Keyboard shortcuts (Ctrl+Shift+Arrow keys)
+Created `examples/05_navigation_testing.py` with:
+- ✅ Pre-configured scenarios (Grid, Nested, Strips)
+- ✅ Visual focus indicators (blue borders when focused)
+- ✅ Navigation test buttons for each direction
+- ✅ Log panel showing expected vs actual navigation with PASS/FAIL
+- ✅ Keyboard shortcuts (Ctrl+Shift+Arrow keys)
+- ✅ Single MultisplitWidget pattern (following Example 01)
+- ✅ Dynamic scenario switching
 
-### Phase 2: Document Failures
+**Implementation Details**:
+- Uses single MultisplitWidget instance to avoid lifecycle issues
+- Clears and rebuilds layout when switching scenarios
+- Provider tracks pane labels for test validation
+- Real-time logging of navigation attempts
 
-Run the test example and document:
-- Which navigation directions work correctly
-- Which fail and how (wrong pane selected, wraps incorrectly, etc.)
-- Edge cases that break
+### Phase 2: Document Failures ✅ COMPLETED
+
+Documented actual wrong behavior:
+- ✅ Tab order navigation confirmed (A→C→B→D for Grid layout)
+- ✅ Specific failure case documented (B → LEFT goes to C instead of A)
+- ✅ Complete navigation matrix analyzed
+- ✅ Root cause identified: uses tree traversal instead of geometry
 
 ### Phase 3: Implement Spatial Algorithm
 
