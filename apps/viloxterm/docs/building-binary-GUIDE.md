@@ -181,6 +181,91 @@ ViloxTerm includes Qt WebEngine, which is a large dependency:
 
 ---
 
+## GNOME Desktop Integration
+
+ViloxTerm includes comprehensive GNOME desktop integration for Linux systems, following the freedesktop.org specification.
+
+### Components
+
+1. **Desktop Entry** (`viloxterm.desktop`)
+   - Appears in GNOME Activities and application grid
+   - Searchable by keywords: terminal, shell, command, bash, etc.
+   - Categories: System, TerminalEmulator, Utility
+
+2. **Icon Theme**
+   - SVG icon (scalable, any resolution)
+   - PNG icons (16, 22, 24, 32, 48, 64, 128, 256, 512px)
+   - Follows hicolor icon theme specification
+   - Modern terminal design with window chrome and >_ prompt
+
+3. **Installation Scripts**
+   - `install-system.sh` - System-wide installation with validation
+   - `uninstall-system.sh` - Clean removal with confirmation
+   - `icons/generate-pngs.sh` - Generates PNG icons from SVG
+
+### Makefile Targets
+
+```bash
+make generate-icons     # Generate PNG icons from SVG (requires inkscape/imagemagick/rsvg-convert)
+make install-system     # Build, generate icons, and install system-wide (requires sudo)
+make uninstall-system   # Remove system-wide installation (requires sudo)
+```
+
+### Installation Locations
+
+| Component | Path |
+|-----------|------|
+| Binary | `/usr/local/bin/viloxterm` |
+| Desktop Entry | `/usr/local/share/applications/viloxterm.desktop` |
+| SVG Icon | `/usr/local/share/icons/hicolor/scalable/apps/viloxterm.svg` |
+| PNG Icons | `/usr/local/share/icons/hicolor/{size}/apps/viloxterm.png` |
+
+### Icon Generation
+
+The icon generation script supports three converters (auto-detected):
+
+1. **Inkscape** (preferred)
+   ```bash
+   sudo apt install inkscape
+   ```
+
+2. **ImageMagick**
+   ```bash
+   sudo apt install imagemagick
+   ```
+
+3. **rsvg-convert**
+   ```bash
+   sudo apt install librsvg2-bin
+   ```
+
+At least one of these tools is required for `make generate-icons`.
+
+### Desktop Integration Validation
+
+After installation, verify:
+
+```bash
+# Check desktop file is valid
+desktop-file-validate /usr/local/share/applications/viloxterm.desktop
+
+# Check icon cache is updated
+gtk-update-icon-cache -f -t /usr/local/share/icons/hicolor
+
+# Verify files are installed
+which viloxterm
+ls /usr/local/share/applications/viloxterm.desktop
+ls /usr/local/share/icons/hicolor/*/apps/viloxterm.*
+```
+
+### Usage After Installation
+
+1. **GNOME Activities**: Press Super key, type "viloxterm"
+2. **Command Line**: Run `viloxterm` from any terminal
+3. **Application Menu**: Find under "System" or "Utilities"
+
+---
+
 ## Testing the Binary
 
 ### Basic Test
@@ -204,13 +289,46 @@ ViloXTerm.exe  # Windows
 
 ### Linux
 
-**Option 1: AppImage** (recommended)
+**Option 1: System-Wide Installation with GNOME Integration** (recommended for personal use)
+
+ViloxTerm includes full GNOME desktop integration with icons and app launcher support:
+
+```bash
+# 1. Build the binary
+make build
+
+# 2. Generate PNG icons from SVG (optional, auto-run by install-system)
+make generate-icons
+
+# 3. Install system-wide (requires sudo)
+make install-system
+```
+
+This will:
+- Install binary to `/usr/local/bin/viloxterm`
+- Install desktop entry to `/usr/local/share/applications/viloxterm.desktop`
+- Install icons to `/usr/local/share/icons/hicolor/{size}/apps/viloxterm.{svg,png}`
+- Update GNOME icon cache and desktop database
+- Make ViloxTerm available in GNOME Activities and app grid
+
+**Uninstall**:
+```bash
+make uninstall-system
+```
+
+**Option 2: User-Only Installation** (no sudo required)
+```bash
+make local-release
+# Installs to ~/bin/viloxterm
+```
+
+**Option 3: AppImage** (portable distribution)
 ```bash
 # Use appimagetool to wrap the standalone build
 appimagetool deployment/ ViloXTerm.AppImage
 ```
 
-**Option 2: Direct Binary**
+**Option 4: Direct Binary Archive**
 ```bash
 tar -czf viloxterm-linux-x64.tar.gz ViloXTerm
 ```
@@ -357,4 +475,5 @@ This creates a directory with the executable and all dependencies, resulting in 
 
 ## Version History
 
+- **v1.1** (2025-10-06): Added GNOME desktop integration with icons and system installation
 - **v1.0** (2025-10-04): Initial build system with pyside6-deploy

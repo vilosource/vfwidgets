@@ -1,18 +1,23 @@
 # ViloxTerm Makefile
 # Provides convenient build targets for the application
 
-.PHONY: help build clean install dev run test local-release
+.PHONY: help build clean install dev run test local-release generate-icons install-system uninstall-system
 
 # Default target
 help:
 	@echo "ViloxTerm Build Targets:"
-	@echo "  make build         - Build the standalone binary"
-	@echo "  make clean         - Remove build artifacts and binaries"
-	@echo "  make install       - Install dependencies"
-	@echo "  make dev           - Install in development mode"
-	@echo "  make run           - Run ViloxTerm in development mode"
-	@echo "  make test          - Run tests"
-	@echo "  make local-release - Build and install to ~/bin"
+	@echo "  make build           - Build the standalone binary"
+	@echo "  make clean           - Remove build artifacts and binaries"
+	@echo "  make install         - Install dependencies"
+	@echo "  make dev             - Install in development mode"
+	@echo "  make run             - Run ViloxTerm in development mode"
+	@echo "  make test            - Run tests"
+	@echo "  make local-release   - Build and install to ~/bin (user only)"
+	@echo ""
+	@echo "System Installation (GNOME Desktop Integration):"
+	@echo "  make generate-icons  - Generate PNG icons from SVG"
+	@echo "  make install-system  - Install system-wide with desktop integration (requires sudo)"
+	@echo "  make uninstall-system - Remove system-wide installation (requires sudo)"
 
 # Build the standalone binary
 build:
@@ -72,3 +77,15 @@ local-release: build
 		echo "❌ Error: No binary found to install"; \
 		exit 1; \
 	fi
+
+# Generate PNG icons from SVG
+generate-icons:
+	@cd icons && ./generate-pngs.sh
+
+# Install system-wide (requires sudo)
+install-system: build generate-icons
+	@sudo ./install-system.sh
+
+# Uninstall from system (requires sudo)
+uninstall-system:
+	@sudo ./uninstall-system.sh

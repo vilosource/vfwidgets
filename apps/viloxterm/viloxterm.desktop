@@ -1,0 +1,18 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ViloxTerm
+GenericName=Terminal Emulator
+Comment=Modern terminal emulator with Chrome-style tabs and split panes
+Exec=viloxterm
+Icon=viloxterm
+Terminal=false
+Categories=System;TerminalEmulator;Utility;
+Keywords=terminal;shell;prompt;command;commandline;cmd;bash;zsh;console;
+StartupNotify=true
+StartupWMClass=ViloxTerm
+
+# Additional metadata
+MimeType=
+X-GNOME-UsesNotifications=false
+X-Desktop-File-Install-Version=0.26
