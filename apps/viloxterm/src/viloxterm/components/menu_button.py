@@ -42,6 +42,17 @@ class MenuButton(WindowControlButton):
 
         # Add keybinding-managed actions if provided
         if keybinding_actions:
+            # Tab management section
+            if "tab.new" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["tab.new"])
+            if "tab.next" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["tab.next"])
+            if "tab.previous" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["tab.previous"])
+
+            # Separator
+            self._menu.addSeparator()
+
             # Add pane actions
             if "pane.split_vertical" in keybinding_actions:
                 self._menu.addAction(keybinding_actions["pane.split_vertical"])
