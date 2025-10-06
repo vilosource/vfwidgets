@@ -119,9 +119,11 @@ select = [
 ]
 ignore = [
     "E501",  # line too long (handled by black)
+    "E722",  # Bare except needed for fallback compatibility
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
     "N802",  # Qt event handlers use mixedCase (mousePressEvent, etc.)
+    "N803",  # Qt method parameters use mixedCase for QTabWidget compatibility
     "N815",  # Qt signals/properties use mixedCase for QTabWidget compatibility
     "SIM102",  # Nested if statements are clearer for complex guard clauses
     "SIM108",  # Complex ternary operators reduce readability

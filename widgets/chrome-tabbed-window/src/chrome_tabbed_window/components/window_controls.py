@@ -6,7 +6,7 @@ Provides minimize, maximize/restore, and close buttons for frameless windows.
 
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent, QPen
@@ -35,24 +35,40 @@ class WindowControlButton(QPushButton):
         # Try to get theme from parent chain
         parent_widget = self.parent()
         while parent_widget:
-            if hasattr(parent_widget, 'get_current_theme'):
+            if hasattr(parent_widget, "get_current_theme"):
                 theme = parent_widget.get_current_theme()
-                if theme and hasattr(theme, 'colors'):
+                if theme and hasattr(theme, "colors"):
                     colors = theme.colors
+                    hover_bg = QColor(colors.get("toolbar.hoverBackground", "rgba(0, 0, 0, 0.1)"))
+                    # Check if theme provides hover icon color, else calculate from hover background
+                    hover_icon_color = colors.get("toolbar.hoverForeground")
+                    if not hover_icon_color:
+                        # Auto-calculate contrasting color based on hover background lightness
+                        hover_icon_color = "#ffffff" if hover_bg.lightness() < 128 else "#000000"
+
                     return {
-                        'normal': QColor(0, 0, 0, 0),
-                        'hover': QColor(colors.get('toolbar.hoverBackground', 'rgba(0, 0, 0, 0.1)')),
-                        'pressed': QColor(colors.get('toolbar.activeBackground', 'rgba(0, 0, 0, 0.2)')),
-                        'icon': QColor(colors.get('icon.foreground', colors.get('foreground', '#000000'))),
+                        "normal": QColor(0, 0, 0, 0),
+                        "hover": hover_bg,
+                        "pressed": QColor(
+                            colors.get("toolbar.activeBackground", "rgba(0, 0, 0, 0.2)")
+                        ),
+                        "icon": QColor(
+                            colors.get("icon.foreground", colors.get("foreground", "#000000"))
+                        ),
+                        "hover_icon": QColor(hover_icon_color),
                     }
             parent_widget = parent_widget.parent()
 
-        # Fallback to defaults
+        # Fallback to defaults - calculate hover icon from hover background
+        hover_icon = (
+            QColor(255, 255, 255) if self.hover_color.lightness() < 128 else QColor(0, 0, 0)
+        )
         return {
-            'normal': self.normal_color,
-            'hover': self.hover_color,
-            'pressed': self.pressed_color,
-            'icon': self.icon_color,
+            "normal": self.normal_color,
+            "hover": self.hover_color,
+            "pressed": self.pressed_color,
+            "icon": self.icon_color,
+            "hover_icon": hover_icon,
         }
 
     def enterEvent(self, event) -> None:
@@ -90,11 +106,11 @@ class WindowControlButton(QPushButton):
 
         # Draw background
         if self._is_pressed:
-            painter.fillRect(self.rect(), colors['pressed'])
+            painter.fillRect(self.rect(), colors["pressed"])
         elif self._is_hovered:
-            painter.fillRect(self.rect(), colors['hover'])
+            painter.fillRect(self.rect(), colors["hover"])
         else:
-            painter.fillRect(self.rect(), colors['normal'])
+            painter.fillRect(self.rect(), colors["normal"])
 
         # Draw icon (implemented in subclasses)
         self.draw_icon(painter)
@@ -110,7 +126,11 @@ class MinimizeButton(WindowControlButton):
     def draw_icon(self, painter: QPainter) -> None:
         """Draw minimize icon (horizontal line)."""
         colors = self._get_theme_colors()
-        painter.setPen(QPen(colors['icon'], 1))
+        # Use hover icon color when hovered/pressed for proper contrast
+        icon_color = (
+            colors["hover_icon"] if (self._is_hovered or self._is_pressed) else colors["icon"]
+        )
+        painter.setPen(QPen(icon_color, 1))
         y = self.height() // 2
         painter.drawLine(18, y, 28, y)
 
@@ -130,14 +150,22 @@ class MaximizeButton(WindowControlButton):
     def draw_icon(self, painter: QPainter) -> None:
         """Draw maximize or restore icon."""
         colors = self._get_theme_colors()
-        painter.setPen(QPen(colors['icon'], 1))
+
+        # Use hover icon color when hovered/pressed for proper contrast
+        icon_color = (
+            colors["hover_icon"] if (self._is_hovered or self._is_pressed) else colors["icon"]
+        )
+        painter.setPen(QPen(icon_color, 1))
 
         if self.is_maximized:
             # Draw restore icon (two overlapping squares)
             # Back square
             painter.drawRect(20, 12, 8, 8)
-            # Front square
-            painter.fillRect(18, 14, 8, 8, QColor(255, 255, 255))
+            # Front square - fill with matching color to create overlap effect
+            bg_color = (
+                colors["hover"] if (self._is_hovered or self._is_pressed) else colors["normal"]
+            )
+            painter.fillRect(18, 14, 8, 8, bg_color)
             painter.drawRect(18, 14, 8, 8)
         else:
             # Draw maximize icon (square)
@@ -160,7 +188,7 @@ class CloseButton(WindowControlButton):
         if self._is_hovered or self._is_pressed:
             painter.setPen(QPen(QColor(255, 255, 255), 1))
         else:
-            painter.setPen(QPen(colors['icon'], 1))
+            painter.setPen(QPen(colors["icon"], 1))
 
         # Draw X
         painter.drawLine(19, 13, 27, 21)
@@ -217,7 +245,7 @@ class WindowControls(QWidget):
         Args:
             platform: 'windows', 'macos', or 'linux'
         """
-        if platform == 'macos':
+        if platform == "macos":
             # macOS uses traffic light buttons on the left
             # This would require a different implementation
             pass
