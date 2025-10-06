@@ -221,6 +221,81 @@ Tree:
 
 This demonstrates that tab-order navigation can work correctly, but **only in the special case of single-column/row layouts**. Any 2D grid immediately breaks this alignment.
 
+### Inverted T Layout Behavior
+
+Using `examples/05_navigation_testing.py` with Inverted T layout:
+
+**Tree Structure**:
+```python
+initialize_empty("pane_c")              # Creates C (bottom, full width)
+split_pane(C, "pane_a", TOP, 0.5)      # Creates A on top of C
+split_pane(A, "pane_b", RIGHT, 0.5)    # Creates B on right of A
+```
+
+Tree:
+```
+         Root (Vertical: Top/C)
+        /                     \
+   Split (Horiz: A|B)          C
+    /          \
+   A            B
+```
+
+**Resulting Tab Order**: A → B → C
+
+**Layout visualization**:
+```
+┌─────────┬─────────┐
+│ Pane A  │ Pane B  │
+│  (TL)   │  (TR)   │
+├─────────┴─────────┤
+│     Pane C        │
+│  (Bottom Full)    │
+└───────────────────┘
+```
+
+**Observed Navigation** (2025-10-06):
+
+**From Pane A (Top-Left)**:
+1. **A → LEFT**
+   - Expected: none (A is at left edge)
+   - **Actual: Pane B** ❌ WRONG
+   - Reason: Tab order wraps or navigates forward (A→B)
+
+2. **A → DOWN**
+   - Expected: Pane C (directly below A)
+   - **Actual: Pane B** ❌ WRONG
+   - Reason: Tab order next (A→B), ignores spatial positioning
+
+**From Pane B (Top-Right)**:
+3. **B → DOWN**
+   - Expected: Pane C (directly below B)
+   - Actual: Pane C ✓ (WORKS - next in tab order B→C)
+
+**From Pane C (Bottom Full Width)**:
+4. **C → UP**
+   - Expected: Pane A or B (should intelligently choose based on C's center or last focused)
+   - Actual: Pane B ✓ (WORKS - previous in tab order C→B, but wrong reasoning)
+
+**Tab Order Analysis for Inverted T**:
+- Tab order: A → B → C
+- Tree structure creates left-to-right then top-to-bottom traversal
+- Only 2 out of 4+ tested operations work, and both are accidental
+- Critical failures:
+  - A → DOWN goes to B instead of C (navigates in tab order, not spatial down)
+  - A → LEFT goes to B instead of none (wraps/navigates in tab order)
+- The algorithm completely ignores that:
+  - A and B are on the same row (neither should navigate horizontally between them in opposite direction)
+  - C spans the full width below both A and B
+  - DOWN from A should look at vertical spatial relationships, not sibling order in tree
+
+**Root Cause**: The tree structure `(A|B)/C` creates tab order A→B→C, but:
+- A's RIGHT sibling in the tree is B (correct spatially)
+- A's DOWN relationship should be to C (parent's sibling), but algorithm uses A→B (next in depth-first traversal)
+- LEFT from A should be none (at edge), but algorithm wraps or uses previous/next
+
+This scenario perfectly demonstrates why **spatial navigation requires geometry**, not tree traversal.
+
 ---
 
 ## Test Scenarios
