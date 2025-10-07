@@ -163,6 +163,7 @@ class TerminalBridge(QObject):
     key_pressed = Signal(str, str, bool, bool, bool)  # key, code, ctrl, alt, shift
     data_received = Signal(str)  # input data from user
     scroll_occurred = Signal(int)  # scroll position
+    shortcut_pressed = Signal(str)  # shortcut action_id (e.g., "pane.navigate_left")
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -219,6 +220,16 @@ class TerminalBridge(QObject):
         """Handle scroll event from xterm.js."""
         logger.debug(f"Terminal scrolled to position: {position}")
         self.scroll_occurred.emit(position)
+
+    @Slot(str)
+    def on_shortcut_pressed(self, action_id: str) -> None:
+        """Handle shortcut from JavaScript (e.g., Ctrl+Shift+Arrow keys).
+
+        Args:
+            action_id: Action ID like 'pane.navigate_left' or 'tab.navigate_next'
+        """
+        logger.info(f"Shortcut pressed from JS: {action_id}")
+        self.shortcut_pressed.emit(action_id)
 
     @Slot(str, result=str)
     def execute_command(self, command: str) -> str:
@@ -301,6 +312,7 @@ class TerminalWidget(_BaseTerminalClass):
     # User Interaction Signals (EventCategory.INTERACTION)
     keyPressed = Signal(KeyEvent)  # Key pressed with full details
     selectionChanged = Signal(str)  # Text selection changed
+    shortcutPressed = Signal(str)  # Shortcut pressed from JavaScript (action_id)
     contextMenuRequested = Signal(ContextMenuEvent)  # Context menu requested
 
     # Focus & Display Signals (EventCategory.FOCUS, EventCategory.APPEARANCE)
@@ -963,6 +975,9 @@ class TerminalWidget(_BaseTerminalClass):
                 if EventCategory.APPEARANCE in self.event_config.enabled_categories
                 else None
             )
+        )
+        self.bridge.shortcut_pressed.connect(
+            lambda action_id: self.shortcutPressed.emit(action_id)
         )
 
         logger.debug("Bridge signals connected to widget signals")

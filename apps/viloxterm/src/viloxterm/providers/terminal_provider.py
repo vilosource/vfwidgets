@@ -19,16 +19,18 @@ class TerminalProvider(WidgetProvider):
     embedded servers).
     """
 
-    def __init__(self, server: MultiSessionTerminalServer) -> None:
+    def __init__(self, server: MultiSessionTerminalServer, event_filter=None) -> None:
         """Initialize terminal provider.
 
         Args:
             server: Shared MultiSessionTerminalServer instance
+            event_filter: Optional QObject to install as event filter on terminals
         """
         self.server = server
         self.pane_to_session: dict[str, str] = {}  # Map pane_id -> session_id for cleanup
         self._default_theme: Optional[dict] = None  # Default terminal theme for new terminals
         self._default_config: Optional[dict] = None  # Default terminal config for new terminals
+        self._event_filter = event_filter  # Event filter to install on terminals
 
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
         """Create a new terminal widget for a pane.
@@ -64,6 +66,11 @@ class TerminalProvider(WidgetProvider):
         if self._default_theme:
             terminal.set_terminal_theme(self._default_theme)
             logger.debug(f"Applied default theme to terminal: {widget_id}")
+
+        # Install event filter if provided
+        if self._event_filter:
+            terminal.installEventFilter(self._event_filter)
+            logger.debug(f"Installed event filter on terminal: {widget_id}")
 
         logger.debug(f"Created terminal widget: {widget_id} (session: {session_id})")
 

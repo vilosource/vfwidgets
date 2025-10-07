@@ -118,16 +118,27 @@ Full-featured terminal emulator based on xterm.js with WebView integration.
 
 ### 4. Theme System (Application Theming)
 
-Provides VSCode-compatible theme management across all widgets.
+Provides VSCode-compatible theme management across all widgets with automatic theme discovery and persistence.
 
 **Key Features:**
-- VSCode theme import/export
-- Dynamic theme switching
+- Automatic theme discovery (built-in, package, and user themes)
+- Three-tier theme priority (User > Package > Built-in)
+- Dynamic theme switching with persistence
 - WebView theme bridging
-- Token-based color system
+- Token-based color system (200+ tokens)
+- Theme aliasing support
 - ThemedWidget base classes
 
+**Theme Configuration:**
+- **Application themes** saved to: `~/.config/ViloxTerm/ViloxTerm.conf` under `[theme]` section
+- **User custom themes** located in: `~/.config/ViloxTerm/themes/` (highest priority)
+- **Package themes** auto-discovered from: `widgets/theme_system/themes/`
+- **Built-in themes**: `dark`, `light`, `default`, `minimal` (lowest priority)
+
 **Reference Documentation:**
+- [`../../widgets/theme_system/docs/THEME-SYSTEM.md`](../../widgets/theme_system/docs/THEME-SYSTEM.md)
+  Complete theme system guide (discovery, priority, aliasing, persistence)
+
 - [`../../widgets/theme_system/docs/THEMING-GUIDE-OFFICIAL.md`](../../widgets/theme_system/docs/THEMING-GUIDE-OFFICIAL.md)
   Official theming guide with 80/20 pattern
 
@@ -447,16 +458,38 @@ See [`docs/building-binary-GUIDE.md`](docs/building-binary-GUIDE.md) for:
 
 ## Configuration
 
-ViloxTerm stores user preferences in `~/.config/viloxterm/`:
+ViloxTerm stores user preferences in `~/.config/ViloxTerm/`:
 
 ```
-~/.config/viloxterm/
+~/.config/ViloxTerm/
+├── ViloxTerm.conf                # Application settings (theme, UI state)
 ├── keybindings.json              # Keyboard shortcut customizations
 ├── terminal_preferences.json     # Terminal behavior settings
-└── terminal_themes/              # Custom terminal color themes
+├── themes/                       # Custom application themes (UI chrome)
+│   ├── vscode-dark.json          # User custom UI themes
+│   └── my-custom.json
+└── terminal_themes/              # Custom terminal color themes (ANSI colors)
     ├── my-theme.json
     └── viloxterm.json
 ```
+
+### Configuration Files
+
+**ViloxTerm.conf** - Main application settings
+```ini
+[theme]
+current=vscode-dark  # Currently selected application theme
+
+[UI]
+FramelessMode=true
+
+[MainWindow]
+geometry=...  # Window size and position
+```
+
+**themes/** - Custom application themes for window chrome, controls, and UI elements. See [Theme System Documentation](../../widgets/theme_system/docs/THEME-SYSTEM.md) for creating custom themes.
+
+**terminal_themes/** - Custom terminal color schemes (ANSI colors, cursor, background). Separate from application themes.
 
 ### Keyboard Shortcuts
 

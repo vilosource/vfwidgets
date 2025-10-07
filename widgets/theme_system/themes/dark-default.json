@@ -111,7 +111,13 @@
 
     "accent.primary": "#0066cc",
     "accent.secondary": "#00aa00",
-    "accent.tertiary": "#ff6600"
+    "accent.tertiary": "#ff6600",
+
+    "focusBorder": "#0066cc",
+    "icon.foreground": "#d4d4d4",
+    "toolbar.hoverBackground": "rgba(255, 255, 255, 0.1)",
+    "toolbar.hoverForeground": "#ffffff",
+    "toolbar.activeBackground": "rgba(255, 255, 255, 0.15)"
   },
   "tokenColors": [
     {

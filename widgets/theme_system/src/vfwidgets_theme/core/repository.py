@@ -329,6 +329,15 @@ class BuiltinThemeManager:
                 "tab.hoverForeground": "#ffffff",
                 "editorGroupHeader.tabsBackground": "#2d2d30",
                 "editorGroupHeader.tabsBorder": "#252526",
+                # Window control tokens
+                "window.background": "#1e1e1e",
+                "window.foreground": "#cccccc",
+                "window.border": "#333333",
+                "focusBorder": "#0066cc",
+                "icon.foreground": "#d4d4d4",
+                "toolbar.hoverBackground": "rgba(255, 255, 255, 0.1)",
+                "toolbar.hoverForeground": "#ffffff",
+                "toolbar.activeBackground": "rgba(255, 255, 255, 0.15)",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
@@ -372,6 +381,15 @@ class BuiltinThemeManager:
                 "tab.hoverForeground": "#333333",
                 "editorGroupHeader.tabsBackground": "#f3f3f3",
                 "editorGroupHeader.tabsBorder": "#cccccc",
+                # Window control tokens
+                "window.background": "#ffffff",
+                "window.foreground": "#333333",
+                "window.border": "#cccccc",
+                "focusBorder": "#0078d4",
+                "icon.foreground": "#424242",
+                "toolbar.hoverBackground": "rgba(0, 0, 0, 0.1)",
+                "toolbar.hoverForeground": "#000000",
+                "toolbar.activeBackground": "rgba(0, 0, 0, 0.15)",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",
@@ -525,9 +543,14 @@ class ThemeRepository:
         self._builtin_manager = builtin_manager or BuiltinThemeManager()
         self._file_loader = FileThemeLoader()
         self._lock = threading.RLock()
+        self._aliases: Dict[str, str] = {}  # Theme name aliases
 
         # Load built-in themes
         self._load_builtin_themes()
+
+        # Auto-discover package and user themes
+        self._discover_package_themes()
+        self._discover_user_themes()
 
         logger.debug("ThemeRepository initialized")
 
@@ -548,6 +571,102 @@ class ThemeRepository:
                 logger.debug(f"Loaded built-in theme: {theme_name}")
         except Exception as e:
             logger.error(f"Error loading built-in themes: {e}")
+
+    def _discover_package_themes(self) -> None:
+        """Auto-discover and load themes from package themes directory."""
+        try:
+            # Find package themes directory relative to this file
+            package_dir = Path(__file__).parent.parent.parent.parent / "themes"
+
+            if not package_dir.exists():
+                logger.debug(f"Package themes directory not found: {package_dir}")
+                return
+
+            logger.debug(f"Discovering package themes in: {package_dir}")
+            themes = self._discovery.discover_in_directory(package_dir, recursive=False)
+
+            for theme in themes:
+                # Package themes override built-in themes with same name
+                self._themes[theme.name] = theme
+                self._metadata[theme.name] = ThemeMetadata(
+                    name=theme.name,
+                    version=theme.version,
+                    file_path=str(package_dir),
+                    loaded_time=time.time(),
+                    access_count=0,
+                    last_accessed=0.0,
+                )
+                self._cache.put(theme.name, theme)
+                logger.debug(f"Loaded package theme: {theme.name}")
+
+                # Create aliases for package themes
+                # "dark-default.json" -> alias: "dark-default"
+                theme_filename = Path(theme.name).stem if "." in theme.name else theme.name
+                if theme_filename != theme.name:
+                    self._add_alias(theme_filename, theme.name)
+
+        except Exception as e:
+            logger.error(f"Error discovering package themes: {e}")
+
+    def _discover_user_themes(self) -> None:
+        """Auto-discover and load themes from user theme directories."""
+        user_theme_dirs = [
+            Path.home() / ".config" / "ViloxTerm" / "themes",
+            Path.home() / ".vfwidgets" / "themes",
+        ]
+
+        for theme_dir in user_theme_dirs:
+            try:
+                if not theme_dir.exists():
+                    continue
+
+                logger.debug(f"Discovering user themes in: {theme_dir}")
+                themes = self._discovery.discover_in_directory(theme_dir, recursive=False)
+
+                for theme in themes:
+                    # User themes have highest priority, override everything
+                    self._themes[theme.name] = theme
+                    self._metadata[theme.name] = ThemeMetadata(
+                        name=theme.name,
+                        version=theme.version,
+                        file_path=str(theme_dir),
+                        loaded_time=time.time(),
+                        access_count=0,
+                        last_accessed=0.0,
+                    )
+                    self._cache.put(theme.name, theme)
+                    logger.debug(f"Loaded user theme: {theme.name} from {theme_dir}")
+
+            except Exception as e:
+                logger.error(f"Error discovering themes in {theme_dir}: {e}")
+
+    def _add_alias(self, alias: str, target_theme: str) -> None:
+        """Add a theme name alias.
+
+        Args:
+            alias: Alias name
+            target_theme: Target theme name
+
+        """
+        self._aliases[alias] = target_theme
+        logger.debug(f"Added theme alias: {alias} -> {target_theme}")
+
+    def add_alias(self, alias: str, target_theme: str) -> None:
+        """Add a public theme name alias.
+
+        Args:
+            alias: Alias name
+            target_theme: Target theme name
+
+        Raises:
+            ThemeNotFoundError: If target theme doesn't exist
+
+        """
+        if not self.has_theme(target_theme):
+            raise ThemeNotFoundError(f"Cannot create alias to non-existent theme: {target_theme}")
+
+        with self._lock:
+            self._add_alias(alias, target_theme)
 
     def add_theme(self, theme: Theme) -> None:
         """Add theme to repository.
@@ -573,10 +692,10 @@ class ThemeRepository:
             logger.debug(f"Added theme to repository: {theme.name}")
 
     def get_theme(self, name: str) -> Theme:
-        """Get theme by name.
+        """Get theme by name or alias.
 
         Args:
-            name: Theme name
+            name: Theme name or alias
 
         Returns:
             Theme object
@@ -586,33 +705,38 @@ class ThemeRepository:
 
         """
         with self._lock:
+            # Resolve alias if present
+            resolved_name = self._aliases.get(name, name)
+
             # Try cache first
-            cached_theme = self._cache.get(name)
+            cached_theme = self._cache.get(resolved_name)
             if cached_theme:
-                self._update_access_metadata(name)
+                self._update_access_metadata(resolved_name)
                 return cached_theme
 
             # Check repository
-            if name in self._themes:
-                theme = self._themes[name]
-                self._cache.put(name, theme)
-                self._update_access_metadata(name)
+            if resolved_name in self._themes:
+                theme = self._themes[resolved_name]
+                self._cache.put(resolved_name, theme)
+                self._update_access_metadata(resolved_name)
                 return theme
 
             raise ThemeNotFoundError(f"Theme '{name}' not found in repository")
 
     def has_theme(self, name: str) -> bool:
-        """Check if theme exists in repository.
+        """Check if theme exists in repository (by name or alias).
 
         Args:
-            name: Theme name
+            name: Theme name or alias
 
         Returns:
             True if theme exists
 
         """
         with self._lock:
-            return name in self._themes
+            # Resolve alias if present
+            resolved_name = self._aliases.get(name, name)
+            return resolved_name in self._themes
 
     def remove_theme(self, name: str) -> bool:
         """Remove theme from repository.

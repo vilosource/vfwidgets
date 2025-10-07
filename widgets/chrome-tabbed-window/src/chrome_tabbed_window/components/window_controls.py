@@ -21,17 +21,23 @@ class WindowControlButton(QPushButton):
         self.setFixedSize(46, 32)  # Chrome button dimensions
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
-        # Chrome colors (fallback)
-        self.normal_color = QColor(0, 0, 0, 0)  # Transparent
-        self.hover_color = QColor(0, 0, 0, 26)  # 10% black
-        self.pressed_color = QColor(0, 0, 0, 51)  # 20% black
-        self.icon_color = QColor(0, 0, 0, 153)  # 60% black
-
         self._is_hovered = False
         self._is_pressed = False
 
+    def _is_dark_theme(self) -> bool:
+        """Detect if current theme is dark by checking parent theme type."""
+        parent_widget = self.parent()
+        while parent_widget:
+            if hasattr(parent_widget, "get_current_theme"):
+                theme = parent_widget.get_current_theme()
+                if theme and hasattr(theme, "type"):
+                    return theme.type == "dark"
+            parent_widget = parent_widget.parent()
+        # Default to dark theme if unable to detect
+        return True
+
     def _get_theme_colors(self):
-        """Get colors from theme or fallback to defaults."""
+        """Get colors from theme or fallback to theme-appropriate defaults."""
         # Try to get theme from parent chain
         parent_widget = self.parent()
         while parent_widget:
@@ -39,37 +45,73 @@ class WindowControlButton(QPushButton):
                 theme = parent_widget.get_current_theme()
                 if theme and hasattr(theme, "colors"):
                     colors = theme.colors
-                    hover_bg = QColor(colors.get("toolbar.hoverBackground", "rgba(0, 0, 0, 0.1)"))
-                    # Check if theme provides hover icon color, else calculate from hover background
-                    hover_icon_color = colors.get("toolbar.hoverForeground")
+
+                    # Try multiple token name variations for better compatibility
+                    # Handle both namespaced (colors.X) and non-namespaced (X) tokens
+
+                    # Icon color: try icon.foreground, colors.foreground, window.foreground
+                    icon_color = (
+                        colors.get("icon.foreground") or
+                        colors.get("colors.foreground") or
+                        colors.get("window.foreground")
+                    )
+
+                    # Toolbar hover background
+                    hover_bg_color = (
+                        colors.get("toolbar.hoverBackground") or
+                        colors.get("colors.toolbar.hoverBackground") or
+                        "rgba(0, 0, 0, 0.1)"
+                    )
+                    hover_bg = QColor(hover_bg_color)
+
+                    # Toolbar hover foreground
+                    hover_icon_color = (
+                        colors.get("toolbar.hoverForeground") or
+                        colors.get("colors.toolbar.hoverForeground")
+                    )
                     if not hover_icon_color:
                         # Auto-calculate contrasting color based on hover background lightness
                         hover_icon_color = "#ffffff" if hover_bg.lightness() < 128 else "#000000"
 
-                    return {
-                        "normal": QColor(0, 0, 0, 0),
-                        "hover": hover_bg,
-                        "pressed": QColor(
-                            colors.get("toolbar.activeBackground", "rgba(0, 0, 0, 0.2)")
-                        ),
-                        "icon": QColor(
-                            colors.get("icon.foreground", colors.get("foreground", "#000000"))
-                        ),
-                        "hover_icon": QColor(hover_icon_color),
-                    }
+                    # Toolbar active background
+                    active_bg_color = (
+                        colors.get("toolbar.activeBackground") or
+                        colors.get("colors.toolbar.activeBackground") or
+                        "rgba(0, 0, 0, 0.2)"
+                    )
+
+                    # If we found an icon color, use it; otherwise use smart fallback
+                    if icon_color:
+                        return {
+                            "normal": QColor(0, 0, 0, 0),
+                            "hover": hover_bg,
+                            "pressed": QColor(active_bg_color),
+                            "icon": QColor(icon_color),
+                            "hover_icon": QColor(hover_icon_color),
+                        }
             parent_widget = parent_widget.parent()
 
-        # Fallback to defaults - calculate hover icon from hover background
-        hover_icon = (
-            QColor(255, 255, 255) if self.hover_color.lightness() < 128 else QColor(0, 0, 0)
-        )
-        return {
-            "normal": self.normal_color,
-            "hover": self.hover_color,
-            "pressed": self.pressed_color,
-            "icon": self.icon_color,
-            "hover_icon": hover_icon,
-        }
+        # Fallback to theme-appropriate defaults based on detected theme type
+        is_dark = self._is_dark_theme()
+
+        if is_dark:
+            # Dark theme: light icons on dark background
+            return {
+                "normal": QColor(0, 0, 0, 0),
+                "hover": QColor(255, 255, 255, 26),  # 10% white
+                "pressed": QColor(255, 255, 255, 51),  # 20% white
+                "icon": QColor(255, 255, 255, 204),  # 80% white
+                "hover_icon": QColor(255, 255, 255, 230),  # 90% white
+            }
+        else:
+            # Light theme: dark icons on light background
+            return {
+                "normal": QColor(0, 0, 0, 0),
+                "hover": QColor(0, 0, 0, 26),  # 10% black
+                "pressed": QColor(0, 0, 0, 51),  # 20% black
+                "icon": QColor(0, 0, 0, 153),  # 60% black
+                "hover_icon": QColor(0, 0, 0, 179),  # 70% black
+            }
 
     def enterEvent(self, event) -> None:
         """Handle mouse enter."""

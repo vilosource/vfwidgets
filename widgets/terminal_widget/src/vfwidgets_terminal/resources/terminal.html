@@ -154,6 +154,52 @@
         // Open terminal
         term.open(document.getElementById('terminal'));
 
+        // Add DOM event listener to intercept shortcuts BEFORE xterm.js
+        // This allows the events to bubble up to Qt while preventing xterm from processing them
+        let bridgeReadyForShortcuts = false;
+        document.getElementById('terminal').addEventListener('keydown', function(e) {
+            // Debug logging
+            if (e.ctrlKey && e.shiftKey) {
+                console.log('DOM keydown:', e.key, 'ctrlKey:', e.ctrlKey, 'shiftKey:', e.shiftKey);
+            }
+
+            // Block pane navigation shortcuts - trigger Qt action via bridge
+            if (e.ctrlKey && e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                console.log('BLOCKING arrow key and calling Qt:', e.key);
+                e.preventDefault();   // Prevent browser navigation (back/forward)
+                e.stopPropagation();  // Stop xterm.js from seeing it
+
+                // Call Qt action via bridge
+                if (bridgeReadyForShortcuts && typeof terminalBridge !== 'undefined' && terminalBridge) {
+                    const directionMap = {
+                        'ArrowLeft': 'LEFT',
+                        'ArrowRight': 'RIGHT',
+                        'ArrowUp': 'UP',
+                        'ArrowDown': 'DOWN'
+                    };
+                    terminalBridge.on_shortcut_pressed('pane.navigate_' + directionMap[e.key].toLowerCase());
+                }
+                return;
+            }
+
+            // Block tab navigation shortcuts
+            if (e.ctrlKey && (e.key === 'PageUp' || e.key === 'PageDown')) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (bridgeReadyForShortcuts && typeof terminalBridge !== 'undefined' && terminalBridge) {
+                    terminalBridge.on_shortcut_pressed('tab.navigate_' + (e.key === 'PageDown' ? 'next' : 'previous'));
+                }
+                return;
+            }
+
+            // Block Alt+Number shortcuts
+            if (e.altKey && e.key >= '1' && e.key <= '9') {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }, true);  // Use capture phase to intercept before xterm.js
+
         // Initialize QWebChannel bridge for Qt communication
         let terminalBridge = null;
 
@@ -161,6 +207,9 @@
             new QWebChannel(qt.webChannelTransport, function(channel) {
                 terminalBridge = channel.objects.terminalBridge;
                 console.log('QWebChannel bridge connected');
+
+                // Mark bridge as ready for shortcuts
+                bridgeReadyForShortcuts = true;
 
                 // Set up rich event handlers (Phase 3: Rich events)
                 setupRichEventHandlers();
@@ -183,17 +232,6 @@
             // Key press events (raw keyboard events)
             term.attachCustomKeyEventHandler((event) => {
                 if (event.type === 'keydown') {
-                    // Block tab navigation shortcuts - let Qt handle them
-                    // Ctrl+PgUp/PgDn are used for tab switching in the application
-                    if (event.ctrlKey && (event.key === 'PageUp' || event.key === 'PageDown')) {
-                        return false;  // Block xterm.js from processing, let Qt handle
-                    }
-
-                    // Block Alt+Number shortcuts for direct tab jumping
-                    if (event.altKey && event.key >= '1' && event.key <= '9') {
-                        return false;  // Block xterm.js from processing, let Qt handle
-                    }
-
                     terminalBridge.on_key_pressed(
                         event.key,
                         event.code,
@@ -202,7 +240,7 @@
                         event.shiftKey
                     );
                 }
-                return true; // Let xterm.js process the key normally
+                return true; // Let xterm.js process the key normally (shortcuts are blocked at DOM level)
             });
 
             // Data events (user input)
@@ -353,6 +391,12 @@
             // Block tab navigation shortcuts - let Qt handle them
             // Ctrl+PgUp/PgDn are used for tab switching in the application
             if (e.ctrlKey && (e.key === 'PageUp' || e.key === 'PageDown')) {
+                return false;  // Block xterm.js from processing, let Qt handle
+            }
+
+            // Block pane navigation shortcuts - let Qt handle them
+            // Ctrl+Shift+Arrow keys are used for pane navigation
+            if (e.ctrlKey && e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
                 return false;  // Block xterm.js from processing, let Qt handle
             }
 

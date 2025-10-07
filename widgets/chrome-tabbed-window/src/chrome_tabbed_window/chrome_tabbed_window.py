@@ -134,7 +134,7 @@ class ChromeTabbedWindow(_BaseClass):
 
         # Edge resizing state for frameless windows
         self._resize_edge = None
-        self.RESIZE_MARGIN = 8  # Pixels from edge to trigger resize
+        self.RESIZE_MARGIN = 4  # Pixels from edge to trigger resize
 
         # Enable mouse tracking for edge resize cursor changes
         self.setMouseTracking(True)
@@ -168,10 +168,14 @@ class ChromeTabbedWindow(_BaseClass):
         # Set up frameless window if in Frameless mode
         if self._window_mode == WindowMode.Frameless:
             self._setup_frameless_window()
+            # Note: Background is painted in paintEvent() using theme colors
 
         # Create main layout
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        # Add small margins in frameless mode to ensure edge resize detection works
+        # Child widgets won't consume mouse events in this margin area
+        margin = self.RESIZE_MARGIN if self._window_mode == WindowMode.Frameless else 0
+        main_layout.setContentsMargins(margin, margin, margin, margin)
         main_layout.setSpacing(0)
 
         # Tab bar layout (may include corner widgets and window controls)
@@ -458,12 +462,27 @@ class ChromeTabbedWindow(_BaseClass):
         painter = QPainter(self)
 
         if self._window_mode == WindowMode.Frameless:
-            # Fill the entire widget with a white background
-            # This ensures the content area is visible
-            painter.fillRect(self.rect(), QColor(255, 255, 255))
+            # Get theme colors for window background and border
+            try:
+                from vfwidgets_theme.core.tokens import ColorTokenRegistry
+                from vfwidgets_theme.core.manager import ThemeManager
 
-            # Optionally, paint a subtle border for the window
-            painter.setPen(QColor(200, 200, 200))
+                theme_mgr = ThemeManager.get_instance()
+                current_theme = theme_mgr.current_theme
+
+                # Get window background and border colors from theme
+                bg_color = QColor(ColorTokenRegistry.get("window.background", current_theme))
+                border_color = QColor(ColorTokenRegistry.get("window.border", current_theme))
+            except (ImportError, KeyError, AttributeError, Exception):
+                # Fallback to dark theme colors if theme system not available
+                bg_color = QColor("#1e1e1e")
+                border_color = QColor("#333333")
+
+            # Fill the entire widget with theme-aware background
+            painter.fillRect(self.rect(), bg_color)
+
+            # Paint a subtle border for the window
+            painter.setPen(border_color)
             painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
 
         # Call parent paintEvent

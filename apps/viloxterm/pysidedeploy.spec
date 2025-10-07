@@ -10,7 +10,7 @@ icon = /home/kuja/GitHub/vfwidgets/.direnv/python-3.12.3/lib/python3.12/site-pac
 [python]
 
 # python environment
-python_path = /home/kuja/GitHub/vfwidgets/.direnv/python-3.12.3/bin/python3
+python_path = /home/jasonvi/GitHub/vfwidgets/.direnv/python-3.12.3/bin/python3
 packages = PySide6==6.9.0,vfwidgets-theme-system,chrome-tabbed-window,vfwidgets-multisplit,vfwidgets-terminal,vfwidgets-keybinding
 
 # exclude development dependencies
@@ -19,7 +19,7 @@ excluded_qml_plugins = QtCharts,QtDataVisualization,QtWebView,QtTest,Qt3D
 [qt]
 
 # qt modules required by viloxterm
-modules = Gui,Widgets,Core,DBus
+modules = Core,DBus,Gui,Widgets
 
 # qml is not used
 qml_files = 

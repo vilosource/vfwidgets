@@ -1,8 +1,12 @@
 """Theme selection dialog for ViloxTerm."""
 
+import logging
 from typing import Optional
 
+from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QApplication, QWidget
+
+logger = logging.getLogger(__name__)
 
 
 class ThemeDialog(QDialog):
@@ -47,5 +51,16 @@ class ThemeDialog(QDialog):
         """
         app = QApplication.instance()
         if hasattr(app, "set_theme"):
-            app.set_theme(theme_name)
+            success = app.set_theme(theme_name)
+            if success:
+                # Save theme preference to ViloxTerm config
+                try:
+                    settings = QSettings("ViloxTerm", "ViloxTerm")
+                    settings.setValue("theme/current", theme_name)
+                    settings.sync()
+                    logger.info(f"Saved application theme preference: {theme_name}")
+                except Exception as e:
+                    logger.error(f"Failed to save theme preference: {e}")
+            else:
+                logger.warning(f"Failed to apply theme: {theme_name}")
         self.accept()

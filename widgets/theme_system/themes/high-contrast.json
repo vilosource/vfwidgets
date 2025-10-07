@@ -100,7 +100,25 @@
 
     "accent.primary": "#00ff00",
     "accent.secondary": "#ffff00",
-    "accent.tertiary": "#00ffff"
+    "accent.tertiary": "#00ffff",
+
+    "focusBorder": "#00ff00",
+    "icon.foreground": "#ffffff",
+    "toolbar.hoverBackground": "rgba(255, 255, 255, 0.2)",
+    "toolbar.hoverForeground": "#00ff00",
+    "toolbar.activeBackground": "rgba(255, 255, 255, 0.3)",
+
+    "tab.activeBackground": "#0066cc",
+    "tab.inactiveBackground": "#000000",
+    "tab.activeForeground": "#ffffff",
+    "tab.inactiveForeground": "#808080",
+    "tab.border": "#ffffff",
+    "tab.activeBorder": "#00ff00",
+    "tab.hoverBackground": "#003366",
+    "tab.hoverForeground": "#ffffff",
+
+    "editorGroupHeader.tabsBackground": "#000000",
+    "editorGroupHeader.tabsBorder": "#ffffff"
   },
   "tokenColors": [
     {

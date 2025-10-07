@@ -124,20 +124,34 @@ code_editor.setProperty("role", "editor")
 
 **Available roles**: `danger`, `success`, `warning`, `secondary`, `editor`
 
-### 🚀 Built-in Themes
+### 🚀 Built-in Themes & Auto-Discovery
 
-5 professional themes included:
+5 professional built-in themes + automatic discovery of custom themes:
 
+**Built-in themes:**
 1. **vscode** (default) - VS Code Dark+ theme
 2. **dark** - GitHub-inspired dark theme
 3. **light** - High contrast light theme
 4. **default** - Microsoft-inspired light theme
 5. **minimal** - Monochrome fallback theme
 
+**Package themes (auto-discovered):**
+- `dark-default.json` - Comprehensive dark theme
+- `light-default.json` - Comprehensive light theme
+- `high-contrast.json` - Accessibility-focused theme
+
+**User custom themes (auto-discovered):**
+- Place `.json` themes in `~/.config/ViloxTerm/themes/` or `~/.vfwidgets/themes/`
+- Automatically loaded on startup with highest priority
+
 Switch themes dynamically:
 ```python
 app.set_theme("light")  # All widgets update automatically!
+app.set_theme("vscode-dark")  # Load user custom theme
+app.set_theme("dark-default")  # Load package theme
 ```
+
+**Theme Priority:** User themes > Package themes > Built-in themes
 
 ### 📊 200 Theme Tokens
 
@@ -349,16 +363,22 @@ theme.get("button.hoverBackground")
 ```python
 from vfwidgets_theme import ThemedApplication
 
-app = ThemedApplication(sys.argv)
+# Create app with theme persistence
+theme_config = {"persist_theme": True, "auto_detect_system": False}
+app = ThemedApplication(sys.argv, theme_config=theme_config)
 
-# Available themes
-themes = app.available_themes  # ['vscode', 'dark', 'light', 'default', 'minimal']
+# Available themes (includes auto-discovered themes)
+themes = app.available_themes  # Built-in + package + user themes
 
 # Get current theme
 current = app.get_current_theme()
 
-# Switch theme
+# Switch theme (automatically saved if persist_theme=True)
 app.set_theme("dark")  # Returns True if successful
+app.set_theme("vscode-dark")  # Load user custom theme
+
+# Theme aliases work automatically
+app.set_theme("dark-default")  # Can use with or without .json extension
 ```
 
 ### ThemedMainWindow

@@ -50,7 +50,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.terminal_preferences_manager = TerminalPreferencesManager()
 
         # Create terminal provider for MultisplitWidget
-        self.terminal_provider = TerminalProvider(self.terminal_server)
+        self.terminal_provider = TerminalProvider(self.terminal_server, event_filter=self)
 
         # Apply default terminal theme to new terminals
         default_theme = self.terminal_theme_manager.get_default_theme()
@@ -382,6 +382,10 @@ class ViloxTermApp(ChromeTabbedWindow):
             provider=self.terminal_provider, splitter_style=dark_splitter_style
         )
 
+        # Install event filter to intercept keyboard shortcuts
+        # This must be done BEFORE the terminal widgets are created
+        multisplit.installEventFilter(self)
+
         # Set dark background for MultisplitWidget container to match terminal theme
         multisplit.setStyleSheet("background-color: #1e1e1e;")
 
@@ -428,6 +432,8 @@ class ViloxTermApp(ChromeTabbedWindow):
                     pass  # Already disconnected
 
             terminal.terminalReady.connect(on_ready)
+            # Connect shortcut handling
+            terminal.shortcutPressed.connect(self._on_terminal_shortcut)
             logger.debug(f"Connected to terminalReady signal, waiting for terminal to be ready")
 
         # Check if initial pane already exists (it's created during __init__)
@@ -585,26 +591,30 @@ class ViloxTermApp(ChromeTabbedWindow):
         Args:
             pane_id: ID of newly added pane
         """
-        # Only auto-focus if this pane was added from a split operation
-        if self._splitting_in_progress:
-            multisplit = self.currentWidget()
-            if isinstance(multisplit, MultisplitWidget):
+        multisplit = self.currentWidget()
+        if isinstance(multisplit, MultisplitWidget):
+            # Get the terminal widget
+            terminal = multisplit.get_widget(pane_id)
+            if terminal and isinstance(terminal, TerminalWidget):
+                # ALWAYS connect shortcut handling for all terminals
+                terminal.shortcutPressed.connect(self._on_terminal_shortcut)
+                logger.debug(f"Connected shortcut handler for pane: {pane_id}")
+
+            # Only auto-focus if this pane was added from a split operation
+            if self._splitting_in_progress:
                 # Focus the new pane
                 multisplit.focus_pane(pane_id)
-
-                # Use v0.2.0 widget lookup API to access terminal
-                terminal = multisplit.get_widget(pane_id)
                 if terminal and isinstance(terminal, TerminalWidget):
                     # Terminal is focused and ready for input
                     logger.debug(f"Auto-focused new terminal in pane: {pane_id}")
 
-            self._splitting_in_progress = False
+                self._splitting_in_progress = False
 
     def _on_focus_changed(self, old_pane_id: str, new_pane_id: str) -> None:
         """Handle focus changes - add visual indicators.
 
-        Adds a subtle border to the focused terminal pane for better UX
-        in multi-pane layouts.
+        Adds a prominent border to the focused terminal pane by modifying
+        the layout margins and setting a background color on the container.
 
         Args:
             old_pane_id: Pane that lost focus (empty string if none)
@@ -614,19 +624,59 @@ class ViloxTermApp(ChromeTabbedWindow):
         if not isinstance(multisplit, MultisplitWidget):
             return
 
+        # Get theme-aware focus color with proper fallback chain
+        try:
+            from vfwidgets_theme.core.tokens import ColorTokenRegistry
+            from vfwidgets_theme.core.manager import ThemeManager
+
+            theme_mgr = ThemeManager.get_instance()
+            current_theme = theme_mgr.current_theme
+
+            # Fallback chain: focusBorder -> input.focusBorder -> editor.selectionBackground
+            try:
+                focus_color = ColorTokenRegistry.get("focusBorder", current_theme)
+            except (KeyError, AttributeError):
+                try:
+                    focus_color = ColorTokenRegistry.get("input.focusBorder", current_theme)
+                except (KeyError, AttributeError):
+                    try:
+                        focus_color = ColorTokenRegistry.get("editor.selectionBackground", current_theme)
+                    except (KeyError, AttributeError):
+                        # Final fallback based on theme type
+                        focus_color = "#007ACC" if current_theme.type == "dark" else "#0078d4"
+        except (ImportError, Exception):
+            # Fallback if theme system not available (assume dark theme)
+            focus_color = "#007ACC"
+
+        border_width = 3
+
         # Clear old focus border
         if old_pane_id:
-            old_widget = multisplit.get_widget(old_pane_id)
-            if old_widget:
-                old_widget.setStyleSheet("")
+            old_terminal = multisplit.get_widget(old_pane_id)
+            if old_terminal and isinstance(old_terminal, TerminalWidget):
+                # Reset layout margins to 0 (no border)
+                old_terminal.layout().setContentsMargins(0, 0, 0, 0)
+                # Clear background by disabling auto-fill
+                old_terminal.setAutoFillBackground(False)
+                old_terminal.setStyleSheet("")
 
         # Add new focus border
         if new_pane_id:
-            new_widget = multisplit.get_widget(new_pane_id)
-            if new_widget:
-                # Subtle blue border for focused pane
-                # TODO: Make color theme-aware
-                new_widget.setStyleSheet("border: 2px solid #0078d4")
+            new_terminal = multisplit.get_widget(new_pane_id)
+            if new_terminal and isinstance(new_terminal, TerminalWidget):
+                # Set layout margins to create space for border
+                # The background color will show through as the border
+                new_terminal.layout().setContentsMargins(
+                    border_width, border_width, border_width, border_width
+                )
+                # Use QPalette to set background (more reliable than stylesheet)
+                from PySide6.QtGui import QPalette, QColor
+                from PySide6.QtCore import Qt
+
+                palette = new_terminal.palette()
+                palette.setColor(QPalette.ColorRole.Window, QColor(focus_color))
+                new_terminal.setPalette(palette)
+                new_terminal.setAutoFillBackground(True)
 
         logger.debug(
             f"Focus changed: "
@@ -750,6 +800,16 @@ class ViloxTermApp(ChromeTabbedWindow):
             logger.debug(f"Navigated focus {direction.value}")
         else:
             logger.debug(f"No pane in {direction.value} direction")
+
+    def _on_terminal_shortcut(self, action_id: str) -> None:
+        """Handle shortcut pressed from terminal JavaScript."""
+        logger.info(f"Terminal shortcut pressed: {action_id}")
+
+        # Trigger the corresponding action
+        if action_id in self.actions:
+            self.actions[action_id].trigger()
+        else:
+            logger.warning(f"Unknown action ID from terminal: {action_id}")
 
     def _on_close_tab(self) -> None:
         """Handle close tab request from menu.

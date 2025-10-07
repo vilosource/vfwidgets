@@ -40,13 +40,33 @@ def configure_environment():
 def main():
     """Main entry point for ViloxTerm."""
     setup_logging()
+    logger = logging.getLogger(__name__)
 
     # Configure environment BEFORE creating QApplication
     configure_environment()
 
-    # Create themed application
-    app = ThemedApplication(sys.argv)
-    app.set_theme("dark")
+    # Create themed application with theme persistence enabled
+    theme_config = {"persist_theme": True, "auto_detect_system": False}
+    app = ThemedApplication(sys.argv, theme_config=theme_config)
+
+    # Load saved theme from ViloxTerm config if available
+    try:
+        from PySide6.QtCore import QSettings
+
+        settings = QSettings("ViloxTerm", "ViloxTerm")
+        saved_theme = settings.value("theme/current")
+
+        if saved_theme:
+            logger.info(f"Loading saved theme: {saved_theme}")
+            if not app.set_theme(saved_theme):
+                logger.warning(f"Failed to load saved theme '{saved_theme}', using default")
+                app.set_theme("dark")
+        else:
+            # No saved theme, use default
+            app.set_theme("dark")
+    except Exception as e:
+        logger.warning(f"Error loading theme preference: {e}, using default theme")
+        app.set_theme("dark")
 
     # Create and show main window
     window = ViloxTermApp()
