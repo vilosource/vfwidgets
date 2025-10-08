@@ -33,6 +33,9 @@ class ViloxTermApp(ChromeTabbedWindow):
               └─ TerminalWidget(s) in splittable panes
     """
 
+    # Class-level window ID counter for unique window identification
+    _window_id_counter = 0
+
     def __init__(self, shared_server=None, create_initial_tab=True):
         """Initialize ViloxTerm application.
 
@@ -46,8 +49,15 @@ class ViloxTermApp(ChromeTabbedWindow):
         # ChromeTabbedWindow as top-level (triggers frameless mode)
         super().__init__()
 
+        # Assign unique window ID and increment counter
+        ViloxTermApp._window_id_counter += 1
+        self._window_id = ViloxTermApp._window_id_counter
+
         # Track child windows (prevent garbage collection)
         self._child_windows = []
+
+        # Track parent window (None for main window, set by parent for child windows)
+        self._parent_window = None
 
         # Create or use shared terminal server
         if shared_server:
@@ -88,7 +98,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         self._tab_counter = 1
 
         # Customize window after parent init
-        self.setWindowTitle("ViloxTerm")
+        self.setWindowTitle(f"ViloxTerm - Window {self._window_id}")
         self.resize(1200, 800)
         self.setTabsClosable(True)
 
@@ -151,6 +161,9 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         # Handle tab detachment
         self.tabDetachRequested.connect(self._detach_tab_to_window)
+
+        # Handle tab migration to existing window
+        self.tabMoveToWindowRequested.connect(self._move_tab_to_window)
 
         # Handle menu button actions (other actions use keybindings directly)
         if hasattr(self, "menu_button"):
@@ -535,6 +548,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Create new window with shared server
         new_window = ViloxTermApp(shared_server=self.terminal_server)
 
+        # Set parent window reference
+        new_window._parent_window = self
+
         # Track window to prevent garbage collection
         self._child_windows.append(new_window)
 
@@ -555,6 +571,33 @@ class ViloxTermApp(ChromeTabbedWindow):
         if window in self._child_windows:
             self._child_windows.remove(window)
             logger.info(f"Child window closed. Remaining windows: {len(self._child_windows) + 1}")
+
+    def get_available_target_windows(self) -> list:
+        """Get list of available target windows for tab migration.
+
+        Returns list of (window_title, window_ref) tuples for all windows
+        except the current window.
+
+        Returns:
+            List of (str, ViloxTermApp) tuples, empty if no other windows available
+        """
+        # Find the main window (has _parent_window = None)
+        if self._parent_window is None:
+            # We are the main window
+            main_window = self
+        else:
+            # We are a child window, traverse to main
+            main_window = self._parent_window
+
+        # Collect all windows: main + all children
+        all_windows = [main_window] + main_window._child_windows
+
+        # Filter out current window and build result list
+        target_windows = [
+            (window.windowTitle(), window) for window in all_windows if window != self
+        ]
+
+        return target_windows
 
     def _detach_tab_to_window(self, index: int) -> None:
         """Detach a tab to a new window.
@@ -595,6 +638,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         if tab_data["tooltip"]:
             new_window.setTabToolTip(0, tab_data["tooltip"])
 
+        # Set parent window reference
+        new_window._parent_window = self
+
         # Track window to prevent garbage collection
         self._child_windows.append(new_window)
 
@@ -605,6 +651,52 @@ class ViloxTermApp(ChromeTabbedWindow):
         new_window.show()
 
         logger.info(f"Tab detached to new window. Total windows: {len(self._child_windows) + 1}")
+
+    def _move_tab_to_window(self, source_index: int, target_window) -> None:
+        """Move a tab to an existing window.
+
+        Called when user selects "Move to Window > Window X" from context menu.
+
+        Args:
+            source_index: Tab index to move from this window
+            target_window: ViloxTermApp instance to move tab to
+        """
+        logger.info(
+            f"Moving tab {source_index} to window {target_window.windowTitle()}"
+        )
+
+        # Get tab data before removing
+        tab_data = self.get_tab_data(source_index)
+        if not tab_data:
+            logger.warning(f"Cannot move tab {source_index}: invalid index")
+            return
+
+        # Handle last tab case: create a replacement tab first
+        if self.count() == 1:
+            logger.info("Moving last tab - creating replacement tab first")
+            # Create new terminal tab before removing the last one
+            self._tab_counter += 1
+            self.add_new_terminal_tab(f"Terminal {self._tab_counter}")
+
+        # Remove tab from this window (transfers ownership)
+        # CRITICAL: Must removeTab before addTab (widget can only have one parent)
+        self.removeTab(source_index)
+        logger.info(f"Removed tab {source_index} from source window")
+
+        # Add tab to target window
+        new_index = target_window.addTab(tab_data["widget"], tab_data["text"])
+        if not tab_data["icon"].isNull():
+            target_window.setTabIcon(new_index, tab_data["icon"])
+        if tab_data["tooltip"]:
+            target_window.setTabToolTip(new_index, tab_data["tooltip"])
+
+        # Focus target window and new tab
+        target_window.activateWindow()
+        target_window.setCurrentIndex(new_index)
+
+        logger.info(
+            f"Tab moved to {target_window.windowTitle()}, new index: {new_index}"
+        )
 
     def _apply_terminal_theme_to_all(self, theme: dict) -> None:
         """Apply terminal theme to all existing terminals.
