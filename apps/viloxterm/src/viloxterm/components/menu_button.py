@@ -38,12 +38,18 @@ class MenuButton(WindowControlButton):
         """
         super().__init__(parent)
 
+        # Store parent app reference for dynamic menu updates
+        self._parent_app = None
+
         # Create context menu
         self._menu = QMenu(self)
 
         # Add "New Window" action at top (not managed by keybindings)
         new_window_action = self._menu.addAction("New Window")
         new_window_action.triggered.connect(self.new_window_requested.emit)
+
+        # Placeholder for "Move Tab to Window" submenu (populated dynamically)
+        self._move_to_window_submenu = None
 
         # Separator
         self._menu.addSeparator()
@@ -93,9 +99,76 @@ class MenuButton(WindowControlButton):
         change_theme_action = self._menu.addAction("Change App Theme...")
         change_theme_action.triggered.connect(self.change_theme_requested.emit)
 
+    def set_parent_app(self, app) -> None:
+        """Set parent application for dynamic menu updates.
+
+        Args:
+            app: ViloxTermApp instance to query for available windows
+        """
+        self._parent_app = app
+
+    def _update_move_to_window_submenu(self) -> None:
+        """Update 'Move Tab to Window' submenu with current available windows.
+
+        This method is called each time before showing the menu to ensure
+        the window list is up-to-date.
+        """
+        # Remove old submenu/action if it exists
+        if self._move_to_window_submenu:
+            # Handle both QMenu (submenu) and QAction (disabled item)
+            if hasattr(self._move_to_window_submenu, 'menuAction'):
+                # It's a QMenu
+                self._menu.removeAction(self._move_to_window_submenu.menuAction())
+            else:
+                # It's a QAction
+                self._menu.removeAction(self._move_to_window_submenu)
+            self._move_to_window_submenu = None
+
+        # Only add submenu if parent app is set
+        if not self._parent_app:
+            return
+
+        # Get available target windows
+        target_windows = self._parent_app.get_available_target_windows()
+
+        # Get current tab index
+        current_tab_index = self._parent_app.currentIndex()
+
+        # Get menu actions to find insertion point (after "New Window")
+        actions = self._menu.actions()
+        insert_before_action = actions[1] if len(actions) > 1 else None
+
+        if target_windows and current_tab_index >= 0:
+            # Create submenu with available windows
+            self._move_to_window_submenu = QMenu("Move Tab to Window", self._menu)
+
+            # Populate with window titles and connect actions
+            for window_title, window_ref in target_windows:
+                action = self._move_to_window_submenu.addAction(window_title)
+                # Use lambda with default arguments to capture current values
+                action.triggered.connect(
+                    lambda checked=False, idx=current_tab_index, win=window_ref: self._parent_app._move_tab_to_window(
+                        idx, win
+                    )
+                )
+
+            # Insert submenu after "New Window", before separator
+            self._menu.insertMenu(insert_before_action, self._move_to_window_submenu)
+        else:
+            # No other windows or no current tab - add disabled action
+            disabled_action = QAction("Move Tab to Window", self._menu)
+            disabled_action.setEnabled(False)
+            self._move_to_window_submenu = disabled_action
+
+            # Insert disabled action after "New Window", before separator
+            self._menu.insertAction(insert_before_action, disabled_action)
+
     def mousePressEvent(self, event) -> None:
         """Override to show menu on click instead of default button behavior."""
         if event.button() == Qt.MouseButton.LeftButton:
+            # Update dynamic menu items before showing
+            self._update_move_to_window_submenu()
+
             # Show menu below the button
             pos = self.mapToGlobal(QPoint(0, self.height()))
             self._menu.exec(pos)

@@ -146,6 +146,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Create menu button with keybinding actions
         self.menu_button = MenuButton(self._window_controls, keybinding_actions=self.actions)
 
+        # Connect menu button to app for dynamic menu updates
+        self.menu_button.set_parent_app(self)
+
         # Insert menu button at the beginning (before minimize button)
         controls_layout.insertWidget(0, self.menu_button)
 
