@@ -31,6 +31,7 @@ class ChromeTabBar(QTabBar):
     tabCloseClicked = Signal(int)  # Request to close tab at index
     tabMiddleClicked = Signal(int)  # Middle click on tab
     newTabRequested = Signal()  # Request to add new tab
+    tabDetachRequested = Signal(int)  # Request to detach tab to new window
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize the Chrome tab bar."""
@@ -43,6 +44,7 @@ class ChromeTabBar(QTabBar):
         self.TAB_OVERLAP = 14
         self.TAB_CURVE = 8
         self.CLOSE_BUTTON_SIZE = 16
+        self.DETACH_THRESHOLD = 50  # Pixels to drag vertically before detaching tab
 
         # Chrome colors (light theme for v1.0)
         self.COLOR_BACKGROUND = QColor("#DEE1E6")
@@ -434,6 +436,39 @@ class ChromeTabBar(QTabBar):
 
         super().mouseReleaseEvent(event)
 
+    def contextMenuEvent(self, event) -> None:
+        """Handle context menu (right-click) on tabs.
+
+        Shows a context menu with "Move to New Window" option.
+        """
+        # Don't show menu if we're currently dragging
+        if self._is_dragging:
+            event.ignore()
+            return
+
+        # Find which tab was right-clicked
+        clicked_index = self.tabAt(event.pos())
+        if clicked_index < 0:
+            # Not on a tab
+            event.ignore()
+            return
+
+        # Import QMenu here to avoid circular imports
+        from PySide6.QtWidgets import QMenu
+
+        # Create context menu
+        menu = QMenu(self)
+        move_action = menu.addAction("Move to New Window")
+
+        # Show menu and get result
+        action = menu.exec(event.globalPos())
+
+        # If user clicked "Move to New Window", emit signal
+        if action == move_action:
+            self.tabDetachRequested.emit(clicked_index)
+
+        event.accept()
+
     def leaveEvent(self, event) -> None:
         """Handle mouse leave."""
         # Animate hover out effect
@@ -560,11 +595,34 @@ class ChromeTabBar(QTabBar):
         self.update()
 
     def _update_drag_indicator(self, mouse_pos: QPoint) -> None:
-        """Update drag indicator position based on mouse position."""
+        """Update drag indicator position based on mouse position.
+
+        Also detects vertical drag threshold for tab detachment.
+        """
         if not self._is_dragging:
             return
 
-        # Calculate drop position
+        # Check for vertical drag threshold (tab detachment)
+        if self._drag_start_position is not None:
+            vertical_distance = abs(mouse_pos.y() - self._drag_start_position.y())
+            if vertical_distance > self.DETACH_THRESHOLD:
+                # User dragged vertically beyond threshold - detach tab
+                detached_index = self._dragged_tab_index
+
+                # Reset drag state
+                self._is_dragging = False
+                self._drag_start_position = None
+                self._drag_indicator_position = -1
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+                self.update()
+
+                # Emit signal to detach tab
+                if detached_index >= 0:
+                    self.tabDetachRequested.emit(detached_index)
+
+                return
+
+        # Normal horizontal drag - calculate drop position
         drop_index = self._calculate_drop_index(mouse_pos)
 
         if drop_index != self._drag_indicator_position:

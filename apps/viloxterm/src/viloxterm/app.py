@@ -33,12 +33,15 @@ class ViloxTermApp(ChromeTabbedWindow):
               └─ TerminalWidget(s) in splittable panes
     """
 
-    def __init__(self, shared_server=None):
+    def __init__(self, shared_server=None, create_initial_tab=True):
         """Initialize ViloxTerm application.
 
         Args:
             shared_server: Optional MultiSessionTerminalServer to share between windows.
                           If None, creates a new server (first window).
+            create_initial_tab: Whether to create an initial "Terminal 1" tab.
+                               Set to False when detaching tabs to avoid creating unwanted tabs.
+                               Defaults to True for normal window creation.
         """
         # ChromeTabbedWindow as top-level (triggers frameless mode)
         super().__init__()
@@ -101,8 +104,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Set up signals (after window controls exist)
         self._setup_signals()
 
-        # Create initial tab
-        self.add_new_terminal_tab("Terminal 1")
+        # Create initial tab (unless caller explicitly requests not to)
+        if create_initial_tab:
+            self.add_new_terminal_tab("Terminal 1")
 
     def _setup_window_controls(self) -> None:
         """Set up custom window controls with menu button.
@@ -144,6 +148,9 @@ class ViloxTermApp(ChromeTabbedWindow):
         """Set up signal connections."""
         # Handle tab close
         self.tabCloseRequested.connect(self._on_tab_close_requested)
+
+        # Handle tab detachment
+        self.tabDetachRequested.connect(self._detach_tab_to_window)
 
         # Handle menu button actions (other actions use keybindings directly)
         if hasattr(self, "menu_button"):
@@ -548,6 +555,56 @@ class ViloxTermApp(ChromeTabbedWindow):
         if window in self._child_windows:
             self._child_windows.remove(window)
             logger.info(f"Child window closed. Remaining windows: {len(self._child_windows) + 1}")
+
+    def _detach_tab_to_window(self, index: int) -> None:
+        """Detach a tab to a new window.
+
+        Called when user right-clicks "Move to New Window" or drags tab vertically.
+
+        Args:
+            index: Tab index to detach
+        """
+        logger.info(f"Detaching tab {index} to new window")
+
+        # Get tab data before removing
+        tab_data = self.get_tab_data(index)
+        if not tab_data:
+            logger.warning(f"Cannot detach tab {index}: invalid index")
+            return
+
+        # Handle last tab case: create a replacement tab first
+        if self.count() == 1:
+            logger.info("Detaching last tab - creating replacement tab first")
+            # Create new terminal tab before removing the last one
+            self._on_new_tab()
+
+        # Remove tab from this window (transfers ownership)
+        # CRITICAL: Must removeTab before addTab (widget can only have one parent)
+        self.removeTab(index)
+        logger.info(f"Removed tab {index} from source window")
+
+        # Create new window with shared server (no initial tab - we're adding the detached tab)
+        new_window = ViloxTermApp(
+            shared_server=self.terminal_server, create_initial_tab=False
+        )
+
+        # Add tab to new window
+        new_window.addTab(tab_data["widget"], tab_data["text"])
+        if not tab_data["icon"].isNull():
+            new_window.setTabIcon(0, tab_data["icon"])
+        if tab_data["tooltip"]:
+            new_window.setTabToolTip(0, tab_data["tooltip"])
+
+        # Track window to prevent garbage collection
+        self._child_windows.append(new_window)
+
+        # Handle cleanup when child window closes
+        new_window.destroyed.connect(lambda: self._on_child_window_closed(new_window))
+
+        # Show the new window
+        new_window.show()
+
+        logger.info(f"Tab detached to new window. Total windows: {len(self._child_windows) + 1}")
 
     def _apply_terminal_theme_to_all(self, theme: dict) -> None:
         """Apply terminal theme to all existing terminals.

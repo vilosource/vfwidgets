@@ -101,6 +101,7 @@ class ChromeTabbedWindow(_BaseClass):
     # ==================== ChromeTabbedWindow Extended Signals ====================
 
     newWindowRequested = Signal()  # Emitted when user requests a new window
+    tabDetachRequested = Signal(int)  # Emitted when user wants to detach tab to new window
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """
@@ -264,6 +265,9 @@ class ChromeTabbedWindow(_BaseClass):
 
         # Connect new tab button signal (for Chrome-style new tab button)
         self._tab_bar.newTabRequested.connect(self._on_new_tab_requested)
+
+        # Connect tab detach signal (forward from tab bar to public signal)
+        self._tab_bar.tabDetachRequested.connect(self.tabDetachRequested)
 
         # Tab bar currentChanged should only be used for user clicks, not programmatic changes
         self._tab_bar.tabBarClicked.connect(self._on_tab_bar_clicked)
