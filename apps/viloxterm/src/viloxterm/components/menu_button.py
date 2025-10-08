@@ -17,6 +17,7 @@ class MenuButton(WindowControlButton):
     """
 
     # Signals emitted when menu actions are triggered
+    new_window_requested = Signal()
     split_vertical_requested = Signal()
     split_horizontal_requested = Signal()
     close_pane_requested = Signal()
@@ -39,6 +40,13 @@ class MenuButton(WindowControlButton):
 
         # Create context menu
         self._menu = QMenu(self)
+
+        # Add "New Window" action at top (not managed by keybindings)
+        new_window_action = self._menu.addAction("New Window")
+        new_window_action.triggered.connect(self.new_window_requested.emit)
+
+        # Separator
+        self._menu.addSeparator()
 
         # Add keybinding-managed actions if provided
         if keybinding_actions:

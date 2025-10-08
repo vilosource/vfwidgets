@@ -33,15 +33,31 @@ class ViloxTermApp(ChromeTabbedWindow):
               └─ TerminalWidget(s) in splittable panes
     """
 
-    def __init__(self):
-        """Initialize ViloxTerm application."""
+    def __init__(self, shared_server=None):
+        """Initialize ViloxTerm application.
+
+        Args:
+            shared_server: Optional MultiSessionTerminalServer to share between windows.
+                          If None, creates a new server (first window).
+        """
         # ChromeTabbedWindow as top-level (triggers frameless mode)
         super().__init__()
 
-        # Create shared terminal server (memory efficient!)
-        self.terminal_server = MultiSessionTerminalServer(port=0)
-        self.terminal_server.start()
-        logger.info(f"Terminal server started on port {self.terminal_server.port}")
+        # Track child windows (prevent garbage collection)
+        self._child_windows = []
+
+        # Create or use shared terminal server
+        if shared_server:
+            # Share server with other windows
+            self.terminal_server = shared_server
+            self._owns_server = False
+            logger.info("Using shared terminal server")
+        else:
+            # Create own server (first window)
+            self.terminal_server = MultiSessionTerminalServer(port=0)
+            self.terminal_server.start()
+            self._owns_server = True
+            logger.info(f"Created terminal server on port {self.terminal_server.port}")
 
         # Create terminal theme manager
         self.terminal_theme_manager = TerminalThemeManager()
@@ -129,9 +145,10 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Handle tab close
         self.tabCloseRequested.connect(self._on_tab_close_requested)
 
-        # Handle menu button theme action (other actions use keybindings directly)
+        # Handle menu button actions (other actions use keybindings directly)
         if hasattr(self, "menu_button"):
             self.menu_button.change_theme_requested.connect(self._show_theme_dialog)
+            self.menu_button.new_window_requested.connect(self._open_new_window)
 
     def _setup_keybinding_manager(self) -> None:
         """Set up keyboard shortcut manager with user-customizable bindings."""
@@ -498,6 +515,39 @@ class ViloxTermApp(ChromeTabbedWindow):
         dialog.preferencesApplied.connect(self._apply_terminal_preferences_to_all)
         dialog.exec()
         logger.info("Terminal preferences dialog closed")
+
+    def _open_new_window(self) -> None:
+        """Open a new ViloxTerm window.
+
+        Creates a new window instance that shares the same terminal server
+        for memory efficiency. The new window is tracked to prevent garbage
+        collection.
+        """
+        logger.info("Opening new ViloxTerm window")
+
+        # Create new window with shared server
+        new_window = ViloxTermApp(shared_server=self.terminal_server)
+
+        # Track window to prevent garbage collection
+        self._child_windows.append(new_window)
+
+        # Handle cleanup when child window closes
+        new_window.destroyed.connect(lambda: self._on_child_window_closed(new_window))
+
+        # Show the window
+        new_window.show()
+
+        logger.info(f"New window created. Total windows: {len(self._child_windows) + 1}")
+
+    def _on_child_window_closed(self, window) -> None:
+        """Handle cleanup when a child window closes.
+
+        Args:
+            window: The ViloxTermApp instance that was closed
+        """
+        if window in self._child_windows:
+            self._child_windows.remove(window)
+            logger.info(f"Child window closed. Remaining windows: {len(self._child_windows) + 1}")
 
     def _apply_terminal_theme_to_all(self, theme: dict) -> None:
         """Apply terminal theme to all existing terminals.
@@ -877,13 +927,21 @@ class ViloxTermApp(ChromeTabbedWindow):
     def closeEvent(self, event) -> None:
         """Handle window close event.
 
+        If this window owns the terminal server, shut it down.
+        Otherwise, just close the window (server is shared).
+
         Args:
             event: Close event
         """
-        # Shutdown terminal server
-        logger.info("Shutting down terminal server...")
-        self.terminal_server.shutdown()
-        logger.info("Terminal server shut down")
+        logger.info("ViloxTerm window closing")
+
+        # Only shutdown server if we own it
+        if self._owns_server:
+            logger.info("Shutting down terminal server (owner window closing)")
+            self.terminal_server.shutdown()
+            logger.info("Terminal server shut down")
+        else:
+            logger.info("Window closed (server owned by another window)")
 
         # Accept close event
         super().closeEvent(event)

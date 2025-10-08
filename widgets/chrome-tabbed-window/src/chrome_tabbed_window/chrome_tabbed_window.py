@@ -98,6 +98,10 @@ class ChromeTabbedWindow(_BaseClass):
     tabBarDoubleClicked = Signal(int)  # Emitted when tab is double-clicked
     tabMoved = Signal(int, int)  # Emitted when tab is moved (from, to)
 
+    # ==================== ChromeTabbedWindow Extended Signals ====================
+
+    newWindowRequested = Signal()  # Emitted when user requests a new window
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """
         Initialize ChromeTabbedWindow.
@@ -770,6 +774,40 @@ class ChromeTabbedWindow(_BaseClass):
         # Update Qt properties for compatibility
         self._update_qt_property("count", self.count())
         self._update_qt_property("currentIndex", self.currentIndex())
+
+    def get_tab_data(self, index: int) -> Optional[dict]:
+        """
+        Get tab data for transfer to another window.
+
+        Useful for implementing tab detachment or window merging features.
+        Applications can use this to extract all tab information before
+        transferring a tab to a new window instance.
+
+        Args:
+            index: Tab index to get data for
+
+        Returns:
+            Dictionary with keys:
+                - widget: The QWidget for this tab (or None)
+                - text: Tab text string
+                - icon: Tab icon (QIcon)
+                - tooltip: Tab tooltip text
+            Returns None if index is invalid.
+
+        Example:
+            >>> tab_data = window.get_tab_data(0)
+            >>> if tab_data:
+            ...     new_window.addTab(tab_data["widget"], tab_data["text"])
+        """
+        if index < 0 or index >= self.count():
+            return None
+
+        return {
+            "widget": self.widget(index),
+            "text": self.tabText(index),
+            "icon": self.tabIcon(index),
+            "tooltip": self.tabToolTip(index),
+        }
 
     # ==================== Tab Access (QTabWidget API) ====================
 
