@@ -162,8 +162,8 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Handle tab detachment
         self.tabDetachRequested.connect(self._detach_tab_to_window)
 
-        # Handle tab migration to existing window
-        self.tabMoveToWindowRequested.connect(self._move_tab_to_window)
+        # Note: Tab migration to existing window is handled directly in
+        # _customize_tab_context_menu() via action.triggered connections
 
         # Handle menu button actions (other actions use keybindings directly)
         if hasattr(self, "menu_button"):
@@ -571,6 +571,36 @@ class ViloxTermApp(ChromeTabbedWindow):
         if window in self._child_windows:
             self._child_windows.remove(window)
             logger.info(f"Child window closed. Remaining windows: {len(self._child_windows) + 1}")
+
+    def _customize_tab_context_menu(self, menu, tab_index: int) -> None:
+        """Add multi-window menu items to tab context menu.
+
+        Adds "Move to Window >" submenu with list of available target windows.
+
+        Args:
+            menu: QMenu to add items to
+            tab_index: Index of the tab being right-clicked
+        """
+        # Get available target windows
+        target_windows = self.get_available_target_windows()
+
+        if target_windows:
+            # Create submenu with available windows
+            move_submenu = menu.addMenu("Move to Window")
+
+            # Populate with window titles and connect actions
+            for window_title, window_ref in target_windows:
+                action = move_submenu.addAction(window_title)
+                # Use lambda with default argument to capture current values
+                action.triggered.connect(
+                    lambda checked=False, idx=tab_index, win=window_ref: self._move_tab_to_window(
+                        idx, win
+                    )
+                )
+        else:
+            # No other windows available - add disabled action
+            no_windows_action = menu.addAction("Move to Window")
+            no_windows_action.setEnabled(False)
 
     def get_available_target_windows(self) -> list:
         """Get list of available target windows for tab migration.

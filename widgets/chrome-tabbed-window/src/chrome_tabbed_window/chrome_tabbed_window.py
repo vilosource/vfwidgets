@@ -669,6 +669,26 @@ class ChromeTabbedWindow(_BaseClass):
         widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.addTab(widget, "New Tab")
 
+    def _customize_tab_context_menu(self, menu, tab_index: int) -> None:
+        """Customize the tab context menu with application-specific items.
+
+        Override this method in subclasses to add custom menu items to the
+        tab right-click context menu. The menu already contains "Move to New Window".
+
+        Example:
+            class MyWindow(ChromeTabbedWindow):
+                def _customize_tab_context_menu(self, menu, tab_index):
+                    # Add custom menu items
+                    action = menu.addAction("My Custom Action")
+                    action.triggered.connect(lambda: self.handle_custom_action(tab_index))
+
+        Args:
+            menu: QMenu instance to add items to
+            tab_index: Index of the tab that was right-clicked
+        """
+        # Default implementation: no customization
+        pass
+
     def _on_tab_bar_clicked(self, index: int) -> None:
         """Handle tab bar click to change current tab."""
         # Only change current if it's different to avoid extra signals

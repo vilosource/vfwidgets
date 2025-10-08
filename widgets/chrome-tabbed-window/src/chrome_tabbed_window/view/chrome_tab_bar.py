@@ -504,37 +504,19 @@ class ChromeTabBar(QTabBar):
         # Add separator
         menu.addSeparator()
 
-        # Add "Move to Window >" submenu if parent supports window discovery
-        move_to_window_actions = {}  # Map action -> target_window
+        # Allow parent to customize menu (add application-specific items)
+        # Parent is ChromeTabbedWindow - apps can override _customize_tab_context_menu()
         parent_widget = self.parent()
-        if parent_widget and hasattr(parent_widget, "get_available_target_windows"):
-            # Query parent for available target windows
-            target_windows = parent_widget.get_available_target_windows()
-
-            if target_windows:
-                # Create submenu
-                move_submenu = menu.addMenu("Move to Window")
-
-                # Populate with available windows
-                for window_title, window_ref in target_windows:
-                    action = move_submenu.addAction(window_title)
-                    move_to_window_actions[action] = window_ref
-            else:
-                # No other windows available - add disabled action
-                no_windows_action = menu.addAction("Move to Window")
-                no_windows_action.setEnabled(False)
+        if parent_widget and hasattr(parent_widget, "_customize_tab_context_menu"):
+            parent_widget._customize_tab_context_menu(menu, clicked_index)
 
         # Show menu and get result
         action = menu.exec(event.globalPos())
 
-        # Handle action
+        # Handle standard actions
         if action == move_action:
             # Move to new window
             self.tabDetachRequested.emit(clicked_index)
-        elif action in move_to_window_actions:
-            # Move to existing window
-            target_window = move_to_window_actions[action]
-            self.tabMoveToWindowRequested.emit(clicked_index, target_window)
 
         event.accept()
 
