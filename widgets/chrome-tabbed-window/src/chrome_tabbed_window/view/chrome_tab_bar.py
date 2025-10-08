@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QSizePolicy, QTabBar, QWidget
 
 from ..components import ChromeTabRenderer, TabState
 from ..model import TabModel
+from .tab_detach_preview import TabDetachPreview
 
 
 class ChromeTabBar(QTabBar):
@@ -69,6 +70,10 @@ class ChromeTabBar(QTabBar):
         self._dragged_tab_index = -1
         self._drag_indicator_position = -1
         self._is_dragging = False
+
+        # Detach preview state
+        self._detach_preview = None  # TabDetachPreview widget
+        self._is_detaching = False  # Flag: in detach mode
 
         # Chrome-like tab constraints
         self.CHROME_MIN_TAB_WIDTH = 52  # Minimum width (favicon + close button)
@@ -426,6 +431,34 @@ class ChromeTabBar(QTabBar):
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """Handle mouse release events."""
         if event.button() == Qt.MouseButton.LeftButton:
+            # Check if we're in detach mode
+            if self._is_detaching:
+                # Complete the detachment
+                detached_index = self._dragged_tab_index
+
+                # Clean up preview window
+                if self._detach_preview:
+                    self._detach_preview.hide()
+                    self._detach_preview.deleteLater()
+                    self._detach_preview = None
+
+                # Reset drag state
+                self._is_dragging = False
+                self._is_detaching = False
+                self._drag_start_position = None
+                self._dragged_tab_index = -1
+                self._drag_indicator_position = -1
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+                self.update()
+
+                # Emit signal to detach tab
+                if detached_index >= 0:
+                    self.tabDetachRequested.emit(detached_index)
+
+                event.accept()
+                return
+
+            # Normal drag end (reordering)
             if self._is_dragging:
                 self._end_tab_drag(event.pos())
                 return
@@ -441,6 +474,13 @@ class ChromeTabBar(QTabBar):
 
         Shows a context menu with "Move to New Window" option.
         """
+        # Clean up any active detach preview
+        if self._detach_preview:
+            self._detach_preview.hide()
+            self._detach_preview.deleteLater()
+            self._detach_preview = None
+        self._is_detaching = False
+
         # Don't show menu if we're currently dragging
         if self._is_dragging:
             event.ignore()
@@ -606,20 +646,26 @@ class ChromeTabBar(QTabBar):
         if self._drag_start_position is not None:
             vertical_distance = abs(mouse_pos.y() - self._drag_start_position.y())
             if vertical_distance > self.DETACH_THRESHOLD:
-                # User dragged vertically beyond threshold - detach tab
-                detached_index = self._dragged_tab_index
+                # User dragged vertically beyond threshold - enter detach mode
+                if not self._is_detaching:
+                    # First time crossing threshold - create preview
+                    self._is_detaching = True
 
-                # Reset drag state
-                self._is_dragging = False
-                self._drag_start_position = None
+                    # Get tab info for preview
+                    tab_text = self.tabText(self._dragged_tab_index)
+                    tab_icon = self.tabIcon(self._dragged_tab_index)
+
+                    # Create floating preview window
+                    self._detach_preview = TabDetachPreview(tab_text, tab_icon)
+                    self._detach_preview.show()
+
+                # Update preview position to follow cursor
+                global_pos = self.mapToGlobal(mouse_pos)
+                self._detach_preview.update_position(global_pos)
+
+                # Don't show drop indicator during detach
                 self._drag_indicator_position = -1
-                self.setCursor(Qt.CursorShape.ArrowCursor)
                 self.update()
-
-                # Emit signal to detach tab
-                if detached_index >= 0:
-                    self.tabDetachRequested.emit(detached_index)
-
                 return
 
         # Normal horizontal drag - calculate drop position
@@ -660,6 +706,13 @@ class ChromeTabBar(QTabBar):
 
             # Update model
             self._model.move_tab(self._dragged_tab_index, drop_index)
+
+        # Clean up detach preview if exists
+        if self._detach_preview:
+            self._detach_preview.hide()
+            self._detach_preview.deleteLater()
+            self._detach_preview = None
+        self._is_detaching = False
 
         # Reset drag state
         self._is_dragging = False
