@@ -622,6 +622,7 @@ class TerminalWidget(_BaseTerminalClass):
         # Log WebEngine configuration for debugging WSL and other special environments
         try:
             from vfwidgets_common import log_webengine_configuration
+
             if self.debug:
                 log_webengine_configuration()
         except ImportError:
@@ -976,9 +977,7 @@ class TerminalWidget(_BaseTerminalClass):
                 else None
             )
         )
-        self.bridge.shortcut_pressed.connect(
-            lambda action_id: self.shortcutPressed.emit(action_id)
-        )
+        self.bridge.shortcut_pressed.connect(lambda action_id: self.shortcutPressed.emit(action_id))
 
         logger.debug("Bridge signals connected to widget signals")
 
@@ -1784,6 +1783,50 @@ class TerminalWidget(_BaseTerminalClass):
             self.inject_javascript(js_code)
 
         logger.debug("Scrollback buffer cleared")
+
+    def reset_zoom(self) -> None:
+        """Reset terminal zoom/magnification to 100% (default).
+
+        This is useful when users accidentally zoom in/out using Ctrl+scroll
+        or Ctrl+plus/minus in the web-based terminal.
+        """
+        if self.web_view:
+            self.web_view.setZoomFactor(1.0)
+            logger.debug("Terminal zoom reset to 100%")
+        else:
+            logger.warning("Cannot reset zoom - web_view not initialized")
+
+    def set_zoom_factor(self, factor: float) -> None:
+        """Set terminal zoom/magnification factor.
+
+        Args:
+            factor: Zoom factor (1.0 = 100%, 1.5 = 150%, 0.8 = 80%, etc.)
+                   Typical range is 0.25 to 5.0
+
+        Example:
+            terminal.set_zoom_factor(1.5)  # 150% zoom
+            terminal.set_zoom_factor(0.8)  # 80% zoom
+        """
+        if self.web_view:
+            # Clamp to reasonable range
+            factor = max(0.25, min(5.0, factor))
+            self.web_view.setZoomFactor(factor)
+            logger.debug(f"Terminal zoom set to {factor * 100:.0f}%")
+        else:
+            logger.warning("Cannot set zoom - web_view not initialized")
+
+    def get_zoom_factor(self) -> float:
+        """Get current terminal zoom/magnification factor.
+
+        Returns:
+            Current zoom factor (1.0 = 100%, 1.5 = 150%, etc.)
+            Returns 1.0 if web_view not initialized
+        """
+        if self.web_view:
+            return self.web_view.zoomFactor()
+        else:
+            logger.warning("Cannot get zoom - web_view not initialized")
+            return 1.0
 
     def enable_logging(self, log_level: str = "INFO") -> None:
         """Enable or change logging level.
