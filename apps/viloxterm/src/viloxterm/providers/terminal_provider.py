@@ -64,6 +64,27 @@ class TerminalProvider(WidgetProvider):
             terminal_config=self._default_config,
         )
 
+        # Initialize with theme-aware opaque background
+        # This prevents any transparency flash on first render
+        from PySide6.QtGui import QPalette, QColor
+        from PySide6.QtCore import Qt
+
+        # Get background color from terminal theme
+        bg_color = "#1e1e1e"  # Default fallback
+        if self._default_theme and "background" in self._default_theme:
+            bg_color = self._default_theme["background"]
+
+        # Set opaque background immediately
+        palette = terminal.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(bg_color))
+        terminal.setPalette(palette)
+        terminal.setAutoFillBackground(True)
+
+        # Mark as opaque for better repaint performance (especially on Windows)
+        terminal.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
+
+        logger.debug(f"Initialized terminal {widget_id} with opaque background: {bg_color}")
+
         # Apply default theme if set (theme is applied after config in _configure_terminal)
         if self._default_theme:
             terminal.set_terminal_theme(self._default_theme)

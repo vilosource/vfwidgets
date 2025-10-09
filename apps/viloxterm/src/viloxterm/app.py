@@ -157,6 +157,77 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         logger.info("Added menu button to window controls")
 
+    def _get_theme_color(self, token_name: str, fallback_token: str = None) -> str:
+        """Get color from theme system with fallback chain.
+
+        Resolves colors from VSCode-compatible theme tokens with multiple fallback levels:
+        1. Primary theme token from vfwidgets_theme
+        2. Fallback theme token (if provided)
+        3. Terminal theme (for background colors)
+        4. Light/dark default based on theme type
+
+        Args:
+            token_name: Primary theme token (e.g., "editor.background")
+            fallback_token: Secondary token if primary not found
+
+        Returns:
+            Hex color string (#RRGGBB format)
+
+        Examples:
+            >>> self._get_theme_color("editor.background")
+            "#1e1e1e"
+            >>> self._get_theme_color("focusBorder", "input.focusBorder")
+            "#007ACC"
+        """
+        try:
+            from vfwidgets_theme.core.tokens import ColorTokenRegistry
+            from vfwidgets_theme.core.manager import ThemeManager
+
+            theme_mgr = ThemeManager.get_instance()
+            current_theme = theme_mgr.current_theme
+
+            # Try primary token
+            try:
+                return ColorTokenRegistry.get(token_name, current_theme)
+            except (KeyError, AttributeError):
+                # Try fallback token
+                if fallback_token:
+                    try:
+                        return ColorTokenRegistry.get(fallback_token, current_theme)
+                    except (KeyError, AttributeError):
+                        pass
+
+                # Use terminal theme as fallback for background colors
+                if token_name == "editor.background":
+                    terminal_theme = self.terminal_theme_manager.get_default_theme()
+                    if "background" in terminal_theme:
+                        return terminal_theme["background"]
+
+                # Final fallback based on theme type (dark vs light)
+                if token_name == "editor.background":
+                    return "#1e1e1e" if current_theme.type == "dark" else "#f3f3f3"
+                elif token_name in ("focusBorder", "input.focusBorder"):
+                    return "#007ACC" if current_theme.type == "dark" else "#0078d4"
+                elif token_name in ("widget.border", "panel.border"):
+                    return "#3a3a3a" if current_theme.type == "dark" else "#d4d4d4"
+                elif token_name in ("list.hoverBackground", "list.activeSelectionBackground"):
+                    return "#505050" if current_theme.type == "dark" else "#e8e8e8"
+                else:
+                    return "#1e1e1e" if current_theme.type == "dark" else "#f3f3f3"
+
+        except Exception:
+            # Fallback to terminal theme, then emergency hardcoded
+            try:
+                if token_name == "editor.background":
+                    terminal_theme = self.terminal_theme_manager.get_default_theme()
+                    if "background" in terminal_theme:
+                        return terminal_theme["background"]
+            except Exception:
+                pass
+
+            # Emergency fallback (should rarely be reached)
+            return "#1e1e1e"
+
     def _setup_signals(self) -> None:
         """Set up signal connections."""
         # Handle tab close
@@ -408,29 +479,45 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Store current index to maintain user context
         current_index = self.currentIndex()
 
-        # Create MultisplitWidget with provider and custom dark splitter style
-        # Use minimal 1px borders with dark colors to match terminal theme
-        dark_splitter_style = SplitterStyle(
+        # Get theme-aware colors for splitter and background
+        splitter_bg = self._get_theme_color("widget.border", "panel.border")
+        splitter_hover = self._get_theme_color(
+            "list.hoverBackground", "list.activeSelectionBackground"
+        )
+        multisplit_bg = self._get_theme_color("editor.background")
+
+        # Create MultisplitWidget with provider and theme-aware splitter style
+        # Use minimal 1px borders with colors from theme system
+        theme_aware_splitter_style = SplitterStyle(
             handle_width=1,
             handle_margin_horizontal=0,
             handle_margin_vertical=0,
-            handle_bg="#3a3a3a",  # Dark gray for dividers
-            handle_hover_bg="#505050",  # Slightly lighter on hover
+            handle_bg=splitter_bg,  # Theme-aware splitter color
+            handle_hover_bg=splitter_hover,  # Theme-aware hover color
             border_width=0,
             show_hover_effect=True,
             cursor_on_hover=True,
             hit_area_padding=3,  # 3px padding on each side for easier grabbing (7px total hit area)
         )
         multisplit = MultisplitWidget(
-            provider=self.terminal_provider, splitter_style=dark_splitter_style
+            provider=self.terminal_provider, splitter_style=theme_aware_splitter_style
         )
 
         # Install event filter to intercept keyboard shortcuts
         # This must be done BEFORE the terminal widgets are created
         multisplit.installEventFilter(self)
 
-        # Set dark background for MultisplitWidget container to match terminal theme
-        multisplit.setStyleSheet("background-color: #1e1e1e;")
+        # Set theme-aware background using QPalette (more reliable than stylesheet)
+        from PySide6.QtGui import QPalette, QColor
+        from PySide6.QtCore import Qt
+
+        palette = multisplit.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(multisplit_bg))
+        multisplit.setPalette(palette)
+        multisplit.setAutoFillBackground(True)
+
+        # Mark as opaque for better Windows repaint performance
+        multisplit.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
 
         # Connect to pane_added signal for auto-focus on split
         multisplit.pane_added.connect(self._on_pane_added)
@@ -465,6 +552,7 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         def connect_to_terminal_ready(terminal: TerminalWidget):
             """Connect to terminal ready signal and switch tabs when ready."""
+
             def on_ready():
                 logger.info(f"Terminal ready, switching to tab {tab_index}")
                 self.setCurrentIndex(tab_index)
@@ -663,9 +751,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         logger.info(f"Removed tab {index} from source window")
 
         # Create new window with shared server (no initial tab - we're adding the detached tab)
-        new_window = ViloxTermApp(
-            shared_server=self.terminal_server, create_initial_tab=False
-        )
+        new_window = ViloxTermApp(shared_server=self.terminal_server, create_initial_tab=False)
 
         # Add tab to new window
         new_window.addTab(tab_data["widget"], tab_data["text"])
@@ -697,9 +783,7 @@ class ViloxTermApp(ChromeTabbedWindow):
             source_index: Tab index to move from this window
             target_window: ViloxTermApp instance to move tab to
         """
-        logger.info(
-            f"Moving tab {source_index} to window {target_window.windowTitle()}"
-        )
+        logger.info(f"Moving tab {source_index} to window {target_window.windowTitle()}")
 
         # Get tab data before removing
         tab_data = self.get_tab_data(source_index)
@@ -730,9 +814,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         target_window.activateWindow()
         target_window.setCurrentIndex(new_index)
 
-        logger.info(
-            f"Tab moved to {target_window.windowTitle()}, new index: {new_index}"
-        )
+        logger.info(f"Tab moved to {target_window.windowTitle()}, new index: {new_index}")
 
     def _apply_terminal_theme_to_all(self, theme: dict) -> None:
         """Apply terminal theme to all existing terminals.
@@ -890,10 +972,14 @@ class ViloxTermApp(ChromeTabbedWindow):
                 self._splitting_in_progress = False
 
     def _on_focus_changed(self, old_pane_id: str, new_pane_id: str) -> None:
-        """Handle focus changes - add visual indicators.
+        """Handle focus changes with theme-aware backgrounds.
 
         Adds a prominent border to the focused terminal pane by modifying
         the layout margins and setting a background color on the container.
+
+        CRITICAL: Always keeps setAutoFillBackground(True) and changes the
+        background COLOR instead of toggling transparency. This prevents
+        the transparency flash bug on Windows.
 
         Args:
             old_pane_id: Pane that lost focus (empty string if none)
@@ -903,59 +989,54 @@ class ViloxTermApp(ChromeTabbedWindow):
         if not isinstance(multisplit, MultisplitWidget):
             return
 
-        # Get theme-aware focus color with proper fallback chain
-        try:
-            from vfwidgets_theme.core.tokens import ColorTokenRegistry
-            from vfwidgets_theme.core.manager import ThemeManager
+        from PySide6.QtGui import QPalette, QColor
 
-            theme_mgr = ThemeManager.get_instance()
-            current_theme = theme_mgr.current_theme
-
-            # Fallback chain: focusBorder -> input.focusBorder -> editor.selectionBackground
-            try:
-                focus_color = ColorTokenRegistry.get("focusBorder", current_theme)
-            except (KeyError, AttributeError):
-                try:
-                    focus_color = ColorTokenRegistry.get("input.focusBorder", current_theme)
-                except (KeyError, AttributeError):
-                    try:
-                        focus_color = ColorTokenRegistry.get("editor.selectionBackground", current_theme)
-                    except (KeyError, AttributeError):
-                        # Final fallback based on theme type
-                        focus_color = "#007ACC" if current_theme.type == "dark" else "#0078d4"
-        except (ImportError, Exception):
-            # Fallback if theme system not available (assume dark theme)
-            focus_color = "#007ACC"
+        # Get theme-aware colors (no hardcoded values)
+        focus_color = self._get_theme_color("focusBorder", "input.focusBorder")
+        bg_color = self._get_theme_color("editor.background")
 
         border_width = 3
 
-        # Clear old focus border
-        if old_pane_id:
-            old_terminal = multisplit.get_widget(old_pane_id)
-            if old_terminal and isinstance(old_terminal, TerminalWidget):
-                # Reset layout margins to 0 (no border)
-                old_terminal.layout().setContentsMargins(0, 0, 0, 0)
-                # Clear background by disabling auto-fill
-                old_terminal.setAutoFillBackground(False)
-                old_terminal.setStyleSheet("")
-
-        # Add new focus border
+        # IMPORTANT: Set new focus FIRST to avoid empty state during transition
+        # This ensures there's always a focused pane with proper styling
         if new_pane_id:
             new_terminal = multisplit.get_widget(new_pane_id)
             if new_terminal and isinstance(new_terminal, TerminalWidget):
+                # Batch updates to prevent multiple repaints (Windows optimization)
+                new_terminal.setUpdatesEnabled(False)
+
                 # Set layout margins to create space for border
-                # The background color will show through as the border
                 new_terminal.layout().setContentsMargins(
                     border_width, border_width, border_width, border_width
                 )
-                # Use QPalette to set background (more reliable than stylesheet)
-                from PySide6.QtGui import QPalette, QColor
-                from PySide6.QtCore import Qt
 
+                # Set focus border color using QPalette (more reliable than stylesheet)
                 palette = new_terminal.palette()
                 palette.setColor(QPalette.ColorRole.Window, QColor(focus_color))
                 new_terminal.setPalette(palette)
-                new_terminal.setAutoFillBackground(True)
+                new_terminal.setAutoFillBackground(True)  # ALWAYS TRUE
+
+                # Re-enable updates (triggers single repaint)
+                new_terminal.setUpdatesEnabled(True)
+
+        # THEN clear old focus (order matters - prevents visual gaps)
+        if old_pane_id:
+            old_terminal = multisplit.get_widget(old_pane_id)
+            if old_terminal and isinstance(old_terminal, TerminalWidget):
+                # Batch updates
+                old_terminal.setUpdatesEnabled(False)
+
+                # Remove border margins
+                old_terminal.layout().setContentsMargins(0, 0, 0, 0)
+
+                # Change to background color (NOT transparent)
+                palette = old_terminal.palette()
+                palette.setColor(QPalette.ColorRole.Window, QColor(bg_color))
+                old_terminal.setPalette(palette)
+                old_terminal.setAutoFillBackground(True)  # KEEP TRUE - change color only
+
+                # Re-enable updates
+                old_terminal.setUpdatesEnabled(True)
 
         logger.debug(
             f"Focus changed: "
