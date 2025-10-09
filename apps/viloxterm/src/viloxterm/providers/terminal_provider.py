@@ -28,6 +28,7 @@ class TerminalProvider(WidgetProvider):
         """
         self.server = server
         self.pane_to_session: dict[str, str] = {}  # Map pane_id -> session_id for cleanup
+        self.session_to_pane: dict[str, str] = {}  # Map session_id -> pane_id for auto-close
         self._default_theme: Optional[dict] = None  # Default terminal theme for new terminals
         self._default_config: Optional[dict] = None  # Default terminal config for new terminals
         self._event_filter = event_filter  # Event filter to install on terminals
@@ -49,8 +50,9 @@ class TerminalProvider(WidgetProvider):
         session_id = self.server.create_session()
         logger.info(f"Created terminal session: {session_id} for pane: {pane_id}")
 
-        # Store session mapping for cleanup
+        # Store bidirectional mapping for cleanup and auto-close
         self.pane_to_session[pane_id] = session_id
+        self.session_to_pane[session_id] = pane_id
 
         # Get session URL
         session_url = self.server.get_session_url(session_id)
@@ -96,8 +98,10 @@ class TerminalProvider(WidgetProvider):
                 self.server.destroy_session(session_id)
                 logger.info(f"Terminated session {session_id} for pane {pane_id}")
 
-                # Remove from tracking
+                # Remove from both tracking dicts
                 del self.pane_to_session[pane_id]
+                if session_id in self.session_to_pane:
+                    del self.session_to_pane[session_id]
 
             except Exception as e:
                 logger.error(f"Failed to terminate session {session_id}: {e}")
@@ -137,3 +141,14 @@ class TerminalProvider(WidgetProvider):
             Default configuration dictionary, or None if not set
         """
         return self._default_config.copy() if self._default_config else None
+
+    def get_pane_for_session(self, session_id: str) -> Optional[str]:
+        """Get pane_id associated with a session_id.
+
+        Args:
+            session_id: Terminal session ID
+
+        Returns:
+            Pane ID if found, None otherwise
+        """
+        return self.session_to_pane.get(session_id)

@@ -173,6 +173,9 @@ class ViloxTermApp(ChromeTabbedWindow):
             self.menu_button.change_theme_requested.connect(self._show_theme_dialog)
             self.menu_button.new_window_requested.connect(self._open_new_window)
 
+        # Handle terminal session ending (auto-close panes when terminal exits)
+        self.terminal_server.session_ended.connect(self._on_session_ended)
+
     def _setup_keybinding_manager(self) -> None:
         """Set up keyboard shortcut manager with user-customizable bindings."""
         # Define storage location
@@ -816,6 +819,50 @@ class ViloxTermApp(ChromeTabbedWindow):
             # Last tab - close the window
             logger.info("Closing last tab - exiting application")
             self.close()
+
+    def _on_session_ended(self, session_id: str) -> None:
+        """Handle terminal session ending (process exited).
+
+        Automatically closes the pane associated with the session.
+        If it's the last pane in a tab, closes the tab.
+        If it's the last tab, closes the application.
+
+        Args:
+            session_id: Session ID that ended
+        """
+        logger.info(f"Terminal session ended: {session_id}")
+
+        # Find which pane this session belongs to
+        pane_id = self.terminal_provider.get_pane_for_session(session_id)
+        if not pane_id:
+            logger.warning(f"No pane found for session {session_id}")
+            return
+
+        # Find which tab contains this pane
+        for tab_index in range(self.count()):
+            multisplit = self.widget(tab_index)
+            if not isinstance(multisplit, MultisplitWidget):
+                continue
+
+            # Check if this tab contains the pane
+            if pane_id in multisplit.get_pane_ids():
+                logger.info(f"Found pane {pane_id} in tab {tab_index}")
+
+                # Check if this is the last pane in the tab
+                pane_count = len(multisplit.get_pane_ids())
+
+                if pane_count == 1:
+                    # Last pane - close the entire tab
+                    logger.info("Last pane in tab - closing tab")
+                    self._on_tab_close_requested(tab_index)
+                else:
+                    # Multiple panes - just remove this one
+                    logger.info(f"Closing pane {pane_id}")
+                    multisplit.remove_pane(pane_id)
+
+                return
+
+        logger.warning(f"Could not find pane {pane_id} in any tab")
 
     def _on_pane_added(self, pane_id: str) -> None:
         """Handle pane added signal - auto-focus new panes from splits.
