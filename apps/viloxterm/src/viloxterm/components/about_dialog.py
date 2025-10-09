@@ -26,12 +26,12 @@ class AboutDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("About ViloxTerm")
         self.setModal(True)
-        self.setFixedSize(400, 300)
+        self.setFixedSize(450, 400)
 
         # Create layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(15)
+        layout.setSpacing(10)
 
         # Application name
         name_label = QLabel("ViloxTerm")
@@ -56,25 +56,30 @@ class AboutDialog(QDialog):
         description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(description_label)
 
-        # Spacing
-        layout.addStretch()
+        # Add spacing
+        layout.addSpacing(20)
 
         # License and author info
-        info_label = QLabel(
-            f"<br>"
-            f"<b>Author:</b> {__author__}<br>"
-            f"<b>License:</b> {__license__}<br>"
-            f"<br>"
+        info_label = QLabel(f"<b>Author:</b> {__author__}<br>" f"<b>License:</b> {__license__}")
+        info_label.setWordWrap(True)
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info_label)
+
+        # Add spacing
+        layout.addSpacing(15)
+
+        # Built with section
+        built_with_label = QLabel(
             f"<b>Built with:</b><br>"
             f"• VFWidgets (Theme System, Multisplit, Terminal)<br>"
             f"• PySide6 (Qt for Python)<br>"
             f"• Chrome Tabbed Window"
         )
-        info_label.setWordWrap(True)
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(info_label)
+        built_with_label.setWordWrap(True)
+        built_with_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(built_with_label)
 
-        # Spacing
+        # Push button to bottom
         layout.addStretch()
 
         # Close button
