@@ -1286,8 +1286,8 @@ class TerminalWidget(_BaseTerminalClass):
             Hex color string for background
         """
         # If terminal theme config provided, use it
-        if self.terminal_config and "background" in self.terminal_config:
-            return self.terminal_config["background"]
+        if self._terminal_config and "background" in self._terminal_config:
+            return self._terminal_config["background"]
 
         # Default fallback (prevents white flash on startup)
         return "#1e1e1e"
