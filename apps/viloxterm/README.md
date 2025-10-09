@@ -150,7 +150,7 @@ Provides VSCode-compatible theme management across all widgets with automatic th
 
 ## Development Status
 
-**Current Version:** 1.0
+**Current Version:** 1.1.0
 **Status:** Production-ready
 **Architecture Documentation:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
