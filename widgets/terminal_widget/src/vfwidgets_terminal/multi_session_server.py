@@ -241,18 +241,8 @@ class MultiSessionTerminalServer(QObject):
                 break
 
             try:
-                # Use backend to poll and read output
-                if self.backend.poll_process(session, timeout=0.01):
-                    output = self.backend.read_output(session)
-                    if output:
-                        self.socketio.emit(
-                            "pty-output",
-                            {"output": output, "session_id": session_id},
-                            namespace="/pty",
-                            room=session_id,
-                        )
-
-                # Check if process is still alive
+                # Check if process is still alive FIRST (before I/O operations)
+                # This properly handles zombie processes via waitpid()
                 if not self.backend.is_process_alive(session):
                     logger.info(f"Terminal process ended for session {session_id}")
                     session.active = False
@@ -262,8 +252,22 @@ class MultiSessionTerminalServer(QObject):
                         namespace="/pty",
                         room=session_id,
                     )
+                    # Emit signal from background thread - Qt should handle cross-thread signal
+                    logger.info(f"Emitting session_ended signal for session {session_id}")
                     self.session_ended.emit(session_id)
+                    logger.info(f"session_ended signal emitted for session {session_id}")
                     break
+
+                # Process is alive, poll and read output
+                if self.backend.poll_process(session, timeout=0.01):
+                    output = self.backend.read_output(session)
+                    if output:
+                        self.socketio.emit(
+                            "pty-output",
+                            {"output": output, "session_id": session_id},
+                            namespace="/pty",
+                            room=session_id,
+                        )
 
             except Exception as e:
                 logger.error(f"Error reading terminal output: {e}", exc_info=True)

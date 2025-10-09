@@ -2,8 +2,9 @@
 
 import logging
 from pathlib import Path
+from typing import Optional
 
-from PySide6.QtCore import QEvent, QObject
+from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtGui import QKeySequence
 
 from chrome_tabbed_window import ChromeTabbedWindow
@@ -181,7 +182,10 @@ class ViloxTermApp(ChromeTabbedWindow):
             self.menu_button.about_requested.connect(self._show_about_dialog)
 
         # Handle terminal session ending (auto-close panes when terminal exits)
-        self.terminal_server.session_ended.connect(self._on_session_ended)
+        # Use QueuedConnection for cross-thread signal (Flask-SocketIO thread -> Qt main thread)
+        self.terminal_server.session_ended.connect(
+            self._on_session_ended, Qt.ConnectionType.QueuedConnection
+        )
 
     def _setup_keybinding_manager(self) -> None:
         """Set up keyboard shortcut manager with user-customizable bindings."""
@@ -860,6 +864,46 @@ class ViloxTermApp(ChromeTabbedWindow):
             logger.info("Closing last tab - exiting application")
             self.close()
 
+    def _get_next_focus_pane(
+        self, multisplit: "MultisplitWidget", closing_pane_id: str
+    ) -> Optional[str]:
+        """Determine which pane should receive focus after closing a pane.
+
+        Follows the "undo split" pattern - focuses the sibling pane that
+        will remain after the closed pane's removal.
+
+        Args:
+            multisplit: MultisplitWidget containing the pane
+            closing_pane_id: ID of pane being closed
+
+        Returns:
+            Pane ID to focus, or None if no panes will remain
+        """
+        # Import types at function level to avoid circular import
+        from vfwidgets_multisplit.core.nodes import LeafNode
+        from vfwidgets_multisplit.core.types import PaneId
+
+        # Access internal model to traverse tree
+        pane_node = multisplit._model.get_pane(PaneId(closing_pane_id))
+
+        if not pane_node or not pane_node.parent:
+            # No parent means it's the root/only pane
+            return None
+
+        parent = pane_node.parent
+
+        # Find sibling pane in parent's children
+        for child in parent.children:
+            if isinstance(child, LeafNode):
+                sibling_id = str(child.pane_id)
+                if sibling_id != closing_pane_id:
+                    return sibling_id
+
+        # Fallback: return any other pane
+        all_panes = multisplit.get_pane_ids()
+        remaining = [pid for pid in all_panes if pid != closing_pane_id]
+        return remaining[0] if remaining else None
+
     def _on_session_ended(self, session_id: str) -> None:
         """Handle terminal session ending (process exited).
 
@@ -896,9 +940,20 @@ class ViloxTermApp(ChromeTabbedWindow):
                     logger.info("Last pane in tab - closing tab")
                     self._on_tab_close_requested(tab_index)
                 else:
-                    # Multiple panes - just remove this one
+                    # Multiple panes - remove this one and auto-focus sibling
                     logger.info(f"Closing pane {pane_id}")
+
+                    # Determine which pane to focus after removal
+                    next_focus_pane = self._get_next_focus_pane(multisplit, pane_id)
+                    logger.debug(f"Next focus pane after removal: {next_focus_pane}")
+
+                    # Remove the pane
                     multisplit.remove_pane(pane_id)
+
+                    # Auto-focus the sibling pane (mimics "undo split" behavior)
+                    if next_focus_pane:
+                        logger.info(f"Auto-focusing sibling pane: {next_focus_pane}")
+                        multisplit.focus_pane(next_focus_pane)
 
                 return
 

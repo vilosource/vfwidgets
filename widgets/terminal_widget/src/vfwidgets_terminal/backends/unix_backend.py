@@ -121,10 +121,23 @@ class UnixTerminalBackend(TerminalBackend):
             return False
 
         try:
-            # Check if process exists without killing it (signal 0)
+            # Try to reap zombie process (non-blocking)
+            pid, status = os.waitpid(session.child_pid, os.WNOHANG)
+            if pid != 0:
+                # Process has exited
+                logger.debug(
+                    f"Process {session.child_pid} exited with status {status} "
+                    f"(session {session.session_id})"
+                )
+                return False
+
+            # Process still running, verify with signal 0
             os.kill(session.child_pid, 0)
             return True
         except ProcessLookupError:
+            return False
+        except ChildProcessError:
+            # Process already reaped or not our child
             return False
         except PermissionError:
             # Process exists but we don't have permission
