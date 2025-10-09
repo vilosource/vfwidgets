@@ -45,8 +45,8 @@ class TerminalProvider(WidgetProvider):
         Returns:
             TerminalWidget connected to shared server session
         """
-        # Create session on shared server
-        session_id = self.server.create_session(command="bash")
+        # Create session on shared server (auto-detect platform shell)
+        session_id = self.server.create_session()
         logger.info(f"Created terminal session: {session_id} for pane: {pane_id}")
 
         # Store session mapping for cleanup

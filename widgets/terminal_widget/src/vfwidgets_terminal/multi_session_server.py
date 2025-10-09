@@ -275,7 +275,7 @@ class MultiSessionTerminalServer(QObject):
 
     def create_session(
         self,
-        command: str = "bash",
+        command: Optional[str] = None,
         args=None,
         cwd: Optional[str] = None,
         env=None,
@@ -286,7 +286,7 @@ class MultiSessionTerminalServer(QObject):
         Create a new terminal session.
 
         Args:
-            command: Shell command to run (default: bash)
+            command: Shell command to run (default: None = auto-detect platform shell)
             args: Command arguments (list or string)
             cwd: Working directory
             env: Environment variables
@@ -298,6 +298,11 @@ class MultiSessionTerminalServer(QObject):
 
         Raises:
             RuntimeError: If maximum sessions reached
+
+        Note:
+            If command is None, automatically detects platform-appropriate shell:
+            - Windows: powershell.exe or cmd.exe
+            - Unix: $SHELL environment variable or bash
         """
         if len(self.sessions) >= self.max_sessions:
             raise RuntimeError(f"Maximum number of sessions ({self.max_sessions}) reached")
@@ -315,15 +320,22 @@ class MultiSessionTerminalServer(QObject):
         else:
             args_list = args or []
 
-        session = TerminalSession(
-            session_id=session_id,
-            command=command,
-            args=args_list,
-            cwd=cwd,
-            env=env or {},
-            rows=rows,
-            cols=cols,
-        )
+        # Build session parameters
+        session_params = {
+            "session_id": session_id,
+            "args": args_list,
+            "cwd": cwd,
+            "env": env or {},
+            "rows": rows,
+            "cols": cols,
+        }
+
+        # Only include command if explicitly provided
+        # Otherwise, TerminalSession will use its default_factory (get_default_shell)
+        if command is not None:
+            session_params["command"] = command
+
+        session = TerminalSession(**session_params)
 
         self.sessions[session_id] = session
         logger.info(f"Created terminal session {session_id} (not started yet)")

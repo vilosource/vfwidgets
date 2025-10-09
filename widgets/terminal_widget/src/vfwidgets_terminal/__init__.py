@@ -23,7 +23,6 @@ __email__ = "vilosource@viloforge.com"
 # Import presets module (not individual constants to avoid clutter)
 from . import presets
 from .constants import DEFAULT_COLS, DEFAULT_ROWS, THEMES
-from .embedded_server import EmbeddedTerminalServer
 from .multi_session_server import MultiSessionTerminalServer
 from .session import TerminalSession
 from .terminal import (
@@ -36,6 +35,14 @@ from .terminal import (
     TerminalBridge,
     TerminalWidget,
 )
+from .utils import get_default_shell
+
+# Platform-specific imports
+import sys
+
+# EmbeddedTerminalServer is Unix-only (uses fcntl, pty, termios)
+if sys.platform != "win32":
+    from .embedded_server import EmbeddedTerminalServer
 
 __all__ = [
     # Main widget
@@ -52,14 +59,19 @@ __all__ = [
     # Internal classes (for advanced usage)
     "TerminalBridge",
     "DebugWebEngineView",
-    "EmbeddedTerminalServer",
     # Constants
     "THEMES",
     "DEFAULT_ROWS",
     "DEFAULT_COLS",
     # Configuration presets module
     "presets",
+    # Utilities
+    "get_default_shell",
 ]
+
+# Add EmbeddedTerminalServer to exports only on Unix
+if sys.platform != "win32":
+    __all__.append("EmbeddedTerminalServer")
 
 # Optional: Setup environment for better compatibility
 import os

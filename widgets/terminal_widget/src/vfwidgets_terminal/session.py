@@ -4,6 +4,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .utils import get_default_shell
+
 
 @dataclass
 class TerminalSession:
@@ -17,7 +19,7 @@ class TerminalSession:
     session_id: str
 
     # Process configuration
-    command: str = "bash"
+    command: str = field(default_factory=get_default_shell)
     args: list[str] = field(default_factory=list)
     cwd: Optional[str] = None
     env: dict[str, str] = field(default_factory=dict)
