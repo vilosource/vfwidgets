@@ -11,7 +11,13 @@ from vfwidgets_terminal import TerminalWidget, MultiSessionTerminalServer
 from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition, Direction
 from vfwidgets_keybinding import KeybindingManager, ActionDefinition
 
-from .components import ThemeDialog, MenuButton, TerminalThemeDialog, TerminalPreferencesDialog
+from .components import (
+    ThemeDialog,
+    MenuButton,
+    TerminalThemeDialog,
+    TerminalPreferencesDialog,
+    AboutDialog,
+)
 from .providers import TerminalProvider
 from .terminal_theme_manager import TerminalThemeManager
 from .terminal_preferences_manager import TerminalPreferencesManager
@@ -172,6 +178,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         if hasattr(self, "menu_button"):
             self.menu_button.change_theme_requested.connect(self._show_theme_dialog)
             self.menu_button.new_window_requested.connect(self._open_new_window)
+            self.menu_button.about_requested.connect(self._show_about_dialog)
 
         # Handle terminal session ending (auto-close panes when terminal exits)
         self.terminal_server.session_ended.connect(self._on_session_ended)
@@ -465,6 +472,7 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         def connect_to_terminal_ready(terminal: TerminalWidget):
             """Connect to terminal ready signal and switch tabs when ready."""
+
             def on_ready():
                 logger.info(f"Terminal ready, switching to tab {tab_index}")
                 self.setCurrentIndex(tab_index)
@@ -526,6 +534,12 @@ class ViloxTermApp(ChromeTabbedWindow):
         dialog = ThemeDialog(self)
         dialog.exec()
         logger.info("Application theme dialog closed")
+
+    def _show_about_dialog(self) -> None:
+        """Show About ViloxTerm dialog."""
+        dialog = AboutDialog(self)
+        dialog.exec()
+        logger.info("About dialog closed")
 
     def _show_terminal_theme_dialog(self) -> None:
         """Show terminal theme customization dialog."""
@@ -663,9 +677,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         logger.info(f"Removed tab {index} from source window")
 
         # Create new window with shared server (no initial tab - we're adding the detached tab)
-        new_window = ViloxTermApp(
-            shared_server=self.terminal_server, create_initial_tab=False
-        )
+        new_window = ViloxTermApp(shared_server=self.terminal_server, create_initial_tab=False)
 
         # Add tab to new window
         new_window.addTab(tab_data["widget"], tab_data["text"])
@@ -697,9 +709,7 @@ class ViloxTermApp(ChromeTabbedWindow):
             source_index: Tab index to move from this window
             target_window: ViloxTermApp instance to move tab to
         """
-        logger.info(
-            f"Moving tab {source_index} to window {target_window.windowTitle()}"
-        )
+        logger.info(f"Moving tab {source_index} to window {target_window.windowTitle()}")
 
         # Get tab data before removing
         tab_data = self.get_tab_data(source_index)
@@ -730,9 +740,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         target_window.activateWindow()
         target_window.setCurrentIndex(new_index)
 
-        logger.info(
-            f"Tab moved to {target_window.windowTitle()}, new index: {new_index}"
-        )
+        logger.info(f"Tab moved to {target_window.windowTitle()}, new index: {new_index}")
 
     def _apply_terminal_theme_to_all(self, theme: dict) -> None:
         """Apply terminal theme to all existing terminals.
@@ -919,7 +927,9 @@ class ViloxTermApp(ChromeTabbedWindow):
                     focus_color = ColorTokenRegistry.get("input.focusBorder", current_theme)
                 except (KeyError, AttributeError):
                     try:
-                        focus_color = ColorTokenRegistry.get("editor.selectionBackground", current_theme)
+                        focus_color = ColorTokenRegistry.get(
+                            "editor.selectionBackground", current_theme
+                        )
                     except (KeyError, AttributeError):
                         # Final fallback based on theme type
                         focus_color = "#007ACC" if current_theme.type == "dark" else "#0078d4"

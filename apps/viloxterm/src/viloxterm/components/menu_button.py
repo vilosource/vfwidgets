@@ -23,6 +23,7 @@ class MenuButton(WindowControlButton):
     close_pane_requested = Signal()
     close_tab_requested = Signal()
     change_theme_requested = Signal()
+    about_requested = Signal()
 
     def __init__(
         self,
@@ -98,6 +99,13 @@ class MenuButton(WindowControlButton):
         # Add "Change Theme" action (not managed by keybindings)
         change_theme_action = self._menu.addAction("Change App Theme...")
         change_theme_action.triggered.connect(self.change_theme_requested.emit)
+
+        # Separator - Help section
+        self._menu.addSeparator()
+
+        # Add "About" action
+        about_action = self._menu.addAction("About ViloxTerm")
+        about_action.triggered.connect(self.about_requested.emit)
 
     def set_parent_app(self, app) -> None:
         """Set parent application for dynamic menu updates.
