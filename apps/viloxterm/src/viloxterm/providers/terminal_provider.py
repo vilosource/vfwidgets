@@ -74,6 +74,22 @@ class TerminalProvider(WidgetProvider):
             terminal.installEventFilter(self._event_filter)
             logger.debug(f"Installed event filter on terminal: {widget_id}")
 
+        # Initialize with reserved border space to prevent resize on focus changes
+        # Use terminal theme background so unfocused borders blend invisibly
+        bg_color = "#1e1e1e"  # Fallback
+        if self._default_theme and "background" in self._default_theme:
+            bg_color = self._default_theme["background"]
+
+        from PySide6.QtGui import QPalette, QColor
+
+        terminal.layout().setContentsMargins(3, 3, 3, 3)
+        palette = terminal.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(bg_color))
+        terminal.setPalette(palette)
+        terminal.setAutoFillBackground(True)
+
+        logger.debug(f"Initialized terminal with reserved 3px border: {bg_color}")
+
         logger.debug(f"Created terminal widget: {widget_id} (session: {session_id})")
 
         return terminal

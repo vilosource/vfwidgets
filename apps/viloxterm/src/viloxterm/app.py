@@ -930,10 +930,10 @@ class ViloxTermApp(ChromeTabbedWindow):
                 self._splitting_in_progress = False
 
     def _on_focus_changed(self, old_pane_id: str, new_pane_id: str) -> None:
-        """Handle focus changes - add visual indicators.
+        """Handle focus changes with theme-aware backgrounds.
 
-        Adds a prominent border to the focused terminal pane by modifying
-        the layout margins and setting a background color on the container.
+        CRITICAL: Margins are NEVER changed (always 3px). Only background color
+        changes between focus/unfocus to prevent terminal resize and content shift.
 
         Args:
             old_pane_id: Pane that lost focus (empty string if none)
@@ -943,7 +943,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         if not isinstance(multisplit, MultisplitWidget):
             return
 
-        # Get theme-aware focus color with proper fallback chain
+        # Get theme-aware focus color (existing logic)
         try:
             from vfwidgets_theme.core.tokens import ColorTokenRegistry
             from vfwidgets_theme.core.manager import ThemeManager
@@ -969,31 +969,34 @@ class ViloxTermApp(ChromeTabbedWindow):
             # Fallback if theme system not available (assume dark theme)
             focus_color = "#007ACC"
 
-        border_width = 3
+        # Get theme-aware unfocused color from terminal theme
+        unfocused_color = "#1e1e1e"  # Fallback
+        try:
+            terminal_theme = self.terminal_theme_manager.get_default_theme()
+            if "background" in terminal_theme:
+                unfocused_color = terminal_theme["background"]
+        except Exception:
+            pass
 
-        # Clear old focus border
+        from PySide6.QtGui import QPalette, QColor
+
+        # Clear old focus (change to unfocused color - blends with terminal)
         if old_pane_id:
             old_terminal = multisplit.get_widget(old_pane_id)
             if old_terminal and isinstance(old_terminal, TerminalWidget):
-                # Reset layout margins to 0 (no border)
-                old_terminal.layout().setContentsMargins(0, 0, 0, 0)
-                # Clear background by disabling auto-fill
-                old_terminal.setAutoFillBackground(False)
-                old_terminal.setStyleSheet("")
+                # DO NOT change margins - keep at 3px
+                # Only change background color to blend with terminal
+                palette = old_terminal.palette()
+                palette.setColor(QPalette.ColorRole.Window, QColor(unfocused_color))
+                old_terminal.setPalette(palette)
+                old_terminal.setAutoFillBackground(True)
 
-        # Add new focus border
+        # Add new focus (change to focus color - visible border)
         if new_pane_id:
             new_terminal = multisplit.get_widget(new_pane_id)
             if new_terminal and isinstance(new_terminal, TerminalWidget):
-                # Set layout margins to create space for border
-                # The background color will show through as the border
-                new_terminal.layout().setContentsMargins(
-                    border_width, border_width, border_width, border_width
-                )
-                # Use QPalette to set background (more reliable than stylesheet)
-                from PySide6.QtGui import QPalette, QColor
-                from PySide6.QtCore import Qt
-
+                # DO NOT change margins - keep at 3px
+                # Only change background color to focus color
                 palette = new_terminal.palette()
                 palette.setColor(QPalette.ColorRole.Window, QColor(focus_color))
                 new_terminal.setPalette(palette)
