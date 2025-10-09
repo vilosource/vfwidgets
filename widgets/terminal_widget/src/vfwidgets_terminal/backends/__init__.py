@@ -1,9 +1,18 @@
 """Backend abstraction for cross-platform terminal support."""
 
-from .base import TerminalBackend
-from .unix_backend import UnixTerminalBackend
+import sys
 
-__all__ = ["TerminalBackend", "UnixTerminalBackend", "create_backend"]
+from .base import TerminalBackend
+
+# Unix backend only available on Unix systems (uses fcntl, pty, termios)
+if sys.platform != "win32":
+    from .unix_backend import UnixTerminalBackend
+
+__all__ = ["TerminalBackend", "create_backend"]
+
+# Add UnixTerminalBackend to exports only on Unix
+if sys.platform != "win32":
+    __all__.append("UnixTerminalBackend")
 
 
 def create_backend() -> TerminalBackend:
@@ -16,8 +25,6 @@ def create_backend() -> TerminalBackend:
     Raises:
         RuntimeError: If platform is not supported
     """
-    import sys
-
     if sys.platform == "win32":
         try:
             from .windows_backend import WindowsTerminalBackend
@@ -29,4 +36,6 @@ def create_backend() -> TerminalBackend:
             ) from e
     else:
         # Unix-like systems (Linux, macOS, BSD)
+        from .unix_backend import UnixTerminalBackend
+
         return UnixTerminalBackend()
