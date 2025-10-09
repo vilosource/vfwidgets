@@ -406,9 +406,17 @@ ViloxTerm can be packaged as a single executable binary for distribution using *
 
 ### Quick Build
 
+**Linux/macOS:**
 ```bash
 cd apps/viloxterm
 ./build.sh
+# or: make build
+```
+
+**Windows (PowerShell):**
+```powershell
+cd apps\viloxterm
+.\build.ps1
 ```
 
 This creates a standalone binary:
@@ -416,7 +424,7 @@ This creates a standalone binary:
 - **Windows**: `ViloXTerm.exe`
 - **macOS**: `ViloXTerm.app`
 
-### Manual Build
+### Manual Build (All Platforms)
 
 ```bash
 # Install in development mode

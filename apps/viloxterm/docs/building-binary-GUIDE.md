@@ -75,22 +75,36 @@ pip install nuitka tomlkit
 
 ### Using the Build Script (Recommended)
 
+**Linux/macOS:**
 ```bash
 cd apps/viloxterm
 ./build.sh
 ```
 
-The script will:
-1. Check for required tools
-2. Clean previous builds
-3. Install dependencies
-4. Run pyside6-deploy
-5. Report the created binary
+**Windows (PowerShell):**
+```powershell
+cd apps\viloxterm
+.\build.ps1
+```
 
-### Manual Build
+The script will:
+1. Check for required tools (pyside6-deploy, nuitka, tomlkit)
+2. Clean previous builds (deployment/, ViloXTerm.exe)
+3. Install project dependencies (pip install -e .)
+4. Run pyside6-deploy with pysidedeploy.spec
+5. Report the created binary with size
+
+**Windows Notes:**
+- Use PowerShell (pre-installed on Windows 7+)
+- Requires Visual Studio Build Tools (for dumpbin)
+- Creates `ViloXTerm.exe` (typically 200-300 MB)
+- First build may take 10-15 minutes (subsequent builds faster)
+
+### Manual Build (All Platforms)
 
 ```bash
 cd apps/viloxterm
+pip install -e .
 pyside6-deploy -c pysidedeploy.spec -f
 ```
 
