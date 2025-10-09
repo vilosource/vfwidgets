@@ -507,9 +507,17 @@ class ViloxTermApp(ChromeTabbedWindow):
         # This must be done BEFORE the terminal widgets are created
         multisplit.installEventFilter(self)
 
-        # Set theme-aware background using stylesheet
-        # NOTE: Don't use WA_OpaquePaintEvent on MultisplitWidget - it breaks splitter rendering on Windows
-        multisplit.setStyleSheet(f"background-color: {multisplit_bg};")
+        # Set theme-aware background using QPalette (more reliable than stylesheet)
+        from PySide6.QtGui import QPalette, QColor
+        from PySide6.QtCore import Qt
+
+        palette = multisplit.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(multisplit_bg))
+        multisplit.setPalette(palette)
+        multisplit.setAutoFillBackground(True)
+
+        # Mark as opaque for better Windows repaint performance
+        multisplit.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
 
         # Connect to pane_added signal for auto-focus on split
         multisplit.pane_added.connect(self._on_pane_added)
