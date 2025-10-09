@@ -3,14 +3,14 @@
 # application metadata
 title = ViloXTerm
 project_dir = .
-input_file = /home/jasonvi/GitHub/vfwidgets/apps/viloxterm/viloxterm_main.py
+input_file = viloxterm_main.py
 exec_directory = .
-icon = /home/jasonvi/GitHub/vfwidgets/.direnv/python-3.12.3/lib/python3.12/site-packages/PySide6/scripts/deploy_lib/pyside_icon.jpg
+icon =
 
 [python]
 
 # python environment
-python_path = /home/jasonvi/GitHub/vfwidgets/.direnv/python-3.12.3/bin/python3
+python_path = /home/kuja/GitHub/vfwidgets/.direnv/python-3.12.3/bin/python3
 packages = PySide6==6.9.0,vfwidgets-theme-system,chrome-tabbed-window,vfwidgets-multisplit,vfwidgets-terminal,vfwidgets-keybinding
 
 # exclude development dependencies
@@ -19,7 +19,7 @@ excluded_qml_plugins = QtCharts,QtDataVisualization,QtWebView,QtTest,Qt3D
 [qt]
 
 # qt modules required by viloxterm
-modules = Core,Gui,DBus,Widgets
+modules = Core,DBus,Gui,Widgets
 
 # qml is not used
 qml_files = 

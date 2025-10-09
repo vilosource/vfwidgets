@@ -1,7 +1,7 @@
 # ViloxTerm Makefile
 # Provides convenient build targets for the application
 
-.PHONY: help build clean install dev run test local-release generate-icons install-system uninstall-system
+.PHONY: help build clean install dev run test local-release generate-icons install-system uninstall-system fix-spec
 
 # Default target
 help:
@@ -18,6 +18,9 @@ help:
 	@echo "  make generate-icons  - Generate PNG icons from SVG"
 	@echo "  make install-system  - Install system-wide with desktop integration (requires sudo)"
 	@echo "  make uninstall-system - Remove system-wide installation (requires sudo)"
+	@echo ""
+	@echo "Troubleshooting:"
+	@echo "  make fix-spec        - Fix pysidedeploy.spec for current machine (run after git pull on new machine)"
 
 # Build the standalone binary
 build:
@@ -89,3 +92,7 @@ install-system: build generate-icons
 # Uninstall from system (requires sudo)
 uninstall-system:
 	@sudo ./uninstall-system.sh
+
+# Fix pysidedeploy.spec for current machine
+fix-spec:
+	@./fix-spec.sh
