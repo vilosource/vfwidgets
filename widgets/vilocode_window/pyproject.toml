@@ -1,0 +1,196 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vfwidgets-vilocode-window"
+version = "0.1.0"
+description = "A VS Code-style application window widget for PySide6 with activity bar, sidebar, and auxiliary bar"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "VFWidgets Team"},
+]
+maintainers = [
+    {name = "VFWidgets Team"},
+]
+keywords = [
+    "qt",
+    "pyside6",
+    "vscode",
+    "ide",
+    "window",
+    "frameless-window",
+    "activity-bar",
+    "sidebar",
+    "gui",
+    "widgets",
+    "developer-tools",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Software Development :: Widget Sets",
+]
+dependencies = [
+    "PySide6>=6.5.0",
+]
+
+[project.optional-dependencies]
+theme = [
+    "vfwidgets-theme>=2.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-qt>=4.2.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xvfb>=2.0.0",  # For headless testing
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+    "myst-parser>=1.0.0",
+]
+benchmark = [
+    "pytest-benchmark>=4.0.0",
+    "memory-profiler>=0.60.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vilosource/vfwidgets"
+Documentation = "https://github.com/vilosource/vfwidgets/tree/main/widgets/vilocode_window/docs"
+Repository = "https://github.com/vilosource/vfwidgets/tree/main/widgets/vilocode_window"
+Issues = "https://github.com/vilosource/vfwidgets/issues"
+Changelog = "https://github.com/vilosource/vfwidgets/blob/main/widgets/vilocode_window/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["vfwidgets_vilocode_window*"]
+
+[tool.setuptools.package-data]
+vfwidgets_vilocode_window = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ["py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.nox
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "N",  # pep8-naming
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "E722",  # Bare except needed for fallback compatibility
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "N802",  # Qt event handlers use mixedCase (mousePressEvent, etc.)
+    "N803",  # Qt method parameters use mixedCase
+    "N815",  # Qt signals/properties use mixedCase
+    "SIM102",  # Nested if statements are clearer for complex guard clauses
+    "SIM108",  # Complex ternary operators reduce readability
+    "UP045",  # Optional[T] is more readable than T | None for optional params
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # imported but unused
+"tests/**" = ["S101"]  # use of assert
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_unimported = false
+no_implicit_optional = true
+check_untyped_defs = true
+show_error_codes = true
+show_error_context = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = "PySide6.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "vfwidgets_theme.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=vfwidgets_vilocode_window",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["vfwidgets_vilocode_window"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "pass",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
