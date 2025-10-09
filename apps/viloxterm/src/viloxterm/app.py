@@ -352,6 +352,13 @@ class ViloxTermApp(ChromeTabbedWindow):
                     category="Appearance",
                     callback=self._show_terminal_preferences_dialog,
                 ),
+                ActionDefinition(
+                    id="appearance.reset_zoom",
+                    description="Reset Terminal Zoom",
+                    default_shortcut="Ctrl+0",
+                    category="Appearance",
+                    callback=self._on_reset_zoom,
+                ),
             ]
         )
 
@@ -555,6 +562,31 @@ class ViloxTermApp(ChromeTabbedWindow):
         dialog.preferencesApplied.connect(self._apply_terminal_preferences_to_all)
         dialog.exec()
         logger.info("Terminal preferences dialog closed")
+
+    def _on_reset_zoom(self) -> None:
+        """Reset zoom to 100% on the currently focused terminal.
+
+        Triggered by Ctrl+0 shortcut or menu item.
+        Useful for undoing accidental zoom changes from Ctrl+scroll.
+        """
+        multisplit = self.currentWidget()
+        if not isinstance(multisplit, MultisplitWidget):
+            logger.warning("No MultisplitWidget found - cannot reset zoom")
+            return
+
+        # Get currently focused pane
+        focused_pane_id = multisplit.get_focused_pane()
+        if not focused_pane_id:
+            logger.warning("No focused pane - cannot reset zoom")
+            return
+
+        # Get terminal widget in focused pane
+        terminal = multisplit.get_widget(focused_pane_id)
+        if terminal and isinstance(terminal, TerminalWidget):
+            terminal.reset_zoom()
+            logger.info(f"Reset zoom to 100% for terminal in pane {focused_pane_id[:8]}")
+        else:
+            logger.warning(f"Widget in pane {focused_pane_id[:8]} is not a TerminalWidget")
 
     def _open_new_window(self) -> None:
         """Open a new ViloxTerm window.

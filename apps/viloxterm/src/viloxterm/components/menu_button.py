@@ -96,6 +96,10 @@ class MenuButton(WindowControlButton):
             if "appearance.terminal_theme" in keybinding_actions:
                 self._menu.addAction(keybinding_actions["appearance.terminal_theme"])
 
+            # Reset terminal zoom (Ctrl+0)
+            if "appearance.reset_zoom" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["appearance.reset_zoom"])
+
         # Add "Change Theme" action (not managed by keybindings)
         change_theme_action = self._menu.addAction("Change App Theme...")
         change_theme_action.triggered.connect(self.change_theme_requested.emit)
@@ -124,7 +128,7 @@ class MenuButton(WindowControlButton):
         # Remove old submenu/action if it exists
         if self._move_to_window_submenu:
             # Handle both QMenu (submenu) and QAction (disabled item)
-            if hasattr(self._move_to_window_submenu, 'menuAction'):
+            if hasattr(self._move_to_window_submenu, "menuAction"):
                 # It's a QMenu
                 self._menu.removeAction(self._move_to_window_submenu.menuAction())
             else:
