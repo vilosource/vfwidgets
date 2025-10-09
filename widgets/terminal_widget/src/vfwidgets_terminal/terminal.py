@@ -639,7 +639,8 @@ class TerminalWidget(_BaseTerminalClass):
         # Set background color to match terminal theme (prevents white flash on startup)
         from PySide6.QtGui import QColor
 
-        self.web_view.page().setBackgroundColor(QColor("#1e1e1e"))
+        bg_color = self._get_initial_background_color()
+        self.web_view.page().setBackgroundColor(QColor(bg_color))
 
         layout.addWidget(self.web_view)
 
@@ -1278,13 +1279,45 @@ class TerminalWidget(_BaseTerminalClass):
         if EventCategory.CONTENT in self.event_config.enabled_categories:
             self.outputReceived.emit(data)
 
+    def _get_initial_background_color(self) -> str:
+        """Get theme-aware background color for WebView.
+
+        Returns:
+            Hex color string for background
+        """
+        # If terminal theme config provided, use it
+        if self.terminal_config and "background" in self.terminal_config:
+            return self.terminal_config["background"]
+
+        # Default fallback (prevents white flash on startup)
+        return "#1e1e1e"
+
+    def _get_error_color(self) -> str:
+        """Get theme-aware error color.
+
+        Returns:
+            Hex color string for error messages
+        """
+        try:
+            from vfwidgets_theme import ColorTokenRegistry
+
+            # Try to get error color from theme
+            return ColorTokenRegistry.get("errorForeground", fallback="#ff0000")
+        except ImportError:
+            # Theme system not available, use red as fallback
+            return "#ff0000"
+
     def _show_error(self, message: str) -> None:
         """Display error message in the widget."""
         from PySide6.QtWidgets import QLabel
 
         error_label = QLabel(message)
         error_label.setWordWrap(True)
-        error_label.setStyleSheet("QLabel { color: red; padding: 10px; }")
+
+        # Use theme-aware error color
+        error_color = self._get_error_color()
+        error_label.setStyleSheet(f"QLabel {{ color: {error_color}; padding: 10px; }}")
+
         self.layout().addWidget(error_label)
 
     # Public API methods
