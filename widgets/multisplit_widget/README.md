@@ -201,6 +201,56 @@ multisplit.pane_removed    # Signal(str) - emitted when pane is removed
 
 **Important for QWebEngineView-based widgets**: If your widgets use `QWebEngineView` (terminals, browsers, web views), you need to override `setFocus()` to properly handle programmatic focus. See the [Focus Management Guide](docs/focus-management-GUIDE.md) for details.
 
+### Auto-Focus on Pane Closure
+
+When removing panes (either manually or programmatically), you may want to automatically focus a sibling pane to maintain workflow continuity. This "undo split" pattern is especially useful for terminal emulators and editors.
+
+**Pattern: Auto-focus sibling on close**
+
+```python
+def close_pane_with_auto_focus(multisplit, pane_id):
+    """Close a pane and automatically focus its sibling (undo split pattern)."""
+    # Get the pane's parent to find sibling
+    from vfwidgets_multisplit.core.nodes import LeafNode
+    from vfwidgets_multisplit.core.types import PaneId
+
+    pane_node = multisplit._model.get_pane(PaneId(pane_id))
+
+    # Find sibling pane before removal
+    next_focus = None
+    if pane_node and pane_node.parent:
+        for child in pane_node.parent.children:
+            if isinstance(child, LeafNode) and str(child.pane_id) != pane_id:
+                next_focus = str(child.pane_id)
+                break
+
+    # Remove pane
+    multisplit.remove_pane(pane_id)
+
+    # Auto-focus sibling
+    if next_focus:
+        multisplit.focus_pane(next_focus)
+
+# Usage example: Manual pane close (Ctrl+W)
+def on_close_pane_shortcut():
+    focused = multisplit.get_focused_pane()
+    if focused:
+        close_pane_with_auto_focus(multisplit, focused)
+
+# Usage example: Programmatic close (e.g., terminal exit)
+def on_terminal_exit(session_id):
+    pane_id = get_pane_for_session(session_id)
+    if pane_id:
+        close_pane_with_auto_focus(multisplit, pane_id)
+```
+
+**Benefits:**
+- Seamless UX - no manual clicking required after close
+- Mimics "undo split" behavior - focus returns to sibling
+- Works for both manual (keyboard shortcut) and programmatic (widget signal) closures
+
+**Real-world example**: ViloxTerm uses this pattern for both Ctrl+W (manual close) and terminal exit (auto-close) to maintain focus continuity.
+
 ### Divider Styling
 
 Customize divider appearance with `SplitterStyle`:

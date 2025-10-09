@@ -904,6 +904,45 @@ class ViloxTermApp(ChromeTabbedWindow):
         remaining = [pid for pid in all_panes if pid != closing_pane_id]
         return remaining[0] if remaining else None
 
+    def _close_pane_with_auto_focus(
+        self, multisplit: "MultisplitWidget", pane_id: str, reason: str = "unknown"
+    ) -> bool:
+        """Close a pane and automatically focus its sibling (undo split pattern).
+
+        This is the single source of truth for pane closure with auto-focus,
+        used by both manual close (Ctrl+W) and auto-close (terminal exit).
+
+        Args:
+            multisplit: MultisplitWidget containing the pane
+            pane_id: ID of pane to close
+            reason: Reason for closure (for logging)
+
+        Returns:
+            True if pane was successfully closed
+        """
+        logger.info(f"Closing pane {pane_id} (reason: {reason})")
+
+        # Determine which pane to focus after removal
+        next_focus_pane = self._get_next_focus_pane(multisplit, pane_id)
+        logger.debug(f"Next focus pane after {reason}: {next_focus_pane}")
+
+        # Remove the pane
+        success = multisplit.remove_pane(pane_id)
+
+        if success:
+            logger.info(f"Successfully closed pane {pane_id}")
+
+            # Auto-focus the sibling pane (mimics "undo split" behavior)
+            if next_focus_pane:
+                logger.info(f"Auto-focusing sibling pane: {next_focus_pane}")
+                multisplit.focus_pane(next_focus_pane)
+            else:
+                logger.debug("No sibling pane to focus (last pane)")
+        else:
+            logger.warning(f"Failed to close pane {pane_id}")
+
+        return success
+
     def _on_session_ended(self, session_id: str) -> None:
         """Handle terminal session ending (process exited).
 
@@ -940,20 +979,8 @@ class ViloxTermApp(ChromeTabbedWindow):
                     logger.info("Last pane in tab - closing tab")
                     self._on_tab_close_requested(tab_index)
                 else:
-                    # Multiple panes - remove this one and auto-focus sibling
-                    logger.info(f"Closing pane {pane_id}")
-
-                    # Determine which pane to focus after removal
-                    next_focus_pane = self._get_next_focus_pane(multisplit, pane_id)
-                    logger.debug(f"Next focus pane after removal: {next_focus_pane}")
-
-                    # Remove the pane
-                    multisplit.remove_pane(pane_id)
-
-                    # Auto-focus the sibling pane (mimics "undo split" behavior)
-                    if next_focus_pane:
-                        logger.info(f"Auto-focusing sibling pane: {next_focus_pane}")
-                        multisplit.focus_pane(next_focus_pane)
+                    # Multiple panes - use common helper for close + auto-focus
+                    self._close_pane_with_auto_focus(multisplit, pane_id, reason="terminal exit")
 
                 return
 
@@ -1153,13 +1180,8 @@ class ViloxTermApp(ChromeTabbedWindow):
             self._on_tab_close_requested(current_index)
             return
 
-        # Remove the pane (multiple panes exist)
-        success = multisplit.remove_pane(focused_pane)
-
-        if success:
-            logger.info(f"Closed pane {focused_pane}")
-        else:
-            logger.warning(f"Failed to close pane {focused_pane}")
+        # Remove the pane (multiple panes exist) - use common helper for close + auto-focus
+        self._close_pane_with_auto_focus(multisplit, focused_pane, reason="manual close")
 
     def _on_navigate_pane(self, direction: Direction) -> None:
         """Navigate focus to adjacent pane in the specified direction.

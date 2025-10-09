@@ -202,6 +202,8 @@ All planned phases have been successfully implemented:
 ✅ Terminal behavior preferences with presets (Ctrl+,)
 ✅ User-customizable keyboard shortcuts
 ✅ Auto-save settings (keybindings, terminal preferences, terminal themes persist)
+✅ Automatic pane closure on terminal exit (type `exit`) with intelligent focus management
+✅ Auto-focus sibling pane after closing (Ctrl+W or `exit`) - seamless "undo split" UX
 ✅ Clean shutdown (no zombie processes)
 
 ### Terminal Customization
@@ -229,6 +231,41 @@ All planned phases have been successfully implemented:
 - No session persistence (terminals don't survive app restart)
 - No tab rename functionality
 - No remote server support (local terminals only)
+
+## Terminal Behavior
+
+### Auto-Close with Focus Management
+
+ViloxTerm implements intelligent pane closure when a terminal process exits (e.g., typing `exit`):
+
+**Behavior:**
+- Type `exit` → pane automatically closes → sibling pane receives focus
+- Press Ctrl+W → pane closes → sibling pane receives focus
+- Last pane in tab → closes the entire tab
+- Last tab → closes the application
+
+**How It Works:**
+1. Terminal process detection via `waitpid()` properly handles zombie processes
+2. Signal emitted from Flask-SocketIO background thread using Qt's `QueuedConnection`
+3. Sibling pane determined by tree traversal before removal ("undo split" pattern)
+4. Focus automatically moves to sibling after pane removal
+
+**Implementation Pattern:**
+```python
+def _close_pane_with_auto_focus(multisplit, pane_id, reason):
+    """Single source of truth for pane closure with auto-focus."""
+    # Find sibling before removal
+    next_focus = _get_next_focus_pane(multisplit, pane_id)
+
+    # Remove pane
+    multisplit.remove_pane(pane_id)
+
+    # Auto-focus sibling (mimics "undo split")
+    if next_focus:
+        multisplit.focus_pane(next_focus)
+```
+
+This pattern ensures seamless workflow - users can type `exit` and immediately continue typing in the remaining terminal without clicking.
 
 ## Key Integration Patterns
 
