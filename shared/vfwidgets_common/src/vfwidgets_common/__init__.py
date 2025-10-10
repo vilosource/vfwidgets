@@ -3,6 +3,7 @@
 __version__ = "0.1.0"
 
 from .base_widget import VFBaseWidget
+from .frameless import FramelessWindowBehavior
 from .platform import (
     configure_qt_environment,
     get_desktop_environment,
@@ -22,6 +23,8 @@ from .webengine import (
 __all__ = [
     # Base classes
     "VFBaseWidget",
+    # Frameless window behavior
+    "FramelessWindowBehavior",
     # Utilities
     "setup_widget_style",
     "load_widget_icon",

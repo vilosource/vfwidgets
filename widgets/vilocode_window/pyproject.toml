@@ -44,6 +44,7 @@ classifiers = [
 ]
 dependencies = [
     "PySide6>=6.5.0",
+    "vfwidgets-common>=0.1.0",
 ]
 
 [project.optional-dependencies]

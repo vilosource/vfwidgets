@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .components.sidebar import SideBar
     from .components.title_bar import TitleBar
 
-from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QMouseEvent, QPainter, QPaintEvent
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from vfwidgets_common import FramelessWindowBehavior
 
 from .core.constants import WindowMode
 from .core.shortcut_manager import ShortcutManager
@@ -115,9 +116,8 @@ class ViloCodeWindow(ViloCodeWindowBase):
         self._main_content: Optional[QWidget] = None
         self._content_layout: Optional[QHBoxLayout] = None
 
-        # Resize state (initialize for all modes, only used in frameless)
-        self._resize_edge: Qt.Edge = Qt.Edge(0)  # No edge (empty flags)
-        self._resize_margin = 5
+        # Frameless window behavior (initialized after _setup_ui creates title_bar)
+        self._frameless_behavior: Optional[FramelessWindowBehavior] = None
 
         # Keyboard shortcuts
         self._shortcut_manager = ShortcutManager(self)
@@ -151,6 +151,22 @@ class ViloCodeWindow(ViloCodeWindowBase):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMinimumSize(600, 400)
         self.setMouseTracking(True)  # Enable mouse tracking for resize edge detection
+
+        # Frameless behavior will be initialized in _setup_ui after title_bar is created
+
+    def _initialize_frameless_behavior(self) -> None:
+        """Initialize frameless window behavior after title_bar is created."""
+        if self._window_mode != WindowMode.Frameless or self._title_bar is None:
+            return
+
+        # Create frameless behavior with title bar as draggable widget
+        self._frameless_behavior = FramelessWindowBehavior(
+            draggable_widget=self._title_bar,
+            resize_margin=5,
+            enable_resize=True,
+            enable_drag=True,
+            enable_double_click_maximize=True,
+        )
 
     def _setup_ui(self) -> None:
         """Set up the user interface layout."""
@@ -236,6 +252,9 @@ class ViloCodeWindow(ViloCodeWindowBase):
         # Apply theme colors after all components are created
         self._apply_theme_colors()
 
+        # Initialize frameless behavior after title_bar is created
+        self._initialize_frameless_behavior()
+
     def _setup_default_shortcuts(self) -> None:
         """Set up default VS Code-compatible shortcuts.
 
@@ -293,120 +312,33 @@ class ViloCodeWindow(ViloCodeWindowBase):
 
         super().paintEvent(event)
 
-    def _get_resize_edge(self, pos: QPoint) -> Qt.Edge:
-        """Detect which edge of the window is at the given position.
-
-        Args:
-            pos: Mouse position relative to widget
-
-        Returns:
-            Qt.Edge flags indicating which edges are near the position
-        """
-        if self._window_mode != WindowMode.Frameless:
-            return Qt.Edge(0)  # No edge
-
-        rect = self.rect()
-        margin = self._resize_margin
-
-        edges = Qt.Edge(0)  # Start with no edges
-
-        if pos.x() <= margin:
-            edges |= Qt.Edge.LeftEdge
-        elif pos.x() >= rect.width() - margin:
-            edges |= Qt.Edge.RightEdge
-
-        if pos.y() <= margin:
-            edges |= Qt.Edge.TopEdge
-        elif pos.y() >= rect.height() - margin:
-            edges |= Qt.Edge.BottomEdge
-
-        return edges
-
-    def _update_cursor_for_edge(self, edge: Qt.Edge) -> None:
-        """Update the mouse cursor based on the resize edge.
-
-        Args:
-            edge: The edge(s) near the mouse cursor
-        """
-        if edge == Qt.Edge(0):  # No edge
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-        elif edge == (Qt.Edge.TopEdge | Qt.Edge.LeftEdge):
-            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-        elif edge == (Qt.Edge.TopEdge | Qt.Edge.RightEdge):  # noqa: SIM114
-            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
-        elif edge == (Qt.Edge.BottomEdge | Qt.Edge.LeftEdge):  # noqa: SIM114
-            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
-        elif edge == (Qt.Edge.BottomEdge | Qt.Edge.RightEdge):
-            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-        elif edge == Qt.Edge.LeftEdge or edge == Qt.Edge.RightEdge:
-            self.setCursor(Qt.CursorShape.SizeHorCursor)
-        elif edge == Qt.Edge.TopEdge or edge == Qt.Edge.BottomEdge:
-            self.setCursor(Qt.CursorShape.SizeVerCursor)
-        else:
-            self.setCursor(Qt.CursorShape.ArrowCursor)
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse press for window dragging and resizing."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_press(self, event):
+                return
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         """Handle mouse move for window dragging and resize cursor updates."""
-        if self._window_mode == WindowMode.Frameless:
-            # Handle window dragging - but only if using manual move (not system move)
-            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, "_drag_position"):
-                # If using system move, the window manager handles it
-                if not hasattr(self, "_using_system_move"):
-                    # Fallback to manual move
-                    self.move(event.globalPosition().toPoint() - self._drag_position)
-                    event.accept()
-                    return
-
-            # Handle resize cursor updates when not dragging
-            edge = self._get_resize_edge(event.pos())
-            self._update_cursor_for_edge(edge)
-
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_move(self, event):
+                return
         super().mouseMoveEvent(event)
-
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        """Handle mouse press for window dragging and resizing."""
-        if (
-            self._window_mode == WindowMode.Frameless
-            and event.button() == Qt.MouseButton.LeftButton
-        ):
-            # Check for edge resize first
-            self._resize_edge = self._get_resize_edge(event.pos())
-
-            if self._resize_edge != Qt.Edge(0):  # If on an edge
-                # Try to use system resize if available (Qt 5.15+)
-                if hasattr(self.windowHandle(), "startSystemResize"):
-                    self.windowHandle().startSystemResize(self._resize_edge)
-                    event.accept()
-                    return
-            else:
-                # Not on edge - check if in title bar for dragging
-                if self._title_bar and self._title_bar.geometry().contains(event.pos()):
-                    # Try system move first (better for compositor compatibility)
-                    if hasattr(self.windowHandle(), "startSystemMove"):
-                        self.windowHandle().startSystemMove()
-                        self._using_system_move = True
-                        event.accept()
-                        return
-                    else:
-                        # Fallback: Store drag position for manual move
-                        self._drag_position = (
-                            event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-                        )
-                        event.accept()
-                        return
-
-        super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """Handle mouse release to clear drag state."""
-        if self._window_mode == WindowMode.Frameless:
-            if event.button() == Qt.MouseButton.LeftButton:
-                # Clear drag state
-                if hasattr(self, "_drag_position"):
-                    delattr(self, "_drag_position")
-                if hasattr(self, "_using_system_move"):
-                    delattr(self, "_using_system_move")
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_release(self, event):
+                return
         super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        """Handle double-click for maximize/restore."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_double_click(self, event):
+                return
+        super().mouseDoubleClickEvent(event)
 
     def _get_fallback_color(self, token: str) -> QColor:
         """Get fallback color when theme system unavailable.
