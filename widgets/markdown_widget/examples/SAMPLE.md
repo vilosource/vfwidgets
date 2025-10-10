@@ -8,7 +8,6 @@ Welcome to the **MarkdownViewer** widget demonstration! This document showcases 
 - [Extended Syntax](#extended-syntax)
 - [Code and Syntax Highlighting](#code-and-syntax-highlighting)
 - [Mermaid Diagrams](#mermaid-diagrams)
-- [Math Equations](#math-equations)
 - [Tables](#tables)
 - [Task Lists](#task-lists)
 - [Advanced Features](#advanced-features)
@@ -272,58 +271,6 @@ stateDiagram-v2
 
 ---
 
-## Math Equations
-
-### Inline Math
-
-The famous equation $E = mc^2$ relates energy and mass.
-
-The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$.
-
-### Block Math
-
-**Pythagorean Theorem:**
-
-$$
-a^2 + b^2 = c^2
-$$
-
-**Euler's Identity:**
-
-$$
-e^{i\pi} + 1 = 0
-$$
-
-**Integral:**
-
-$$
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
-
-**Matrix:**
-
-$$
-\begin{bmatrix}
-a & b & c \\
-d & e & f \\
-g & h & i
-\end{bmatrix}
-$$
-
-**Summation:**
-
-$$
-\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
-$$
-
-**Complex Equation:**
-
-$$
-\frac{\partial u}{\partial t} = \alpha \frac{\partial^2 u}{\partial x^2}
-$$
-
----
-
 ## Tables
 
 ### Simple Table
@@ -332,7 +279,6 @@ $$
 |---------|-----------|-------|
 | Markdown | ✅ | CommonMark + GFM |
 | Mermaid | ✅ | All diagram types |
-| Math | ✅ | KaTeX rendering |
 | Syntax | ✅ | 300+ languages |
 | Themes | ✅ | Light/Dark/Custom |
 
@@ -417,17 +363,16 @@ def process_data(data):
 
 This document demonstrates **all major features** of the MarkdownViewer widget:
 
-- ✅ 15+ heading sections
+- ✅ 12+ heading sections
 - ✅ Multiple code blocks (Python, JS, Rust, SQL, Bash)
 - ✅ 5 Mermaid diagrams (flowchart, sequence, class, gantt, state)
-- ✅ 6 math equations (inline and block)
 - ✅ 2 tables with different alignments
 - ✅ 20+ task list items
 - ✅ Emoji, footnotes, abbreviations, definition lists
 - ✅ Images, links, blockquotes
 - ✅ Custom containers and HTML
 
-**Total size:** ~7.5KB of markdown demonstrating the full rendering capabilities!
+**Total size:** ~6KB of markdown demonstrating the full rendering capabilities!
 
 ---
 

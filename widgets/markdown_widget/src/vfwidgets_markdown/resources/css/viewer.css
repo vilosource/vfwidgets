@@ -210,11 +210,6 @@
     border-radius: 6px;
 }
 
-/* KaTeX equations */
-.katex-display {
-    margin: 1em 0;
-}
-
 /* Emoji */
 #content img.emoji {
     height: 1em;

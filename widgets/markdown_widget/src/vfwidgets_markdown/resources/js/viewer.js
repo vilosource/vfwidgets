@@ -104,12 +104,6 @@ const MarkdownViewer = {
             console.log('[MarkdownViewer] Loaded container plugin');
         }
 
-        // Math rendering with KaTeX
-        if (typeof markdownitKatex !== 'undefined' && typeof katex !== 'undefined') {
-            this.md.use(markdownitKatex);
-            console.log('[MarkdownViewer] Loaded KaTeX plugin');
-        }
-
         // Override validateLink to allow data: URIs for images
         // By default, markdown-it blocks data: URIs for security
         const defaultValidateLink = this.md.validateLink.bind(this.md);
