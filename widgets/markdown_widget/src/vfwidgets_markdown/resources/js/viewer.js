@@ -56,6 +56,20 @@ const MarkdownViewer = {
             }
         });
 
+        // Load markdown-it plugins for extended syntax
+        if (typeof markdownitFootnote !== 'undefined') {
+            this.md.use(markdownitFootnote);
+            console.log('[MarkdownViewer] Loaded footnote plugin');
+        }
+        if (typeof markdownitAbbr !== 'undefined') {
+            this.md.use(markdownitAbbr);
+            console.log('[MarkdownViewer] Loaded abbreviation plugin');
+        }
+        if (typeof markdownitDeflist !== 'undefined') {
+            this.md.use(markdownitDeflist);
+            console.log('[MarkdownViewer] Loaded definition list plugin');
+        }
+
         // Override validateLink to allow data: URIs for images
         // By default, markdown-it blocks data: URIs for security
         const defaultValidateLink = this.md.validateLink.bind(this.md);
@@ -68,7 +82,7 @@ const MarkdownViewer = {
             return defaultValidateLink(url);
         };
 
-        console.log('[MarkdownViewer] markdown-it initialized with data: URI support');
+        console.log('[MarkdownViewer] markdown-it initialized with data: URI support and plugins');
     },
 
     /**
