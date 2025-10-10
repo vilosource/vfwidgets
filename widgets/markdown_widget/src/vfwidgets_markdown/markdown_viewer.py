@@ -306,21 +306,16 @@ class MarkdownViewer(_BaseClass):
             return
 
         # Determine if we're using dark theme
-        # Access the theme object to check if it's dark
+        # Get theme from application
         is_dark = False
         try:
-            if hasattr(self, "theme"):
-                # Check common dark theme indicators
-                bg_color = self.theme.md_bg
-                if bg_color:
-                    # Simple heuristic: dark if background lightness < 50%
-                    # Parse the color and check luminance
-                    if bg_color.startswith("#"):
-                        r = int(bg_color[1:3], 16)
-                        g = int(bg_color[3:5], 16)
-                        b = int(bg_color[5:7], 16)
-                        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-                        is_dark = luminance < 0.5
+            from PySide6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app and hasattr(app, "get_current_theme"):
+                current_theme = app.get_current_theme()
+                if current_theme and hasattr(current_theme, "type"):
+                    is_dark = current_theme.type == "dark"
         except Exception:
             pass  # Fallback to light theme
 
