@@ -100,10 +100,11 @@ const MarkdownViewer = {
             this.md.use(markdownitSup);
             console.log('[MarkdownViewer] Loaded superscript plugin');
         }
-        if (typeof markdownitIns !== 'undefined') {
-            this.md.use(markdownitIns);
-            console.log('[MarkdownViewer] Loaded insert plugin');
-        }
+        // Disabled: markdown-it-ins causes "undefined" text in tables with bold text
+        // if (typeof markdownitIns !== 'undefined') {
+        //     this.md.use(markdownitIns);
+        //     console.log('[MarkdownViewer] Loaded insert plugin');
+        // }
 
         // Emoji
         if (typeof markdownitEmoji !== 'undefined') {
