@@ -339,18 +339,6 @@ stateDiagram-v2
   <p>You can embed raw HTML in your markdown when needed.</p>
 </div>
 
-### Code with Line Numbers
-
-```python {1,3-5}
-# This line is highlighted
-def process_data(data):
-    # These lines are also highlighted
-    result = []
-    for item in data:
-        result.append(item * 2)
-    return result
-```
-
 ---
 
 ## Performance Note
