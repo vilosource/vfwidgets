@@ -276,9 +276,18 @@ const MarkdownViewer = {
         const toc = [];
 
         headings.forEach(heading => {
+            // Get text content and clean it thoroughly
+            let text = heading.textContent.trim();
+
+            // Remove any markdown heading markers that might have leaked through
+            text = text.replace(/^#+\s*/, '');
+
+            // Remove any trailing markers
+            text = text.replace(/\s*#+$/, '');
+
             toc.push({
                 level: parseInt(heading.tagName[1]),
-                text: heading.textContent.trim(),
+                text: text,
                 id: heading.id,
                 line: 0  // Line numbers would require markdown-it plugin
             });
