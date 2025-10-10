@@ -59,77 +59,48 @@ const MarkdownViewer = {
         // Load markdown-it plugins for extended syntax
         // Note: Order matters for some plugins
 
-        // Anchor plugin (must be loaded first for TOC)
-        // Note: Disabled for now as we manually add heading IDs
-        // if (typeof markdownItAnchor !== 'undefined') {
-        //     this.md.use(markdownItAnchor.default || markdownItAnchor, {
-        //         permalink: false,
-        //         level: [1, 2, 3, 4, 5, 6]
-        //     });
-        //     console.log('[MarkdownViewer] Loaded anchor plugin');
-        // }
-
-        // Footnotes
+        // Footnotes, abbreviations, definition lists - these are safe
         if (typeof markdownitFootnote !== 'undefined') {
             this.md.use(markdownitFootnote);
             console.log('[MarkdownViewer] Loaded footnote plugin');
         }
 
-        // Abbreviations
         if (typeof markdownitAbbr !== 'undefined') {
             this.md.use(markdownitAbbr);
             console.log('[MarkdownViewer] Loaded abbreviation plugin');
         }
 
-        // Definition lists
         if (typeof markdownitDeflist !== 'undefined') {
             this.md.use(markdownitDeflist);
             console.log('[MarkdownViewer] Loaded definition list plugin');
         }
 
-        // Text formatting
-        if (typeof markdownitMark !== 'undefined') {
-            this.md.use(markdownitMark);
-            console.log('[MarkdownViewer] Loaded mark (highlight) plugin');
-        }
-        if (typeof markdownitSub !== 'undefined') {
-            this.md.use(markdownitSub);
-            console.log('[MarkdownViewer] Loaded subscript plugin');
-        }
-        if (typeof markdownitSup !== 'undefined') {
-            this.md.use(markdownitSup);
-            console.log('[MarkdownViewer] Loaded superscript plugin');
-        }
-        // Disabled: markdown-it-ins causes "undefined" text in tables with bold text
-        // if (typeof markdownitIns !== 'undefined') {
-        //     this.md.use(markdownitIns);
-        //     console.log('[MarkdownViewer] Loaded insert plugin');
-        // }
-
-        // Emoji
+        // Emoji plugin
         if (typeof markdownitEmoji !== 'undefined') {
             this.md.use(markdownitEmoji);
             console.log('[MarkdownViewer] Loaded emoji plugin');
         }
 
-        // Task lists
+        // Task lists (checkboxes)
         if (typeof markdownitTaskLists !== 'undefined') {
-            this.md.use(markdownitTaskLists, {
-                enabled: true,
-                label: true,
-                labelAfter: true
-            });
+            this.md.use(markdownitTaskLists);
             console.log('[MarkdownViewer] Loaded task lists plugin');
         }
 
-        // Custom containers (warning, info, danger, etc.)
+        // Container plugin for custom blocks (:::warning, etc.)
         if (typeof markdownitContainer !== 'undefined') {
-            // Define common container types
-            this.md.use(markdownitContainer, 'warning');
-            this.md.use(markdownitContainer, 'info');
-            this.md.use(markdownitContainer, 'danger');
-            this.md.use(markdownitContainer, 'tip');
-            this.md.use(markdownitContainer, 'note');
+            // Register common containers
+            ['warning', 'info', 'danger', 'tip', 'note'].forEach(name => {
+                this.md.use(markdownitContainer, name, {
+                    render: (tokens, idx) => {
+                        if (tokens[idx].nesting === 1) {
+                            return `<div class="${name}">\n`;
+                        } else {
+                            return '</div>\n';
+                        }
+                    }
+                });
+            });
             console.log('[MarkdownViewer] Loaded container plugin');
         }
 
