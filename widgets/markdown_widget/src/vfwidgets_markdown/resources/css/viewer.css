@@ -1,0 +1,288 @@
+/**
+ * Markdown Viewer - Stylesheet
+ * GitHub-inspired markdown styling with light/dark theme support
+ */
+
+/* CSS Variables for theming */
+:root[data-theme="light"] {
+    --md-bg: #ffffff;
+    --md-fg: #24292f;
+    --md-heading: #24292f;
+    --md-link: #0969da;
+    --md-link-hover: #0550ae;
+    --md-code-bg: #f6f8fa;
+    --md-code-fg: #24292f;
+    --md-border: #d0d7de;
+    --md-quote-border: #d0d7de;
+    --md-quote-bg: #f6f8fa;
+    --md-table-border: #d0d7de;
+    --md-table-header-bg: #f6f8fa;
+}
+
+:root[data-theme="dark"] {
+    --md-bg: #0d1117;
+    --md-fg: #c9d1d9;
+    --md-heading: #c9d1d9;
+    --md-link: #58a6ff;
+    --md-link-hover: #79c0ff;
+    --md-code-bg: #161b22;
+    --md-code-fg: #c9d1d9;
+    --md-border: #30363d;
+    --md-quote-border: #30363d;
+    --md-quote-bg: #161b22;
+    --md-table-border: #30363d;
+    --md-table-header-bg: #161b22;
+}
+
+/* Base styles */
+#content {
+    font-size: 16px;
+    word-wrap: break-word;
+}
+
+/* Headings */
+#content h1, #content h2, #content h3, #content h4, #content h5, #content h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--md-heading);
+}
+
+#content h1 {
+    font-size: 2em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--md-border);
+}
+
+#content h2 {
+    font-size: 1.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--md-border);
+}
+
+#content h3 { font-size: 1.25em; }
+#content h4 { font-size: 1em; }
+#content h5 { font-size: 0.875em; }
+#content h6 { font-size: 0.85em; color: #656d76; }
+
+/* Paragraphs */
+#content p {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+/* Links */
+#content a {
+    color: var(--md-link);
+    text-decoration: none;
+}
+
+#content a:hover {
+    color: var(--md-link-hover);
+    text-decoration: underline;
+}
+
+/* Lists */
+#content ul, #content ol {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-left: 2em;
+}
+
+#content li {
+    margin-top: 0.25em;
+}
+
+#content li + li {
+    margin-top: 0.25em;
+}
+
+/* Code */
+#content code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: var(--md-code-bg);
+    color: var(--md-code-fg);
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+#content pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: var(--md-code-bg);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+#content pre code {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0;
+}
+
+/* Blockquotes */
+#content blockquote {
+    margin: 0 0 16px 0;
+    padding: 0 1em;
+    color: #656d76;
+    border-left: 0.25em solid var(--md-quote-border);
+    background-color: var(--md-quote-bg);
+}
+
+#content blockquote > :first-child {
+    margin-top: 0;
+}
+
+#content blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+/* Tables */
+#content table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin-top: 0;
+    margin-bottom: 16px;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+}
+
+#content table tr {
+    background-color: var(--md-bg);
+    border-top: 1px solid var(--md-table-border);
+}
+
+#content table tr:nth-child(2n) {
+    background-color: var(--md-table-header-bg);
+}
+
+#content table th,
+#content table td {
+    padding: 6px 13px;
+    border: 1px solid var(--md-table-border);
+}
+
+#content table th {
+    font-weight: 600;
+    background-color: var(--md-table-header-bg);
+}
+
+/* Horizontal rule */
+#content hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: var(--md-border);
+    border: 0;
+}
+
+/* Images */
+#content img {
+    max-width: 100%;
+    box-sizing: content-box;
+    background-color: var(--md-bg);
+}
+
+/* Task lists */
+#content input[type="checkbox"] {
+    margin: 0 0.2em 0.25em -1.6em;
+    vertical-align: middle;
+}
+
+/* Mermaid diagrams */
+.mermaid-diagram {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background-color: var(--md-code-bg);
+    border-radius: 6px;
+}
+
+/* KaTeX equations */
+.katex-display {
+    margin: 1em 0;
+}
+
+/* Emoji */
+#content img.emoji {
+    height: 1em;
+    width: 1em;
+    margin: 0 0.05em 0 0.1em;
+    vertical-align: -0.1em;
+}
+
+/* Footnotes */
+#content .footnote-ref {
+    font-size: 0.8em;
+    vertical-align: super;
+}
+
+#content .footnotes {
+    font-size: 0.9em;
+    border-top: 1px solid var(--md-border);
+    margin-top: 32px;
+    padding-top: 16px;
+}
+
+/* Mark (highlighted text) */
+#content mark {
+    background-color: #fff8c5;
+    padding: 0.2em 0;
+}
+
+[data-theme="dark"] #content mark {
+    background-color: #6e5a07;
+    color: #f0d338;
+}
+
+/* Inserted text */
+#content ins {
+    text-decoration: none;
+    border-bottom: 2px solid #28a745;
+}
+
+/* Subscript and Superscript */
+#content sub,
+#content sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+}
+
+#content sup { top: -0.5em; }
+#content sub { bottom: -0.25em; }
+
+/* Definition lists */
+#content dl {
+    padding: 0;
+}
+
+#content dl dt {
+    padding: 0;
+    margin-top: 16px;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+#content dl dd {
+    padding: 0 16px;
+    margin-bottom: 16px;
+}
+
+/* Abbreviations */
+#content abbr[title] {
+    border-bottom: 1px dotted var(--md-border);
+    cursor: help;
+}

@@ -31,16 +31,17 @@ def main():
     viewer = MarkdownViewer()
     window.setCentralWidget(viewer)
 
-    # Load SAMPLE.md from the same directory
-    sample_path = Path(__file__).parent / "SAMPLE.md"
-    if sample_path.exists():
-        with open(sample_path, encoding="utf-8") as f:
-            markdown_content = f.read()
-        viewer.set_markdown(markdown_content)
-        print(f"Loaded {len(markdown_content)} bytes from {sample_path}")
-    else:
-        # Fallback to simple content if SAMPLE.md not found
-        viewer.set_markdown("""
+    # Load SAMPLE.md when viewer is ready
+    def load_sample():
+        sample_path = Path(__file__).parent / "SAMPLE.md"
+        if sample_path.exists():
+            with open(sample_path, encoding="utf-8") as f:
+                markdown_content = f.read()
+            viewer.set_markdown(markdown_content)
+            print(f"Loaded {len(markdown_content)} bytes from {sample_path}")
+        else:
+            # Fallback to simple content if SAMPLE.md not found
+            viewer.set_markdown("""
 # MarkdownViewer Demo
 
 **SAMPLE.md not found!**
@@ -54,8 +55,11 @@ This is a fallback example showing basic markdown rendering.
 ```python
 print("Hello from MarkdownViewer!")
 ```
-        """)
-        print(f"Warning: {sample_path} not found, using fallback content")
+            """)
+            print(f"Warning: {sample_path} not found, using fallback content")
+
+    # Connect to viewer_ready signal
+    viewer.viewer_ready.connect(load_sample)
 
     # Show window
     window.show()
