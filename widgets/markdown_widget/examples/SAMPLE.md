@@ -90,12 +90,6 @@ Term 1
 Term 2
 :   Definition 2
 
-### Emoji Support
-
-:rocket: :star: :heart: :smile: :tada: :bulb: :zap: :fire: :100:
-
-Python is :snake:! JavaScript is awesome :sparkles:!
-
 ---
 
 ## Code and Syntax Highlighting
@@ -363,12 +357,12 @@ def process_data(data):
 
 This document demonstrates **all major features** of the MarkdownViewer widget:
 
-- ✅ 12+ heading sections
+- ✅ 11+ heading sections
 - ✅ Multiple code blocks (Python, JS, Rust, SQL, Bash)
 - ✅ 5 Mermaid diagrams (flowchart, sequence, class, gantt, state)
 - ✅ 2 tables with different alignments
 - ✅ 20+ task list items
-- ✅ Emoji, footnotes, abbreviations, definition lists
+- ✅ Footnotes, abbreviations, definition lists
 - ✅ Images, links, blockquotes
 - ✅ Custom containers and HTML
 

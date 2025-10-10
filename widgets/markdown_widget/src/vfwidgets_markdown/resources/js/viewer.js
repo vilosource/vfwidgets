@@ -75,12 +75,6 @@ const MarkdownViewer = {
             console.log('[MarkdownViewer] Loaded definition list plugin');
         }
 
-        // Emoji plugin
-        if (typeof markdownitEmoji !== 'undefined') {
-            this.md.use(markdownitEmoji);
-            console.log('[MarkdownViewer] Loaded emoji plugin');
-        }
-
         // Task lists (checkboxes)
         if (typeof markdownitTaskLists !== 'undefined') {
             this.md.use(markdownitTaskLists);
