@@ -113,7 +113,7 @@ const MarkdownViewer = {
      * Render markdown content
      * @param {string} markdown - Markdown text to render
      */
-    render(markdown) {
+    async render(markdown) {
         console.log(`[MarkdownViewer] Rendering ${markdown.length} bytes`);
 
         try {
@@ -126,8 +126,8 @@ const MarkdownViewer = {
             const html = this.md.render(markdown);
             contentDiv.innerHTML = html;
 
-            // Post-process for special features
-            this.processMermaid();
+            // Post-process for special features (Mermaid must be awaited)
+            await this.processMermaid();
             this.processKaTeX();
             this.highlightCode();
             this.addHeadingIds();
@@ -148,33 +148,41 @@ const MarkdownViewer = {
     /**
      * Process Mermaid diagram blocks
      */
-    processMermaid() {
+    async processMermaid() {
         if (typeof mermaid === 'undefined') return;
 
         const mermaidBlocks = document.querySelectorAll('code.language-mermaid');
         console.log(`[MarkdownViewer] Processing ${mermaidBlocks.length} Mermaid diagrams`);
 
-        mermaidBlocks.forEach((block, index) => {
+        // Process each diagram sequentially to avoid conflicts
+        for (let index = 0; index < mermaidBlocks.length; index++) {
+            const block = mermaidBlocks[index];
             const code = block.textContent;
             const id = `mermaid-${Date.now()}-${index}`;
 
             try {
+                // Use mermaid.render() API which is more reliable
+                const { svg } = await mermaid.render(id, code);
+
                 // Create container for diagram
                 const container = document.createElement('div');
                 container.className = 'mermaid-diagram';
-                container.id = id;
-                container.textContent = code;
+                container.innerHTML = svg;
 
-                // Replace code block with diagram container
+                // Replace code block with rendered diagram
                 block.parentElement.replaceWith(container);
 
-                // Render diagram
-                mermaid.init(undefined, container);
+                console.log(`[MarkdownViewer] Rendered Mermaid diagram ${index + 1}/${mermaidBlocks.length}`);
             } catch (error) {
                 console.error('Mermaid rendering failed:', error);
-                block.parentElement.innerHTML = `<pre style="color: red;">Mermaid Error: ${error.message}</pre>`;
+                const errorDiv = document.createElement('pre');
+                errorDiv.style.color = 'red';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.border = '1px solid red';
+                errorDiv.textContent = `Mermaid Error: ${error.message}\n\nCode:\n${code}`;
+                block.parentElement.replaceWith(errorDiv);
             }
-        });
+        }
     },
 
     /**
@@ -276,7 +284,7 @@ const MarkdownViewer = {
      * Set theme (light/dark)
      * @param {string} theme - Theme name
      */
-    setTheme(theme) {
+    async setTheme(theme) {
         console.log(`[MarkdownViewer] Setting theme: ${theme}`);
         this.currentTheme = theme;
         document.body.dataset.theme = theme;
@@ -289,16 +297,18 @@ const MarkdownViewer = {
             prismTheme.href = 'css/prism-themes/prism.css';
         }
 
-        // Update Mermaid theme
+        // Update Mermaid theme by re-initializing and re-rendering all diagrams
         if (typeof mermaid !== 'undefined') {
             mermaid.initialize({
-                theme: theme === 'dark' ? 'dark' : 'default'
+                startOnLoad: false,
+                theme: theme === 'dark' ? 'dark' : 'default',
+                securityLevel: 'loose',
+                logLevel: 'error'
             });
-            // Re-render mermaid diagrams
-            const mermaidDivs = document.querySelectorAll('.mermaid-diagram');
-            mermaidDivs.forEach(div => {
-                mermaid.init(undefined, div);
-            });
+
+            // Note: Theme change requires re-rendering from markdown source
+            // This is handled by the application calling render() again if needed
+            console.log(`[MarkdownViewer] Mermaid theme updated to: ${theme === 'dark' ? 'dark' : 'default'}`);
         }
     },
 
