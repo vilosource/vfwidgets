@@ -97,6 +97,16 @@ class MarkdownViewer(QWebEngineView):
         profile = page.profile()
         profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
 
+        # Handle link clicks - open external links in browser
+        from PySide6.QtGui import QDesktopServices
+
+        def handle_link(url):
+            """Handle clicked links by opening in external browser."""
+            print(f"[MarkdownViewer] Link clicked: {url.toString()}")
+            QDesktopServices.openUrl(url)
+
+        page.linkClicked.connect(handle_link)
+
         print("[MarkdownViewer] WebEngine configured")
 
     def _setup_bridge(self) -> None:
