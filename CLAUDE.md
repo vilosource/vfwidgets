@@ -310,34 +310,53 @@ export QTWEBENGINE_CHROMIUM_FLAGS="--your-custom-flags"
 viloxterm  # Will append (not replace) your custom flags
 ```
 
-### Using Platform Detection in Your Widgets
+### Building VFWidgets Applications (RECOMMENDED)
 
-To add automatic WSL support to your own widgets:
+**Use the unified desktop integration API for all VFWidgets applications:**
 
 ```python
 # In your main entry point, BEFORE importing Qt modules:
-from vfwidgets_common import configure_all_for_webengine
+from vfwidgets_common.desktop import configure_desktop
 
-# Call this before QApplication creation
-configure_all_for_webengine()
+# Single call handles everything
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+)
 
-# Now create your Qt application
-from PySide6.QtWidgets import QApplication
-app = QApplication(sys.argv)
+# Create your main window
+from myapp import MyMainWindow
+window = MyMainWindow()
+window.show()
+
+sys.exit(app.exec())
 ```
 
-### Platform Detection API
+**This automatically:**
+- Detects platform (WSL, Wayland, X11, Remote Desktop)
+- Applies platform quirks (software rendering, scaling fixes)
+- Checks/installs desktop integration (icons, .desktop files)
+- Creates QApplication with proper metadata
+
+### Legacy Platform Detection API
+
+**Note:** The following functions are still available but `configure_desktop()` is now recommended for applications.
 
 ```python
 from vfwidgets_common import (
-    is_wsl,                      # Detect WSL environment
-    is_remote_desktop,           # Detect remote desktop
-    needs_software_rendering,    # Check if software rendering needed
-    get_platform_info,           # Get comprehensive platform details
+    is_wsl,                      # Detect WSL environment (DEPRECATED - use configure_desktop)
+    is_remote_desktop,           # Detect remote desktop (DEPRECATED - use configure_desktop)
+    configure_all_for_webengine, # Configure environment (DEPRECATED - use configure_desktop)
 )
 
-if is_wsl():
-    print("Running in WSL - software rendering auto-configured")
+# Old way (still works, but not recommended for new code)
+configure_all_for_webengine()
+
+# New way (recommended)
+from vfwidgets_common.desktop import configure_desktop
+app = configure_desktop(app_name="myapp", ...)
 ```
 
 ### X Server Display (if using WSL1 or older WSL2)

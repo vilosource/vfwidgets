@@ -1,10 +1,10 @@
 # ViloxTerm
 
-A modern terminal emulator application showcasing the integration of multiple VFWidgets components. ViloxTerm combines Chrome-style tabbed windows, dynamic split panes, and xterm.js-based terminals with a powerful theme system for a fully customizable terminal experience.
+A modern terminal emulator application showcasing the integration of multiple VFWidgets components. ViloxTerm combines Chrome-style tabbed windows, dynamic split panes, and xterm.js-based terminals with a powerful theme system and cross-platform desktop integration for a fully customizable terminal experience.
 
 ## Architecture
 
-ViloxTerm demonstrates a layered architecture combining four key VFWidgets components:
+ViloxTerm demonstrates a layered architecture combining five key VFWidgets components:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -30,12 +30,61 @@ ViloxTerm demonstrates a layered architecture combining four key VFWidgets compo
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**Layer 0: Desktop Integration** - Cross-platform setup and configuration
 **Layer 1: ChromeTabbedWindow** - Chrome-style tabs with modern UI
 **Layer 2: MultisplitWidget** - Dynamic runtime splitting of panes
 **Layer 3: TerminalWidget** - Full-featured xterm.js terminals
 **Layer 4: Theme System** - VSCode-compatible theme management
 
 ## Integrated Widgets
+
+### 0. Desktop Integration (Application Bootstrap)
+
+**NEW:** ViloxTerm uses the unified desktop integration API from `vfwidgets_common` for cross-platform application setup.
+
+**What It Provides:**
+- Automatic platform detection (OS, desktop environment, display server)
+- Platform-specific quirks (WSL software rendering, Wayland HiDPI scaling)
+- Desktop integration (GNOME/KDE icons, .desktop files, application menus)
+- Proper QApplication setup with metadata
+
+**Implementation in ViloxTerm:**
+
+```python
+from vfwidgets_common.desktop import configure_desktop
+from vfwidgets_theme import ThemedApplication
+
+# Single call handles everything
+app = configure_desktop(
+    app_name="viloxterm",
+    app_display_name="ViloxTerm",
+    icon_name="viloxterm",
+    desktop_categories="System;TerminalEmulator;Utility;",
+    application_class=ThemedApplication,
+    theme_config={"persist_theme": True},
+)
+```
+
+**Platform Support:**
+- ✅ **Linux** - XDG desktop integration (GNOME, KDE, XFCE)
+  - Auto-detects and installs desktop files and icons
+  - Wayland HiDPI scaling and window matching
+  - X11 compatibility
+- ✅ **WSL** - Automatic software rendering configuration
+  - Detects WSL1 and WSL2
+  - Forces software OpenGL (fixes Qt WebEngine crashes)
+  - Configures Chromium flags for WSL
+- ✅ **Windows/macOS** - Extensible backend architecture (future)
+
+**Why This Matters:**
+- **No manual environment setup** - Works correctly in WSL, Wayland, X11
+- **Desktop integration just works** - Icons appear in application menus
+- **One API for all apps** - Reusable pattern across VFWidgets projects
+- **Tested and reliable** - Handles edge cases (remote desktop, containers)
+
+See [`../../shared/vfwidgets_common/wip/unified-desktop-integration-DESIGN.md`](../../shared/vfwidgets_common/wip/unified-desktop-integration-DESIGN.md) for complete architecture.
+
+
 
 ### 1. ChromeTabbedWindow (Main Window)
 
@@ -271,9 +320,45 @@ This pattern ensures seamless workflow - users can type `exit` and immediately c
 
 ## Key Integration Patterns
 
+### Pattern 0: Desktop Integration (Application Bootstrap)
+
+**NEW RECOMMENDED PATTERN** - Use unified desktop integration for all VFWidgets applications:
+
+```python
+from vfwidgets_common.desktop import configure_desktop
+from vfwidgets_theme import ThemedApplication
+from chrome_tabbed_window import ChromeTabbedWindow
+
+# Create application with desktop integration
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My App",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+    application_class=ThemedApplication,
+    theme_config={"persist_theme": True},
+)
+
+# Create main window
+window = ChromeTabbedWindow()
+window.setWindowTitle("My App")
+window.resize(1200, 800)
+window.show()
+
+sys.exit(app.exec())
+```
+
+**Key Points:**
+- `configure_desktop()` handles platform detection, quirks, and desktop integration
+- Works automatically in WSL, Wayland, X11, Remote Desktop
+- Desktop files and icons auto-detected/installed (Linux)
+- Returns configured ThemedApplication (or custom application class)
+
 ### Pattern 1: ChromeTabbedWindow as Frameless Window
 
 **Reference:** `chrome-tabbed-window/examples/04_themed_chrome_tabs.py`
+
+**Classic Pattern** (still valid for simple examples):
 
 ```python
 from vfwidgets_theme import ThemedApplication
@@ -299,6 +384,7 @@ sys.exit(app.exec())
 - ChromeTabbedWindow with no parent = automatic frameless mode
 - ThemedApplication provides theme support
 - Window controls (min/max/close) added automatically
+- **For production apps, use Pattern 0 (desktop integration) instead**
 
 ### Pattern 2: MultisplitWidget + WidgetProvider
 

@@ -40,12 +40,89 @@ python tools/create_widget.py my_new_widget
 
 This will create a new widget package in `widgets/my_new_widget/` with the standard structure.
 
+## Shared Libraries
+
+### vfwidgets_common - Cross-Platform Application Utilities
+
+**Essential for building VFWidgets applications.** Provides cross-platform desktop integration and application bootstrap functionality.
+
+**Installation:**
+```bash
+pip install -e ./shared/vfwidgets_common
+```
+
+**Key Feature: Unified Desktop Integration**
+
+The `configure_desktop()` API handles all cross-platform concerns for Qt applications:
+
+```python
+from vfwidgets_common.desktop import configure_desktop
+
+# Single call handles everything
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+)
+
+window = MyMainWindow()
+window.show()
+sys.exit(app.exec())
+```
+
+**What It Does:**
+- ✅ **Platform Detection** - Detects OS, desktop environment, display server, WSL, containers
+- ✅ **Automatic Quirks** - Applies platform-specific fixes automatically
+  - WSL: Software rendering for Qt WebEngine
+  - Wayland: HiDPI scaling and window matching
+  - Remote Desktop: Rendering optimizations
+- ✅ **Desktop Integration** - Checks/installs desktop files and icons (Linux)
+- ✅ **QApplication Setup** - Proper metadata and theme integration
+
+**Platform Support:**
+- Linux (GNOME, KDE, XFCE) - XDG desktop integration
+- WSL (WSL1, WSL2) - Automatic software rendering
+- Wayland - HiDPI scaling and XDG Portal
+- X11 - Full compatibility
+- Windows/macOS - Extensible backend (coming soon)
+
+**Documentation:**
+- [Desktop Integration Design](shared/vfwidgets_common/wip/unified-desktop-integration-DESIGN.md)
+- See [ViloxTerm](apps/viloxterm/README.md) for production usage example
+
 ## Available Widgets
 
 | Widget | Description | Status | Documentation |
 |--------|-------------|--------|---------------|
 | button_widget | Enhanced button with animations and styles | 🟢 Ready | [Docs](widgets/button_widget/README.md) |
-| *More widgets coming soon* | | | |
+| theme_system | VSCode-compatible theme management | 🟢 Ready | [Docs](widgets/theme_system/README.md) |
+| multisplit_widget | Dynamic split pane widget | 🟢 Ready | [Docs](widgets/multisplit_widget/README.md) |
+| terminal_widget | xterm.js-based terminal emulator | 🟢 Ready | [Docs](widgets/terminal_widget/README.md) |
+| chrome-tabbed-window | Chrome-style tabbed window | 🟢 Ready | [Docs](widgets/chrome-tabbed-window/README.md) |
+| vilocode_window | VS Code-style frameless window | 🟢 Ready | [Docs](widgets/vilocode_window/README.md) |
+| keybinding_manager | User-customizable keyboard shortcuts | 🟢 Ready | [Docs](widgets/keybinding_manager/README.md) |
+
+## Applications
+
+### ViloxTerm - Modern Terminal Emulator
+
+Full-featured terminal application demonstrating integration of multiple VFWidgets components.
+
+**Installation:**
+```bash
+cd apps/viloxterm
+make local-release  # Builds and installs with GNOME/KDE integration
+```
+
+**Features:**
+- Chrome-style tabs with split panes
+- Multi-session terminal server (xterm.js)
+- VSCode-compatible themes
+- User-customizable keyboard shortcuts
+- Cross-platform desktop integration
+
+**Documentation:** [apps/viloxterm/README.md](apps/viloxterm/README.md)
 
 ## Development
 

@@ -1,6 +1,6 @@
 # VFWidgets Common
 
-Shared utilities and base classes for VFWidgets.
+Shared utilities and base classes for VFWidgets, including cross-platform desktop integration.
 
 ## Installation
 
@@ -12,6 +12,78 @@ pip install -e ../../shared/vfwidgets_common
 ```
 
 ## Components
+
+### Desktop Integration (NEW)
+
+**Unified cross-platform desktop integration for Qt applications.** This is the recommended way to bootstrap all VFWidgets applications.
+
+#### Quick Start
+
+```python
+from vfwidgets_common.desktop import configure_desktop
+
+# Single call handles everything
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+)
+
+window = MyMainWindow()
+window.show()
+sys.exit(app.exec())
+```
+
+#### What It Does
+
+The `configure_desktop()` API automatically:
+
+1. **Detects Platform** - OS, desktop environment, display server, WSL, containers
+2. **Applies Platform Quirks** - Fixes platform-specific issues automatically
+3. **Checks Desktop Integration** - Verifies icons and .desktop files are installed (Linux)
+4. **Creates QApplication** - With proper metadata and theme integration
+5. **Returns Configured App** - Ready to use
+
+#### Platform Quirks Applied Automatically
+
+- **WSL** - Forces software rendering for Qt WebEngine (fixes OpenGL crashes)
+- **Wayland** - HiDPI scaling, window matching, XDG Portal integration
+- **Remote Desktop** - Optimized rendering for RDP/VNC
+- **Containers** - Appropriate graphics configuration
+
+#### Platform Support
+
+| Platform | Status | Features |
+|----------|--------|----------|
+| Linux (GNOME/KDE/XFCE) | ✅ Ready | XDG desktop integration, icons, .desktop files |
+| WSL (WSL1/WSL2) | ✅ Ready | Automatic software rendering |
+| Wayland | ✅ Ready | HiDPI scaling, window matching |
+| X11 | ✅ Ready | Full compatibility |
+| Windows/macOS | 🔜 Future | Extensible backend architecture |
+
+#### Advanced Usage with ThemedApplication
+
+```python
+from vfwidgets_common.desktop import configure_desktop
+from vfwidgets_theme import ThemedApplication
+
+app = configure_desktop(
+    app_name="viloxterm",
+    app_display_name="ViloxTerm",
+    icon_name="viloxterm",
+    desktop_categories="System;TerminalEmulator;",
+    application_class=ThemedApplication,  # Custom QApplication class
+    theme_config={"persist_theme": True}, # Passed to ThemedApplication
+)
+```
+
+#### Documentation
+
+- [Complete Design Document](wip/unified-desktop-integration-DESIGN.md)
+- [ViloxTerm Usage Example](../../apps/viloxterm/README.md)
+
+
 
 ### VFBaseWidget
 
