@@ -91,6 +91,12 @@ class MarkdownViewer(QWebEngineView):
         settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
         settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, False)
 
+        # Disable caching for development (allows resource updates without restart)
+        from PySide6.QtWebEngineCore import QWebEngineProfile
+
+        profile = page.profile()
+        profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
+
         print("[MarkdownViewer] WebEngine configured")
 
     def _setup_bridge(self) -> None:
