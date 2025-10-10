@@ -3,9 +3,9 @@
 import sys
 import logging
 
-# IMPORTANT: Configure environment BEFORE importing Qt modules
-# This must happen before ThemedApplication import to ensure proper Qt WebEngine initialization
-from vfwidgets_common import configure_all_for_webengine, is_wsl
+# IMPORTANT: Desktop integration must happen BEFORE importing Qt modules
+# This configures environment variables and platform quirks before Qt initialization
+from vfwidgets_common.desktop import configure_desktop
 
 from vfwidgets_theme import ThemedApplication
 from viloxterm.app import ViloxTermApp
@@ -20,34 +20,28 @@ def setup_logging():
     )
 
 
-def configure_environment():
-    """Configure environment for optimal Qt WebEngine performance.
-
-    This detects WSL and other special environments and automatically
-    configures the necessary environment variables for software rendering.
-    """
-    logger = logging.getLogger(__name__)
-
-    # Configure Qt and WebEngine environment variables
-    changes = configure_all_for_webengine()
-
-    if changes:
-        logger.info(f"Auto-configured environment for {', '.join(changes.keys())}")
-        if is_wsl():
-            logger.info("WSL detected: Using software rendering for Qt WebEngine")
-
-
 def main():
     """Main entry point for ViloxTerm."""
     setup_logging()
     logger = logging.getLogger(__name__)
 
-    # Configure environment BEFORE creating QApplication
-    configure_environment()
+    # Configure desktop integration and create ThemedApplication
+    # This handles:
+    # - Platform detection (WSL, Wayland, X11, etc.)
+    # - Platform quirks (software rendering, scaling fixes)
+    # - Desktop integration (icons, .desktop files)
+    # - QApplication creation
+    logger.info("Configuring desktop integration...")
 
-    # Create themed application with theme persistence enabled
     theme_config = {"persist_theme": True, "auto_detect_system": False}
-    app = ThemedApplication(sys.argv, theme_config=theme_config)
+    app = configure_desktop(
+        app_name="viloxterm",
+        app_display_name="ViloxTerm",
+        icon_name="viloxterm",
+        desktop_categories="System;TerminalEmulator;Utility;",
+        application_class=ThemedApplication,
+        theme_config=theme_config,
+    )
 
     # Load saved theme from ViloxTerm config if available
     try:
