@@ -97,6 +97,8 @@ class MarkdownViewer(_BaseClass):
         self._current_markdown = ""
         self._current_toc = []
         self._is_ready = False
+        self._base_path: Optional[Path] = None
+        self._image_resolver: Optional[callable] = None
 
         # Setup web engine
         self._setup_webengine()
@@ -226,6 +228,10 @@ class MarkdownViewer(_BaseClass):
             content: Markdown content string
         """
         self._current_markdown = content
+
+        # Pre-process images if base_path or resolver is set
+        if self._base_path or self._image_resolver:
+            content = self._preprocess_images(content)
 
         # Escape content for JavaScript
         escaped_content = json.dumps(content)
@@ -359,3 +365,100 @@ class MarkdownViewer(_BaseClass):
             True if viewer is ready, False otherwise
         """
         return self._is_ready
+
+    def set_base_path(self, path: str) -> None:
+        """Set base path for resolving relative image paths.
+
+        Args:
+            path: Directory path to use as base for relative images
+        """
+        self._base_path = Path(path).resolve()
+        print(f"[MarkdownViewer] Base path set to: {self._base_path}")
+
+    def set_image_resolver(self, resolver: callable) -> None:
+        """Set custom image resolver callback.
+
+        The resolver is called for each image in the markdown with the image
+        source as argument. It should return the resolved path/URL.
+
+        Args:
+            resolver: Callable that takes (src: str) and returns resolved path/URL
+
+        Example:
+            def my_resolver(src: str) -> str:
+                if src.startswith("asset://"):
+                    return f"/path/to/assets/{src[8:]}"
+                return src
+
+            viewer.set_image_resolver(my_resolver)
+        """
+        self._image_resolver = resolver
+        print("[MarkdownViewer] Custom image resolver set")
+
+    def _resolve_image_path(self, src: str) -> str:
+        """Resolve image path using base_path and custom resolver.
+
+        Args:
+            src: Image source from markdown
+
+        Returns:
+            Resolved image path/URL
+        """
+        # If custom resolver is set, use it first
+        if self._image_resolver:
+            resolved = self._image_resolver(src)
+            if resolved != src:
+                print(f"[MarkdownViewer] Resolved '{src}' -> '{resolved}' (custom resolver)")
+                return resolved
+
+        # Handle absolute URLs (http://, https://, data:)
+        if src.startswith(("http://", "https://", "data:")):
+            return src
+
+        # Handle absolute file paths
+        if Path(src).is_absolute():
+            return QUrl.fromLocalFile(src).toString()
+
+        # Handle relative paths with base_path
+        if self._base_path:
+            resolved_path = (self._base_path / src).resolve()
+            if resolved_path.exists():
+                url = QUrl.fromLocalFile(str(resolved_path)).toString()
+                print(f"[MarkdownViewer] Resolved '{src}' -> '{url}' (base_path)")
+                return url
+            else:
+                print(f"[MarkdownViewer] Warning: Image not found: {resolved_path}")
+
+        # Return as-is if no resolution possible
+        return src
+
+    def _preprocess_images(self, content: str) -> str:
+        """Pre-process markdown content to resolve image paths.
+
+        Args:
+            content: Markdown content
+
+        Returns:
+            Content with resolved image paths
+        """
+        import re
+
+        # Match markdown image syntax: ![alt](src "title") or ![alt](src)
+        pattern = r'!\[([^\]]*)\]\(([^)]+?)(?:\s+"([^"]*)")?\)'
+
+        def replace_image(match):
+            alt_text = match.group(1)
+            src = match.group(2).strip()
+            title = match.group(3)
+
+            # Resolve the image path
+            resolved_src = self._resolve_image_path(src)
+
+            # Reconstruct the markdown image syntax
+            if title:
+                return f'![{alt_text}]({resolved_src} "{title}")'
+            else:
+                return f"![{alt_text}]({resolved_src})"
+
+        processed = re.sub(pattern, replace_image, content)
+        return processed
