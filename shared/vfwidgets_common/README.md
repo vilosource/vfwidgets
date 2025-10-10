@@ -21,6 +21,75 @@ Base class for all VFWidgets providing:
 - Style change handling for theme support
 - Initialization lifecycle
 
+### FramelessWindowBehavior
+
+Encapsulates frameless window dragging and resizing behavior using Qt's native window management APIs. This class eliminates code duplication across widgets that implement custom window frames.
+
+**Features:**
+- Native window dragging via `startSystemMove()` with fallback
+- Edge-based window resizing via `startSystemResize()` with fallback
+- Automatic cursor updates for resize edges
+- Configurable draggable areas (via widget or callback)
+- Configurable resize margins
+- Double-click to maximize support
+
+**Basic Usage:**
+
+```python
+from PySide6.QtWidgets import QWidget
+from vfwidgets_common import FramelessWindowBehavior
+
+class MyFramelessWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+
+        # Initialize behavior with draggable widget (e.g., title bar)
+        self._frameless_behavior = FramelessWindowBehavior(
+            draggable_widget=self.title_bar,
+            resize_margin=5,
+            enable_resize=True,
+            enable_drag=True,
+            enable_double_click_maximize=True,
+        )
+
+    def mousePressEvent(self, event):
+        if self._frameless_behavior.handle_press(self, event):
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._frameless_behavior.handle_move(self, event):
+            return
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._frameless_behavior.handle_release(self, event):
+            return
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if self._frameless_behavior.handle_double_click(self, event):
+            return
+        super().mouseDoubleClickEvent(event)
+```
+
+**Advanced Usage with Custom Draggable Area Callback:**
+
+```python
+def is_draggable_area(widget: QWidget, pos: QPoint) -> bool:
+    """Check if position is in custom draggable area."""
+    # Custom logic to determine if position should trigger dragging
+    # For example, check if click is on empty tab bar area
+    return pos.y() < 30 and not is_on_button(pos)
+
+self._frameless_behavior = FramelessWindowBehavior(
+    draggable_widget=None,  # Use callback instead
+    is_draggable_area=is_draggable_area,
+    resize_margin=4,
+)
+```
+
 ### Utility Functions
 
 - `setup_widget_style()` - Apply QSS stylesheets to widgets
