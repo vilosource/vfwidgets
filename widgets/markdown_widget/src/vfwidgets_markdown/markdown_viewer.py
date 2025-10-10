@@ -10,6 +10,15 @@ from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QWidget
 
+# Optional theme support
+try:
+    from vfwidgets_theme.widgets.base import ThemedWidget
+
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+    ThemedWidget = object
+
 
 class JavaScriptBridge(QObject):
     """Bridge object for Qt ↔ JavaScript communication."""
@@ -31,8 +40,15 @@ class JavaScriptBridge(QObject):
             print(f"[MarkdownViewer] Invalid JSON from JavaScript: {e}")
 
 
-class MarkdownViewer(QWebEngineView):
-    """Markdown viewer widget with support for diagrams, syntax highlighting, and math.
+# Create base class dynamically based on theme availability
+if THEME_AVAILABLE:
+    _BaseClass = type("_BaseClass", (ThemedWidget, QWebEngineView), {})
+else:
+    _BaseClass = QWebEngineView
+
+
+class MarkdownViewer(_BaseClass):
+    """Markdown viewer widget with support for diagrams, syntax highlighting, and optional theming.
 
     Features:
     - Full markdown support (CommonMark + GFM)
@@ -55,6 +71,19 @@ class MarkdownViewer(QWebEngineView):
     toc_changed = Signal(list)
     rendering_failed = Signal(str)
     viewer_ready = Signal()
+
+    # Theme configuration - maps theme tokens to CSS variables
+    theme_config = {
+        "md_bg": "editor.background",
+        "md_fg": "editor.foreground",
+        "md_link": "textLink.foreground",
+        "md_code_bg": "editor.code.background",
+        "md_code_fg": "editor.code.foreground",
+        "md_blockquote_border": "editor.blockquote.border",
+        "md_blockquote_bg": "editor.blockquote.background",
+        "md_table_border": "widget.border",
+        "md_table_header_bg": "list.headerBackground",
+    }
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize the MarkdownViewer.
@@ -266,6 +295,62 @@ class MarkdownViewer(QWebEngineView):
         js_code = f"window.MarkdownViewer.setSyntaxTheme({escaped_theme});"
         self.page().runJavaScript(js_code)
         print(f"[MarkdownViewer] Syntax theme set to: {theme}")
+
+    def on_theme_changed(self) -> None:
+        """Called automatically when the theme changes (ThemedWidget callback).
+
+        This method is called by the theme system when a theme change occurs.
+        It updates the viewer's CSS variables based on the current theme.
+        """
+        if not THEME_AVAILABLE:
+            return
+
+        # Determine if we're using dark theme
+        # Access the theme object to check if it's dark
+        is_dark = False
+        try:
+            if hasattr(self, "theme"):
+                # Check common dark theme indicators
+                bg_color = self.theme.md_bg
+                if bg_color:
+                    # Simple heuristic: dark if background lightness < 50%
+                    # Parse the color and check luminance
+                    if bg_color.startswith("#"):
+                        r = int(bg_color[1:3], 16)
+                        g = int(bg_color[3:5], 16)
+                        b = int(bg_color[5:7], 16)
+                        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+                        is_dark = luminance < 0.5
+        except Exception:
+            pass  # Fallback to light theme
+
+        # Update JavaScript viewer theme
+        theme_name = "dark" if is_dark else "light"
+        self.set_theme(theme_name)
+
+        # Inject CSS variables from theme
+        if hasattr(self, "theme"):
+            css_vars = "\n".join(
+                [
+                    f"--{key.replace('_', '-')}: {getattr(self.theme, key)};"
+                    for key in self.theme_config.keys()
+                    if hasattr(self.theme, key)
+                ]
+            )
+
+            js_code = f"""
+            (function() {{
+                var style = document.getElementById('theme-vars');
+                if (!style) {{
+                    style = document.createElement('style');
+                    style.id = 'theme-vars';
+                    document.head.appendChild(style);
+                }}
+                style.textContent = ':root {{ {css_vars} }}';
+            }})();
+            """
+            self.page().runJavaScript(js_code)
+            print(f"[MarkdownViewer] Theme updated to: {theme_name}")
 
     def is_ready(self) -> bool:
         """Check if viewer is ready to render.
