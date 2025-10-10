@@ -56,7 +56,19 @@ const MarkdownViewer = {
             }
         });
 
-        console.log('[MarkdownViewer] markdown-it initialized');
+        // Override validateLink to allow data: URIs for images
+        // By default, markdown-it blocks data: URIs for security
+        const defaultValidateLink = this.md.validateLink.bind(this.md);
+        this.md.validateLink = function(url) {
+            // Allow data: URIs (for base64 images)
+            if (url.startsWith('data:')) {
+                return true;
+            }
+            // Use default validation for other URLs
+            return defaultValidateLink(url);
+        };
+
+        console.log('[MarkdownViewer] markdown-it initialized with data: URI support');
     },
 
     /**

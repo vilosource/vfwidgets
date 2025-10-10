@@ -102,6 +102,10 @@ class MarkdownViewer(QWebEngineView):
                 # Allow other schemes (data:, etc.)
                 return True
 
+            def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+                """Forward JavaScript console messages to Python console."""
+                print(f"[JS Console] {message} (line {line_number})")
+
         page = MarkdownPage(self)
         self.setPage(page)
 
