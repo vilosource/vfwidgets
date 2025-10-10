@@ -3,9 +3,9 @@
 # application metadata
 title = ViloXTerm
 project_dir = .
-input_file = viloxterm_main.py
+input_file = /home/kuja/GitHub/vfwidgets/apps/viloxterm/viloxterm_main.py
 exec_directory = .
-icon =
+icon = /home/kuja/GitHub/vfwidgets/.direnv/python-3.12.3/lib/python3.12/site-packages/PySide6/scripts/deploy_lib/pyside_icon.jpg
 
 [python]
 
@@ -19,7 +19,7 @@ excluded_qml_plugins = QtCharts,QtDataVisualization,QtWebView,QtTest,Qt3D
 [qt]
 
 # qt modules required by viloxterm
-modules = Core,DBus,Gui,Widgets
+modules = Core,Gui,DBus,Widgets
 
 # qml is not used
 qml_files = 
