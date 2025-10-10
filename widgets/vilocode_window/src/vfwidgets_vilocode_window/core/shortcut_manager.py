@@ -54,7 +54,8 @@ class ShortcutManager(QObject):
         if action_name in self._shortcuts:
             self.unregister_shortcut(action_name)
 
-        # Create Qt shortcut
+        # Create Qt shortcut (parent widget must exist for shortcuts to work)
+        assert self._parent_widget is not None, "Parent widget required for shortcuts"
         shortcut = QShortcut(QKeySequence(shortcut_def.key_sequence), self._parent_widget)
         shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
 

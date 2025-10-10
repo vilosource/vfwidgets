@@ -19,12 +19,12 @@ theme_system_path = base_dir.parent / "theme_system" / "src"
 if theme_system_path.exists():
     sys.path.insert(0, str(theme_system_path))
 
-from PySide6.QtWidgets import QVBoxLayout, QTextEdit, QLabel, QHBoxLayout, QPushButton
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt  # noqa: E402
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout  # noqa: E402
+from vfwidgets_theme import ThemedApplication  # noqa: E402
+from vfwidgets_theme.widgets import ThemedMainWindow, ThemedQWidget, add_theme_menu  # noqa: E402
 
-from chrome_tabbed_window import ChromeTabbedWindow
-from vfwidgets_theme import ThemedApplication
-from vfwidgets_theme.widgets import ThemedMainWindow, ThemedQWidget, add_theme_menu
+from chrome_tabbed_window import ChromeTabbedWindow  # noqa: E402
 
 
 class MainWindow(ThemedMainWindow):
@@ -122,7 +122,12 @@ class MainWindow(ThemedMainWindow):
 
 def main():
     app = ThemedApplication(sys.argv)
-    app.set_theme("dark")
+
+    # IMPORTANT: Use a theme with proper VS Code tab tokens for Chrome-style appearance
+    # "Dark Default" includes all tab.* color tokens (tab.activeBackground, etc.)
+    # Generic themes like "dark" will use fallback colors and look less refined
+    app.set_theme("Dark Default")  # ✅ Recommended for proper tab styling
+    # app.set_theme("dark")         # ⚠️ Works but uses generic fallback colors
 
     window = MainWindow()
     window.show()

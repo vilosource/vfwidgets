@@ -349,3 +349,181 @@ def test_on_theme_changed_calls_apply_colors(qtbot):
     # Window should still be valid
     assert window is not None
     assert window.isVisible()
+
+
+# Menu Bar API Tests
+
+
+def test_set_menu_bar(qtbot):
+    """Test setting a menu bar."""
+    from PySide6.QtWidgets import QMenuBar
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    menubar = QMenuBar()
+    menubar.addMenu("File")
+    menubar.addMenu("Edit")
+
+    window.set_menu_bar(menubar)
+
+    assert window.get_menu_bar() is menubar
+
+
+def test_get_menu_bar_returns_none_initially(qtbot):
+    """Test that get_menu_bar returns None initially."""
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    assert window.get_menu_bar() is None
+
+
+def test_menu_bar_in_frameless_mode(qtbot):
+    """Test that menu bar is added to title bar in frameless mode."""
+    from PySide6.QtWidgets import QMenuBar
+
+    # Frameless mode (no parent)
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    menubar = QMenuBar()
+    menubar.addMenu("Test")
+
+    window.set_menu_bar(menubar)
+
+    # In frameless mode, should be added to title bar
+    assert window.get_menu_bar() is menubar
+    if window._title_bar:
+        assert window._title_bar.get_menu_bar() is menubar
+
+
+def test_menu_bar_in_embedded_mode(qtbot):
+    """Test that menu bar is stored in embedded mode."""
+    from PySide6.QtWidgets import QMenuBar, QWidget
+
+    # Embedded mode (with parent)
+    parent = QWidget()
+    window = ViloCodeWindow(parent=parent)
+    qtbot.addWidget(parent)
+
+    menubar = QMenuBar()
+    menubar.addMenu("Test")
+
+    window.set_menu_bar(menubar)
+
+    # In embedded mode, just stored for developer to place
+    assert window.get_menu_bar() is menubar
+
+
+def test_replace_menu_bar(qtbot):
+    """Test replacing an existing menu bar."""
+    from PySide6.QtWidgets import QMenuBar
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    # Set first menu bar
+    menubar1 = QMenuBar()
+    menubar1.addMenu("File")
+    window.set_menu_bar(menubar1)
+
+    assert window.get_menu_bar() is menubar1
+
+    # Replace with second menu bar
+    menubar2 = QMenuBar()
+    menubar2.addMenu("Edit")
+    window.set_menu_bar(menubar2)
+
+    assert window.get_menu_bar() is menubar2
+    assert window.get_menu_bar() is not menubar1
+
+
+# Main Content API Tests
+
+
+def test_get_main_content_returns_none_initially(qtbot):
+    """Test that get_main_content returns None initially."""
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    # Initially, no content is set (placeholder is showing)
+    assert window.get_main_content() is None
+
+
+def test_set_main_content(qtbot):
+    """Test setting main content widget."""
+    from PySide6.QtWidgets import QTextEdit
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    # Create a custom widget
+    editor = QTextEdit()
+    editor.setPlainText("Test content")
+
+    # Set it as main content
+    window.set_main_content(editor)
+
+    # Verify it's set
+    assert window.get_main_content() is editor
+
+
+def test_replace_main_content(qtbot):
+    """Test replacing existing main content."""
+    from PySide6.QtWidgets import QLabel, QTextEdit
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    # Set first widget
+    label = QLabel("First widget")
+    window.set_main_content(label)
+    assert window.get_main_content() is label
+
+    # Replace with second widget
+    editor = QTextEdit()
+    window.set_main_content(editor)
+    assert window.get_main_content() is editor
+    assert window.get_main_content() is not label
+
+
+def test_main_content_placeholder_removed(qtbot):
+    """Test that placeholder is removed when content is set."""
+    from PySide6.QtWidgets import QTextEdit
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+    window.show()
+
+    # Store reference to placeholder
+
+    # Set custom content
+    editor = QTextEdit()
+    window.set_main_content(editor)
+
+    # Placeholder should be removed
+    assert window._main_pane is None
+    # Editor should be the content
+    assert window.get_main_content() is editor
+
+
+def test_main_content_has_stretch(qtbot):
+    """Test that main content takes available space (stretch=1)."""
+    from PySide6.QtWidgets import QTextEdit
+
+    window = ViloCodeWindow()
+    qtbot.addWidget(window)
+
+    editor = QTextEdit()
+    window.set_main_content(editor)
+
+    # Content layout should have the widget at position 2 with stretch
+    content_layout = window._content_layout
+    assert content_layout is not None
+
+    # Find the widget at position 2
+    item = content_layout.itemAt(2)
+    assert item is not None
+    assert item.widget() is editor
+    # Stretch factor should be 1
+    assert content_layout.stretch(2) == 1

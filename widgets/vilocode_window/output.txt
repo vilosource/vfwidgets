@@ -1,0 +1,165 @@
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: Creating theme manager with factory function
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: ThemeWidgetRegistry initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: DefaultRegistryEventHandler initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Added event handler: DefaultRegistryEventHandler
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Created theme widget registry with default configuration
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: ThemeCache initialized with max_size: 100
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: FileThemeLoader initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: ThemeDiscovery initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: default v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: dark
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: dark v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: light
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: light v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: minimal
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: minimal v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: BuiltinThemeManager initialized with 4 themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: FileThemeLoader initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded built-in theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded built-in theme: dark
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded built-in theme: light
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded built-in theme: minimal
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovering package themes in: /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovering themes in: /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes (recursive=False)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loading theme from file: /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/light-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: Light Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: Light Default v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Successfully loaded theme 'Light Default' from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/light-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered theme: Light Default from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/light-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loading theme from file: /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/dark-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: Dark Default v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Successfully loaded theme 'Dark Default' from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/dark-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered theme: Dark Default from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/dark-default.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loading theme from file: /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/high-contrast.json
+11:37:01 [WARNING] vftheme.vfwidgets_theme.core.repository: Failed to load theme from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/high-contrast.json: Error loading theme from /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes/high-contrast.json: ThemeValidationError.__init__() missing 1 required positional argument: 'validation_errors'
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered 2 themes in /home/kuja/GitHub/vfwidgets/widgets/theme_system/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: Light Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded package theme: Light Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded package theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovering user themes in: /home/kuja/.config/ViloxTerm/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovering themes in: /home/kuja/.config/ViloxTerm/themes (recursive=False)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loading theme from file: /home/kuja/.config/ViloxTerm/themes/vscode-dark.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: VSCode Dark+
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: VSCode Dark+ v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Successfully loaded theme 'VSCode Dark+' from /home/kuja/.config/ViloxTerm/themes/vscode-dark.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered theme: VSCode Dark+ from /home/kuja/.config/ViloxTerm/themes/vscode-dark.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loading theme from file: /home/kuja/.config/ViloxTerm/themes/vilo.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: Vilo
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: Vilo v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Successfully loaded theme 'Vilo' from /home/kuja/.config/ViloxTerm/themes/vilo.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered theme: Vilo from /home/kuja/.config/ViloxTerm/themes/vilo.json
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Discovered 2 themes in /home/kuja/.config/ViloxTerm/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: VSCode Dark+
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded user theme: VSCode Dark+ from /home/kuja/.config/ViloxTerm/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: Vilo
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Loaded user theme: Vilo from /home/kuja/.config/ViloxTerm/themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: ThemeRepository initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Created theme repository with default configuration
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: WidgetThemeApplicator initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: ApplicationThemeApplicator initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: WidgetThemeApplicator initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: BatchThemeUpdater initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: StyleInvalidator initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: WidgetThemeApplicator initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: AsyncThemeApplicator initialized with 4 workers
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: PlatformThemeAdapter initialized for Linux
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: ThemeApplicator initialized with all components
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: Created theme applicator with default configuration
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: WidgetNotificationManager initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: CallbackRegistry initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: NotificationQueue initialized with max_size: 1000
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: EventFilter initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: CrossThreadNotifier initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: NotificationBatcher initialized: batch_size=10, flush_interval=0.1
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: ThemeNotifier initialized with all components
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: Created theme notifier with default configuration
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: DefaultThemeProvider initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache miss for theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache miss for theme: dark
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: dark
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: dark
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache miss for theme: light
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: light
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: light
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache miss for theme: minimal
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cached theme: minimal
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: minimal
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: Light Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: Light Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: VSCode Dark+
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: VSCode Dark+
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: Vilo
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Added theme: Vilo
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Set current theme to: default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: Initialized 8 built-in themes
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: ThemeManager initialized with all components
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: Created theme manager with all components initialized
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: Created ThemeManager singleton instance
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.repository: Cache hit for theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Creating theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Successfully created theme: Dark Default v1.0.0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Created PropertyResolver for theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: Applied theme 'Dark Default' to application
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.theme: Created PropertyResolver for theme: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: Batch applied theme 'Dark Default' to 0 widgets
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: Batch updated 0/0 widgets with theme 'Dark Default' in 0.000s
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.applicator: Applied theme 'Dark Default' globally: app=True, widgets=0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.provider: Set current theme to: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.notifier: Notified all widgets of theme change: Dark Default
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.manager: Set theme 'Dark Default': 0 widgets updated, 0 successful
+✓ Using 'Dark Default' theme with VS Code tab styling
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget registered: widget_125577491121152_1760085421006753 (ViloCodeWindow)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Registered widget widget_125577491121152_1760085421006753 of type ViloCodeWindow
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.stylesheet_generator: Generated stylesheet for ViloCodeWindow (11521 chars)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Styling validated for ViloCodeWindow: 11521 char stylesheet applied
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme system initialized for widget 12bce052-7e1b-4def-b677-e4981cadb05e
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: ThemedWidget created: ViloCodeWindow (ID: 12bce052-7e1b-4def-b677-e4981cadb05e)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget registered: widget_125577491347712_1760085421011568 (ActivityBar)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Registered widget widget_125577491347712_1760085421011568 of type ActivityBar
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.stylesheet_generator: Generated stylesheet for ActivityBar (11179 chars)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Styling validated for ActivityBar: 11179 char stylesheet applied
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme system initialized for widget efa61559-d35a-46f7-9b0d-4ab7026863a0
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: ThemedWidget created: ActivityBar (ID: efa61559-d35a-46f7-9b0d-4ab7026863a0)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget registered: widget_125577491349184_1760085421012120 (SideBar)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Registered widget widget_125577491349184_1760085421012120 of type SideBar
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.stylesheet_generator: Generated stylesheet for SideBar (10723 chars)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Styling validated for SideBar: 10723 char stylesheet applied
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme system initialized for widget 40a317ad-d75c-48fe-96b4-f03090e83ba3
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: ThemedWidget created: SideBar (ID: 40a317ad-d75c-48fe-96b4-f03090e83ba3)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget registered: widget_125577491450560_1760085421013628 (AuxiliaryBar)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Registered widget widget_125577491450560_1760085421013628 of type AuxiliaryBar
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.stylesheet_generator: Generated stylesheet for AuxiliaryBar (11293 chars)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Styling validated for AuxiliaryBar: 11293 char stylesheet applied
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme system initialized for widget b5c5334a-5fac-4bd3-aeef-ee1aebe89747
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: ThemedWidget created: AuxiliaryBar (ID: b5c5334a-5fac-4bd3-aeef-ee1aebe89747)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget registered: widget_125577491457984_1760085421018458 (ChromeTabbedWindow)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.core.registry: Registered widget widget_125577491457984_1760085421018458 of type ChromeTabbedWindow
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.stylesheet_generator: Generated stylesheet for ChromeTabbedWindow (11977 chars)
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Styling validated for ChromeTabbedWindow: 11977 char stylesheet applied
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme system initialized for widget c9ac5722-876f-449d-a06a-d1ab564ccc3c
+11:37:01 [DEBUG] vftheme.vfwidgets_theme.widgets.base: ThemedWidget created: ChromeTabbedWindow (ID: c9ac5722-876f-449d-a06a-d1ab564ccc3c)
+✓ Using ChromeTabbedWindow for tabs (embedded mode)
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget 12bce052-7e1b-4def-b677-e4981cadb05e
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget widget_125577491121152_1760085421006753 garbage collected, cleaning up
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget unregistered: widget_125577491121152_1760085421006753
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget widget_125577491347712_1760085421011568 garbage collected, cleaning up
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget unregistered: widget_125577491347712_1760085421011568
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget widget_125577491349184_1760085421012120 garbage collected, cleaning up
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget unregistered: widget_125577491349184_1760085421012120
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget widget_125577491450560_1760085421013628 garbage collected, cleaning up
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget unregistered: widget_125577491450560_1760085421013628
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget widget_125577491457984_1760085421018458 garbage collected, cleaning up
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.core.registry: Widget unregistered: widget_125577491457984_1760085421018458
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget 12bce052-7e1b-4def-b677-e4981cadb05e
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget efa61559-d35a-46f7-9b0d-4ab7026863a0
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget 40a317ad-d75c-48fe-96b4-f03090e83ba3
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget b5c5334a-5fac-4bd3-aeef-ee1aebe89747
+11:37:08 [DEBUG] vftheme.vfwidgets_theme.widgets.base: Theme cleanup completed for widget c9ac5722-876f-449d-a06a-d1ab564ccc3c

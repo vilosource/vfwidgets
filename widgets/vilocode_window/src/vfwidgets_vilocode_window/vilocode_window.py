@@ -3,11 +3,24 @@
 This module implements the main ViloCodeWindow widget.
 """
 
-from typing import Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QPainter, QPaintEvent
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QStatusBar, QVBoxLayout, QWidget
+if TYPE_CHECKING:
+    from .components.activity_bar import ActivityBar
+    from .components.auxiliary_bar import AuxiliaryBar
+    from .components.sidebar import SideBar
+    from .components.title_bar import TitleBar
+
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtGui import QColor, QIcon, QMouseEvent, QPainter, QPaintEvent
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMenuBar,
+    QStatusBar,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .core.constants import WindowMode
 from .core.shortcut_manager import ShortcutManager
@@ -18,8 +31,7 @@ try:
 
     THEME_AVAILABLE = True
 
-    # Create base class with ThemedWidget mixin
-    class _ViloCodeWindowBase(ThemedWidget, QWidget):
+    class ViloCodeWindowBase(ThemedWidget, QWidget):  # type: ignore
         """Base class with theme support."""
 
         pass
@@ -27,14 +39,13 @@ try:
 except ImportError:
     THEME_AVAILABLE = False
 
-    # Fallback without theme support
-    class _ViloCodeWindowBase(QWidget):
+    class ViloCodeWindowBase(QWidget):  # type: ignore[no-redef]
         """Base class without theme support."""
 
         pass
 
 
-class ViloCodeWindow(_ViloCodeWindowBase):
+class ViloCodeWindow(ViloCodeWindowBase):
     """VS Code-style application window.
 
     A frameless window widget with activity bar, sidebar, main pane,
@@ -92,12 +103,21 @@ class ViloCodeWindow(_ViloCodeWindowBase):
             self._setup_frameless_window()
 
         # Components (create in later tasks)
-        self._activity_bar = None
-        self._sidebar = None
-        self._main_pane = None
-        self._auxiliary_bar = None
-        self._status_bar = None
-        self._menu_bar = None
+        self._activity_bar: Optional[ActivityBar] = None
+        self._sidebar: Optional[SideBar] = None
+        self._main_pane: Optional[QWidget] = None
+        self._auxiliary_bar: Optional[AuxiliaryBar] = None
+        self._status_bar: QStatusBar  # Will be initialized in _setup_ui
+        self._menu_bar: Optional[QMenuBar] = None
+        self._title_bar: Optional[TitleBar] = None  # Will be initialized in _setup_ui if frameless
+
+        # Main content management
+        self._main_content: Optional[QWidget] = None
+        self._content_layout: Optional[QHBoxLayout] = None
+
+        # Resize state (initialize for all modes, only used in frameless)
+        self._resize_edge: Qt.Edge = Qt.Edge(0)  # No edge (empty flags)
+        self._resize_margin = 5
 
         # Keyboard shortcuts
         self._shortcut_manager = ShortcutManager(self)
@@ -130,6 +150,7 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMinimumSize(600, 400)
+        self.setMouseTracking(True)  # Enable mouse tracking for resize edge detection
 
     def _setup_ui(self) -> None:
         """Set up the user interface layout."""
@@ -142,6 +163,11 @@ class ViloCodeWindow(_ViloCodeWindowBase):
             from .components import TitleBar
 
             self._title_bar = TitleBar(self)
+            self._title_bar.setObjectName("titleBar")
+            self._title_bar.setAccessibleName("Title Bar")
+            self._title_bar.setAccessibleDescription(
+                "Custom window title bar with menu and controls"
+            )
             main_layout.addWidget(self._title_bar)
         else:
             self._title_bar = None
@@ -150,36 +176,59 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         content_layout = QHBoxLayout()
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
+        self._content_layout = content_layout  # Store for set_main_content()
 
-        # Placeholder widgets (implement in Phase 2)
-        activity_label = QLabel("Activity\nBar")
-        activity_label.setFixedWidth(48)
-        activity_label.setStyleSheet("background-color: #2c2c2c; color: #cccccc;")
-        activity_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        content_layout.addWidget(activity_label)
+        # Activity Bar
+        from .components import ActivityBar
 
-        sidebar_label = QLabel("Sidebar")
-        sidebar_label.setFixedWidth(250)
-        sidebar_label.setStyleSheet("background-color: #252526; color: #cccccc;")
-        sidebar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        content_layout.addWidget(sidebar_label)
+        self._activity_bar = ActivityBar(self)
+        self._activity_bar.setObjectName("activityBar")
+        self._activity_bar.setAccessibleName("Activity Bar")
+        self._activity_bar.setAccessibleDescription(
+            "VS Code-style activity bar with application views"
+        )
+        self._activity_bar.item_clicked.connect(self._on_activity_item_clicked)
+        content_layout.addWidget(self._activity_bar)
+
+        # Sidebar
+        from .components import SideBar
+
+        self._sidebar = SideBar(self)
+        self._sidebar.setObjectName("sidebar")
+        self._sidebar.setAccessibleName("Sidebar")
+        self._sidebar.setAccessibleDescription("Collapsible sidebar for application panels")
+        self._sidebar.panel_changed.connect(self._on_sidebar_panel_changed)
+        self._sidebar.visibility_changed.connect(self._on_sidebar_visibility_changed)
+        content_layout.addWidget(self._sidebar)
 
         main_label = QLabel("Main Pane\n(Content Area)")
         main_label.setStyleSheet("background-color: #1e1e1e; color: #d4d4d4;")
         main_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_label.setObjectName("mainPane")
+        main_label.setAccessibleName("Main Pane")
+        main_label.setAccessibleDescription("Primary content area for application")
         content_layout.addWidget(main_label, 1)  # Stretch=1
+        self._main_pane = main_label  # Store placeholder for set_main_content()
 
-        auxiliary_label = QLabel("Auxiliary")
-        auxiliary_label.setFixedWidth(300)
-        auxiliary_label.setStyleSheet("background-color: #252526; color: #cccccc;")
-        auxiliary_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        auxiliary_label.hide()  # Hidden by default
-        content_layout.addWidget(auxiliary_label)
+        # Auxiliary Bar
+        from .components import AuxiliaryBar
+
+        self._auxiliary_bar = AuxiliaryBar(self)
+        self._auxiliary_bar.setObjectName("auxiliaryBar")
+        self._auxiliary_bar.setAccessibleName("Auxiliary Bar")
+        self._auxiliary_bar.setAccessibleDescription("Right auxiliary panel for secondary content")
+        self._auxiliary_bar.visibility_changed.connect(self._on_auxiliary_bar_visibility_changed)
+        content_layout.addWidget(self._auxiliary_bar)
 
         main_layout.addLayout(content_layout, 1)  # Stretch=1
 
         # Status bar
         self._status_bar = QStatusBar(self)
+        self._status_bar.setObjectName("statusBar")
+        self._status_bar.setAccessibleName("Status Bar")
+        self._status_bar.setAccessibleDescription(
+            "Application status bar showing current state and information"
+        )
         self._status_bar.setStyleSheet("background-color: #007acc; color: #ffffff;")
         self._status_bar.showMessage("Ready")
         main_layout.addWidget(self._status_bar)
@@ -200,13 +249,20 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         self._shortcut_manager.register_callback("TOGGLE_AUXILIARY_BAR", self.toggle_auxiliary_bar)
         self._shortcut_manager.register_callback("TOGGLE_STATUS_BAR", self._toggle_status_bar)
 
-        # Register callbacks for window shortcuts
-        self._shortcut_manager.register_callback("CLOSE_WINDOW", self.close)
-        self._shortcut_manager.register_callback("MINIMIZE_WINDOW", self.showMinimized)
+        # Register callbacks for window shortcuts (wrap methods that return values)
+        def close_window() -> None:
+            self.close()
+
+        def minimize_window() -> None:
+            self.showMinimized()
+
+        self._shortcut_manager.register_callback("CLOSE_WINDOW", close_window)
+        self._shortcut_manager.register_callback("MINIMIZE_WINDOW", minimize_window)
         self._shortcut_manager.register_callback("MAXIMIZE_WINDOW", self._toggle_maximize)
 
-        # Panel focus shortcuts will be implemented when real panels exist
-        # For now, they're registered but have no callbacks
+        # Register callbacks for panel focus shortcuts
+        self._shortcut_manager.register_callback("FOCUS_SIDEBAR", self._focus_sidebar)
+        self._shortcut_manager.register_callback("FOCUS_MAIN_PANE", self._focus_main_pane)
 
     def _toggle_status_bar(self) -> None:
         """Toggle status bar visibility (internal handler)."""
@@ -236,6 +292,121 @@ class ViloCodeWindow(_ViloCodeWindowBase):
             painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
 
         super().paintEvent(event)
+
+    def _get_resize_edge(self, pos: QPoint) -> Qt.Edge:
+        """Detect which edge of the window is at the given position.
+
+        Args:
+            pos: Mouse position relative to widget
+
+        Returns:
+            Qt.Edge flags indicating which edges are near the position
+        """
+        if self._window_mode != WindowMode.Frameless:
+            return Qt.Edge(0)  # No edge
+
+        rect = self.rect()
+        margin = self._resize_margin
+
+        edges = Qt.Edge(0)  # Start with no edges
+
+        if pos.x() <= margin:
+            edges |= Qt.Edge.LeftEdge
+        elif pos.x() >= rect.width() - margin:
+            edges |= Qt.Edge.RightEdge
+
+        if pos.y() <= margin:
+            edges |= Qt.Edge.TopEdge
+        elif pos.y() >= rect.height() - margin:
+            edges |= Qt.Edge.BottomEdge
+
+        return edges
+
+    def _update_cursor_for_edge(self, edge: Qt.Edge) -> None:
+        """Update the mouse cursor based on the resize edge.
+
+        Args:
+            edge: The edge(s) near the mouse cursor
+        """
+        if edge == Qt.Edge(0):  # No edge
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+        elif edge == (Qt.Edge.TopEdge | Qt.Edge.LeftEdge):
+            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+        elif edge == (Qt.Edge.TopEdge | Qt.Edge.RightEdge):  # noqa: SIM114
+            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
+        elif edge == (Qt.Edge.BottomEdge | Qt.Edge.LeftEdge):  # noqa: SIM114
+            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
+        elif edge == (Qt.Edge.BottomEdge | Qt.Edge.RightEdge):
+            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+        elif edge == Qt.Edge.LeftEdge or edge == Qt.Edge.RightEdge:
+            self.setCursor(Qt.CursorShape.SizeHorCursor)
+        elif edge == Qt.Edge.TopEdge or edge == Qt.Edge.BottomEdge:
+            self.setCursor(Qt.CursorShape.SizeVerCursor)
+        else:
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse move for window dragging and resize cursor updates."""
+        if self._window_mode == WindowMode.Frameless:
+            # Handle window dragging - but only if using manual move (not system move)
+            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, "_drag_position"):
+                # If using system move, the window manager handles it
+                if not hasattr(self, "_using_system_move"):
+                    # Fallback to manual move
+                    self.move(event.globalPosition().toPoint() - self._drag_position)
+                    event.accept()
+                    return
+
+            # Handle resize cursor updates when not dragging
+            edge = self._get_resize_edge(event.pos())
+            self._update_cursor_for_edge(edge)
+
+        super().mouseMoveEvent(event)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse press for window dragging and resizing."""
+        if (
+            self._window_mode == WindowMode.Frameless
+            and event.button() == Qt.MouseButton.LeftButton
+        ):
+            # Check for edge resize first
+            self._resize_edge = self._get_resize_edge(event.pos())
+
+            if self._resize_edge != Qt.Edge(0):  # If on an edge
+                # Try to use system resize if available (Qt 5.15+)
+                if hasattr(self.windowHandle(), "startSystemResize"):
+                    self.windowHandle().startSystemResize(self._resize_edge)
+                    event.accept()
+                    return
+            else:
+                # Not on edge - check if in title bar for dragging
+                if self._title_bar and self._title_bar.geometry().contains(event.pos()):
+                    # Try system move first (better for compositor compatibility)
+                    if hasattr(self.windowHandle(), "startSystemMove"):
+                        self.windowHandle().startSystemMove()
+                        self._using_system_move = True
+                        event.accept()
+                        return
+                    else:
+                        # Fallback: Store drag position for manual move
+                        self._drag_position = (
+                            event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+                        )
+                        event.accept()
+                        return
+
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse release to clear drag state."""
+        if self._window_mode == WindowMode.Frameless:
+            if event.button() == Qt.MouseButton.LeftButton:
+                # Clear drag state
+                if hasattr(self, "_drag_position"):
+                    delattr(self, "_drag_position")
+                if hasattr(self, "_using_system_move"):
+                    delattr(self, "_using_system_move")
+        super().mouseReleaseEvent(event)
 
     def _get_fallback_color(self, token: str) -> QColor:
         """Get fallback color when theme system unavailable.
@@ -332,6 +503,294 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         if self._title_bar and hasattr(self._title_bar, "set_title"):
             self._title_bar.set_title(title)
 
+    # Main Content API
+    def set_main_content(self, widget: QWidget) -> None:
+        """Set the main content area widget.
+
+        Replaces the placeholder main pane with your custom widget.
+        Use any Qt widget here: QTextEdit, ChromeTabbedWindow, MultisplitWidget, etc.
+
+        Args:
+            widget: The widget to display in the main content area
+
+        Example:
+            editor = QTextEdit()
+            window.set_main_content(editor)
+        """
+        if self._content_layout is None:
+            raise RuntimeError("Content layout not initialized")
+
+        # Remove current main content widget
+        if self._main_content is not None:
+            self._content_layout.removeWidget(self._main_content)
+            self._main_content.setParent(None)
+        elif self._main_pane is not None:
+            # First time: remove the placeholder
+            self._content_layout.removeWidget(self._main_pane)
+            self._main_pane.setParent(None)
+            self._main_pane = None
+
+        # Add new widget
+        self._main_content = widget
+        # Insert at position 2 (after activity bar [0] and sidebar [1])
+        self._content_layout.insertWidget(2, widget, 1)  # stretch=1
+
+    def get_main_content(self) -> Optional[QWidget]:
+        """Get the current main content widget.
+
+        Returns:
+            The main content widget, or None if not set (placeholder still showing)
+
+        Example:
+            current_editor = window.get_main_content()
+            if current_editor:
+                print("Content is set")
+        """
+        return self._main_content
+
+    # Activity Bar API
+    def add_activity_item(self, item_id: str, icon: QIcon, tooltip: str = "") -> None:
+        """Add an item to the activity bar.
+
+        Args:
+            item_id: Unique identifier for this item
+            icon: Icon to display
+            tooltip: Tooltip text
+
+        Example:
+            >>> from PySide6.QtGui import QIcon
+            >>> icon = QIcon.fromTheme("document-new")
+            >>> window.add_activity_item("explorer", icon, "Explorer")
+        """
+        if self._activity_bar:
+            self._activity_bar.add_item(item_id, icon, tooltip)
+
+    def remove_activity_item(self, item_id: str) -> None:
+        """Remove an item from the activity bar.
+
+        Args:
+            item_id: ID of item to remove
+        """
+        if self._activity_bar:
+            self._activity_bar.remove_item(item_id)
+
+    def set_active_activity_item(self, item_id: str) -> None:
+        """Set the active (highlighted) activity item.
+
+        Args:
+            item_id: ID of item to activate
+        """
+        if self._activity_bar:
+            self._activity_bar.set_active_item(item_id)
+
+    def get_active_activity_item(self) -> Optional[str]:
+        """Get the currently active activity item ID.
+
+        Returns:
+            Active item ID, or None if no item is active
+        """
+        if self._activity_bar:
+            return self._activity_bar.get_active_item()
+        return None
+
+    def _on_activity_item_clicked(self, item_id: str) -> None:
+        """Handle activity item click.
+
+        Args:
+            item_id: ID of clicked item
+        """
+        # Emit public signal
+        self.activity_item_clicked.emit(item_id)
+
+    # Sidebar API
+    def add_sidebar_panel(self, panel_id: str, widget: QWidget, title: str = "") -> None:
+        """Add a panel to the sidebar.
+
+        Args:
+            panel_id: Unique identifier for this panel
+            widget: Widget to display in panel
+            title: Panel title to show in header
+
+        Example:
+            >>> from PySide6.QtWidgets import QTextEdit
+            >>> explorer = QTextEdit()
+            >>> window.add_sidebar_panel("explorer", explorer, "Explorer")
+        """
+        if self._sidebar:
+            self._sidebar.add_panel(panel_id, widget, title)
+
+    def remove_sidebar_panel(self, panel_id: str) -> None:
+        """Remove a panel from the sidebar.
+
+        Args:
+            panel_id: ID of panel to remove
+        """
+        if self._sidebar:
+            self._sidebar.remove_panel(panel_id)
+
+    def show_sidebar_panel(self, panel_id: str) -> None:
+        """Switch to specified sidebar panel.
+
+        Args:
+            panel_id: ID of panel to show
+        """
+        if self._sidebar:
+            self._sidebar.show_panel(panel_id)
+
+    def get_sidebar_panel(self, panel_id: str) -> Optional[QWidget]:
+        """Get sidebar panel widget by ID.
+
+        Args:
+            panel_id: ID of panel to get
+
+        Returns:
+            Panel widget, or None if not found
+        """
+        if self._sidebar:
+            return self._sidebar.get_panel(panel_id)
+        return None
+
+    def toggle_sidebar(self) -> None:
+        """Toggle sidebar visibility."""
+        if self._sidebar:
+            self._sidebar.toggle_visibility()
+
+    def set_sidebar_visible(self, visible: bool, animated: bool = True) -> None:
+        """Show/hide sidebar.
+
+        Args:
+            visible: True to show, False to hide
+            animated: True to animate the transition (default)
+        """
+        if self._sidebar:
+            self._sidebar.set_visible(visible, animated=animated)
+
+    def is_sidebar_visible(self) -> bool:
+        """Check if sidebar is visible.
+
+        Returns:
+            True if visible, False otherwise
+        """
+        if self._sidebar:
+            return bool(self._sidebar.isVisible())
+        return False
+
+    def _on_sidebar_panel_changed(self, panel_id: str) -> None:
+        """Handle sidebar panel change.
+
+        Args:
+            panel_id: ID of new panel
+        """
+        # Emit public signal
+        self.sidebar_panel_changed.emit(panel_id)
+
+    def _on_sidebar_visibility_changed(self, is_visible: bool) -> None:
+        """Handle sidebar visibility change.
+
+        Args:
+            is_visible: True if visible, False otherwise
+        """
+        # Emit public signal
+        self.sidebar_visibility_changed.emit(is_visible)
+
+    # Auxiliary Bar API
+    def set_auxiliary_content(self, widget: QWidget) -> None:
+        """Set the auxiliary bar content widget.
+
+        Args:
+            widget: Widget to display in auxiliary bar
+
+        Example:
+            >>> from PySide6.QtWidgets import QTextEdit
+            >>> debug_console = QTextEdit()
+            >>> window.set_auxiliary_content(debug_console)
+        """
+        if self._auxiliary_bar:
+            self._auxiliary_bar.set_content(widget)
+
+    def get_auxiliary_content(self) -> Optional[QWidget]:
+        """Get the auxiliary bar content widget.
+
+        Returns:
+            Content widget, or None if not set
+        """
+        if self._auxiliary_bar:
+            return self._auxiliary_bar.get_content()
+        return None
+
+    def toggle_auxiliary_bar(self) -> None:
+        """Toggle auxiliary bar visibility."""
+        if self._auxiliary_bar:
+            self._auxiliary_bar.toggle_visibility()
+
+    def set_auxiliary_bar_visible(self, visible: bool, animated: bool = True) -> None:
+        """Show/hide auxiliary bar.
+
+        Args:
+            visible: True to show, False to hide
+            animated: True to animate the transition (default)
+        """
+        if self._auxiliary_bar:
+            self._auxiliary_bar.set_visible(visible, animated=animated)
+
+    def is_auxiliary_bar_visible(self) -> bool:
+        """Check if auxiliary bar is visible.
+
+        Returns:
+            True if visible, False otherwise
+        """
+        if self._auxiliary_bar:
+            return bool(self._auxiliary_bar.isVisible())
+        return False
+
+    def _on_auxiliary_bar_visibility_changed(self, is_visible: bool) -> None:
+        """Handle auxiliary bar visibility change.
+
+        Args:
+            is_visible: True if visible, False otherwise
+        """
+        # Emit public signal
+        self.auxiliary_bar_visibility_changed.emit(is_visible)
+
+    # Menu Bar API
+    def set_menu_bar(self, menubar: QMenuBar) -> None:
+        """Set the menu bar.
+
+        In frameless mode, the menu bar is added to the title bar.
+        In embedded mode, the menu bar is stored and can be accessed via get_menu_bar().
+
+        Args:
+            menubar: QMenuBar widget to set
+
+        Example:
+            >>> from PySide6.QtWidgets import QMenuBar
+            >>> menubar = QMenuBar()
+            >>> file_menu = menubar.addMenu("File")
+            >>> file_menu.addAction("New", lambda: print("New file"))
+            >>> file_menu.addAction("Open", lambda: print("Open file"))
+            >>> window.set_menu_bar(menubar)
+        """
+        self._menu_bar = menubar
+
+        if self._window_mode == WindowMode.Frameless:
+            # Add to title bar
+            if self._title_bar and hasattr(self._title_bar, "set_menu_bar"):
+                self._title_bar.set_menu_bar(menubar)
+        # In embedded mode, developer can access via get_menu_bar() and place it themselves
+
+    def get_menu_bar(self) -> Optional[QMenuBar]:
+        """Get the menu bar widget.
+
+        Returns:
+            The menu bar widget, or None if not set
+
+        Example:
+            >>> menubar = window.get_menu_bar()
+            >>> if menubar:
+            ...     menubar.addMenu("Edit")
+        """
+        return self._menu_bar
+
     # Keyboard Shortcut API
     def set_shortcut(self, action_name: str, key_sequence: str) -> None:
         """Set or update a keyboard shortcut.
@@ -346,7 +805,11 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         self._shortcut_manager.update_shortcut_key(action_name, key_sequence)
 
     def register_custom_shortcut(
-        self, action_name: str, key_sequence: str, callback: callable, description: str = ""
+        self,
+        action_name: str,
+        key_sequence: str,
+        callback: Callable[[], None],
+        description: str = "",
     ) -> None:
         """Register a custom keyboard shortcut.
 
@@ -429,11 +892,25 @@ class ViloCodeWindow(_ViloCodeWindowBase):
         """
         return self._shortcut_manager.get_all_shortcuts()
 
-    # Placeholder methods (implemented in Phase 2)
-    def toggle_sidebar(self) -> None:
-        """Toggle sidebar visibility (placeholder for Phase 1)."""
-        pass
+    # Focus management helpers (Task 1.22)
+    def _focus_sidebar(self) -> None:
+        """Set focus to current sidebar panel (internal)."""
+        if self._sidebar and self._sidebar.isVisible():
+            # Get current panel widget
+            panel_widget = self._sidebar.get_current_panel_widget()
+            if panel_widget:
+                panel_widget.setFocus(Qt.FocusReason.ShortcutFocusReason)
 
-    def toggle_auxiliary_bar(self) -> None:
-        """Toggle auxiliary bar visibility (placeholder for Phase 1)."""
-        pass
+    def _focus_main_pane(self) -> None:
+        """Set focus to main pane content (internal)."""
+        if self._main_pane:
+            content_widget = self._main_pane.get_content()
+            if content_widget:
+                content_widget.setFocus(Qt.FocusReason.ShortcutFocusReason)
+
+    def _toggle_fullscreen(self) -> None:
+        """Toggle fullscreen mode (internal)."""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()

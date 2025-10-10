@@ -7,20 +7,82 @@ from typing import Optional
 
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QMouseEvent
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QWidget
 
 from .window_controls import WindowControls
+
+
+class DraggableMenuBar(QMenuBar):
+    """QMenuBar that allows window dragging when clicking on empty areas.
+
+    This menubar forwards mouse events to its parent (TitleBar) when clicking
+    on areas that are not menu items, allowing the window to be dragged.
+    """
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse press - ignore empty areas for window dragging."""
+        # Check if click is on an actual menu action
+        action = self.actionAt(event.pos())
+        if action is not None:
+            # Click is on a menu item - handle normally
+            super().mousePressEvent(event)
+        else:
+            # Click is on empty area - ignore to let parent window handle dragging
+            event.ignore()
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse move - ignore when not in menu for window dragging."""
+        # If not in an active menu, ignore to let parent handle dragging
+        if not self.activeAction() and event.buttons() != Qt.MouseButton.NoButton:
+            event.ignore()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse release - ignore if not in menu."""
+        # If not in menu, ignore to let parent handle
+        if not self.activeAction():
+            event.ignore()
+        else:
+            super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        """Handle double click - forward to parent if not on menu item."""
+        action = self.actionAt(event.pos())
+        if action is not None:
+            super().mouseDoubleClickEvent(event)
+        else:
+            parent = self.parent()
+            if parent and hasattr(parent, "mouseDoubleClickEvent"):
+                parent_pos = self.mapToParent(event.pos())
+                from PySide6.QtCore import QPointF
+
+                parent_event = QMouseEvent(
+                    event.type(),
+                    QPointF(parent_pos),
+                    event.scenePosition(),
+                    event.globalPosition(),
+                    event.button(),
+                    event.buttons(),
+                    event.modifiers(),
+                    event.source(),
+                )
+                parent.mouseDoubleClickEvent(parent_event)
+                event.accept()
+            else:
+                super().mouseDoubleClickEvent(event)
 
 
 class TitleBar(QWidget):
     """Custom title bar for frameless windows.
 
-    Includes title text, window controls, and drag-to-move functionality.
+    Includes title text, optional menu bar, window controls, and drag-to-move functionality.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._drag_position: Optional[QPoint] = None
+        self._menu_bar: Optional[QMenuBar] = None
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -35,7 +97,12 @@ class TitleBar(QWidget):
         # Title label (will be set by parent window)
         self._title_label = QLabel("ViloCodeWindow")
         self._title_label.setStyleSheet("color: #cccccc; font-size: 13px;")
+        # Allow mouse events to pass through to title bar for dragging
+        self._title_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         layout.addWidget(self._title_label)
+
+        # Menu bar will be inserted here if set
+        # (using insertWidget in set_menu_bar)
 
         # Stretch to push controls to right
         layout.addStretch(1)
@@ -44,24 +111,84 @@ class TitleBar(QWidget):
         self._window_controls = WindowControls(self)
         layout.addWidget(self._window_controls)
 
+        # Store layout for menu bar insertion
+        self._layout = layout
+
     def set_title(self, title: str) -> None:
         """Set the title text."""
         self._title_label.setText(title)
 
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        """Handle mouse press for window dragging."""
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._drag_position = (
-                event.globalPosition().toPoint() - self.window().frameGeometry().topLeft()
+    def set_menu_bar(self, menubar: QMenuBar) -> None:
+        """Set the menu bar to display in the title bar.
+
+        Args:
+            menubar: QMenuBar widget to display
+        """
+        # Remove existing menu bar if any
+        if self._menu_bar:
+            self._layout.removeWidget(self._menu_bar)
+            self._menu_bar.setParent(None)
+
+        if menubar:
+            # Convert to DraggableMenuBar if it's a regular QMenuBar
+            if isinstance(menubar, QMenuBar) and not isinstance(menubar, DraggableMenuBar):
+                # Create new DraggableMenuBar with same actions
+                draggable_menubar = DraggableMenuBar(self)
+                for action in menubar.actions():
+                    draggable_menubar.addAction(action)
+                self._menu_bar = draggable_menubar
+            else:
+                self._menu_bar = menubar
+
+            # Hide title label when menu bar is present (like VS Code)
+            self._title_label.hide()
+
+            # Style menu bar to fit in title bar
+            self._menu_bar.setStyleSheet(
+                """
+                QMenuBar {
+                    background-color: transparent;
+                    color: #cccccc;
+                    border: none;
+                    padding: 0px;
+                    margin: 0px;
+                }
+                QMenuBar::item {
+                    background-color: transparent;
+                    padding: 5px 10px;
+                }
+                QMenuBar::item:selected {
+                    background-color: #2d2d30;
+                }
+                QMenuBar::item:pressed {
+                    background-color: #007acc;
+                }
+            """
             )
-            event.accept()
+            # Insert at beginning (position 0, before title label)
+            self._layout.insertWidget(0, self._menu_bar)
+        else:
+            self._menu_bar = None
+            # Show title label when no menu bar
+            self._title_label.show()
+
+    def get_menu_bar(self) -> Optional[QMenuBar]:
+        """Get the current menu bar.
+
+        Returns:
+            The menu bar widget, or None if not set
+        """
+        return self._menu_bar
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse press - ignore to let parent window handle dragging."""
+        # Let the parent window (ViloCodeWindow) handle dragging
+        event.ignore()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        """Handle mouse move for window dragging."""
-        if event.buttons() == Qt.MouseButton.LeftButton and self._drag_position is not None:
-            # Move window
-            self.window().move(event.globalPosition().toPoint() - self._drag_position)
-            event.accept()
+        """Handle mouse move - ignore to let parent window handle dragging."""
+        # Let the parent window handle dragging
+        event.ignore()
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         """Handle mouse release."""

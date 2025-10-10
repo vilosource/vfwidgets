@@ -42,6 +42,33 @@ python 03_tab_compression_demo.py
     - Red: Minimum width (52px)
   - Add/remove multiple tabs at once
 
+### 04_themed_chrome_tabs.py - Theme Integration (Frameless)
+- **Purpose**: Demonstrates theme system integration in frameless mode
+- **Features shown**:
+  - ThemedApplication setup
+  - Theme switching with menu
+  - Automatic tab color adaptation
+- **Theme used**: `dark` (generic fallback colors)
+
+### 05_themed_chrome_embedded.py - Theme Integration (Embedded)
+- **Purpose**: Demonstrates theme system integration in embedded mode
+- **Features shown**:
+  - Embedding in ThemedMainWindow
+  - Parent theme inheritance
+  - Dynamic tab addition/removal with theming
+- **Theme used**: `Dark Default` (full VS Code tab tokens)
+
+## Theme Requirements
+
+Examples 04 and 05 demonstrate theme integration with different approaches:
+
+| Example | Theme Used | Tab Styling | Use This For |
+|---------|-----------|-------------|--------------|
+| **04_themed_chrome_tabs** | `dark` | Generic fallback colors | Simple applications |
+| **05_themed_chrome_embedded** | `Dark Default` | Full VS Code tab styling | IDE-style applications |
+
+**Recommendation**: For production apps with Chrome-style tabs, prefer `Dark Default` or `Light Default` themes for optimal appearance. See main [README.md](../README.md#theme-selection-guide) for complete theme selection guide.
+
 ## Key Behaviors
 
 ### Chrome-Style Tab Compression

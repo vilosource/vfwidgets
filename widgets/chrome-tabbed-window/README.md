@@ -46,6 +46,12 @@ window.show()
 app.exec()
 ```
 
+> ⚠️ **Theme Token Requirements**: For proper Chrome-style tab appearance, use themes with VS Code tab tokens:
+> - ✅ **Recommended**: `"Dark Default"` or `"Light Default"` (full VS Code tab styling)
+> - ⚠️ **Generic**: `"default"` or `"dark"` (fallback to generic colors)
+>
+> See [Theme Selection Guide](#theme-selection-guide) below for details.
+
 ### Embedded Mode
 
 ```python
@@ -98,6 +104,98 @@ app.exec()
 - ✅ Graceful fallback to Chrome colors when theme system unavailable
 
 See [examples/04_themed_chrome_tabs.py](examples/04_themed_chrome_tabs.py) for complete example.
+
+## Theme Selection Guide
+
+### Choosing the Right Theme
+
+ChromeTabbedWindow looks best with themes that include **VS Code tab color tokens**. Different themes provide different levels of styling:
+
+| Theme | Tab Tokens | Tab Appearance | Best For |
+|-------|-----------|----------------|----------|
+| **Dark Default** | ✅ Full VS Code | Chrome-like tabs with proper active/inactive/hover states | VS Code-style dark IDEs |
+| **Light Default** | ✅ Full VS Code | Chrome-like tabs with proper active/inactive/hover states | VS Code-style light IDEs |
+| default | ⚠️ Fallback only | Generic styled tabs using `colors.*` tokens | Simple applications |
+| dark | ⚠️ Fallback only | Generic styled tabs using `colors.*` tokens | Simple dark applications |
+| minimal | ⚠️ Fallback only | Generic styled tabs using `colors.*` tokens | Minimal UI applications |
+
+### Required Tab Tokens
+
+For optimal Chrome-style tab appearance, your theme should include these VS Code tokens:
+
+**Essential tokens:**
+- `tab.activeBackground` - Background color of the active tab
+- `tab.inactiveBackground` - Background color of inactive tabs
+- `tab.activeForeground` - Text color of the active tab
+- `tab.inactiveForeground` - Text color of inactive tabs
+
+**Recommended tokens:**
+- `tab.hoverBackground` - Background color when hovering over tabs
+- `tab.hoverForeground` - Text color when hovering over tabs
+- `tab.border` - Border color between tabs
+- `tab.activeBorder` - Bottom border of active tab
+- `editorGroupHeader.tabsBackground` - Tab bar background
+
+**Without these tokens**, ChromeTabbedWindow falls back to generic `colors.*` tokens (primary, hover, foreground), which results in less refined tab styling.
+
+### Quick Fix for Generic-Looking Tabs
+
+If your tabs look unstyled or generic, explicitly set a theme with VS Code tab tokens:
+
+```python
+from vfwidgets_theme.core.manager import ThemeManager
+
+# Get theme manager instance
+theme_manager = ThemeManager.get_instance()
+
+# Set a theme with full tab token support
+theme_manager.set_theme("Dark Default")   # For dark themes
+# OR
+theme_manager.set_theme("Light Default")  # For light themes
+```
+
+### Example: Proper Theme Setup
+
+```python
+from chrome_tabbed_window import ChromeTabbedWindow
+from vfwidgets_theme import ThemedApplication
+
+app = ThemedApplication(sys.argv)
+
+# ✅ RECOMMENDED: Use theme with VS Code tab tokens
+app.set_theme("Dark Default")  # Full Chrome-style tab appearance
+
+# ⚠️ WORKS BUT GENERIC: Uses fallback colors
+# app.set_theme("dark")  # Generic tab styling
+
+window = ChromeTabbedWindow()
+window.addTab(QTextEdit(), "Tab 1")
+window.show()
+```
+
+### Custom Themes
+
+To create custom themes with proper tab styling, include all VS Code tab tokens:
+
+```json
+{
+  "name": "my-custom-theme",
+  "version": "1.0.0",
+  "colors": {
+    "tab.activeBackground": "#1e1e1e",
+    "tab.inactiveBackground": "#2d2d30",
+    "tab.activeForeground": "#ffffff",
+    "tab.inactiveForeground": "#969696",
+    "tab.hoverBackground": "#2e2e32",
+    "tab.hoverForeground": "#ffffff",
+    "tab.border": "#252526",
+    "tab.activeBorder": "#0066cc",
+    "editorGroupHeader.tabsBackground": "#252526"
+  }
+}
+```
+
+See [Theme Integration Guide](docs/theme-integration-GUIDE.md) for complete details.
 
 ## Customizing New Tab Behavior
 
@@ -192,6 +290,76 @@ See [API Documentation](docs/api.md) for complete reference.
 - Double-click any empty area of the tab bar to toggle maximize/restore
 - Works in frameless (top-level) mode only
 - Does not interfere with tab double-click events
+
+## Troubleshooting
+
+### My tabs look generic/unstyled
+
+**Cause**: You're using a theme without VS Code tab tokens (e.g., `default`, `dark`, `minimal`)
+
+**Solution**: Switch to a theme with full tab styling tokens:
+
+```python
+from vfwidgets_theme.core.manager import ThemeManager
+
+theme_manager = ThemeManager.get_instance()
+theme_manager.set_theme("Dark Default")   # For dark theme
+# OR
+theme_manager.set_theme("Light Default")  # For light theme
+```
+
+See [Theme Selection Guide](#theme-selection-guide) for details.
+
+### My tabs don't match VS Code appearance
+
+**Cause**: Theme doesn't have all `tab.*` tokens defined, or is using generic token fallbacks
+
+**Solution**: Use built-in `Dark Default` or `Light Default` themes, or add missing tokens to your custom theme:
+
+```json
+{
+  "colors": {
+    "tab.activeBackground": "#1e1e1e",
+    "tab.inactiveBackground": "#2d2d30",
+    "tab.activeForeground": "#ffffff",
+    "tab.inactiveForeground": "#969696",
+    "tab.hoverBackground": "#2e2e32",
+    "tab.hoverForeground": "#ffffff",
+    "tab.border": "#252526",
+    "tab.activeBorder": "#0066cc"
+  }
+}
+```
+
+### Tabs show window controls (minimize/maximize/close) when embedded
+
+**Cause**: ChromeTabbedWindow was created without a parent widget
+
+**Solution**: Pass `parent` argument when creating embedded tabs:
+
+```python
+# ✅ Correct - Embedded mode (no window controls)
+tabs = ChromeTabbedWindow(parent=parent_widget)
+
+# ❌ Wrong - Frameless mode (includes window controls)
+tabs = ChromeTabbedWindow()
+```
+
+### Theme changes don't update tab colors
+
+**Cause**: ChromeTabbedWindow not inheriting from ThemedWidget (should never happen with official builds)
+
+**Solution**: Verify you're using the official chrome-tabbed-window package:
+
+```bash
+pip install --upgrade chrome-tabbed-window
+```
+
+If problem persists, check that `vfwidgets-theme` is installed:
+
+```bash
+pip install vfwidgets-theme
+```
 
 ## Documentation
 

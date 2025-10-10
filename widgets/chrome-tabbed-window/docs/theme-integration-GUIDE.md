@@ -1,5 +1,25 @@
 # Theme System Integration Guide
 
+## ⚠️ Quick Start: Choose the Right Theme
+
+**For best results with ChromeTabbedWindow**, use themes with VS Code tab tokens:
+- **`Dark Default`** - Recommended for dark IDE themes (includes all `tab.*` tokens)
+- **`Light Default`** - Recommended for light IDE themes (includes all `tab.*` tokens)
+
+**Generic themes** (`default`, `dark`, `minimal`) work but use fallback colors, resulting in less refined tab appearance.
+
+```python
+from vfwidgets_theme.core.manager import ThemeManager
+
+theme_manager = ThemeManager.get_instance()
+theme_manager.set_theme("Dark Default")  # ✅ Full Chrome-style tabs
+# theme_manager.set_theme("dark")        # ⚠️ Generic fallback styling
+```
+
+See "Color Mapping" section below for complete token details.
+
+---
+
 ## Overview
 
 ChromeTabbedWindow integrates with the VFWidgets theme system to provide automatic color adaptation and dynamic theme switching. This guide explains how the integration works and how to use it effectively.

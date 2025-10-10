@@ -2,7 +2,7 @@
 
 **Goal**: Create the core ViloCodeWindow class with basic layout structure, mode detection, and minimal functionality.
 
-**Status**: 🔴 Not Started
+**Status**: ✅ Complete
 
 ---
 
@@ -10,20 +10,20 @@
 
 ### Setup & Project Structure
 
-- [ ] **Task 1.1**: Create pyproject.toml with dependencies
+- [x] **Task 1.1**: Create pyproject.toml with dependencies
   - PySide6 >= 6.5.0
   - Optional: vfwidgets-theme >= 2.0.0
   - Dev dependencies: pytest, pytest-qt, black, ruff, mypy
   - Package metadata: name, version, description, authors
 
-- [ ] **Task 1.2**: Create package structure
+- [x] **Task 1.2**: Create package structure
   - `src/vfwidgets_vilocode_window/__init__.py` - Public API exports
   - `src/vfwidgets_vilocode_window/vilocode_window.py` - Main class
   - `src/vfwidgets_vilocode_window/core/__init__.py` - Core components
   - `src/vfwidgets_vilocode_window/components/__init__.py` - UI components
   - `tests/test_vilocode_window.py` - Basic tests
 
-- [ ] **Task 1.3**: Create README.md with basic documentation
+- [x] **Task 1.3**: Create README.md with basic documentation
   - Project description
   - Quick start example
   - Installation instructions
@@ -33,7 +33,7 @@
 
 ### Core Widget Implementation
 
-- [ ] **Task 1.4**: Create ViloCodeWindow class skeleton
+- [x] **Task 1.4**: Create ViloCodeWindow class skeleton
   ```python
   class ViloCodeWindow(QWidget):
       """VS Code-style application window."""
@@ -82,7 +82,7 @@
           pass
   ```
 
-- [ ] **Task 1.5**: Implement mode detection
+- [x] **Task 1.5**: Implement mode detection
   ```python
   def _detect_window_mode(self) -> WindowMode:
       """Detect if widget is top-level (frameless) or embedded."""
@@ -94,7 +94,7 @@
   - Create `WindowMode` enum (Frameless, Embedded)
   - Store in `core/constants.py`
 
-- [ ] **Task 1.6**: Implement frameless window setup (reuse ChromeTabbedWindow pattern)
+- [x] **Task 1.6**: Implement frameless window setup (reuse ChromeTabbedWindow pattern)
   ```python
   def _setup_frameless_window(self) -> None:
       """Set up frameless window for top-level mode."""
@@ -108,7 +108,7 @@
       self.setMinimumSize(600, 400)
   ```
 
-- [ ] **Task 1.6b**: Implement paintEvent for frameless background
+- [x] **Task 1.6b**: Implement paintEvent for frameless background
   ```python
   def paintEvent(self, event: QPaintEvent) -> None:
       """Paint window background in frameless mode."""
@@ -131,7 +131,7 @@
       super().paintEvent(event)
   ```
 
-- [ ] **Task 1.7**: Create basic layout structure
+- [x] **Task 1.7**: Create basic layout structure
   ```python
   def _setup_ui(self) -> None:
       """Set up the user interface layout."""
@@ -162,7 +162,7 @@
       main_layout.addWidget(self._status_bar)
   ```
 
-- [ ] **Task 1.7b**: Implement status bar API
+- [x] **Task 1.7b**: Implement status bar API
   ```python
   def get_status_bar(self) -> QStatusBar:
       """Get the status bar widget for customization."""
@@ -190,14 +190,14 @@
 
 ### Platform Detection & Adaptation
 
-- [ ] **Task 1.8**: Copy platform detection from ChromeTabbedWindow
+- [x] **Task 1.8**: Copy platform detection from ChromeTabbedWindow
   - Copy `platform_support/` directory structure
   - `platform_support/detector.py` - Platform detection
   - `platform_support/capabilities.py` - PlatformCapabilities dataclass
   - `platform_support/base.py` - IPlatformAdapter protocol
   - Adapt for ViloCodeWindow needs
 
-- [ ] **Task 1.9**: Implement platform factory
+- [x] **Task 1.9**: Implement platform factory
   ```python
   class PlatformFactory:
       @staticmethod
@@ -220,7 +220,7 @@
               return FallbackPlatformAdapter(window)
   ```
 
-- [ ] **Task 1.10**: Implement basic platform adapters
+- [x] **Task 1.10**: Implement basic platform adapters
   - Windows: Full frameless support
   - macOS: Full frameless support
   - Linux X11: Full frameless support
@@ -232,13 +232,13 @@
 
 ### Window Controls & Title Bar
 
-- [ ] **Task 1.11**: Copy WindowControls from ChromeTabbedWindow
+- [x] **Task 1.11**: Copy WindowControls from ChromeTabbedWindow
   - `components/window_controls.py`
   - Minimize, maximize, close buttons
   - Platform-aware styling
   - Signal connections
 
-- [ ] **Task 1.12**: Create custom title bar component
+- [x] **Task 1.12**: Create custom title bar component
   ```python
   class TitleBar(QWidget):
       """Custom title bar for frameless mode.
@@ -280,7 +280,7 @@
           return self._menu_bar
   ```
 
-- [ ] **Task 1.12b**: Implement menu bar API in ViloCodeWindow
+- [x] **Task 1.12b**: Implement menu bar API in ViloCodeWindow
   ```python
   def set_menu_bar(self, menubar: QMenuBar) -> None:
       """Set the menu bar (appears in top bar).
@@ -311,19 +311,19 @@
       return self._menu_bar
   ```
 
-- [ ] **Task 1.13**: Implement window dragging
+- [x] **Task 1.13**: Implement window dragging
   - Copy event filter from ChromeTabbedWindow
   - Install on title bar for window move
   - Use `startSystemMove()` when available
   - Fallback to manual dragging
 
-- [ ] **Task 1.14**: Implement window resizing
+- [x] **Task 1.14**: Implement window resizing
   - Copy resize edge detection from ChromeTabbedWindow
   - Implement `_get_resize_edge()` method
   - Use `startSystemResize()` when available
   - Fallback to manual resize
 
-- [ ] **Task 1.15**: Implement double-click to maximize
+- [x] **Task 1.15**: Implement double-click to maximize
   - Double-click title bar toggles maximize/restore
   - Update window controls button state
 
@@ -331,7 +331,7 @@
 
 ### Theme Integration
 
-- [ ] **Task 1.16**: Set up theme system integration
+- [x] **Task 1.16**: Set up theme system integration
   ```python
   try:
       from vfwidgets_theme import ThemedWidget
@@ -355,7 +355,7 @@
       }
   ```
 
-- [ ] **Task 1.17**: Implement `_on_theme_changed()` callback
+- [x] **Task 1.17**: Implement `_on_theme_changed()` callback
   ```python
   def _on_theme_changed(self) -> None:
       """Called when theme changes (ThemedWidget callback)."""
@@ -371,7 +371,7 @@
       self.update()
   ```
 
-- [ ] **Task 1.18**: Implement fallback colors (no theme system)
+- [x] **Task 1.18**: Implement fallback colors (no theme system)
   ```python
   def _get_fallback_color(self, token: str) -> QColor:
       """Get fallback color when theme system unavailable."""
@@ -389,7 +389,7 @@
 
 ### Keyboard Shortcuts Infrastructure
 
-- [ ] **Task 1.19**: Create shortcuts constants file
+- [x] **Task 1.19**: Create shortcuts constants file
   ```python
   # core/shortcuts.py
 
@@ -412,7 +412,7 @@
   }
   ```
 
-- [ ] **Task 1.20**: Implement keyboard shortcut management
+- [x] **Task 1.20**: Implement keyboard shortcut management
   ```python
   def register_shortcut(
       self,
@@ -476,7 +476,7 @@
       self.register_shortcut(key_sequence, callback, f"Override: {action}")
   ```
 
-- [ ] **Task 1.21**: Implement default shortcuts setup
+- [x] **Task 1.21**: Implement default shortcuts setup
   ```python
   def _setup_default_shortcuts(self) -> None:
       """Set up default VS Code-compatible shortcuts."""
@@ -520,7 +520,7 @@
       # Will populate _action_callbacks for show_activity_1 through show_activity_5
   ```
 
-- [ ] **Task 1.22**: Implement focus management helpers
+- [x] **Task 1.22**: Implement focus management helpers
   ```python
   def _focus_sidebar(self) -> None:
       """Set focus to current sidebar panel (internal)."""
@@ -544,7 +544,7 @@
 
 ### Basic Tests
 
-- [ ] **Task 1.23**: Write mode detection tests
+- [x] **Task 1.23**: Write mode detection tests
   ```python
   def test_frameless_mode_no_parent(qtbot):
       window = ViloCodeWindow()
@@ -556,13 +556,13 @@
       assert window._window_mode == WindowMode.Embedded
   ```
 
-- [ ] **Task 1.24**: Write basic functionality tests
+- [x] **Task 1.24**: Write basic functionality tests
   - Window creation
   - Layout structure
   - Status bar access
   - Window flags (frameless mode)
 
-- [ ] **Task 1.25**: Write keyboard shortcut tests
+- [x] **Task 1.25**: Write keyboard shortcut tests
   ```python
   def test_default_shortcuts_enabled(qtbot):
       window = ViloCodeWindow(enable_default_shortcuts=True)
@@ -593,14 +593,14 @@
 
 ### Documentation
 
-- [ ] **Task 1.26**: Create architecture.md
+- [x] **Task 1.26**: Create architecture.md
   - MVC pattern overview
   - Component structure
   - Layout flow
   - Platform abstraction
   - Keyboard shortcut system
 
-- [ ] **Task 1.27**: Create initial API documentation
+- [x] **Task 1.27**: Create initial API documentation
   - Class overview
   - Constructor parameters
   - Mode detection behavior

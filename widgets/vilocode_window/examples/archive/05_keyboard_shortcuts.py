@@ -12,7 +12,7 @@ This example shows:
 
 import sys
 
-from PySide6.QtWidgets import QApplication, QTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QApplication, QTextEdit
 
 from vfwidgets_vilocode_window import ViloCodeWindow
 
@@ -266,36 +266,8 @@ def main():
     """
     )
 
-    # Access the window's internal layout to replace the main pane placeholder
-    # We need to find the main layout and replace the center widget
-    central_widget = QWidget()
-    layout = QVBoxLayout(central_widget)
-    layout.setContentsMargins(0, 0, 0, 0)
-    layout.addWidget(help_editor)
-
-    # Find the main content area in the window's layout and replace it
-    # The ViloCodeWindow has a QHBoxLayout with placeholders
-    # We'll find the main pane (the one with stretch=1) and replace it
-    main_layout = window.layout()
-    if main_layout and main_layout.count() > 1:
-        # Second item should be the horizontal content layout
-        content_item = main_layout.itemAt(1)
-        if content_item and hasattr(content_item, "layout"):
-            content_layout = content_item.layout()
-            if content_layout:
-                # Find and replace the main pane (index 2, the one with stretch)
-                for i in range(content_layout.count()):
-                    item = content_layout.itemAt(i)
-                    if item and item.widget():
-                        widget = item.widget()
-                        # The main pane is the one with "Main Pane" text
-                        if hasattr(widget, "text") and "Main Pane" in widget.text():
-                            # Remove old widget
-                            content_layout.removeWidget(widget)
-                            widget.deleteLater()
-                            # Insert help editor
-                            content_layout.insertWidget(i, help_editor, 1)
-                            break
+    # Use the set_main_content() API to replace the placeholder with our help editor
+    window.set_main_content(help_editor)
 
     # Set initial status message
     window.set_status_message(

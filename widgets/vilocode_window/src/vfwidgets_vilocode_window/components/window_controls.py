@@ -3,6 +3,8 @@
 Provides minimize, maximize, and close buttons for the title bar.
 """
 
+from typing import Optional
+
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QHBoxLayout, QPushButton, QWidget
 
@@ -18,7 +20,7 @@ class WindowControls(QWidget):
     maximize_clicked = Signal()
     close_clicked = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._setup_ui()
 
