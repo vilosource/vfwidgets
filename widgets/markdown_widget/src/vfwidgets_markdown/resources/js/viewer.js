@@ -60,13 +60,14 @@ const MarkdownViewer = {
         // Note: Order matters for some plugins
 
         // Anchor plugin (must be loaded first for TOC)
-        if (typeof markdownItAnchor !== 'undefined') {
-            this.md.use(markdownItAnchor.default || markdownItAnchor, {
-                permalink: false,
-                level: [1, 2, 3, 4, 5, 6]
-            });
-            console.log('[MarkdownViewer] Loaded anchor plugin');
-        }
+        // Note: Disabled for now as we manually add heading IDs
+        // if (typeof markdownItAnchor !== 'undefined') {
+        //     this.md.use(markdownItAnchor.default || markdownItAnchor, {
+        //         permalink: false,
+        //         level: [1, 2, 3, 4, 5, 6]
+        //     });
+        //     console.log('[MarkdownViewer] Loaded anchor plugin');
+        // }
 
         // Footnotes
         if (typeof markdownitFootnote !== 'undefined') {
