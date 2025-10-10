@@ -19,7 +19,7 @@ Welcome to the **MarkdownViewer** widget demonstration! This document showcases 
 
 ### Text Styling
 
-You can use **bold text**, *italic text*, ***bold and italic***, ~~strikethrough~~, ++inserted++, and ==highlighted== text.
+You can use **bold text**, *italic text*, ***bold and italic***, and ~~strikethrough~~ text.
 
 ### Headings
 
@@ -90,12 +90,6 @@ Term 1
 
 Term 2
 :   Definition 2
-
-### Subscript and Superscript
-
-- Water molecule: H~2~O
-- Einstein's equation: E = mc^2^
-- Chemical formula: CO~2~
 
 ### Emoji Support
 
@@ -350,14 +344,6 @@ $$
 | Row 2        | More Data      | 200 |
 | Row 3        | Even More      | 300 |
 
-### Complex Table
-
-| Widget | Version | Status | Features |
-|--------|---------|--------|----------|
-| **MarkdownViewer** | 0.1.0 | 🚧 In Progress | Rendering, Mermaid, Math |
-| **MarkdownEditor** | - | 📋 Planned | Editing, Live Preview |
-| **MarkdownDiff** | - | 💡 Future | Diff View, Merge |
-
 ---
 
 ## Task Lists
@@ -435,13 +421,13 @@ This document demonstrates **all major features** of the MarkdownViewer widget:
 - ✅ Multiple code blocks (Python, JS, Rust, SQL, Bash)
 - ✅ 5 Mermaid diagrams (flowchart, sequence, class, gantt, state)
 - ✅ 6 math equations (inline and block)
-- ✅ 3 tables with different alignments
+- ✅ 2 tables with different alignments
 - ✅ 20+ task list items
-- ✅ Emoji, footnotes, subscript/superscript
+- ✅ Emoji, footnotes, abbreviations, definition lists
 - ✅ Images, links, blockquotes
 - ✅ Custom containers and HTML
 
-**Total size:** ~8KB of markdown demonstrating the full rendering capabilities!
+**Total size:** ~7.5KB of markdown demonstrating the full rendering capabilities!
 
 ---
 
