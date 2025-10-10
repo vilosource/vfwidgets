@@ -39,8 +39,8 @@ This document tracks all keyboard shortcuts in ViloxTerm, both implemented and p
 
 | Action | Shortcut | Status | Category | Notes |
 |--------|----------|--------|----------|-------|
-| Split Horizontal | `Ctrl+Shift+H` | ✅ Implemented | Pane | Creates vertical divider (side-by-side panes) |
-| Split Vertical | `Ctrl+Shift+V` | ✅ Implemented | Pane | Creates horizontal divider (stacked panes) |
+| Split Horizontal | `Ctrl+Shift+\` | ✅ Implemented | Pane | Creates vertical divider (side-by-side panes) |
+| Split Vertical | `Ctrl+Shift+-` | ✅ Implemented | Pane | Creates horizontal divider (stacked panes) |
 | Close Pane | `Ctrl+W` | ✅ Implemented | Pane | Closes focused pane (closes tab if last pane) |
 | Navigate Left | `Ctrl+Shift+Left` | ✅ Implemented | Pane | Move focus to pane on the left |
 | Navigate Right | `Ctrl+Shift+Right` | ✅ Implemented | Pane | Move focus to pane on the right |
@@ -131,8 +131,8 @@ Users can customize shortcuts by editing:
 Example:
 ```json
 {
-  "pane.split_horizontal": "Ctrl+Shift+H",
-  "pane.split_vertical": "Ctrl+Shift+V",
+  "pane.split_horizontal": "Ctrl+Shift+\\",
+  "pane.split_vertical": "Ctrl+Shift+-",
   "pane.close": "Ctrl+W",
   "tab.close": "Ctrl+Shift+W"
 }
@@ -155,12 +155,7 @@ After editing, restart ViloxTerm for changes to take effect.
 
 ### Current Conflicts to Resolve
 
-1. **Ctrl+Shift+V**
-   - Current: Split Vertical (pane)
-   - Standard: Paste in terminals
-   - **Resolution**: Terminal paste handled by xterm.js layer, app-level Ctrl+Shift+V for split is acceptable
-
-2. **Ctrl+W**
+1. **Ctrl+W**
    - Current: Close Pane
    - Alternative: Close Tab (more common in browsers/IDEs)
    - **Resolution**: Keep Ctrl+W for pane, use Ctrl+Shift+W for tab
