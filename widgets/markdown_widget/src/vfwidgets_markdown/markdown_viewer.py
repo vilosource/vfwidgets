@@ -334,8 +334,13 @@ class MarkdownViewer(_BaseClass):
                 [
                     f"--{key.replace('_', '-')}: {getattr(self.theme, key)};"
                     for key in self.theme_config.keys()
-                    if hasattr(self.theme, key)
+                    if hasattr(self.theme, key) and getattr(self.theme, key) is not None
                 ]
+            )
+
+            # Escape CSS vars for safe JavaScript embedding
+            escaped_css_vars = (
+                css_vars.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
             )
 
             js_code = f"""
@@ -346,7 +351,7 @@ class MarkdownViewer(_BaseClass):
                     style.id = 'theme-vars';
                     document.head.appendChild(style);
                 }}
-                style.textContent = ':root {{ {css_vars} }}';
+                style.textContent = ':root {{ {escaped_css_vars} }}';
             }})();
             """
             self.page().runJavaScript(js_code)
