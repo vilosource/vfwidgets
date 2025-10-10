@@ -7,7 +7,7 @@ ViloxTerm demonstrates the integration of multiple VFWidgets components:
 - Theme System for unified theming
 """
 
-__version__ = "1.1.1-dev"
+__version__ = "1.1.2"
 __author__ = "Vilosource"
 __email__ = "vilosource@viloforge.com"
 
