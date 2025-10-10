@@ -60,8 +60,8 @@ class ThemeDemo(QWidget):
         if THEME_AVAILABLE:
             self.light_btn = QPushButton("Light Default")
             self.dark_btn = QPushButton("Dark Default")
-            self.vscode_btn = QPushButton("VS Code Dark+")
-            self.vilo_btn = QPushButton("Vilo Theme")
+            self.vscode_btn = QPushButton("VSCode Dark+")
+            self.vilo_btn = QPushButton("Vilo")
 
             self.light_btn.clicked.connect(lambda: self._switch_theme("Light Default"))
             self.dark_btn.clicked.connect(lambda: self._switch_theme("Dark Default"))
