@@ -80,8 +80,29 @@ class MarkdownViewer(QWebEngineView):
 
     def _setup_webengine(self) -> None:
         """Configure QWebEngineView and page settings."""
-        # Create custom page
-        page = QWebEnginePage(self)
+        # Create custom page with navigation handling
+        from PySide6.QtGui import QDesktopServices
+        from PySide6.QtWebEngineCore import QWebEngineProfile
+
+        class MarkdownPage(QWebEnginePage):
+            """Custom page that handles link navigation."""
+
+            def acceptNavigationRequest(self, url, nav_type, is_main_frame):
+                """Handle navigation requests - open external links in browser."""
+                # Allow navigation to the initial page
+                if url.toString().startswith("file://") or url.scheme() == "qrc":
+                    return True
+
+                # Open external links (http/https) in system browser
+                if url.scheme() in ("http", "https"):
+                    print(f"[MarkdownViewer] Opening external link: {url.toString()}")
+                    QDesktopServices.openUrl(url)
+                    return False  # Don't navigate in the view
+
+                # Allow other schemes (data:, etc.)
+                return True
+
+        page = MarkdownPage(self)
         self.setPage(page)
 
         # Configure settings
@@ -92,20 +113,8 @@ class MarkdownViewer(QWebEngineView):
         settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, False)
 
         # Disable caching for development (allows resource updates without restart)
-        from PySide6.QtWebEngineCore import QWebEngineProfile
-
         profile = page.profile()
         profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
-
-        # Handle link clicks - open external links in browser
-        from PySide6.QtGui import QDesktopServices
-
-        def handle_link(url):
-            """Handle clicked links by opening in external browser."""
-            print(f"[MarkdownViewer] Link clicked: {url.toString()}")
-            QDesktopServices.openUrl(url)
-
-        page.linkClicked.connect(handle_link)
 
         print("[MarkdownViewer] WebEngine configured")
 
