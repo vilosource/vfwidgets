@@ -4,7 +4,7 @@
 import sys
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
-from vfwidgets_markdown_viewer import MarkdownViewerWidget
+from vfwidgets_markdown import MarkdownViewer
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
 
     # Create main window
     window = QMainWindow()
-    window.setWindowTitle("MarkdownViewerWidget Example")
+    window.setWindowTitle("MarkdownViewer Example")
     window.resize(400, 300)
 
     # Create central widget
@@ -23,12 +23,12 @@ def main():
     # Create layout
     layout = QVBoxLayout(central_widget)
 
-    # Create and add our custom widget
-    custom_widget = MarkdownViewerWidget()
-    layout.addWidget(custom_widget)
+    # Create and add markdown viewer widget
+    viewer = MarkdownViewer()
+    layout.addWidget(viewer)
 
-    # Connect signals
-    custom_widget.value_changed.connect(lambda v: print(f"Value changed: {v}"))
+    # Set some example markdown content
+    viewer.set_markdown("# Hello World\n\nThis is **markdown** with *formatting*!")
 
     # Show window
     window.show()

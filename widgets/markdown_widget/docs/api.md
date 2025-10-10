@@ -1,6 +1,6 @@
-# MarkdownViewerWidget API Documentation
+# MarkdownViewer API Documentation
 
-## Class: `MarkdownViewerWidget`
+## Class: `MarkdownViewer`
 
 ### Description
 Custom PySide6 widget for [describe purpose].
@@ -39,9 +39,9 @@ Get the current widget value.
 ### Usage Example
 
 ```python
-from vfwidgets_markdown_viewer import MarkdownViewerWidget
+from vfwidgets_markdown import MarkdownViewer
 
-widget = MarkdownViewerWidget()
+widget = MarkdownViewer()
 widget.set_value("Hello")
 current_value = widget.get_value()
 
@@ -55,7 +55,7 @@ The widget can be styled using Qt stylesheets:
 
 ```python
 widget.setStyleSheet("""
-    MarkdownViewerWidget {
+    MarkdownViewer {
         background-color: #f0f0f0;
         border: 1px solid #ccc;
     }

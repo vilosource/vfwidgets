@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from vfwidgets_markdown_viewer import MarkdownViewerWidget
+from vfwidgets_markdown import MarkdownViewer
 
 
 class ExampleWindow(QMainWindow):
@@ -21,7 +21,7 @@ class ExampleWindow(QMainWindow):
     def __init__(self):
         """Initialize the example window."""
         super().__init__()
-        self.setWindowTitle("MarkdownViewerWidget - Advanced Example")
+        self.setWindowTitle("MarkdownViewer - Advanced Example")
         self.resize(600, 400)
 
         # Create central widget
@@ -31,9 +31,9 @@ class ExampleWindow(QMainWindow):
         # Main layout
         layout = QVBoxLayout(central_widget)
 
-        # Add custom widget
-        self.custom_widget = MarkdownViewerWidget()
-        layout.addWidget(self.custom_widget)
+        # Add markdown viewer widget
+        self.viewer = MarkdownViewer()
+        layout.addWidget(self.viewer)
 
         # Control panel
         control_panel = QWidget()
@@ -45,33 +45,45 @@ class ExampleWindow(QMainWindow):
 
         control_layout.addStretch()
 
-        update_btn = QPushButton("Update Widget")
-        update_btn.clicked.connect(self.update_widget)
-        control_layout.addWidget(update_btn)
+        mermaid_btn = QPushButton("Show Mermaid")
+        mermaid_btn.clicked.connect(self.show_mermaid)
+        control_layout.addWidget(mermaid_btn)
 
-        reset_btn = QPushButton("Reset")
-        reset_btn.clicked.connect(self.reset_widget)
-        control_layout.addWidget(reset_btn)
+        math_btn = QPushButton("Show Math")
+        math_btn.clicked.connect(self.show_math)
+        control_layout.addWidget(math_btn)
 
         layout.addWidget(control_panel)
 
         # Connect signals
-        self.custom_widget.value_changed.connect(self.on_value_changed)
+        self.viewer.content_loaded.connect(lambda: self.status_label.setText("Status: Loaded"))
 
-    def update_widget(self):
-        """Update the widget with new data."""
-        self.custom_widget.set_value("Updated Value")
-        self.status_label.setText("Status: Updated")
+    def show_mermaid(self):
+        """Show markdown with mermaid diagram."""
+        self.viewer.set_markdown("""
+# Mermaid Diagram
 
-    def reset_widget(self):
-        """Reset the widget to default state."""
-        self.custom_widget.set_value(None)
-        self.status_label.setText("Status: Reset")
+```mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+        """)
+        self.status_label.setText("Status: Showing Mermaid")
 
-    def on_value_changed(self, value):
-        """Handle value changed signal."""
-        print(f"Widget value changed to: {value}")
-        self.status_label.setText(f"Status: Value = {value}")
+    def show_math(self):
+        """Show markdown with math equations."""
+        self.viewer.set_markdown("""
+# Math Equations
+
+Inline: $E = mc^2$
+
+Block:
+$$
+\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+        """)
+        self.status_label.setText("Status: Showing Math")
 
 
 def main():

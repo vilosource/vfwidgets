@@ -1,6 +1,6 @@
-# VFWidgets Markdown Viewer
+# VFWidgets Markdown Widget
 
-A powerful PySide6 markdown viewer widget with support for diagrams (Mermaid), syntax highlighting (Prism.js), and math equations (KaTeX).
+A collection of PySide6 markdown widgets including a powerful viewer with support for diagrams (Mermaid), syntax highlighting (Prism.js), and math equations (KaTeX).
 
 ## Features
 
@@ -20,16 +20,16 @@ A powerful PySide6 markdown viewer widget with support for diagrams (Mermaid), s
 
 ```bash
 # Install from local path
-pip install ./widgets/markdown_viewer
+pip install ./widgets/markdown_widget
 
 # Install in editable mode for development
-pip install -e ./widgets/markdown_viewer
+pip install -e ./widgets/markdown_widget
 
 # Install with development dependencies
-pip install -e "./widgets/markdown_viewer[dev]"
+pip install -e "./widgets/markdown_widget[dev]"
 
 # Install with optional features
-pip install -e "./widgets/markdown_viewer[theme,keybinding]"
+pip install -e "./widgets/markdown_widget[theme,keybinding]"
 ```
 
 ## Quick Start
@@ -301,7 +301,7 @@ Check the `examples/` directory for complete examples:
 
 ```bash
 # Install in development mode
-cd widgets/markdown_viewer
+cd widgets/markdown_widget
 pip install -e ".[dev]"
 
 # Run tests

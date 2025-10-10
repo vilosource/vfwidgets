@@ -1,4 +1,4 @@
-# MarkdownViewerWidget Usage Guide
+# MarkdownViewer Usage Guide
 
 ## Installation
 
@@ -12,11 +12,11 @@ pip install vfwidgets-markdown_viewer
 
 ```python
 from PySide6.QtWidgets import QApplication
-from vfwidgets_markdown_viewer import MarkdownViewerWidget
+from vfwidgets_markdown import MarkdownViewer
 
 app = QApplication([])
 
-widget = MarkdownViewerWidget()
+widget = MarkdownViewer()
 widget.show()
 
 app.exec()
@@ -26,7 +26,7 @@ app.exec()
 
 ```python
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget
-from vfwidgets_markdown_viewer import MarkdownViewerWidget
+from vfwidgets_markdown import MarkdownViewer
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -38,7 +38,7 @@ class MyWindow(QMainWindow):
         layout = QVBoxLayout(central_widget)
 
         # Add our custom widget
-        custom_widget = MarkdownViewerWidget()
+        custom_widget = MarkdownViewer()
         layout.addWidget(custom_widget)
 ```
 
@@ -47,7 +47,7 @@ class MyWindow(QMainWindow):
 ### Customizing Appearance
 
 ```python
-widget = MarkdownViewerWidget()
+widget = MarkdownViewer()
 widget.setStyleSheet("""
     /* Custom styles here */
 """)
@@ -59,7 +59,7 @@ widget.setStyleSheet("""
 def on_value_changed(value):
     print(f"New value: {value}")
 
-widget = MarkdownViewerWidget()
+widget = MarkdownViewer()
 widget.value_changed.connect(on_value_changed)
 ```
 

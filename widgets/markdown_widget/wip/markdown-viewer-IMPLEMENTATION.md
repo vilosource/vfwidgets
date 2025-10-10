@@ -2,7 +2,7 @@
 
 **Status**: 🚧 Work in Progress
 **Created**: 2025-10-10
-**Widget**: `vfwidgets-markdown-viewer`
+**Widget**: `vfwidgets-markdown`
 **Package**: `vfwidgets_markdown`
 
 ## Vision
