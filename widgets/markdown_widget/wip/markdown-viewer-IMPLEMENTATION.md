@@ -1,13 +1,36 @@
-# Markdown Viewer Widget - Implementation Plan
+# Markdown Widget Collection - Implementation Plan
 
-**Status**: 🚧 Work in Progress
+**Status**: 🚧 Work in Progress - Phase 1: MarkdownViewer
 **Created**: 2025-10-10
-**Widget**: `vfwidgets-markdown`
-**Package**: `vfwidgets_markdown`
+**Updated**: 2025-10-10 (renamed to widget collection)
+**Package**: `vfwidgets-markdown`
+**Import**: `vfwidgets_markdown`
 
-## Vision
+## Collection Vision
+
+The `vfwidgets-markdown` package provides a comprehensive collection of markdown-related widgets for PySide6 applications. The collection is designed with modularity and extensibility in mind, allowing widgets to be used independently or composed together.
+
+### Current Focus: MarkdownViewer Widget
 
 A high-quality PySide6 markdown viewer widget that renders markdown using JavaScript libraries (markdown-it, Mermaid, Prism, KaTeX) in a QWebEngineView. The widget provides a clean API for displaying markdown while offering extensibility hooks for editor integration, TOC display, and custom navigation.
+
+### Future Widgets (Roadmap)
+
+**MarkdownEditor** - Full-featured markdown editor with live preview
+- CodeMirror 6 or Monaco Editor integration
+- Live preview using MarkdownViewer
+- Bidirectional scroll synchronization
+- Shared JavaScript libraries
+
+**MarkdownDiff** - Side-by-side diff viewer
+- Inline and side-by-side diff modes
+- Change navigation and highlighting
+- Merge conflict resolution
+
+**Shared Utilities** - Common markdown processing utilities
+- Frontmatter parsing
+- Metadata extraction
+- Sanitization utilities
 
 ## Design Principles
 
@@ -64,23 +87,26 @@ All popular markdown-it plugins included:
 
 ## Architecture
 
-### Python Layer (Qt/PySide6)
+### Package Structure (Collection)
 
 ```
 src/vfwidgets_markdown/
-├── __init__.py           # Public API exports
-├── viewer.py             # MarkdownViewer widget (main class)
+├── __init__.py           # Public API exports (MarkdownViewer, future: MarkdownEditor)
+├── markdown_viewer.py    # MarkdownViewer widget (Phase 1 - current)
+├── markdown_editor.py    # MarkdownEditor widget (Future)
+├── markdown_utils.py     # Shared utilities (Future)
 ├── constants.py          # Constants and configuration
-├── utils.py              # Utility functions
 └── resources/
-    ├── viewer.html       # HTML template
+    ├── viewer.html       # HTML template for viewer
+    ├── editor.html       # (Future) HTML template for editor
     ├── js/
     │   ├── markdown-it.min.js
     │   ├── markdown-it-plugins.min.js (all plugins bundled)
     │   ├── mermaid.min.js
     │   ├── prism.min.js
     │   ├── katex.min.js
-    │   └── viewer.js     # Custom viewer logic
+    │   ├── viewer.js     # Custom viewer logic
+    │   └── editor.js     # (Future) Custom editor logic
     └── css/
         ├── viewer.css           # Base styles
         ├── github-markdown.css  # GitHub-style markdown
@@ -90,6 +116,8 @@ src/vfwidgets_markdown/
             ├── prism-vscode-light.css
             └── prism-github.css
 ```
+
+### Python Layer (Qt/PySide6) - MarkdownViewer Focus
 
 ### JavaScript Layer (WebView)
 

@@ -1,6 +1,23 @@
-# Markdown Viewer - API Reference
+# Markdown Widget Collection - API Reference
 
-Complete API reference for the MarkdownViewer widget.
+Complete API reference for the `vfwidgets-markdown` package.
+
+## Package Overview
+
+```python
+from vfwidgets_markdown import MarkdownViewer
+# Future: from vfwidgets_markdown import MarkdownEditor, MarkdownDiff
+```
+
+The `vfwidgets-markdown` package provides a collection of markdown-related widgets. Currently available:
+- **MarkdownViewer** - Display-only markdown rendering widget
+
+**Planned widgets:**
+- **MarkdownEditor** - Full-featured markdown editor with live preview
+- **MarkdownDiff** - Side-by-side diff viewer
+- **Utilities** - Shared markdown processing utilities
+
+---
 
 ## Class: MarkdownViewer
 
@@ -8,7 +25,7 @@ Complete API reference for the MarkdownViewer widget.
 from vfwidgets_markdown import MarkdownViewer
 ```
 
-Main markdown viewer widget class extending `QWebEngineView`.
+Main markdown viewer widget class extending `QWebEngineView`. Display-only widget for rendering markdown with diagrams, syntax highlighting, and math equations.
 
 ### Constructor
 

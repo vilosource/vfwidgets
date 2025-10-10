@@ -1,8 +1,20 @@
-# Markdown Viewer Widget - Architecture
+# Markdown Widget Collection - Architecture
 
 ## Overview
 
-The MarkdownViewer widget is a PySide6-based markdown rendering widget that uses QWebEngineView to display markdown content rendered by JavaScript libraries. The architecture follows a layered approach with clear separation between Python (Qt) and JavaScript (rendering) layers.
+The `vfwidgets-markdown` package is a collection of markdown-related widgets for PySide6. Currently, it contains the **MarkdownViewer** widget for rendering markdown content using QWebEngineView and JavaScript libraries. The architecture is designed to support future additions like a **MarkdownEditor** widget and shared utilities.
+
+### Current Widgets
+
+- **MarkdownViewer** - Display-only markdown rendering widget (implemented)
+
+### Future Widgets (Roadmap)
+
+- **MarkdownEditor** - Full-featured markdown editor with live preview
+- **MarkdownDiff** - Side-by-side diff viewer for markdown documents
+- **MarkdownUtilities** - Shared utilities for markdown processing
+
+The architecture follows a layered approach with clear separation between Python (Qt) and JavaScript (rendering) layers.
 
 ## System Architecture
 
@@ -513,20 +525,23 @@ class MarkdownViewer(_BaseClass):
 
 ```
 src/vfwidgets_markdown/
-├── __init__.py              # Public API exports
-├── viewer.py                # MarkdownViewer class
+├── __init__.py              # Public API exports (MarkdownViewer, future: MarkdownEditor)
+├── markdown_viewer.py       # MarkdownViewer class
+├── markdown_editor.py       # (Future) MarkdownEditor class
+├── markdown_utils.py        # (Future) Shared utilities
 ├── constants.py             # Configuration constants
-├── utils.py                 # Utility functions
 ├── py.typed                 # Type hint marker
 └── resources/
-    ├── viewer.html          # HTML template
+    ├── viewer.html          # HTML template for viewer
+    ├── editor.html          # (Future) HTML template for editor
     ├── js/
     │   ├── markdown-it.min.js              (~50KB)
     │   ├── markdown-it-plugins.min.js      (~20KB)
     │   ├── mermaid.min.js                  (~200KB)
     │   ├── prism.min.js                    (~15KB)
     │   ├── katex.min.js                    (~100KB)
-    │   └── viewer.js                       (custom)
+    │   ├── viewer.js                       (viewer logic)
+    │   └── editor.js                       (Future - editor logic)
     └── css/
         ├── viewer.css                      (base styles)
         ├── github-markdown.css             (GitHub styling)
@@ -537,26 +552,60 @@ src/vfwidgets_markdown/
             └── prism-github.css
 
 tests/
-├── test_viewer.py           # MarkdownViewer tests
+├── test_markdown_viewer.py  # MarkdownViewer tests
+├── test_markdown_editor.py  # (Future) MarkdownEditor tests
 ├── test_rendering.py        # Rendering tests
 ├── test_theme.py            # Theme integration tests
 └── test_integration.py      # Integration tests
 
 examples/
-├── 01_basic_viewer.py
-├── 02_live_preview.py
-├── 03_toc_sidebar.py
-├── 04_themed_viewer.py
-├── 05_image_support.py
-└── 06_export.py
+├── basic_usage.py           # Basic viewer example
+├── advanced_features.py     # Advanced features example
+├── 01_basic_viewer.py       # (Future) Complete basic example
+├── 02_live_preview.py       # (Future) Editor with live preview
+├── 03_toc_sidebar.py        # (Future) TOC sidebar integration
+├── 04_themed_viewer.py      # (Future) Theme integration
+├── 05_image_support.py      # (Future) Image handling
+└── 06_export.py             # (Future) Export functionality
 
 docs/
-├── ARCHITECTURE.md          # This file
-├── API.md                   # API reference
-└── QUICKSTART.md            # Quick start guide
+├── ARCHITECTURE.md          # This file - collection architecture
+├── API.md                   # API reference for all widgets
+└── QUICKSTART.md            # (Future) Quick start guide
+
+wip/
+└── markdown-viewer-IMPLEMENTATION.md  # Current implementation plan
 ```
 
 ## Future Architecture Considerations
+
+### Widget Collection Expansion
+
+**MarkdownEditor Widget (Planned)**
+- CodeMirror 6 or Monaco Editor integration
+- Live preview using MarkdownViewer
+- Syntax highlighting in edit mode
+- Bidirectional scroll sync
+- Shared JavaScript libraries with viewer
+
+**MarkdownDiff Widget (Planned)**
+- Side-by-side diff display
+- Inline diff highlighting
+- Change navigation
+- Merge conflict resolution
+
+**Shared Utilities (Planned)**
+```python
+# vfwidgets_markdown.utils
+def parse_markdown(content: str) -> dict:
+    """Parse markdown and return metadata."""
+
+def extract_frontmatter(content: str) -> dict:
+    """Extract YAML frontmatter."""
+
+def sanitize_markdown(content: str) -> str:
+    """Sanitize untrusted markdown."""
+```
 
 ### Potential Enhancements
 
@@ -572,16 +621,24 @@ docs/
 - Internal implementation can change
 - JavaScript layer can be swapped
 - Theme integration optional forever
+- New widgets added without breaking existing code
 
 ## Summary
 
-The MarkdownViewer architecture provides:
+The `vfwidgets-markdown` package architecture provides:
 
-✅ Clean separation of concerns (Python ↔ JavaScript)
-✅ Extensible design (plugins, themes, custom resolution)
-✅ Performance optimized (debouncing, lazy loading)
-✅ Security conscious (sandboxing, local resources)
-✅ Well-tested (unit + integration tests)
-✅ Developer-friendly (signals, data APIs, examples)
+✅ **Modular Design** - Widget collection structure supports future expansion
+✅ **Clean Separation** - Python ↔ JavaScript layers well-defined
+✅ **Extensible** - Plugins, themes, custom resolution hooks
+✅ **Performance** - Debouncing, lazy loading, caching
+✅ **Security** - Sandboxing, local resources, configurable policies
+✅ **Well-Tested** - Unit + integration tests
+✅ **Developer-Friendly** - Signals, data APIs, rich examples
 
-The architecture supports the widget's core goal: **Display markdown beautifully while providing hooks for rich applications.**
+### Current Status
+
+- **MarkdownViewer**: Architecture complete, implementation in progress
+- **MarkdownEditor**: Architecture planned, implementation future
+- **Shared Utilities**: Architecture planned, implementation future
+
+The architecture supports the collection's core goal: **Provide comprehensive markdown tooling for PySide6 applications while maintaining clean, composable widgets.**
