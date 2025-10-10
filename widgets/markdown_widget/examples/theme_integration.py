@@ -42,11 +42,11 @@ class ThemeDemo(QWidget):
 
         # Create button panel
         button_panel = self._create_button_panel()
-        layout.addWidget(button_panel)
+        layout.addWidget(button_panel, stretch=0)  # No stretch - shrink to content
 
         # Create markdown viewer
         self.viewer = MarkdownViewer()
-        layout.addWidget(self.viewer)
+        layout.addWidget(self.viewer, stretch=1)  # Take remaining space
 
         # Load initial content when ready
         self.viewer.viewer_ready.connect(self._on_viewer_ready)
@@ -197,7 +197,7 @@ def main():
     # Create application with theme support if available
     if THEME_AVAILABLE:
         app = ThemedApplication(sys.argv)
-        app.set_theme("github-light")  # Start with light theme
+        app.set_theme("Light Default")  # Start with light theme
     else:
         app = QApplication(sys.argv)
 
