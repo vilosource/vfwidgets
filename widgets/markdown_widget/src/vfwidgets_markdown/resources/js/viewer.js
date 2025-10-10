@@ -131,6 +131,12 @@ const MarkdownViewer = {
             console.log('[MarkdownViewer] Loaded container plugin');
         }
 
+        // Math rendering with KaTeX
+        if (typeof markdownitKatex !== 'undefined' && typeof katex !== 'undefined') {
+            this.md.use(markdownitKatex);
+            console.log('[MarkdownViewer] Loaded KaTeX plugin');
+        }
+
         // Override validateLink to allow data: URIs for images
         // By default, markdown-it blocks data: URIs for security
         const defaultValidateLink = this.md.validateLink.bind(this.md);
@@ -215,7 +221,6 @@ const MarkdownViewer = {
 
             // Post-process for special features (Mermaid must be awaited)
             await this.processMermaid();
-            this.processKaTeX();
             this.highlightCode();
             this.addHeadingIds();
 
@@ -270,51 +275,6 @@ const MarkdownViewer = {
                 block.parentElement.replaceWith(errorDiv);
             }
         }
-    },
-
-    /**
-     * Process KaTeX math equations
-     */
-    processKaTeX() {
-        if (typeof katex === 'undefined') return;
-
-        // Process inline math: $...$
-        const content = document.getElementById('content');
-        const mathInline = content.querySelectorAll('code');
-
-        mathInline.forEach(code => {
-            const text = code.textContent;
-            if (text.startsWith('$') && text.endsWith('$') && text.length > 2) {
-                try {
-                    const mathText = text.slice(1, -1);
-                    const span = document.createElement('span');
-                    katex.render(mathText, span, { displayMode: false });
-                    code.replaceWith(span);
-                } catch (e) {
-                    console.warn('KaTeX inline failed:', e);
-                }
-            }
-        });
-
-        // Process block math: $$...$$
-        const mathBlocks = content.querySelectorAll('pre code');
-        mathBlocks.forEach(code => {
-            const text = code.textContent.trim();
-            if (text.startsWith('$$') && text.endsWith('$$')) {
-                try {
-                    const mathText = text.slice(2, -2).trim();
-                    const div = document.createElement('div');
-                    div.style.textAlign = 'center';
-                    div.style.margin = '20px 0';
-                    katex.render(mathText, div, { displayMode: true });
-                    code.parentElement.replaceWith(div);
-                } catch (e) {
-                    console.warn('KaTeX block failed:', e);
-                }
-            }
-        });
-
-        console.log('[MarkdownViewer] KaTeX processing complete');
     },
 
     /**
