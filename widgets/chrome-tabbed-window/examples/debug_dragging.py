@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
 Debug window dragging with comprehensive logging.
+
+This example demonstrates how ChromeTabbedWindow delegates window dragging
+and resizing to FramelessWindowBehavior. All drag/resize logic is now handled
+by the shared behavior class from vfwidgets-common.
 """
 
 import sys
@@ -65,29 +69,14 @@ class DebugTabBar(ChromeTabBar):
 
 
 class DebugWindow(ChromeTabbedWindow):
-    """Window with debug logging."""
+    """Window with debug logging.
+
+    Note: This is a simplified debug window that just adds logging to mouse events.
+    It doesn't replace the tab bar, which would require deep internal changes.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        # Replace tab bar with debug version
-        old_bar = self._tab_bar
-        self._tab_bar = DebugTabBar(self)
-        self._tab_bar.set_model(self._model)
-
-        # Copy settings
-        self._tab_bar.setTabsClosable(old_bar.tabsClosable())
-
-        # Reconnect signals
-        self._tab_bar.currentChanged.connect(self._on_current_changed)
-        self._tab_bar.tabMoved.connect(self._on_tab_moved)
-        self._tab_bar.tabBarClicked.connect(self._on_tab_bar_clicked)
-        self._tab_bar.tabBarDoubleClicked.connect(self._on_tab_bar_double_clicked)
-        self._tab_bar.tabCloseClicked.connect(self._on_tab_close_requested)
-        self._tab_bar.newTabRequested.connect(self._on_new_tab_requested)
-
-        # Replace in layout
-        self._main_layout.replaceWidget(old_bar, self._tab_bar)
-        old_bar.deleteLater()
 
     def mousePressEvent(self, event) -> None:
         print("\n[WINDOW] mousePressEvent:")
@@ -98,17 +87,6 @@ class DebugWindow(ChromeTabbedWindow):
 
         if self._window_mode == 1:  # Frameless
             if event.button() == Qt.MouseButton.LeftButton:
-                # Check for edge resize
-                edges = self._get_resize_edge(event.pos())
-                print(f"  Edges detected: {edges}")
-
-                if edges:
-                    print("  -> Starting resize")
-                    self._resize_edge = edges
-                    self._start_system_resize(edges)
-                    event.accept()
-                    return
-
                 # Check if in tab bar area
                 tab_bar_rect = self._tab_bar.rect()
                 tab_bar_pos = self._tab_bar.mapTo(self, tab_bar_rect.topLeft())
@@ -124,32 +102,21 @@ class DebugWindow(ChromeTabbedWindow):
                     print(f"  Tab at local pos {local_pos}: {tab_index}")
 
                     if tab_index == -1:
-                        print("  -> EMPTY TAB BAR - Setting drag position!")
-                        self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
-                        print(f"  -> Drag position set to: {self._drag_pos}")
-                        event.accept()
-                        return
+                        print("  -> EMPTY TAB BAR - Will be handled by FramelessWindowBehavior")
                     else:
                         print(f"  -> Click on tab {tab_index} - not dragging window")
 
-        print("  -> Calling super().mousePressEvent()")
+        # Delegate to FramelessWindowBehavior (via parent implementation)
+        print("  -> Calling super().mousePressEvent() (delegates to FramelessWindowBehavior)")
         super().mousePressEvent(event)
+        print("  -> Returned from super().mousePressEvent()")
 
     def mouseMoveEvent(self, event) -> None:
-        if hasattr(self, '_drag_pos'):
-            new_pos = event.globalPos() - self._drag_pos
-            print(f"[WINDOW] mouseMoveEvent: DRAGGING to {new_pos}")
-            self.move(new_pos)
-            event.accept()
-            return
-
-        # Don't log every move event - too noisy
+        # Don't log every move event - too noisy, just delegate
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event) -> None:
-        if hasattr(self, '_drag_pos'):
-            print("[WINDOW] mouseReleaseEvent: Stopping drag")
-            del self._drag_pos
+        print("[WINDOW] mouseReleaseEvent: Delegating to FramelessWindowBehavior")
         super().mouseReleaseEvent(event)
 
 
