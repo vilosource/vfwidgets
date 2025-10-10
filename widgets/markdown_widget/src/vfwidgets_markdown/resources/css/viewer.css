@@ -270,7 +270,9 @@
     border-left: 2px solid var(--md-border);
 }
 
-/* Inserted text */
+/* Text formatting plugins */
+
+/* Inserted text (++text++) */
 #content ins {
     text-decoration: none;
     border-bottom: 2px solid #28a745;
@@ -308,4 +310,81 @@
 #content abbr[title] {
     border-bottom: 1px dotted var(--md-border);
     cursor: help;
+}
+
+/* Task lists (checkboxes) */
+#content .task-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#content .task-list-item {
+    position: relative;
+    padding-left: 1.75em;
+}
+
+#content .task-list-item input[type="checkbox"] {
+    position: absolute;
+    left: 0;
+    top: 0.25em;
+    margin: 0;
+    cursor: pointer;
+}
+
+#content .task-list-item.checked {
+    opacity: 0.7;
+}
+
+/* Custom containers */
+#content .warning,
+#content .info,
+#content .danger,
+#content .tip,
+#content .note {
+    padding: 16px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    border-radius: 4px;
+    background-color: var(--md-code-bg);
+}
+
+#content .warning {
+    border-left-color: #ff9800;
+}
+
+#content .info {
+    border-left-color: #2196f3;
+}
+
+#content .danger {
+    border-left-color: #f44336;
+}
+
+#content .tip {
+    border-left-color: #4caf50;
+}
+
+#content .note {
+    border-left-color: #9e9e9e;
+}
+
+/* Dark theme adjustments for containers */
+[data-theme="dark"] #content .warning {
+    background-color: rgba(255, 152, 0, 0.1);
+}
+
+[data-theme="dark"] #content .info {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+[data-theme="dark"] #content .danger {
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+[data-theme="dark"] #content .tip {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+[data-theme="dark"] #content .note {
+    background-color: rgba(158, 158, 158, 0.1);
 }

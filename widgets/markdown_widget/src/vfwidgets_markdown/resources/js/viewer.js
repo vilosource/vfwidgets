@@ -57,17 +57,78 @@ const MarkdownViewer = {
         });
 
         // Load markdown-it plugins for extended syntax
+        // Note: Order matters for some plugins
+
+        // Anchor plugin (must be loaded first for TOC)
+        if (typeof markdownItAnchor !== 'undefined') {
+            this.md.use(markdownItAnchor.default || markdownItAnchor, {
+                permalink: false,
+                level: [1, 2, 3, 4, 5, 6]
+            });
+            console.log('[MarkdownViewer] Loaded anchor plugin');
+        }
+
+        // Footnotes
         if (typeof markdownitFootnote !== 'undefined') {
             this.md.use(markdownitFootnote);
             console.log('[MarkdownViewer] Loaded footnote plugin');
         }
+
+        // Abbreviations
         if (typeof markdownitAbbr !== 'undefined') {
             this.md.use(markdownitAbbr);
             console.log('[MarkdownViewer] Loaded abbreviation plugin');
         }
+
+        // Definition lists
         if (typeof markdownitDeflist !== 'undefined') {
             this.md.use(markdownitDeflist);
             console.log('[MarkdownViewer] Loaded definition list plugin');
+        }
+
+        // Text formatting
+        if (typeof markdownitMark !== 'undefined') {
+            this.md.use(markdownitMark);
+            console.log('[MarkdownViewer] Loaded mark (highlight) plugin');
+        }
+        if (typeof markdownitSub !== 'undefined') {
+            this.md.use(markdownitSub);
+            console.log('[MarkdownViewer] Loaded subscript plugin');
+        }
+        if (typeof markdownitSup !== 'undefined') {
+            this.md.use(markdownitSup);
+            console.log('[MarkdownViewer] Loaded superscript plugin');
+        }
+        if (typeof markdownitIns !== 'undefined') {
+            this.md.use(markdownitIns);
+            console.log('[MarkdownViewer] Loaded insert plugin');
+        }
+
+        // Emoji
+        if (typeof markdownitEmoji !== 'undefined') {
+            this.md.use(markdownitEmoji);
+            console.log('[MarkdownViewer] Loaded emoji plugin');
+        }
+
+        // Task lists
+        if (typeof markdownitTaskLists !== 'undefined') {
+            this.md.use(markdownitTaskLists, {
+                enabled: true,
+                label: true,
+                labelAfter: true
+            });
+            console.log('[MarkdownViewer] Loaded task lists plugin');
+        }
+
+        // Custom containers (warning, info, danger, etc.)
+        if (typeof markdownitContainer !== 'undefined') {
+            // Define common container types
+            this.md.use(markdownitContainer, 'warning');
+            this.md.use(markdownitContainer, 'info');
+            this.md.use(markdownitContainer, 'danger');
+            this.md.use(markdownitContainer, 'tip');
+            this.md.use(markdownitContainer, 'note');
+            console.log('[MarkdownViewer] Loaded container plugin');
         }
 
         // Override validateLink to allow data: URIs for images
@@ -336,6 +397,16 @@ const MarkdownViewer = {
             // This is handled by the application calling render() again if needed
             console.log(`[MarkdownViewer] Mermaid theme updated to: ${theme === 'dark' ? 'dark' : 'default'}`);
         }
+    },
+
+    /**
+     * Set syntax theme independently of main theme
+     * @param {string} theme - Prism theme name (e.g., 'prism', 'prism-vscode-dark')
+     */
+    setSyntaxTheme(theme) {
+        console.log(`[MarkdownViewer] Setting syntax theme: ${theme}`);
+        const prismTheme = document.getElementById('prism-theme');
+        prismTheme.href = `css/prism-themes/${theme}.css`;
     },
 
     /**

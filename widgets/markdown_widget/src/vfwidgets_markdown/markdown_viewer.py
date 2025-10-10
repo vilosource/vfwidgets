@@ -256,6 +256,17 @@ class MarkdownViewer(QWebEngineView):
         self.page().runJavaScript(js_code)
         print(f"[MarkdownViewer] Theme set to: {theme}")
 
+    def set_syntax_theme(self, theme: str) -> None:
+        """Set syntax highlighting theme independently of main theme.
+
+        Args:
+            theme: Prism theme name (e.g., 'prism', 'prism-vscode-dark')
+        """
+        escaped_theme = json.dumps(theme)
+        js_code = f"window.MarkdownViewer.setSyntaxTheme({escaped_theme});"
+        self.page().runJavaScript(js_code)
+        print(f"[MarkdownViewer] Syntax theme set to: {theme}")
+
     def is_ready(self) -> bool:
         """Check if viewer is ready to render.
 
