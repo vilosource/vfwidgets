@@ -12,6 +12,7 @@ from typing import Any, Optional
 from PySide6.QtCore import Property, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPainter, QPaintEvent
 from PySide6.QtWidgets import QHBoxLayout, QTabBar, QTabWidget, QVBoxLayout, QWidget
+from vfwidgets_common import FramelessWindowBehavior
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
@@ -102,7 +103,9 @@ class ChromeTabbedWindow(_BaseClass):
 
     newWindowRequested = Signal()  # Emitted when user requests a new window
     tabDetachRequested = Signal(int)  # Emitted when user wants to detach tab to new window
-    tabMoveToWindowRequested = Signal(int, object)  # Emitted when user wants to move tab to existing window
+    tabMoveToWindowRequested = Signal(
+        int, object
+    )  # Emitted when user wants to move tab to existing window
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """
@@ -138,9 +141,8 @@ class ChromeTabbedWindow(_BaseClass):
         # Window mode detection
         self._window_mode = self._detect_window_mode()
 
-        # Edge resizing state for frameless windows
-        self._resize_edge = None
-        self.RESIZE_MARGIN = 4  # Pixels from edge to trigger resize
+        # Frameless window behavior (initialized after _setup_ui creates tab_bar)
+        self._frameless_behavior: Optional[FramelessWindowBehavior] = None
 
         # Enable mouse tracking for edge resize cursor changes
         self.setMouseTracking(True)
@@ -149,6 +151,10 @@ class ChromeTabbedWindow(_BaseClass):
         self._setup_ui()
         self._connect_signals()
         self._apply_platform_setup()
+
+        # Initialize frameless behavior after UI is set up
+        if self._window_mode == WindowMode.Frameless:
+            self._initialize_frameless_behavior()
 
         # Register Qt properties dynamically to maintain QTabWidget compatibility
         # This allows both self.property('count') and self.count() to work
@@ -180,7 +186,8 @@ class ChromeTabbedWindow(_BaseClass):
         main_layout = QVBoxLayout(self)
         # Add small margins in frameless mode to ensure edge resize detection works
         # Child widgets won't consume mouse events in this margin area
-        margin = self.RESIZE_MARGIN if self._window_mode == WindowMode.Frameless else 0
+        # Using 4px to match the resize_margin in FramelessWindowBehavior
+        margin = 4 if self._window_mode == WindowMode.Frameless else 0
         main_layout.setContentsMargins(margin, margin, margin, margin)
         main_layout.setSpacing(0)
 
@@ -191,10 +198,6 @@ class ChromeTabbedWindow(_BaseClass):
 
         # Add tab bar to layout with stretch to fill available space
         tab_bar_layout.addWidget(self._tab_bar, 1)  # stretch factor = 1
-
-        # Install event filter for frameless window dragging
-        if self._window_mode == WindowMode.Frameless:
-            self._tab_bar.installEventFilter(self)
 
         # Add window controls if in frameless mode
         if self._window_mode == WindowMode.Frameless:
@@ -297,6 +300,48 @@ class ChromeTabbedWindow(_BaseClass):
         # Set a minimum size for the window
         self.setMinimumSize(400, 300)
 
+    def _initialize_frameless_behavior(self) -> None:
+        """Initialize frameless window behavior after tab_bar is created."""
+        if self._window_mode != WindowMode.Frameless or not self._tab_bar:
+            return
+
+        # Create callback to determine if position is draggable (empty tab bar area)
+        def is_draggable_area(widget: QWidget, pos) -> bool:
+            """Check if position is in draggable area of tab bar."""
+            # Map position to tab bar coordinates
+            tab_bar_rect = self._tab_bar.rect()
+            tab_bar_pos = self._tab_bar.mapTo(self, tab_bar_rect.topLeft())
+            tab_bar_global_rect = QRect(tab_bar_pos, tab_bar_rect.size())
+
+            if tab_bar_global_rect.contains(pos):
+                # Check if click is on a tab or empty area
+                local_pos = self._tab_bar.mapFrom(self, pos)
+                tab_index = self._tab_bar.tabAt(local_pos)
+
+                # Validate that tab_index is truly valid
+                is_valid_tab = tab_index >= 0 and tab_index < self._tab_bar.count()
+
+                # Empty area or invalid index = draggable
+                # Also check new tab button
+                if not is_valid_tab:
+                    # Return False if on new tab button, True otherwise (empty area is draggable)
+                    return not (
+                        hasattr(self._tab_bar, "new_tab_button_rect")
+                        and self._tab_bar.new_tab_button_rect.contains(local_pos)
+                    )
+
+            return False
+
+        # Create frameless behavior with custom draggable area detection
+        self._frameless_behavior = FramelessWindowBehavior(
+            draggable_widget=None,  # Use custom callback instead
+            resize_margin=4,
+            enable_resize=True,
+            enable_drag=True,
+            enable_double_click_maximize=True,
+            is_draggable_area=is_draggable_area,
+        )
+
     def _connect_window_controls(self) -> None:
         """Connect window control buttons to window actions."""
         if not self._window_controls:
@@ -323,146 +368,34 @@ class ChromeTabbedWindow(_BaseClass):
         self._window_controls.close_clicked.connect(window.close)
 
     def mousePressEvent(self, event) -> None:
-        """Handle mouse press for window dragging and edge resizing in frameless mode."""
-        if self._window_mode == WindowMode.Frameless:
-            if event.button() == Qt.MouseButton.LeftButton:
-                # Check for edge resize first
-                edges = self._get_resize_edge(event.pos())
-                if edges:
-                    self._resize_edge = edges
-                    self._start_system_resize(edges)
-                    event.accept()
-                    return
-
-                # Check if click is in draggable area (tab bar area, not on a tab)
-                tab_bar_rect = self._tab_bar.rect()
-                tab_bar_pos = self._tab_bar.mapTo(self, tab_bar_rect.topLeft())
-                tab_bar_global_rect = QRect(tab_bar_pos, tab_bar_rect.size())
-
-                if tab_bar_global_rect.contains(event.pos()):
-                    # Check if click is on a tab or empty area
-                    local_pos = self._tab_bar.mapFrom(self, event.pos())
-                    tab_index = self._tab_bar.tabAt(local_pos)
-
-                    if tab_index == -1:  # Clicked on empty area
-                        self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
-                        event.accept()
-                        return
-
+        """Handle mouse press for window dragging and resizing."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_press(self, event):
+                return
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event) -> None:
-        """Handle mouse move for window dragging and edge resizing in frameless mode."""
-        if self._window_mode == WindowMode.Frameless:
-            # Handle window dragging
-            if event.buttons() == Qt.MouseButton.LeftButton and hasattr(self, "_drag_pos"):
-                self.move(event.globalPos() - self._drag_pos)
-                event.accept()
+        """Handle mouse move for window dragging and resize cursor updates."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_move(self, event):
                 return
-
-            # Handle resize cursor changes when not dragging
-            if not event.buttons():
-                edges = self._get_resize_edge(event.pos())
-
-                if edges:
-                    # Set appropriate cursor based on edges
-                    if ("left" in edges and "top" in edges) or (
-                        "right" in edges and "bottom" in edges
-                    ):
-                        self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-                    elif ("right" in edges and "top" in edges) or (
-                        "left" in edges and "bottom" in edges
-                    ):
-                        self.setCursor(Qt.CursorShape.SizeBDiagCursor)
-                    elif "left" in edges or "right" in edges:
-                        self.setCursor(Qt.CursorShape.SizeHorCursor)
-                    elif "top" in edges or "bottom" in edges:
-                        self.setCursor(Qt.CursorShape.SizeVerCursor)
-                else:
-                    self.setCursor(Qt.CursorShape.ArrowCursor)
-
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event) -> None:
-        """Handle mouse release to stop window dragging and resizing."""
-        if hasattr(self, "_drag_pos"):
-            del self._drag_pos
-
-        # Reset resize edge
-        self._resize_edge = None
-
+        """Handle mouse release to clear drag state."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_release(self, event):
+                return
         super().mouseReleaseEvent(event)
 
-    def eventFilter(self, obj, event) -> bool:
-        """
-        Event filter to intercept tab bar events for window dragging.
+    def mouseDoubleClickEvent(self, event) -> None:
+        """Handle double-click for maximize/restore."""
+        if self._window_mode == WindowMode.Frameless and self._frameless_behavior:
+            if self._frameless_behavior.handle_double_click(self, event):
+                return
+        super().mouseDoubleClickEvent(event)
 
-        This is necessary because the tab bar is in a layout, not a direct child,
-        so event.ignore() doesn't propagate to the window properly.
-        """
-        if obj == self._tab_bar and self._window_mode == WindowMode.Frameless:
-            if event.type() == event.Type.MouseButtonPress:
-                if event.button() == Qt.MouseButton.LeftButton:
-                    # Check if click is on empty tab bar area
-                    tab_index = self._tab_bar.tabAt(event.pos())
-
-                    # CRITICAL: Validate that tab_index is truly valid
-                    # Qt's tabAt() can return stale indices after tab removal
-                    is_valid_tab = tab_index >= 0 and tab_index < self._tab_bar.count()
-
-                    # IMPORTANT: Only intercept clicks on empty areas or invalid indices
-                    # Let all clicks on actual valid tabs pass through to the tab bar for close buttons
-                    if not is_valid_tab:
-                        # Check if click is on new tab button - if so, let it pass through
-                        if self._tab_bar.new_tab_button_rect.contains(event.pos()):
-                            return False  # Let new tab button handle it
-
-                        # Empty tab bar area - start window drag using native system move
-                        # Try Qt's native window dragging (Qt 5.15+)
-                        if hasattr(self.windowHandle(), "startSystemMove"):
-                            self.windowHandle().startSystemMove()
-                            return True
-
-                        # Fallback to manual dragging
-                        global_pos = self._tab_bar.mapToGlobal(event.pos())
-                        frame_top_left = self.frameGeometry().topLeft()
-                        self._drag_pos = global_pos - frame_top_left
-                        return True  # Event handled, don't pass to tab bar
-                    else:
-                        return False  # Let tab bar handle the click (for close buttons, etc.)
-
-            elif event.type() == event.Type.MouseMove:
-                if hasattr(self, "_drag_pos") and event.buttons() == Qt.MouseButton.LeftButton:
-                    # Manual dragging fallback
-                    global_pos = self._tab_bar.mapToGlobal(event.pos())
-                    new_pos = global_pos - self._drag_pos
-                    self.move(new_pos)
-                    return True  # Event handled
-
-            elif event.type() == event.Type.MouseButtonRelease:
-                if hasattr(self, "_drag_pos"):
-                    del self._drag_pos
-                    return True  # Event handled
-
-            elif event.type() == event.Type.MouseButtonDblClick:
-                if event.button() == Qt.MouseButton.LeftButton:
-                    # Check if double-click is on empty tab bar area
-                    tab_index = self._tab_bar.tabAt(event.pos())
-                    is_valid_tab = tab_index >= 0 and tab_index < self._tab_bar.count()
-
-                    if not is_valid_tab:
-                        # Check if click is on new tab button - if so, ignore
-                        if self._tab_bar.new_tab_button_rect.contains(event.pos()):
-                            return False
-
-                        # Double-click on empty area - toggle maximize
-                        if self.isMaximized():
-                            self.showNormal()
-                        else:
-                            self.showMaximized()
-                        return True  # Event handled
-
-        return False  # Let the event continue to the tab bar
+    # Note: eventFilter removed - window dragging now handled by FramelessWindowBehavior
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """
@@ -476,8 +409,8 @@ class ChromeTabbedWindow(_BaseClass):
         if self._window_mode == WindowMode.Frameless:
             # Get theme colors for window background and border
             try:
-                from vfwidgets_theme.core.tokens import ColorTokenRegistry
                 from vfwidgets_theme.core.manager import ThemeManager
+                from vfwidgets_theme.core.tokens import ColorTokenRegistry
 
                 theme_mgr = ThemeManager.get_instance()
                 current_theme = theme_mgr.current_theme
@@ -500,54 +433,8 @@ class ChromeTabbedWindow(_BaseClass):
         # Call parent paintEvent
         super().paintEvent(event)
 
-    def _get_resize_edge(self, pos):
-        """Detect which edge/corner mouse is over for resizing."""
-        if self._window_mode != WindowMode.Frameless:
-            return None
-
-        rect = self.rect()
-        margin = self.RESIZE_MARGIN
-
-        edges = []
-        if pos.x() < margin:
-            edges.append("left")
-        elif pos.x() > rect.width() - margin:
-            edges.append("right")
-
-        if pos.y() < margin:
-            edges.append("top")
-        elif pos.y() > rect.height() - margin:
-            edges.append("bottom")
-
-        return edges if edges else None
-
-    def _start_system_resize(self, edges):
-        """Start system resize operation if supported."""
-        # Try Qt 6.5+ method first
-        if hasattr(self.windowHandle(), "startSystemResize"):
-            # Map edges to Qt edge constants
-            edge_map = {
-                ("left",): Qt.Edge.LeftEdge,
-                ("right",): Qt.Edge.RightEdge,
-                ("top",): Qt.Edge.TopEdge,
-                ("bottom",): Qt.Edge.BottomEdge,
-                ("left", "top"): Qt.Edge.LeftEdge | Qt.Edge.TopEdge,
-                ("right", "top"): Qt.Edge.RightEdge | Qt.Edge.TopEdge,
-                ("left", "bottom"): Qt.Edge.LeftEdge | Qt.Edge.BottomEdge,
-                ("right", "bottom"): Qt.Edge.RightEdge | Qt.Edge.BottomEdge,
-            }
-
-            qt_edge = edge_map.get(tuple(edges))
-            if qt_edge:
-                try:
-                    self.windowHandle().startSystemResize(qt_edge)
-                    return True
-                except:
-                    pass  # Fall back to manual resize
-
-        # Manual resize fallback for older Qt versions
-        # This would need platform-specific implementation
-        return False
+    # Note: _get_resize_edge and _start_system_resize removed
+    # Edge detection and resizing now handled by FramelessWindowBehavior
 
     def _apply_platform_setup(self) -> None:
         """Apply platform-specific setup."""
