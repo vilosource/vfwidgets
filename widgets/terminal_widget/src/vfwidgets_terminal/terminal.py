@@ -8,8 +8,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Optional
 
-from PySide6.QtCore import QEvent, QObject, QPoint, QThread, QUrl, Signal, Slot
-from PySide6.QtGui import QAction, QContextMenuEvent
+from PySide6.QtCore import QEvent, QObject, QPoint, QThread, QUrl, Signal, Slot, Qt
+from PySide6.QtGui import QAction, QContextMenuEvent, QMouseEvent
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QMenu, QVBoxLayout, QWidget
@@ -111,14 +111,34 @@ def _emit_deprecation_warning(old_signal_name: str, new_signal_name: str):
 
 
 class DebugWebEngineView(QWebEngineView):
-    """Enhanced QWebEngineView that captures context menu events."""
+    """Enhanced QWebEngineView that captures context menu and mouse events."""
 
-    # Signal to notify parent of right-click events
+    # Signals to notify parent of mouse events
     right_clicked = Signal(QPoint)
+    middle_clicked = Signal(QPoint)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.debug_enabled = False
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Intercept mouse press events to detect middle-click.
+
+        Note: This must be called BEFORE the event reaches QWebEngineView's
+        internal widgets. We emit the signal and then let the event propagate.
+        """
+        if event.button() == Qt.MouseButton.MiddleButton:
+            logger.info(
+                f"🖱️  WEBVIEW: Middle-click detected at ({event.pos().x()}, {event.pos().y()})"
+            )
+            # Emit signal to parent (non-blocking)
+            self.middle_clicked.emit(event.pos())
+            # Accept the event to prevent scrolling behavior
+            event.accept()
+            return
+
+        # Let other mouse buttons be handled normally
+        super().mousePressEvent(event)
 
     def contextMenuEvent(self, event: QContextMenuEvent) -> None:
         """Intercept context menu events and forward to parent."""
@@ -230,6 +250,22 @@ class TerminalBridge(QObject):
         """
         logger.info(f"Shortcut pressed from JS: {action_id}")
         self.shortcut_pressed.emit(action_id)
+
+    @Slot(int, int)
+    def on_middle_click(self, x: int, y: int) -> None:
+        """Handle middle-click from JavaScript for paste operation.
+
+        Args:
+            x: X coordinate of click
+            y: Y coordinate of click
+        """
+        logger.info(f"🖱️  Middle-click received from JavaScript at ({x}, {y})")
+        # Get parent TerminalWidget and trigger paste
+        parent_widget = self.parent()
+        if parent_widget and hasattr(parent_widget, "_paste_from_clipboard"):
+            parent_widget._paste_from_clipboard()
+        else:
+            logger.warning("Cannot trigger middle-click paste - parent widget not available")
 
     @Slot(str, result=str)
     def execute_command(self, command: str) -> str:
@@ -469,6 +505,10 @@ class TerminalWidget(_BaseTerminalClass):
         self.custom_context_menu_handler = None
         self.custom_context_actions = []
 
+        # Copy-paste configuration (X11-style behavior)
+        self.auto_copy_on_selection = True  # Auto-copy selected text to clipboard
+        self.middle_click_paste_enabled = True  # Paste on middle-click
+
         # Terminal theme storage
         self._current_terminal_theme: Optional[dict] = None
 
@@ -547,6 +587,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.contextMenuRequested.connect(
             lambda event: self.context_menu_requested.emit(event.position, event.selected_text)
         )
+
+        # Connect auto-copy handler
+        self.selectionChanged.connect(self._handle_selection_for_auto_copy)
 
     # Phase 4: Intuitive Developer API Helper Methods
 
@@ -650,6 +693,9 @@ class TerminalWidget(_BaseTerminalClass):
                 f"🖱️  RIGHT-CLICK: Detected via QWebEngineView at ({pos.x()}, {pos.y()})"
             )
         )
+
+        # Connect middle-click signal for paste
+        self.web_view.middle_clicked.connect(self._handle_middle_click)
 
         # Connect page load signals
         self.web_view.loadFinished.connect(self._on_load_finished)
@@ -860,15 +906,61 @@ class TerminalWidget(_BaseTerminalClass):
         """Paste text from system clipboard to terminal."""
         clipboard = QApplication.clipboard()
         text = clipboard.text()
-        if text and self.server:
+
+        if not text:
+            logger.info("📥 Paste attempted but clipboard is empty")
+            return
+
+        # Try embedded server first (if available)
+        if self.server:
             self.server.send_input(text)
             logger.info(
                 f"📥 Pasted {len(text)} characters from clipboard: '{text[:30]}{'...' if len(text) > 30 else ''}'"
             )
-        elif not text:
-            logger.info("📥 Paste attempted but clipboard is empty")
+        # Otherwise, send via JavaScript to xterm.js (works with external/multi-session server)
+        elif self.web_view and self.is_connected:
+            # Use JSON encoding to safely pass text to JavaScript
+            import json
+            text_json = json.dumps(text)
+            js_code = f'''
+            if (typeof socket !== 'undefined' && socket.emit) {{
+                // Build payload with session_id if available (for multi-session server)
+                const payload = {{ input: {text_json} }};
+                if (typeof sessionId !== 'undefined' && sessionId) {{
+                    payload.session_id = sessionId;
+                }}
+                socket.emit('pty-input', payload);
+                console.log('Pasted text via socket:', {text_json});
+            }} else {{
+                console.error('Socket not available for paste');
+            }}
+            '''
+            self.web_view.page().runJavaScript(js_code)
+            logger.info(
+                f"📥 Pasted {len(text)} characters from clipboard via JavaScript: '{text[:30]}{'...' if len(text) > 30 else ''}'"
+            )
         else:
-            logger.warning("📥 Paste failed - terminal server not available")
+            logger.warning("📥 Paste failed - no server or connection available")
+
+    def _handle_selection_for_auto_copy(self, text: str) -> None:
+        """Handle text selection - auto-copy to clipboard if enabled.
+
+        Args:
+            text: Selected text from terminal
+        """
+        if self.auto_copy_on_selection and text:
+            self._copy_to_clipboard(text)
+            logger.debug(f"✂️  Auto-copied {len(text)} characters on selection")
+
+    def _handle_middle_click(self, pos: QPoint) -> None:
+        """Handle middle mouse button click - paste clipboard content if enabled.
+
+        Args:
+            pos: Position of the middle-click (not used, but provided by signal)
+        """
+        if self.middle_click_paste_enabled:
+            self._paste_from_clipboard()
+            logger.debug(f"🖱️  Middle-click paste at ({pos.x()}, {pos.y()})")
 
     # Phase 4: Context menu customization API for developers
 
@@ -904,6 +996,37 @@ class TerminalWidget(_BaseTerminalClass):
         """Clear all custom context menu actions."""
         self.custom_context_actions.clear()
         logger.debug("Cleared all custom context menu actions")
+
+    def set_auto_copy_on_selection(self, enabled: bool) -> None:
+        """Enable or disable automatic copying of selected text to clipboard.
+
+        When enabled, any text selected in the terminal will be automatically
+        copied to the system clipboard, similar to X11 PRIMARY selection behavior.
+
+        Args:
+            enabled: True to enable auto-copy, False to disable
+
+        Example:
+            terminal.set_auto_copy_on_selection(True)  # Auto-copy selected text
+        """
+        self.auto_copy_on_selection = enabled
+        logger.info(f"Auto-copy on selection: {'enabled' if enabled else 'disabled'}")
+
+    def set_middle_click_paste(self, enabled: bool) -> None:
+        """Enable or disable paste on middle mouse button click.
+
+        When enabled, clicking the middle mouse button will paste clipboard content
+        at the cursor position, similar to X11 behavior.
+
+        Args:
+            enabled: True to enable middle-click paste, False to disable
+
+        Example:
+            terminal.set_middle_click_paste(True)  # Enable middle-click paste
+            terminal.set_middle_click_paste(False)  # Disable middle-click paste
+        """
+        self.middle_click_paste_enabled = enabled
+        logger.info(f"Middle-click paste: {'enabled' if enabled else 'disabled'}")
 
     def _setup_web_channel_bridge(self) -> None:
         """Set up QWebChannel bridge for JavaScript communication.

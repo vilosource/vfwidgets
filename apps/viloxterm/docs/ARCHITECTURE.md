@@ -88,7 +88,7 @@ class ViloxTermApp(ChromeTabbedWindow):
 **Role**: Dynamic split panes within each tab
 
 **Key Features**:
-- Runtime horizontal/vertical splitting (Ctrl+Shift+H/V)
+- Runtime horizontal/vertical splitting (Ctrl+Shift+\/-)
 - Focus management between panes
 - WidgetProvider pattern for lazy widget creation
 - Pane removal (Ctrl+W)
@@ -192,18 +192,18 @@ def select_theme(self, theme_name: str):
 ```python
 self.keybinding_manager.register_actions([
     ActionDefinition(
-        id="pane.split_vertical",
-        description="Split Vertical",
-        default_shortcut="Ctrl+Shift+V",
-        category="Pane",
-        callback=self._on_split_vertical
-    ),
-    ActionDefinition(
         id="pane.split_horizontal",
         description="Split Horizontal",
-        default_shortcut="Ctrl+Shift+H",
+        default_shortcut="Ctrl+Shift+\\",
         category="Pane",
         callback=self._on_split_horizontal
+    ),
+    ActionDefinition(
+        id="pane.split_vertical",
+        description="Split Vertical",
+        default_shortcut="Ctrl+Shift+-",
+        category="Pane",
+        callback=self._on_split_vertical
     ),
     ActionDefinition(
         id="pane.close",
@@ -239,8 +239,8 @@ self.menu_button = MenuButton(
 Users can edit `~/.config/viloxterm/keybindings.json`:
 ```json
 {
-  "pane.split_vertical": "Ctrl+Alt+V",
-  "pane.split_horizontal": "Ctrl+Alt+H",
+  "pane.split_horizontal": "Ctrl+Alt+\\",
+  "pane.split_vertical": "Ctrl+Alt+-",
   "pane.close": "Ctrl+Q",
   "tab.close": "Ctrl+Shift+Q"
 }
@@ -292,7 +292,7 @@ Users can edit `~/.config/viloxterm/keybindings.json`:
 
 ### Split Pane Flow
 
-1. User presses Ctrl+Shift+H (horizontal split)
+1. User presses Ctrl+Shift+\ (horizontal split)
 2. KeybindingManager triggers `_on_split_horizontal()`
 3. Get current `MultisplitWidget` and focused pane
 4. Call `multisplit.split_pane(pane_id, widget_id, WherePosition.RIGHT, 0.5)`
@@ -467,8 +467,8 @@ dependencies = [
 - ✅ Multiple terminals via splits
 
 **Split Operations**:
-- ✅ Ctrl+Shift+H splits horizontally (vertical divider)
-- ✅ Ctrl+Shift+V splits vertically (horizontal divider)
+- ✅ Ctrl+Shift+\ splits horizontally (vertical divider)
+- ✅ Ctrl+Shift+- splits vertically (horizontal divider)
 - ✅ Ctrl+W closes focused pane
 - ✅ Focus management works
 

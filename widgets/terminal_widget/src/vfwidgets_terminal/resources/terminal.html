@@ -114,6 +114,8 @@
             fontSize: 14,
             lineHeight: 1.2,
             letterSpacing: 0,
+            // Copy-paste safety features
+            allowProposedApi: true,  // Enable proposed APIs for advanced features
             theme: {
                 background: '#1e1e1e',
                 foreground: '#d4d4d4',
@@ -405,34 +407,14 @@
                 return false;  // Block xterm.js from processing, let Qt handle
             }
 
-            // Copy/Paste support
+            // Copy/Paste is now handled by Qt (QClipboard) via TerminalWidget
+            // JavaScript clipboard handlers removed to prevent conflicts
+
+            // Search support
             if (e.ctrlKey && e.shiftKey) {
                 const key = e.key.toLowerCase();
 
-                if (key === 'c' || key === 'x') {
-                    // Copy
-                    const selection = term.getSelection();
-                    if (selection) {
-                        navigator.clipboard.writeText(selection).then(() => {
-                            if (key === 'x') {
-                                term.clearSelection();
-                            }
-                        }).catch(err => {
-                            console.error('Failed to copy:', err);
-                        });
-                    }
-                    return false;
-                } else if (key === 'v') {
-                    // Paste
-                    navigator.clipboard.readText().then(text => {
-                        if (text) {
-                            socket.emit('pty-input', { input: text });
-                        }
-                    }).catch(err => {
-                        console.error('Failed to paste:', err);
-                    });
-                    return false;
-                } else if (key === 'f') {
+                if (key === 'f') {
                     // Search
                     const searchTerm = prompt('Search for:');
                     if (searchTerm) {
@@ -451,24 +433,23 @@
             return true;
         });
 
-        // Right-click context menu
-        term.element.addEventListener('contextmenu', e => {
-            e.preventDefault();
+        // Right-click context menu is now handled by Qt (TerminalWidget.contextMenuEvent)
+        // JavaScript context menu handler removed to prevent conflicts
 
-            // Simple context menu - you can enhance this
-            const selection = term.getSelection();
-            if (selection) {
-                navigator.clipboard.writeText(selection);
-                term.clearSelection();
-            } else {
-                // Paste on right-click if no selection
-                navigator.clipboard.readText().then(text => {
-                    if (text) {
-                        socket.emit('pty-input', { input: text });
-                    }
-                });
+        // Middle-click paste support - handled via Qt bridge
+        document.addEventListener('mousedown', (e) => {
+            // Middle button (button 1)
+            if (e.button === 1) {
+                console.log('Middle-click detected in JavaScript at', e.clientX, e.clientY);
+                e.preventDefault();  // Prevent default scrolling behavior
+
+                // Trigger paste via Python bridge
+                if (terminalBridge && terminalBridge.on_middle_click) {
+                    console.log('Calling Python bridge for middle-click paste');
+                    terminalBridge.on_middle_click(e.clientX, e.clientY);
+                }
             }
-        });
+        }, true);  // Use capture phase
 
         // Focus terminal on click
         document.addEventListener('click', () => {

@@ -201,14 +201,14 @@ class ViloxTermApp(ChromeTabbedWindow):
                 ActionDefinition(
                     id="pane.split_horizontal",
                     description="Split Horizontal",
-                    default_shortcut="Ctrl+Shift+H",  # H = Horizontal divider = top/bottom split
+                    default_shortcut="Ctrl+Shift+\\",  # \ = Vertical divider visual = side-by-side panes
                     category="Pane",
                     callback=self._on_split_horizontal,
                 ),
                 ActionDefinition(
                     id="pane.split_vertical",
                     description="Split Vertical",
-                    default_shortcut="Ctrl+Shift+V",  # V = Vertical divider = left/right split
+                    default_shortcut="Ctrl+Shift+-",  # - = Horizontal divider visual = stacked panes
                     category="Pane",
                     callback=self._on_split_vertical,
                 ),

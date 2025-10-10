@@ -10,7 +10,7 @@ A powerful PySide6 terminal emulator widget powered by xterm.js for the VFWidget
 - 💾 **Memory Efficient** - Multi-session mode uses 63% less memory
 - 📡 **Rich Signal System** - Comprehensive signals for terminal events
 - 🎨 **Customizable Themes** - Built-in dark/light themes with vfwidgets-theme integration
-- 📋 **Copy/Paste Support** - Full clipboard integration
+- 📋 **Copy/Paste Support** - X11-style clipboard with auto-copy and multiple paste methods
 - 🔍 **Output Capture** - Capture and process terminal output programmatically
 - 🚀 **Developer Friendly** - Extensive API for terminal control
 - 🖱️ **Interactive Features** - Clickable links, search, custom key bindings
@@ -430,10 +430,47 @@ See the `examples/` directory for complete examples:
 | `get_terminal_theme()` | Dict | Get current terminal theme |
 | `close_terminal()` | None | Close terminal |
 
-## Keyboard Shortcuts
+## Copy/Paste Features
 
-- **Copy**: `Ctrl+Shift+C`
-- **Paste**: `Ctrl+Shift+V`
+The terminal widget supports X11-style copy/paste behavior for a seamless terminal experience:
+
+### Auto-Copy on Selection (Enabled by Default)
+- Simply **select text** with your mouse or keyboard
+- Selected text is **automatically copied** to the system clipboard
+- No need to press Ctrl+C or use a context menu
+
+### Multiple Paste Methods
+1. **Middle-Click Paste** (X11-style, recommended)
+   - Select text anywhere in the terminal
+   - Middle-click (mouse wheel button) to paste at cursor position
+   - Fast and intuitive workflow for terminal power users
+
+2. **Right-Click Paste** (Context menu)
+   - Right-click in the terminal to open context menu
+   - Select "Paste" to paste clipboard content at cursor
+   - Also shows "Copy" option when text is selected
+
+3. **Keyboard Paste** (Traditional)
+   - Press `Ctrl+Shift+V` to paste clipboard content
+   - Works everywhere in the terminal
+
+### Programmatic Control
+```python
+# Enable/disable auto-copy on selection
+terminal.set_auto_copy_on_selection(True)  # Default: True
+
+# Enable/disable middle-click paste
+terminal.set_middle_click_paste(True)  # Default: True
+
+# Programmatic copy/paste
+terminal._copy_to_clipboard("text to copy")
+terminal._paste_from_clipboard()
+```
+
+### All Keyboard Shortcuts
+
+- **Paste**: `Ctrl+Shift+V` or middle-click or right-click → Paste
+- **Copy**: Select text (auto-copies) or right-click → Copy
 - **Clear**: `Ctrl+L`
 - **Search**: `Ctrl+Shift+F` (in browser)
 

@@ -75,7 +75,7 @@ Each tab contains a `MultisplitWidget` that can be dynamically split into multip
 - Integration: `src/viloxterm/app.py`
 
 **Key Features:**
-- Vim-inspired split commands (Ctrl+Shift+H/V)
+- Vim-inspired split commands (Ctrl+Shift+\/-)
 - Dynamic horizontal/vertical splitting
 - Keyboard-driven pane navigation
 - Focus management with visual borders
@@ -103,6 +103,7 @@ Full-featured terminal emulator based on xterm.js with WebView integration.
 - Real PTY integration
 - Modern terminal features (true color, unicode, etc.)
 - Theme-aware color schemes
+- X11-style copy/paste (auto-copy on selection, middle-click paste)
 
 **Reference Examples:**
 - [`../../widgets/terminal_widget/examples/themed_terminal.py`](../../widgets/terminal_widget/examples/themed_terminal.py)
@@ -176,7 +177,7 @@ All planned phases have been successfully implemented:
 - Provider integration (constructor pattern)
 - Terminal displays in panes
 - Pane focus management
-- Split commands (Ctrl+Shift+H horizontal, Ctrl+Shift+V vertical)
+- Split commands (Ctrl+Shift+\ horizontal, Ctrl+Shift+- vertical)
 
 **Phase 4: Theme Menu** ✅
 - ThemeDialog implementation
@@ -187,7 +188,7 @@ All planned phases have been successfully implemented:
 **Phase 5: Keyboard Shortcuts** ✅
 - KeybindingManager integration
 - User-customizable shortcuts via JSON (`~/.config/viloxterm/keybindings.json`)
-- Pane split commands (Ctrl+Shift+H/V)
+- Pane split commands (Ctrl+Shift+\/-)
 - Pane close (Ctrl+W)
 - Tab close (Ctrl+Shift+W)
 - Menu integration (shortcuts appear in context menu)
@@ -204,6 +205,7 @@ All planned phases have been successfully implemented:
 ✅ Auto-save settings (keybindings, terminal preferences, terminal themes persist)
 ✅ Automatic pane closure on terminal exit (type `exit`) with intelligent focus management
 ✅ Auto-focus sibling pane after closing (Ctrl+W or `exit`) - seamless "undo split" UX
+✅ X11-style copy/paste (auto-copy selection, middle-click paste, right-click paste, Ctrl+Shift+V)
 ✅ Clean shutdown (no zombie processes)
 
 ### Terminal Customization
