@@ -50,11 +50,11 @@ class LiveEditorDemo(QWidget):
         # Set splitter sizes (40% editor, 60% preview)
         splitter.setSizes([560, 840])
 
-        layout.addWidget(splitter)
+        layout.addWidget(splitter, stretch=1)  # Splitter takes all available space
 
         # Create status bar
         self.status_bar = QStatusBar()
-        layout.addWidget(self.status_bar)
+        layout.addWidget(self.status_bar, stretch=0)  # Status bar shrinks to content
         self.status_bar.showMessage("Ready")
 
         # Load initial content when viewer is ready
