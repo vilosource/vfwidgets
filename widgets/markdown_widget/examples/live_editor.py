@@ -68,13 +68,13 @@ class LiveEditorDemo(QWidget):
         # Label
         label = QLabel("Markdown Editor:")
         label.setStyleSheet("font-weight: bold; padding: 5px;")
-        layout.addWidget(label)
+        layout.addWidget(label, stretch=0)  # Label shrinks to content
 
         # Text editor
         self.editor = QPlainTextEdit()
         self.editor.setFont(QFont("Monospace", 10))
         self.editor.setPlaceholderText("Type markdown here...")
-        layout.addWidget(self.editor)
+        layout.addWidget(self.editor, stretch=1)  # Editor takes remaining space
 
         # Connect text changed signal
         self.editor.textChanged.connect(self._on_text_changed)
@@ -82,7 +82,7 @@ class LiveEditorDemo(QWidget):
         # Info label
         info = QLabel("Debounced updates (300ms delay)")
         info.setStyleSheet("color: gray; font-size: 10px; padding: 5px;")
-        layout.addWidget(info)
+        layout.addWidget(info, stretch=0)  # Info label shrinks to content
 
         return panel
 
@@ -94,11 +94,11 @@ class LiveEditorDemo(QWidget):
         # Label
         label = QLabel("Live Preview:")
         label.setStyleSheet("font-weight: bold; padding: 5px;")
-        layout.addWidget(label)
+        layout.addWidget(label, stretch=0)  # Label shrinks to content
 
         # Markdown viewer
         self.viewer = MarkdownViewer()
-        layout.addWidget(self.viewer)
+        layout.addWidget(self.viewer, stretch=1)  # Viewer takes remaining space
 
         # Enable editor integration features
         self.viewer.enable_sync_mode(True)
