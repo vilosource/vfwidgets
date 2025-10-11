@@ -80,17 +80,32 @@ self.web_view.page().setBackgroundColor(QColor("#1e1e1e"))
 - For light themes, adjust the color accordingly
 - This is purely cosmetic but significantly improves perceived performance
 
-**Important:** Use a **static fallback color**, not theme-aware code during init:
+**Important:** Use a **static fallback color**, not theme color values during init:
 ```python
 def _get_initial_background_color(self) -> str:
     """Get initial background color for WebView."""
-    # Static fallback - theme not available during __init__ yet
+    # Check app theme TYPE (not colors) - app.get_current_theme().type IS available
+    try:
+        from PySide6.QtWidgets import QApplication
+        app = QApplication.instance()
+        if app and hasattr(app, "get_current_theme"):
+            theme = app.get_current_theme()
+            if theme and hasattr(theme, "type"):
+                return "#1a1a1a" if theme.type == "dark" else "#ffffff"
+    except Exception:
+        pass
+
+    # Static fallback - prevents white/black flash
     return "#1e1e1e"
 ```
 
-**Why static?** During `__init__`, ThemedWidget hasn't applied the theme yet. Trying to access `self.theme` returns nothing. The actual theme colors are applied later via the deferred theme mechanism and `on_theme_changed()`.
+**Why check theme TYPE, not theme COLORS?**
+- ❌ **Don't access `self.theme.colors`** - ThemedWidget hasn't applied theme to widget yet
+- ✅ **Do check `app.get_current_theme().type`** - Application theme IS available during init
+- The theme type ("dark" or "light") determines the appropriate static color
+- Prevents black flash on light themes, white flash on dark themes
 
-**Lesson from markdown_widget:** Initially tried to access theme during init with fallbacks, resulting in 4 layers of protection (container stylesheet, widget stylesheet, page background, HTML defaults). This was over-engineered. Just use `page().setBackgroundColor()` with a static fallback - simple and proven.
+**Lesson from markdown_widget:** Initially tried to access theme during init with fallbacks, resulting in 4 layers of protection (container stylesheet, widget stylesheet, page background, HTML defaults). This was over-engineered. Just use `page().setBackgroundColor()` with a theme-type-aware static fallback - simple and proven.
 
 ---
 

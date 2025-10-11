@@ -27,7 +27,7 @@ This resulted in fallback colors that might not match the actual theme applied l
 
 Simplified to match the proven terminal widget pattern:
 
-### 1. Static Fallback Color
+### 1. Theme-Type-Aware Static Fallback
 
 **Before:**
 ```python
@@ -53,11 +53,26 @@ def _get_initial_background_color(self) -> str:
 def _get_initial_background_color(self) -> str:
     """Get initial background color for WebView.
 
-    Returns a static dark fallback that prevents white flash on startup.
-    The actual theme colors will be applied later via on_theme_changed().
+    Checks the application's current theme type to return an appropriate
+    static fallback color (dark or light) that prevents flash on startup.
     """
-    # Static dark fallback (prevents white flash on startup)
-    # Actual theme colors applied later via deferred theme mechanism
+    # Try to determine theme type from application
+    try:
+        from PySide6.QtWidgets import QApplication
+
+        app = QApplication.instance()
+        if app and hasattr(app, "get_current_theme"):
+            current_theme = app.get_current_theme()
+            if current_theme and hasattr(current_theme, "type"):
+                # Return appropriate static color based on theme type
+                if current_theme.type == "dark":
+                    return "#1a1a1a"  # Dark background
+                else:
+                    return "#ffffff"  # Light background
+    except Exception:
+        pass
+
+    # Default fallback to dark (most common for development/terminal apps)
     return "#1a1a1a"
 ```
 
@@ -94,14 +109,22 @@ From terminal widget's `lessons-learned-GUIDE.md`:
 
 ## Key Lesson
 
-**Don't try to be theme-aware during `__init__`!**
+**Check theme TYPE, not theme COLORS during `__init__`!**
 
 During widget construction:
-- ThemedWidget hasn't finished initializing
-- Theme hasn't been applied yet (deferred via QTimer.singleShot)
-- `self.theme` is not available
+- ❌ **Don't access `self.theme.colors`** - ThemedWidget hasn't applied theme to widget yet
+- ✅ **Do check `app.get_current_theme().type`** - Application theme IS available during init
 
-Use a **static fallback** and let the deferred theme mechanism handle the actual theme colors.
+The distinction:
+- `self.theme` - Not available until ThemedWidget completes initialization and deferred theme application runs
+- `app.get_current_theme()` - Available immediately, returns the application's current theme
+- `theme.type` - Returns "dark" or "light", perfect for choosing static fallback color
+
+This approach:
+1. Prevents **white flash** on dark themes (black background during load)
+2. Prevents **black flash** on light themes (white background during load)
+3. Keeps the simplicity of static fallbacks
+4. Uses theme type to be smarter about which static color to use
 
 ## Related Files
 
@@ -123,3 +146,4 @@ Expected: Dark background visible throughout loading, no white flash.
 
 - e8716e5 - fix(markdown): simplify white flash prevention to match terminal widget
 - 65d9d60 - docs(terminal): add lesson about static background color during init
+- a24bba9 - fix(markdown): support light themes in white flash prevention
