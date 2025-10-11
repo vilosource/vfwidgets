@@ -634,6 +634,14 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             logger.debug(f"Applying deferred theme for {type(self).__name__}")
             self._apply_theme_update()
             self._validate_styling_applied()
+
+            # Call user-defined theme change handler if it exists
+            if hasattr(self, "on_theme_changed") and callable(self.on_theme_changed):
+                try:
+                    self.on_theme_changed()
+                except Exception as e:
+                    logger.error(f"Error in initial theme handler call: {e}")
+
             self._theme_applied = True
 
     def _get_theme_property(self, property_path: str, default_value: Any = None) -> Any:
