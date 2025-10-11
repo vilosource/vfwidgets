@@ -14,6 +14,14 @@ A modern, single-instance markdown document viewer with VS Code-style interface 
 - 🌈 **Theme support** - Automatic integration with VFWidgets theme system
 - ⚡ **Fast** - Efficient Qt-based rendering
 
+## Recent Fixes
+
+### Theme Initialization (2025-10-11)
+Fixed theme not being applied to MarkdownViewer on startup. The fix handles async widget initialization race conditions:
+- Theme now applies automatically when QWebEngineView is ready
+- No manual theme selection required
+- See `wip/theme-initialization-FIX.md` for technical details
+
 ## Installation
 
 ### From Source (Development)
