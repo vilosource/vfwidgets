@@ -16,11 +16,18 @@ A modern, single-instance markdown document viewer with VS Code-style interface 
 
 ## Recent Fixes
 
+### White Flash Prevention Simplified (2025-10-11)
+Simplified white flash prevention to match terminal widget's proven pattern:
+- Use static dark fallback (#1a1a1a) during init, not theme-aware code
+- Only use `page().setBackgroundColor()`, removed widget stylesheet
+- Theme colors applied later via deferred mechanism
+- See `white-flash-simplification-BUGFIX.md` for details
+
 ### Theme Initialization (2025-10-11)
-Fixed theme not being applied to MarkdownViewer on startup. The fix handles async widget initialization race conditions:
+Fixed theme not being applied to MarkdownViewer on startup:
 - Theme now applies automatically when QWebEngineView is ready
 - No manual theme selection required
-- See `wip/theme-initialization-FIX.md` for technical details
+- Handles async widget initialization race conditions
 
 ## Installation
 
