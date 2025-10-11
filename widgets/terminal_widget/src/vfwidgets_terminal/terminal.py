@@ -1455,7 +1455,10 @@ class TerminalWidget(_BaseTerminalClass):
             self.outputReceived.emit(data)
 
     def _get_initial_background_color(self) -> str:
-        """Get theme-aware background color for WebView.
+        """Get initial background color for WebView.
+
+        Checks terminal config, then application theme type to return
+        an appropriate static fallback that prevents flash on startup.
 
         Returns:
             Hex color string for background
@@ -1464,7 +1467,23 @@ class TerminalWidget(_BaseTerminalClass):
         if self._terminal_config and "background" in self._terminal_config:
             return self._terminal_config["background"]
 
-        # Default fallback (prevents white flash on startup)
+        # Check application theme type for appropriate fallback
+        try:
+            from PySide6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app and hasattr(app, "get_current_theme"):
+                current_theme = app.get_current_theme()
+                if current_theme and hasattr(current_theme, "type"):
+                    # Return appropriate static color based on theme type
+                    if current_theme.type == "dark":
+                        return "#1e1e1e"  # Dark background (xterm.js default)
+                    else:
+                        return "#ffffff"  # Light background
+        except Exception:
+            pass  # Continue to fallback
+
+        # Default fallback to dark (prevents white flash on startup)
         return "#1e1e1e"
 
     def _get_error_color(self) -> str:
