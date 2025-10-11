@@ -371,11 +371,16 @@ def test_set_menu_bar(qtbot):
 
 
 def test_get_menu_bar_returns_none_initially(qtbot):
-    """Test that get_menu_bar returns None initially."""
+    """Test that get_menu_bar auto-creates menu bar if needed."""
+    from PySide6.QtWidgets import QMenuBar
+
     window = ViloCodeWindow()
     qtbot.addWidget(window)
 
-    assert window.get_menu_bar() is None
+    # New behavior: get_menu_bar() auto-creates if not exists
+    menubar = window.get_menu_bar()
+    assert menubar is not None
+    assert isinstance(menubar, QMenuBar)
 
 
 def test_menu_bar_in_frameless_mode(qtbot):
@@ -392,9 +397,20 @@ def test_menu_bar_in_frameless_mode(qtbot):
     window.set_menu_bar(menubar)
 
     # In frameless mode, should be added to title bar
+    # Note: get_menu_bar() returns the internal _menu_bar which stores the original
     assert window.get_menu_bar() is menubar
+
+    # Show the window to trigger integration (lazy integration pattern)
+    window.show()
+    qtbot.waitExposed(window)
+
+    # The title bar converts QMenuBar to DraggableMenuBar, so check actions instead
     if window._title_bar:
-        assert window._title_bar.get_menu_bar() is menubar
+        title_menubar = window._title_bar.get_menu_bar()
+        assert title_menubar is not None
+        # Verify the actions were transferred correctly
+        # Note: Actions are moved, so menubar should be empty after integration
+        assert len(title_menubar.actions()) == 1  # "Test" menu
 
 
 def test_menu_bar_in_embedded_mode(qtbot):

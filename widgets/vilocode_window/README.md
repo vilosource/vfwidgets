@@ -78,6 +78,30 @@ window.show()
 app.exec()
 ```
 
+### With Menu Bar (Tier 2.5) - NEW!
+
+```python
+from PySide6.QtWidgets import QApplication, QTextEdit
+from vfwidgets_vilocode_window import ViloCodeWindow
+
+app = QApplication([])
+window = ViloCodeWindow()
+
+# Add menu with fluent API - clean and simple!
+window.add_menu("&File") \
+    .add_action("&New", lambda: print("New"), "Ctrl+N") \
+    .add_action("&Open", lambda: print("Open"), "Ctrl+O") \
+    .add_separator() \
+    .add_action("E&xit", window.close, "Ctrl+Q")
+
+window.set_main_content(QTextEdit())
+window.show()
+
+app.exec()
+```
+
+See [Menu Quick Start Guide](docs/menu-quick-start-GUIDE.md) for complete menu API documentation.
+
 ### Declarative Configuration (Tier 3)
 
 ```python
@@ -112,6 +136,7 @@ window.configure({
   - `02_basic_layout.py` — Activity bar + sidebar + main pane
   - `03_full_layout.py` — All components (auxiliary bar, status bar)
   - `04_customization.py` — Custom shortcuts, menu bar, themes
+  - `06_menu_fluent_api.py` — **NEW!** Menu Bar Fluent API (recommended)
   - `05_advanced_ide.py` — Production-ready IDE with tabs and file operations
 
 ### For Developers
@@ -135,7 +160,7 @@ ViloCodeWindow(parent=None, enable_default_shortcuts=True)
 - **Sidebar**: `add_sidebar_panel()`, `toggle_sidebar()`, `set_sidebar_visible()` (13 methods)
 - **Main Pane**: `set_main_content()`, `get_main_content()` (2 methods)
 - **Auxiliary Bar**: `set_auxiliary_content()`, `toggle_auxiliary_bar()` (7 methods)
-- **Menu Bar**: `set_menu_bar()`, `get_menu_bar()` (2 methods)
+- **Menu Bar**: `add_menu()` (fluent API), `set_menu_bar()`, `get_menu_bar()` (3 methods) - See [Menu Quick Start](docs/menu-quick-start-GUIDE.md)
 - **Status Bar**: `get_status_bar()`, `set_status_message()` (4 methods)
 - **Keyboard Shortcuts**: `register_shortcut()`, `set_shortcut()` (5 methods)
 - **Configuration**: `configure()`, `batch_updates()` (2 methods)

@@ -2,14 +2,14 @@
 """Customization Example - Menus, Shortcuts, Themes, Modes
 
 This example demonstrates advanced customization features:
-- Menu bar integration
+- Menu bar with fluent API (NEW!)
 - Keyboard shortcuts (default + custom)
 - Theme system integration
 - Frameless vs Embedded modes
 - Status bar customization
 
 What you'll learn:
-- Setting a menu bar with set_menubar()
+- Creating menus with the fluent API (add_menu())
 - Working with default VS Code shortcuts
 - Registering custom shortcuts
 - Theme integration (if vfwidgets-theme available)
@@ -22,8 +22,7 @@ Run this example:
 
 import sys
 
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QMenuBar, QTextEdit
+from PySide6.QtWidgets import QApplication, QTextEdit
 
 from vfwidgets_vilocode_window import ViloCodeWindow
 
@@ -36,75 +35,56 @@ except ImportError:
     THEME_AVAILABLE = False
 
 
-def create_menubar(window: ViloCodeWindow) -> QMenuBar:
-    """Create a menu bar with File, Edit, and View menus.
+def setup_menus(window: ViloCodeWindow) -> None:
+    """Setup menus using the new fluent API.
 
     Args:
         window: ViloCodeWindow instance
-
-    Returns:
-        Configured QMenuBar
     """
-    menubar = QMenuBar()
-
-    # File menu
-    file_menu = menubar.addMenu("File")
-
-    new_action = QAction("New", window)
-    new_action.setShortcut("Ctrl+N")
-    new_action.triggered.connect(lambda: window.set_status_message("📄 New file", 2000))
-    file_menu.addAction(new_action)
-
-    open_action = QAction("Open...", window)
-    open_action.setShortcut("Ctrl+O")
-    open_action.triggered.connect(lambda: window.set_status_message("📂 Open file", 2000))
-    file_menu.addAction(open_action)
-
-    save_action = QAction("Save", window)
-    save_action.setShortcut("Ctrl+S")
-    save_action.triggered.connect(lambda: window.set_status_message("💾 Save file", 2000))
-    file_menu.addAction(save_action)
-
-    file_menu.addSeparator()
-
-    exit_action = QAction("Exit", window)
-    exit_action.setShortcut("Ctrl+Q")
-    exit_action.triggered.connect(window.close)
-    file_menu.addAction(exit_action)
+    # File menu - fluent API makes this clean and readable
+    (
+        window.add_menu("&File")
+        .add_action(
+            "New",
+            lambda: window.set_status_message("📄 New file", 2000),
+            "Ctrl+N",
+        )
+        .add_action(
+            "Open...",
+            lambda: window.set_status_message("📂 Open file", 2000),
+            "Ctrl+O",
+        )
+        .add_action(
+            "Save",
+            lambda: window.set_status_message("💾 Save file", 2000),
+            "Ctrl+S",
+        )
+        .add_separator()
+        .add_action("Exit", window.close, "Ctrl+Q")
+    )
 
     # Edit menu
-    edit_menu = menubar.addMenu("Edit")
-
-    undo_action = QAction("Undo", window)
-    undo_action.setShortcut("Ctrl+Z")
-    edit_menu.addAction(undo_action)
-
-    redo_action = QAction("Redo", window)
-    redo_action.setShortcut("Ctrl+Shift+Z")
-    edit_menu.addAction(redo_action)
-
-    edit_menu.addSeparator()
-
-    find_action = QAction("Find...", window)
-    find_action.setShortcut("Ctrl+F")
-    find_action.triggered.connect(lambda: window.set_status_message("🔍 Find", 2000))
-    edit_menu.addAction(find_action)
+    (
+        window.add_menu("&Edit")
+        .add_action("Undo", shortcut="Ctrl+Z")
+        .add_action("Redo", shortcut="Ctrl+Shift+Z")
+        .add_separator()
+        .add_action(
+            "Find...",
+            lambda: window.set_status_message("🔍 Find", 2000),
+            "Ctrl+F",
+        )
+    )
 
     # View menu
-    view_menu = menubar.addMenu("View")
-
-    toggle_sidebar_action = QAction("Toggle Sidebar", window)
-    toggle_sidebar_action.setShortcut("Ctrl+B")
-    toggle_sidebar_action.triggered.connect(window.toggle_sidebar)
-    view_menu.addAction(toggle_sidebar_action)
-
-    toggle_status_action = QAction("Toggle Status Bar", window)
-    toggle_status_action.triggered.connect(
-        lambda: window.set_status_bar_visible(not window.get_status_bar().isVisible())
+    (
+        window.add_menu("&View")
+        .add_action("Toggle Sidebar", window.toggle_sidebar, "Ctrl+B")
+        .add_action(
+            "Toggle Status Bar",
+            lambda: window.set_status_bar_visible(not window.get_status_bar().isVisible()),
+        )
     )
-    view_menu.addAction(toggle_status_action)
-
-    return menubar
 
 
 def main() -> None:
@@ -122,9 +102,8 @@ def main() -> None:
     window.setWindowTitle("ViloCodeWindow - Customization Demo")
     window.resize(1200, 700)
 
-    # ==================== Menu Bar ====================
-    menubar = create_menubar(window)
-    window.set_menu_bar(menubar)
+    # ==================== Menu Bar (Fluent API) ====================
+    setup_menus(window)
 
     # ==================== Main Content ====================
     editor = QTextEdit()

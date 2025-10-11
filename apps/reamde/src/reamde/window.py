@@ -98,7 +98,13 @@ class ReamdeWindow(ViloCodeWindow):
 
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize the ReamdeWindow."""
-        super().__init__(parent, enable_default_shortcuts=True)
+        super().__init__(
+            parent,
+            enable_default_shortcuts=True,
+            show_activity_bar=False,
+            show_sidebar=False,
+            show_auxiliary_bar=False,
+        )
 
         # Set window title
         self.setWindowTitle("Reamde - Markdown Viewer")
@@ -109,6 +115,11 @@ class ReamdeWindow(ViloCodeWindow):
 
         # Setup tabbed content area
         self._setup_tabbed_content()
+
+        # Setup file menu
+        self._setup_file_menu()
+
+    # showEvent workaround removed - no longer needed with fluent API's automatic theme integration!
 
     def _setup_tabbed_content(self) -> None:
         """Setup ChromeTabbedWindow in main content area."""
@@ -278,3 +289,66 @@ class ReamdeWindow(ViloCodeWindow):
             return True
 
         return False
+
+    def _setup_file_menu(self) -> None:
+        """Setup File menu using fluent API - clean and simple!"""
+        file_menu = self.add_menu("&File")
+
+        file_menu.add_action(
+            "&Open...",
+            self._on_open_file,
+            "Ctrl+O",
+            tooltip="Open a markdown file",
+        )
+
+        file_menu.add_action(
+            "&Close",
+            self._on_close_current_tab,
+            "Ctrl+W",
+            tooltip="Close the current tab",
+        )
+
+        file_menu.add_separator()
+
+        # Theme Preferences (if available)
+        try:
+            from vfwidgets_theme.widgets.dialogs import ThemePickerDialog
+
+            file_menu.add_action(
+                "Theme &Preferences...",
+                lambda: ThemePickerDialog(self).exec(),
+                tooltip="Configure application theme",
+            )
+        except ImportError:
+            pass
+
+        file_menu.add_separator()
+
+        file_menu.add_action(
+            "E&xit",
+            self.close,
+            "Ctrl+Q",
+            tooltip="Exit the application",
+        )
+
+    def _on_open_file(self) -> None:
+        """Handle File > Open action."""
+        from PySide6.QtWidgets import QFileDialog
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Markdown File",
+            "",
+            "Markdown Files (*.md *.markdown *.mdown *.mkd);;All Files (*)",
+        )
+
+        if file_path:
+            self.open_file(file_path)
+
+    def _on_close_current_tab(self) -> None:
+        """Handle File > Close action."""
+        current_index = self._tabs.currentIndex()
+        if current_index >= 0:
+            self._on_tab_close_requested(current_index)
+
+    # _on_theme_preferences removed - simplified to lambda in menu setup
