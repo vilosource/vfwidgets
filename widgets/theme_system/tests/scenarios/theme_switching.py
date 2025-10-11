@@ -12,7 +12,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -123,7 +123,7 @@ class ThemeSwitchingScenario:
             print(f"Scenario setup failed: {e}")
             return False
 
-    def _create_switching_themes(self) -> List[Theme]:
+    def _create_switching_themes(self) -> list[Theme]:
         """Create themes optimized for switching tests."""
         themes = [
             Theme(
@@ -179,7 +179,7 @@ class ThemeSwitchingScenario:
         ]
         return themes
 
-    def test_sequential_switching(self, iterations: int = 20) -> Dict[str, Any]:
+    def test_sequential_switching(self, iterations: int = 20) -> dict[str, Any]:
         """Test sequential theme switching performance."""
         results = {
             "iterations": iterations,
@@ -228,7 +228,7 @@ class ThemeSwitchingScenario:
             results["errors"].append(f"Sequential switching test failed: {e}")
             return results
 
-    def test_rapid_switching(self, duration_seconds: int = 5) -> Dict[str, Any]:
+    def test_rapid_switching(self, duration_seconds: int = 5) -> dict[str, Any]:
         """Test rapid theme switching for a duration."""
         results = {
             "duration_seconds": duration_seconds,
@@ -282,7 +282,7 @@ class ThemeSwitchingScenario:
 
     def test_concurrent_switching(
         self, thread_count: int = 3, operations_per_thread: int = 20
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Test concurrent theme switching from multiple threads."""
         results = {
             "thread_count": thread_count,
@@ -357,7 +357,7 @@ class ThemeSwitchingScenario:
             results["errors"].append(f"Concurrent switching test failed: {e}")
             return results
 
-    def test_theme_consistency(self) -> Dict[str, Any]:
+    def test_theme_consistency(self) -> dict[str, Any]:
         """Test that all widgets have consistent theme after switching."""
         results = {
             "widget_count": len(self.widgets),
@@ -409,7 +409,7 @@ class ThemeSwitchingScenario:
             results["error"] = f"Consistency test failed: {e}"
             return results
 
-    def test_stress_switching(self, duration_seconds: int = 10) -> Dict[str, Any]:
+    def test_stress_switching(self, duration_seconds: int = 10) -> dict[str, Any]:
         """Stress test with extremely rapid theme switching."""
         results = {
             "duration_seconds": duration_seconds,
@@ -472,7 +472,7 @@ class ThemeSwitchingScenario:
         finally:
             self.stress_test_running = False
 
-    def run_full_scenario(self) -> Dict[str, Any]:
+    def run_full_scenario(self) -> dict[str, Any]:
         """Run the complete theme switching scenario."""
         print("Running Theme Switching Scenario...")
         print("=" * 50)

@@ -8,7 +8,7 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap
@@ -33,7 +33,7 @@ class IconDefinition:
     svg_content: Optional[str] = None
     color: Optional[str] = None
     size: Optional[QSize] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class IconProvider(ABC):
@@ -50,7 +50,7 @@ class IconProvider(ABC):
         pass
 
     @abstractmethod
-    def list_icons(self) -> List[str]:
+    def list_icons(self) -> list[str]:
         """List available icons."""
         pass
 
@@ -67,7 +67,7 @@ class SVGIconProvider(IconProvider):
         """
         self.base_path = base_path
         self.svg_handler = SVGIconHandler()
-        self._icon_cache: Dict[str, QIcon] = {}
+        self._icon_cache: dict[str, QIcon] = {}
         self._discover_icons()
 
     def _discover_icons(self):
@@ -106,7 +106,7 @@ class SVGIconProvider(IconProvider):
         """Check if SVG icon exists."""
         return icon_name in self._svg_files
 
-    def list_icons(self) -> List[str]:
+    def list_icons(self) -> list[str]:
         """List available SVG icons."""
         return list(self._svg_files.keys())
 
@@ -114,7 +114,7 @@ class SVGIconProvider(IconProvider):
 class FontIconProvider(IconProvider):
     """Icon provider for font-based icons."""
 
-    def __init__(self, font_path: Path, character_map: Dict[str, str]):
+    def __init__(self, font_path: Path, character_map: dict[str, str]):
         """Initialize font icon provider.
 
         Args:
@@ -125,7 +125,7 @@ class FontIconProvider(IconProvider):
         self.font_path = font_path
         self.character_map = character_map
         self.font_loader = IconFontLoader()
-        self._icon_cache: Dict[str, QIcon] = {}
+        self._icon_cache: dict[str, QIcon] = {}
 
         # Load font
         self.font_family = self.font_loader.load_font(font_path)
@@ -157,7 +157,7 @@ class FontIconProvider(IconProvider):
         """Check if font icon exists."""
         return icon_name in self.character_map and bool(self.font_family)
 
-    def list_icons(self) -> List[str]:
+    def list_icons(self) -> list[str]:
         """List available font icons."""
         return list(self.character_map.keys()) if self.font_family else []
 
@@ -182,20 +182,20 @@ class IconTheme:
         self.description = ""
 
         # Icon definitions
-        self.file_icons: Dict[str, IconDefinition] = {}
-        self.folder_icons: Dict[str, IconDefinition] = {}
-        self.language_icons: Dict[str, IconDefinition] = {}
+        self.file_icons: dict[str, IconDefinition] = {}
+        self.folder_icons: dict[str, IconDefinition] = {}
+        self.language_icons: dict[str, IconDefinition] = {}
         self.default_file_icon: Optional[IconDefinition] = None
         self.default_folder_icon: Optional[IconDefinition] = None
 
         # Icon providers
-        self.providers: List[IconProvider] = []
+        self.providers: list[IconProvider] = []
 
         # File associations
         self.file_associations = FileAssociationManager()
 
         # Icon cache
-        self._icon_cache: Dict[str, QIcon] = {}
+        self._icon_cache: dict[str, QIcon] = {}
 
         # Load theme if path provided
         if theme_path:
@@ -254,7 +254,7 @@ class IconTheme:
 
         self._load_from_json(theme_file)
 
-    def _parse_theme_data(self, theme_data: Dict[str, Any], base_path: Path) -> None:
+    def _parse_theme_data(self, theme_data: dict[str, Any], base_path: Path) -> None:
         """Parse theme data from JSON."""
         # Basic theme info
         self.name = theme_data.get("name", "Unnamed Icon Theme")
@@ -267,7 +267,7 @@ class IconTheme:
         # Setup providers
         self._setup_providers(base_path)
 
-    def _parse_icon_definitions(self, theme_data: Dict[str, Any], base_path: Path) -> None:
+    def _parse_icon_definitions(self, theme_data: dict[str, Any], base_path: Path) -> None:
         """Parse icon definitions from theme data."""
         # File icons
         file_icons = theme_data.get("fileIcons", {})
@@ -305,7 +305,7 @@ class IconTheme:
             self.file_associations.add_filename_mapping(name, icon_name)
 
     def _create_icon_definition(
-        self, name: str, icon_data: Union[str, Dict], base_path: Path
+        self, name: str, icon_data: Union[str, dict], base_path: Path
     ) -> IconDefinition:
         """Create icon definition from data."""
         if isinstance(icon_data, str):
@@ -559,7 +559,7 @@ class IconTheme:
 
         return language_map.get(ext)
 
-    def get_available_icons(self) -> List[str]:
+    def get_available_icons(self) -> list[str]:
         """Get list of all available icon names."""
         icons = set()
 
@@ -570,7 +570,7 @@ class IconTheme:
         for provider in self.providers:
             icons.update(provider.list_icons())
 
-        return sorted(list(icons))
+        return sorted(icons)
 
     def has_icon(self, icon_name: str) -> bool:
         """Check if icon theme has specific icon."""
@@ -596,7 +596,7 @@ class IconTheme:
             # Reload theme
             self.load_theme(self.theme_path)
 
-    def export_theme_info(self) -> Dict[str, Any]:
+    def export_theme_info(self) -> dict[str, Any]:
         """Export theme information."""
         return {
             "name": self.name,

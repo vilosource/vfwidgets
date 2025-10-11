@@ -6,7 +6,7 @@ Benchmark Runner with Advanced Features
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from .suite import BenchmarkResult, BenchmarkSuite
 
@@ -28,7 +28,7 @@ class BenchmarkRunner:
 
     def __init__(self, suite: BenchmarkSuite):
         self.suite = suite
-        self.configs: Dict[str, BenchmarkConfig] = {}
+        self.configs: dict[str, BenchmarkConfig] = {}
 
     def configure_benchmark(self, name: str, config: BenchmarkConfig):
         """Configure a specific benchmark."""
@@ -135,7 +135,7 @@ class BenchmarkRunner:
 
     def run_stress_test(
         self, benchmark_func: Callable, duration_seconds: float = 60.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run stress test for a specified duration."""
         print(f"Running stress test for {duration_seconds} seconds...")
 
@@ -196,7 +196,7 @@ class BenchmarkRunner:
 
     def run_load_test(
         self, benchmark_func: Callable, concurrent_users: int = 10, duration_seconds: float = 30.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run load test with multiple concurrent 'users'."""
         print(
             f"Running load test with {concurrent_users} concurrent users for {duration_seconds} seconds..."
@@ -274,14 +274,14 @@ class BenchmarkRunner:
 
     def profile_benchmark(
         self, benchmark_func: Callable, profiler: str = "cprofile"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Profile a benchmark to identify bottlenecks."""
         if profiler == "cprofile":
             return self._profile_with_cprofile(benchmark_func)
         else:
             return {"error": f"Unsupported profiler: {profiler}"}
 
-    def _profile_with_cprofile(self, benchmark_func: Callable) -> Dict[str, Any]:
+    def _profile_with_cprofile(self, benchmark_func: Callable) -> dict[str, Any]:
         """Profile using cProfile."""
         import cProfile
         import io
@@ -313,8 +313,8 @@ class BenchmarkRunner:
         }
 
     def compare_benchmarks(
-        self, benchmark_funcs: List[Callable], names: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, benchmark_funcs: list[Callable], names: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """Compare multiple benchmark functions."""
         if names is None:
             names = [func.__name__ for func in benchmark_funcs]

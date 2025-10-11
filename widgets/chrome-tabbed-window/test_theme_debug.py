@@ -13,6 +13,7 @@ if theme_system_path.exists():
     sys.path.insert(0, str(theme_system_path))
 
 from vfwidgets_theme import ThemedApplication
+
 from chrome_tabbed_window import ChromeTabbedWindow
 
 # Create themed application
@@ -24,27 +25,28 @@ window = ChromeTabbedWindow()
 
 # Get theme from window
 theme = window.get_current_theme()
-print(f"\n=== Theme Debug Info ===")
+print("\n=== Theme Debug Info ===")
 print(f"Theme object: {theme}")
 print(f"Theme type: {type(theme)}")
 
 if theme:
     print(f"Has colors attr: {hasattr(theme, 'colors')}")
-    if hasattr(theme, 'colors'):
+    if hasattr(theme, "colors"):
         print(f"\nTheme colors type: {type(theme.colors)}")
-        print(f"\nAvailable theme colors:")
+        print("\nAvailable theme colors:")
         for key in sorted(theme.colors.keys()):
-            if 'tab' in key.lower() or 'editor' in key.lower():
+            if "tab" in key.lower() or "editor" in key.lower():
                 print(f"  {key}: {theme.colors[key]}")
 
-    if hasattr(theme, 'name'):
+    if hasattr(theme, "name"):
         print(f"\nTheme name: {theme.name}")
 
 # Now check what the renderer gets
 from chrome_tabbed_window.components.chrome_tab_renderer import ChromeTabRenderer
+
 colors = ChromeTabRenderer.get_tab_colors(theme)
 
-print(f"\n=== Renderer Colors ===")
+print("\n=== Renderer Colors ===")
 for key, color in colors.items():
     print(f"  {key}: {color.name()}")
 

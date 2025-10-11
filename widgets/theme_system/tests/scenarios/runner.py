@@ -14,7 +14,7 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -32,9 +32,9 @@ class ScenarioResult:
     name: str
     success: bool
     duration_ms: float
-    summary: Dict[str, Any]
-    details: Dict[str, Any]
-    errors: List[str]
+    summary: dict[str, Any]
+    details: dict[str, Any]
+    errors: list[str]
     timestamp: datetime
 
 
@@ -51,7 +51,7 @@ class IntegrationTestRunner:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         self.scenarios = {}
-        self.results: List[ScenarioResult] = []
+        self.results: list[ScenarioResult] = []
         self.validation_framework = ValidationFramework(ValidationMode.DEBUG)
 
         # Register available scenarios
@@ -261,7 +261,7 @@ class IntegrationTestRunner:
                 except Exception as e:
                     print(f"Cleanup error for {scenario_name}: {e}")
 
-    def run_all_scenarios(self, skip_scenarios: List[str] = None) -> List[ScenarioResult]:
+    def run_all_scenarios(self, skip_scenarios: list[str] = None) -> list[ScenarioResult]:
         """
         Run all integration test scenarios.
 
@@ -284,7 +284,7 @@ class IntegrationTestRunner:
         scenario_items.sort(key=lambda x: x[1]["priority"])
 
         results = []
-        for scenario_name, scenario_info in scenario_items:
+        for scenario_name, _scenario_info in scenario_items:
             if scenario_name in skip_scenarios:
                 print(f"\nSkipping scenario: {scenario_name}")
                 continue
@@ -295,7 +295,7 @@ class IntegrationTestRunner:
 
         return results
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate comprehensive integration test report."""
         if not self.results:
             return {"error": "No test results available"}
@@ -424,7 +424,7 @@ class IntegrationTestRunner:
         if summary["total_errors"] > 0:
             print(f"\nFirst {min(5, len(report['errors']))} errors:")
             for i, error in enumerate(report["errors"][:5]):
-                print(f"  {i+1}. {error}")
+                print(f"  {i + 1}. {error}")
 
         print("=" * 80)
 
@@ -433,7 +433,7 @@ class IntegrationTestRunner:
         self.results.clear()
         self.validation_framework.clear_results()
 
-    def get_scenario_list(self) -> List[Dict[str, Any]]:
+    def get_scenario_list(self) -> list[dict[str, Any]]:
         """Get list of available scenarios."""
         return [
             {"name": name, "description": info["description"], "priority": info["priority"]}

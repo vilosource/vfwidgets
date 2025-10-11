@@ -52,18 +52,13 @@ class PaneController:
 
         if isinstance(command, SplitPaneCommand):
             validation_result = self._validator.validate_split(
-                command.target_pane_id,
-                command.position,
-                command.ratio
+                command.target_pane_id, command.position, command.ratio
             )
         elif isinstance(command, RemovePaneCommand):
-            validation_result = self._validator.validate_remove(
-                command.pane_id
-            )
+            validation_result = self._validator.validate_remove(command.pane_id)
         elif isinstance(command, SetRatiosCommand):
             validation_result = self._validator.validate_ratios(
-                str(command.node_id),
-                command.ratios
+                str(command.node_id), command.ratios
             )
 
         # Execute if valid
@@ -150,16 +145,19 @@ class PaneController:
 
     # High-level operations
 
-    def split_pane(self, target_pane_id: PaneId, widget_id: WidgetId,
-                   position: WherePosition, ratio: float = 0.5) -> tuple[bool, ValidationResult]:
+    def split_pane(
+        self,
+        target_pane_id: PaneId,
+        widget_id: WidgetId,
+        position: WherePosition,
+        ratio: float = 0.5,
+    ) -> tuple[bool, ValidationResult]:
         """Split a pane with validation.
 
         Returns:
             Tuple of (success, validation_result)
         """
-        command = SplitPaneCommand(
-            self.model, target_pane_id, widget_id, position, ratio
-        )
+        command = SplitPaneCommand(self.model, target_pane_id, widget_id, position, ratio)
         return self.validate_and_execute(command)
 
     def remove_pane(self, pane_id: PaneId) -> tuple[bool, ValidationResult]:
@@ -195,14 +193,14 @@ class PaneController:
         self._transaction_depth -= 1
         if self._transaction_depth == 0:
             # Handle commands stored in transaction context (Phase 0 style)
-            if context and hasattr(context, 'commands'):
+            if context and hasattr(context, "commands"):
                 for command in reversed(context.commands):
                     try:
                         # Try Phase 0 style undo with model parameter
-                        if hasattr(command, 'undo') and hasattr(self.model, 'value'):
+                        if hasattr(command, "undo") and hasattr(self.model, "value"):
                             command.undo(self.model)
                         # Try Phase 1 style undo without parameters
-                        elif hasattr(command, 'undo') and hasattr(command, 'executed'):
+                        elif hasattr(command, "undo") and hasattr(command, "executed"):
                             if command.executed:
                                 command.undo()
                     except Exception as e:
@@ -236,11 +234,11 @@ class PaneController:
             Savepoint data
         """
         # Check if model has to_dict method (PaneModel)
-        if hasattr(self.model, 'to_dict'):
+        if hasattr(self.model, "to_dict"):
             return self.model.to_dict()
         else:
             # For mock models or other types, create simple savepoint
-            return {'model_state': getattr(self.model, '__dict__', {})}
+            return {"model_state": getattr(self.model, "__dict__", {})}
 
     def _restore_savepoint(self, savepoint: dict):
         """Restore from a savepoint.
@@ -249,15 +247,15 @@ class PaneController:
             savepoint: Savepoint data to restore
         """
         # Check if model has from_dict method (PaneModel)
-        if hasattr(self.model, 'to_dict') and 'root' in savepoint:
+        if hasattr(self.model, "to_dict") and "root" in savepoint:
             restored_model = PaneModel.from_dict(savepoint)
             self.model.root = restored_model.root
             self.model.focused_pane_id = restored_model.focused_pane_id
             self.model._rebuild_registry()
         else:
             # For mock models, try to restore basic state
-            if 'model_state' in savepoint:
-                for key, value in savepoint['model_state'].items():
+            if "model_state" in savepoint:
+                for key, value in savepoint["model_state"].items():
                     setattr(self.model, key, value)
 
     @property

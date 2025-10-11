@@ -335,7 +335,7 @@ class TestDebouncing(unittest.TestCase):
         # Send multiple rapid property changes
         for i in range(5):
             self.event_system.notify_property_changed(
-                widget_id, property_name, f"value_{i}", f"value_{i+1}", debounce=True
+                widget_id, property_name, f"value_{i}", f"value_{i + 1}", debounce=True
             )
 
         # Should have no immediate signals (they're queued)

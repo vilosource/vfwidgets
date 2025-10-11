@@ -11,7 +11,7 @@ import time
 import tracemalloc
 import weakref
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 import psutil
 import pytest
@@ -31,7 +31,7 @@ from vfwidgets_theme.core.theme import Theme
 # Global test state management
 test_app: Optional[ThemedApplication] = None
 test_memory_baseline: Optional[int] = None
-test_widget_registry: Set[weakref.ref] = set()
+test_widget_registry: set[weakref.ref] = set()
 
 
 def setup_test_environment():
@@ -69,7 +69,7 @@ def teardown_test_environment():
     if test_memory_baseline and current_memory > test_memory_baseline * 1.5:
         import warnings
 
-        warnings.warn(f"Potential memory leak: {current_memory - test_memory_baseline} MB increase")
+        warnings.warn(f"Potential memory leak: {current_memory - test_memory_baseline} MB increase", stacklevel=2)
 
     # Cleanup widgets
     cleanup_widgets()
@@ -137,7 +137,7 @@ def test_setup_teardown():
     )
 )
 @settings(max_examples=20, deadline=5000, suppress_health_check=[HealthCheck.too_slow])
-def test_theme_properties_invariants(props: Dict[str, Any]):
+def test_theme_properties_invariants(props: dict[str, Any]):
     """Test that theme properties maintain invariants."""
     try:
         # Create theme with random properties
@@ -198,12 +198,12 @@ def test_theme_name_handling(theme_name: str):
     )
 )
 @settings(max_examples=10, deadline=5000)
-def test_widget_creation_invariants(widget_configs: List[Dict[str, str]]):
+def test_widget_creation_invariants(widget_configs: list[dict[str, str]]):
     """Test widget creation invariants with multiple widgets."""
     widgets = []
 
     try:
-        for config in widget_configs:
+        for _config in widget_configs:
             widget = ThemedWidget()
             track_widget(widget)
             widgets.append(widget)
@@ -268,7 +268,7 @@ def test_binary_data_handling(binary_data: bytes):
                     name = data.get("name", "binary_test")
                     colors = data.get("colors", {})
                     styles = data.get("styles", {})
-                    theme = Theme(name=name, colors=colors, styles=styles)
+                    Theme(name=name, colors=colors, styles=styles)
         except (UnicodeDecodeError, json.JSONDecodeError, ThemeError, ThemeValidationError):
             # Expected for invalid data
             pass
@@ -290,7 +290,7 @@ def test_binary_data_handling(binary_data: bytes):
     )
 )
 @settings(max_examples=15, deadline=4000)
-def test_unexpected_data_types(weird_data: Dict[str, Any]):
+def test_unexpected_data_types(weird_data: dict[str, Any]):
     """Test theme system with unexpected data types."""
     try:
         # Filter data to appropriate categories
@@ -327,12 +327,12 @@ def test_widget_registration_memory_leaks():
     widgets = []
 
     # Create many widgets
-    for i in range(50):
+    for _i in range(50):
         widget = ThemedWidget()
         widgets.append(widget)
         track_widget(widget)
 
-    mid_memory = get_memory_usage()
+    get_memory_usage()
 
     # Delete widgets
     for widget in widgets:
@@ -378,7 +378,7 @@ def test_registry_cleanup():
     """Test that theme registry properly cleans up weak references."""
     # Create widgets and let them go out of scope
     widget_refs = []
-    for i in range(10):
+    for _i in range(10):
         widget = ThemedWidget()
         widget_refs.append(weakref.ref(widget))
         # Don't track these widgets - let them be garbage collected
@@ -399,7 +399,7 @@ def test_concurrent_widget_creation():
 
     def create_widgets():
         try:
-            for i in range(5):
+            for _i in range(5):
                 widget = ThemedWidget()
                 widgets.append(widget)
                 time.sleep(0.001)  # Small delay
@@ -408,7 +408,7 @@ def test_concurrent_widget_creation():
 
     # Create widgets concurrently
     threads = []
-    for i in range(3):
+    for _i in range(3):
         thread = threading.Thread(target=create_widgets)
         threads.append(thread)
         thread.start()
@@ -469,7 +469,7 @@ def test_widget_creation_performance():
     start_time = time.time()
 
     widgets = []
-    for i in range(50):
+    for _i in range(50):
         widget = ThemedWidget()
         widgets.append(widget)
         track_widget(widget)

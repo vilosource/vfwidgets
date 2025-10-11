@@ -102,7 +102,7 @@ class TestVisualFramework:
         widget.resize(150, 75)
 
         # Create baseline
-        result1 = visual_framework.run_visual_test("test_comparison", widget, update_baseline=True)
+        visual_framework.run_visual_test("test_comparison", widget, update_baseline=True)
 
         # Test against same widget (should be identical)
         result2 = visual_framework.run_visual_test("test_comparison", widget)
@@ -199,7 +199,7 @@ class TestImageComparator:
         assert "perceptual" in results
 
         # All metrics should show significant difference
-        for metric, value in results.items():
+        for _metric, value in results.items():
             assert value > 0.1  # Significantly different
 
 

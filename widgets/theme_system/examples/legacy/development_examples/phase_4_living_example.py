@@ -203,7 +203,7 @@ class Phase4Demo:
             "{'name': 'x'*1000, 'colors': {}}",  # Very long
         ]
 
-        for i, fuzz_input in enumerate(fuzz_inputs, 1):
+        for i, _fuzz_input in enumerate(fuzz_inputs, 1):
             print(f"   ✓ Fuzz test {i}: Handled malformed input safely")
 
         # Simulate memory leak detection

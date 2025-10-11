@@ -378,11 +378,11 @@ def demonstrate_performance():
     start_time = time.perf_counter()
 
     for _ in range(100):  # 100 mapping resolutions
-        result = mapping.get_mapping(widget)
+        mapping.get_mapping(widget)
 
     mapping_time = (time.perf_counter() - start_time) * 1000
     print(f"Time for 100 mapping resolutions: {mapping_time:.2f}ms")
-    print(f"Average per resolution: {mapping_time/100:.2f}ms")
+    print(f"Average per resolution: {mapping_time / 100:.2f}ms")
 
     # Show cache statistics
     stats = mapping.get_statistics()

@@ -172,7 +172,7 @@ class DataPage(StackPage):
         # Data list
         self.data_list = QListWidget()
         for i in range(15):
-            self.data_list.addItem(f"Data Item {i+1}")
+            self.data_list.addItem(f"Data Item {i + 1}")
         layout.addWidget(self.data_list)
 
         # Controls

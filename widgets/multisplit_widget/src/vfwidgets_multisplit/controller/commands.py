@@ -70,9 +70,14 @@ class SplitPaneCommand(Command):
     position: WherePosition
     ratio: float = 0.5
 
-    def __init__(self, model: PaneModel, target_pane_id: PaneId,
-                 new_widget_id: WidgetId, position: WherePosition,
-                 ratio: float = 0.5):
+    def __init__(
+        self,
+        model: PaneModel,
+        target_pane_id: PaneId,
+        new_widget_id: WidgetId,
+        position: WherePosition,
+        ratio: float = 0.5,
+    ):
         """Initialize split command."""
         super().__init__(model)
         self.target_pane_id = target_pane_id
@@ -88,8 +93,7 @@ class SplitPaneCommand(Command):
             return False
 
         # Log operation start
-        log_split_operation(self.target_pane_id, self.new_widget_id,
-                          self.position, self.ratio)
+        log_split_operation(self.target_pane_id, self.new_widget_id, self.position, self.ratio)
         log_tree_structure(self.model.root, "Tree BEFORE split")
 
         # Find target
@@ -105,14 +109,12 @@ class SplitPaneCommand(Command):
 
         # Generate IDs
         from ..core.utils import generate_node_id, generate_pane_id
+
         self._new_pane_id = generate_pane_id()
         logger.info(f"Generated new pane ID: {self._new_pane_id}")
 
         # Create new leaf
-        new_leaf = LeafNode(
-            pane_id=self._new_pane_id,
-            widget_id=self.new_widget_id
-        )
+        new_leaf = LeafNode(pane_id=self._new_pane_id, widget_id=self.new_widget_id)
         logger.debug(f"Created new leaf node with widget: {self.new_widget_id}")
 
         # Handle different split positions
@@ -154,10 +156,7 @@ class SplitPaneCommand(Command):
 
             # Create new split node
             new_split = SplitNode(
-                node_id=self._new_node_id,
-                orientation=orientation,
-                children=[],
-                ratios=[]
+                node_id=self._new_node_id, orientation=orientation, children=[], ratios=[]
             )
 
             # CRITICAL: Don't modify target's parent until AFTER we replace it in the tree!
@@ -355,6 +354,7 @@ class NavigateFocusCommand(Command):
             return False
 
         from ..core.focus import FocusManager
+
         focus_mgr = FocusManager(self.model)
 
         self._previous_focus = self.model.focused_pane_id
@@ -406,6 +406,7 @@ class SetRatiosCommand(Command):
 
         # Find split node
         from ..core.tree_utils import find_split_by_id
+
         split_node = find_split_by_id(self.model.root, self.node_id)
 
         if not split_node:
@@ -413,6 +414,7 @@ class SetRatiosCommand(Command):
 
         # Validate ratios
         from ..core.tree_utils import validate_ratios
+
         if not validate_ratios(self.ratios):
             return False
 
@@ -441,6 +443,7 @@ class SetRatiosCommand(Command):
             return False
 
         from ..core.tree_utils import find_split_by_id
+
         split_node = find_split_by_id(self.model.root, self.node_id)
 
         if split_node and self._old_ratios:
@@ -463,8 +466,7 @@ class SetConstraintsCommand(Command):
     pane_id: PaneId
     constraints: SizeConstraints
 
-    def __init__(self, model: PaneModel, pane_id: PaneId,
-                 constraints: SizeConstraints):
+    def __init__(self, model: PaneModel, pane_id: PaneId, constraints: SizeConstraints):
         """Initialize constraints command."""
         super().__init__(model)
         self.pane_id = pane_id

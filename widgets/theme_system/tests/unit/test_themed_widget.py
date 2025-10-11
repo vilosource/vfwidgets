@@ -112,7 +112,7 @@ class TestThemedWidgetProperties(ThemedTestCase):
         # First access should cache
         start_time = time.perf_counter()
         background1 = self.widget.theme.background
-        first_access_time = time.perf_counter() - start_time
+        time.perf_counter() - start_time
 
         # Second access should be cached
         start_time = time.perf_counter()
@@ -194,7 +194,6 @@ class TestThemedWidgetLifecycle(ThemedTestCase):
     def test_widget_cleanup(self):
         """Test automatic widget cleanup."""
         widget = ThemedWidget()
-        widget_id = widget._widget_id
         weak_ref = weakref.ref(widget)
 
         # Simulate cleanup
@@ -211,7 +210,6 @@ class TestThemedWidgetLifecycle(ThemedTestCase):
     def test_widget_close_event(self):
         """Test widget close event handling."""
         widget = ThemedWidget()
-        widget_id = widget._widget_id
 
         # Mock close event
         mock_event = Mock()
@@ -223,7 +221,6 @@ class TestThemedWidgetLifecycle(ThemedTestCase):
     def test_widget_destructor(self):
         """Test widget destructor cleanup."""
         widget = ThemedWidget()
-        widget_id = widget._widget_id
 
         # Should cleanup on deletion
         del widget
@@ -372,7 +369,7 @@ class TestThemedWidgetPerformance(ThemedTestCase):
         profiler = MemoryProfiler()
 
         baseline = profiler.get_memory_usage()
-        widget = ThemedWidget()
+        ThemedWidget()
         widget_memory = profiler.get_memory_usage()
 
         # Calculate overhead
@@ -496,7 +493,6 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         with patch.object(
             widget._theme_manager, "get_current_theme", side_effect=ThemeError("Loading failed")
         ):
-
             # Should not crash - should use fallback
             background = widget.theme.background
             self.assertIsNotNone(background)
@@ -511,7 +507,6 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
             "get_property",
             side_effect=PropertyNotFoundError("test.missing", "Missing"),
         ):
-
             # Should not crash - should use fallback
             value = widget.theme.missing_property
             self.assertIsNotNone(value)
@@ -522,7 +517,6 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
 
         # Mock theme update error
         with patch.object(widget, "_apply_theme_update", side_effect=Exception("Update failed")):
-
             # Should not crash
             try:
                 widget._on_theme_changed(self.mock_theme)
@@ -537,7 +531,6 @@ class TestThemedWidgetErrorRecovery(ThemedTestCase):
         with patch.object(
             widget._theme_manager, "unregister_widget", side_effect=Exception("Cleanup failed")
         ):
-
             # Should not crash during cleanup
             try:
                 widget._cleanup_theme()

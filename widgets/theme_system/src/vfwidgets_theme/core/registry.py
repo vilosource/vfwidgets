@@ -26,7 +26,7 @@ import time
 import weakref
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Protocol, TypeVar
+from typing import Any, Callable, Optional, Protocol, TypeVar
 
 from ..lifecycle import WidgetRegistry as BaseWidgetRegistry
 from ..logging import get_debug_logger
@@ -63,8 +63,8 @@ class RegistryEntry:
     widget_id: str
     widget_type: str
     registration_time: float
-    theme_metadata: Dict[str, Any]
-    callbacks: List[Callable[[], None]]
+    theme_metadata: dict[str, Any]
+    callbacks: list[Callable[[], None]]
 
     @property
     def widget(self) -> Optional[ThemeableWidget]:
@@ -113,16 +113,16 @@ class ThemeWidgetRegistry:
 
         """
         self._base_registry = base_registry
-        self._entries: Dict[str, RegistryEntry] = {}
-        self._event_handlers: List[RegistryEventHandler] = []
+        self._entries: dict[str, RegistryEntry] = {}
+        self._event_handlers: list[RegistryEventHandler] = []
         self._lock = threading.RLock()
         logger.debug("ThemeWidgetRegistry initialized")
 
     def register_widget(
         self,
         widget: ThemeableWidget,
-        theme_metadata: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Callable[[], None]]] = None,
+        theme_metadata: Optional[dict[str, Any]] = None,
+        callbacks: Optional[list[Callable[[], None]]] = None,
     ) -> str:
         """Register a themed widget with metadata.
 
@@ -189,7 +189,7 @@ class ThemeWidgetRegistry:
         with self._lock:
             return self._entries.get(widget_id)
 
-    def list_widgets(self, include_dead: bool = False) -> List[str]:
+    def list_widgets(self, include_dead: bool = False) -> list[str]:
         """List all registered widget IDs."""
         with self._lock:
             if include_dead:
@@ -294,7 +294,7 @@ class DefaultRegistryEventHandler:
         logger.debug(f"Theme '{theme_name}' applied to widget {widget_id}")
 
     @property
-    def statistics(self) -> Dict[str, int]:
+    def statistics(self) -> dict[str, int]:
         """Get event handler statistics."""
         return {
             "registrations": self._registration_count,

@@ -42,7 +42,9 @@ class TestProcessEvent:
         event2 = ProcessEvent(command="test2")
 
         # Timestamps should be different (even if very close)
-        assert event1.timestamp != event2.timestamp or event1.timestamp == event2.timestamp
+        assert (
+            event1.timestamp != event2.timestamp or event1.timestamp == event2.timestamp
+        )
         assert isinstance(event1.timestamp, datetime)
         assert isinstance(event2.timestamp, datetime)
 
@@ -80,7 +82,9 @@ class TestKeyEvent:
     def test_key_event_special_keys(self):
         """Test KeyEvent with special keys."""
         # Test arrow key
-        arrow_event = KeyEvent(key="ArrowUp", code="ArrowUp", ctrl=False, alt=False, shift=False)
+        arrow_event = KeyEvent(
+            key="ArrowUp", code="ArrowUp", ctrl=False, alt=False, shift=False
+        )
         assert arrow_event.key == "ArrowUp"
 
         # Test function key
@@ -188,7 +192,11 @@ class TestEventCategory:
 
     def test_event_category_in_set(self):
         """Test EventCategory can be used in sets."""
-        category_set = {EventCategory.LIFECYCLE, EventCategory.PROCESS, EventCategory.INTERACTION}
+        category_set = {
+            EventCategory.LIFECYCLE,
+            EventCategory.PROCESS,
+            EventCategory.INTERACTION,
+        }
 
         assert EventCategory.LIFECYCLE in category_set
         assert EventCategory.CONTENT not in category_set
@@ -259,7 +267,8 @@ class TestTerminalWidgetEventSystem:
     def test_terminal_widget_event_config_custom(self, qtbot, mock_embedded_server):
         """Test TerminalWidget with custom event configuration."""
         custom_config = EventConfig(
-            enabled_categories={EventCategory.LIFECYCLE, EventCategory.PROCESS}, debug_logging=True
+            enabled_categories={EventCategory.LIFECYCLE, EventCategory.PROCESS},
+            debug_logging=True,
         )
 
         widget = TerminalWidget(event_config=custom_config)
@@ -273,7 +282,8 @@ class TestTerminalWidgetEventSystem:
         widget = basic_terminal_widget
 
         new_config = EventConfig(
-            enabled_categories={EventCategory.INTERACTION}, throttle_high_frequency=False
+            enabled_categories={EventCategory.INTERACTION},
+            throttle_high_frequency=False,
         )
 
         widget.configure_events(new_config)

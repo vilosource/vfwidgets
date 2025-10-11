@@ -166,7 +166,7 @@ class ThemeEditor(ThemedWidget, QWidget):
         """Apply the custom theme to the application."""
         # Build theme colors
         colors = {}
-        for key, (button, input) in self.color_editors.items():
+        for key, (_button, input) in self.color_editors.items():
             colors[key] = input.text()
 
         # Create theme data
@@ -194,7 +194,7 @@ class ThemeEditor(ThemedWidget, QWidget):
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Theme", "", "Theme Files (*.json)")
         if file_path:
             colors = {}
-            for key, (button, input) in self.color_editors.items():
+            for key, (_button, input) in self.color_editors.items():
                 colors[key] = input.text()
 
             theme_data = {
@@ -408,15 +408,15 @@ class CompleteApplication(ThemedWidget, QMainWindow):
 
         # Stats cards
         for i in range(4):
-            card = QGroupBox(f"Metric {i+1}")
+            card = QGroupBox(f"Metric {i + 1}")
             card_layout = QVBoxLayout(card)
 
-            value = QLabel(f"{(i+1)*25}%")
+            value = QLabel(f"{(i + 1) * 25}%")
             value.setAlignment(Qt.AlignCenter)
             value.setStyleSheet("font-size: 24px; font-weight: bold;")
             card_layout.addWidget(value)
 
-            label = QLabel(f"Performance metric {i+1}")
+            label = QLabel(f"Performance metric {i + 1}")
             label.setAlignment(Qt.AlignCenter)
             card_layout.addWidget(label)
 
@@ -440,9 +440,9 @@ class CompleteApplication(ThemedWidget, QMainWindow):
         # Sample data
         for i in range(10):
             table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
-            table.setItem(i, 1, QTableWidgetItem(f"Item {i+1}"))
+            table.setItem(i, 1, QTableWidgetItem(f"Item {i + 1}"))
             table.setItem(i, 2, QTableWidgetItem("Active" if i % 2 else "Inactive"))
-            table.setItem(i, 3, QTableWidgetItem(f"{(i+1)*10}"))
+            table.setItem(i, 3, QTableWidgetItem(f"{(i + 1) * 10}"))
 
             btn = QPushButton("Edit")
             table.setCellWidget(i, 4, btn)

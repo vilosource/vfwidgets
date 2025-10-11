@@ -1,4 +1,4 @@
-"""Pattern Recognition with Caching - Task 14
+"""Pattern Recognition with Caching - Task 14.
 
 This module implements high-performance pattern matching that complements
 the CSS selector system from Task 13. It provides:
@@ -29,12 +29,9 @@ from re import Pattern
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     NamedTuple,
     Optional,
     Protocol,
-    Tuple,
 )
 
 if TYPE_CHECKING:
@@ -77,7 +74,7 @@ class MatchResult(NamedTuple):
 
     matched: bool
     score: float  # 0.0 to 1.0, higher is better match
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 class PatternFunction(Protocol):
@@ -174,7 +171,7 @@ class LRUCache:
             self._misses = 0
             self._evictions = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache performance statistics."""
         with self._lock:
             total = self._hits + self._misses
@@ -217,7 +214,7 @@ class PatternMatcher:
         self.debug = debug
 
         # Pattern storage
-        self._patterns: List[Pattern] = []
+        self._patterns: list[Pattern] = []
         self._patterns_lock = threading.RLock()
 
         # High-performance caching
@@ -225,7 +222,7 @@ class PatternMatcher:
         self._pattern_cache = LRUCache(cache_size // 2)  # Compiled patterns
 
         # Plugin system
-        self._plugins: Dict[str, PatternPlugin] = {}
+        self._plugins: dict[str, PatternPlugin] = {}
 
         # Performance tracking
         self._stats = {
@@ -240,7 +237,7 @@ class PatternMatcher:
         self._stats_lock = threading.RLock()
 
         # Compiled regex cache
-        self._regex_cache: Dict[str, re.Pattern] = {}
+        self._regex_cache: dict[str, re.Pattern] = {}
         self._regex_lock = threading.RLock()
 
         if self.debug:
@@ -330,8 +327,8 @@ class PatternMatcher:
             return False
 
     def match_patterns(
-        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
-    ) -> List[Tuple[int, Pattern, MatchResult]]:
+        self, target: str, widget: "ThemedWidget", context: Optional[dict[str, Any]] = None
+    ) -> list[tuple[int, Pattern, MatchResult]]:
         """Find all patterns that match the target string.
 
         Args:
@@ -377,7 +374,7 @@ class PatternMatcher:
 
             if self.debug and matches:
                 logger.debug(
-                    f"Matched {len(matches)} patterns for '{target}' in {match_time*1000:.2f}ms"
+                    f"Matched {len(matches)} patterns for '{target}' in {match_time * 1000:.2f}ms"
                 )
 
             return matches
@@ -389,8 +386,8 @@ class PatternMatcher:
             return []
 
     def get_best_match(
-        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
-    ) -> Optional[Tuple[int, Pattern, MatchResult]]:
+        self, target: str, widget: "ThemedWidget", context: Optional[dict[str, Any]] = None
+    ) -> Optional[tuple[int, Pattern, MatchResult]]:
         """Get the best matching pattern based on priority and match score.
 
         Args:
@@ -437,7 +434,7 @@ class PatternMatcher:
             return True
         return False
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get comprehensive performance statistics."""
         with self._stats_lock, self._patterns_lock:
             active_patterns = sum(1 for p in self._patterns if p is not None and p.enabled)
@@ -455,7 +452,7 @@ class PatternMatcher:
         """Clear all caches."""
         self._clear_caches()
 
-    def benchmark_performance(self, iterations: int = 1000) -> Dict[str, float]:
+    def benchmark_performance(self, iterations: int = 1000) -> dict[str, float]:
         """Benchmark pattern matching performance.
 
         Args:
@@ -499,8 +496,8 @@ class PatternMatcher:
     # Private methods
 
     def _match_patterns_uncached(
-        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
-    ) -> List[Tuple[int, Pattern, MatchResult]]:
+        self, target: str, widget: "ThemedWidget", context: Optional[dict[str, Any]] = None
+    ) -> list[tuple[int, Pattern, MatchResult]]:
         """Perform actual pattern matching without caching."""
         matches = []
 
@@ -529,7 +526,7 @@ class PatternMatcher:
         pattern: Pattern,
         target: str,
         widget: "ThemedWidget",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ) -> MatchResult:
         """Match a single pattern against the target."""
         try:
@@ -633,7 +630,7 @@ class PatternMatcher:
                 raise PatternError(f"Plugin '{plugin_name}' not found")
 
     def _generate_cache_key(
-        self, target: str, widget: "ThemedWidget", context: Optional[Dict[str, Any]] = None
+        self, target: str, widget: "ThemedWidget", context: Optional[dict[str, Any]] = None
     ) -> str:
         """Generate a cache key for pattern matching."""
         # Include widget context for caching
@@ -675,12 +672,12 @@ class MockWidget:
 # Utility functions for common patterns
 
 
-def glob_pattern(pattern: str) -> Tuple[str, PatternType]:
+def glob_pattern(pattern: str) -> tuple[str, PatternType]:
     """Create a glob pattern tuple."""
     return (pattern, PatternType.GLOB)
 
 
-def regex_pattern(pattern: str) -> Tuple[str, PatternType]:
+def regex_pattern(pattern: str) -> tuple[str, PatternType]:
     """Create a regex pattern tuple."""
     return (pattern, PatternType.REGEX)
 

@@ -3,7 +3,6 @@
 Calculates exact pixel positions for all panes from tree structure.
 """
 
-
 from .nodes import LeafNode, PaneNode, SplitNode
 from .types import Bounds, Orientation, PaneId
 
@@ -19,8 +18,9 @@ class GeometryCalculator:
         """
         self.divider_width = divider_width
 
-    def calculate_layout(self, root: PaneNode, bounds: Bounds,
-                        divider_width: int = 6) -> dict[PaneId, Bounds]:
+    def calculate_layout(
+        self, root: PaneNode, bounds: Bounds, divider_width: int = 6
+    ) -> dict[PaneId, Bounds]:
         """Calculate pixel-perfect layout with constraint enforcement.
 
         Args:
@@ -59,13 +59,11 @@ class GeometryCalculator:
         self._calculate_recursive(root, container_bounds, result)
         return result
 
-    def _calculate_node_bounds(self, node: PaneNode, bounds: Bounds,
-                             result: dict[PaneId, Bounds]):
+    def _calculate_node_bounds(self, node: PaneNode, bounds: Bounds, result: dict[PaneId, Bounds]):
         """Calculate bounds for nodes (alias for _calculate_recursive)."""
         self._calculate_recursive(node, bounds, result)
 
-    def _apply_constraints(self, node: PaneNode,
-                          layout: dict[PaneId, Bounds]):
+    def _apply_constraints(self, node: PaneNode, layout: dict[PaneId, Bounds]):
         """Apply size constraints to layout.
 
         Args:
@@ -77,15 +75,11 @@ class GeometryCalculator:
                 bounds = layout[node.pane_id]
 
                 # Apply constraints
-                new_width, new_height = node.constraints.clamp_size(
-                    bounds.width, bounds.height
-                )
+                new_width, new_height = node.constraints.clamp_size(bounds.width, bounds.height)
 
                 if new_width != bounds.width or new_height != bounds.height:
                     # Update bounds with constrained size
-                    layout[node.pane_id] = Bounds(
-                        bounds.x, bounds.y, new_width, new_height
-                    )
+                    layout[node.pane_id] = Bounds(bounds.x, bounds.y, new_width, new_height)
 
         elif isinstance(node, SplitNode):
             # Recursively apply to children
@@ -95,8 +89,7 @@ class GeometryCalculator:
             # Check if children meet minimum sizes
             self._propagate_constraints(node, layout)
 
-    def _propagate_constraints(self, split_node: SplitNode,
-                              layout: dict[PaneId, Bounds]):
+    def _propagate_constraints(self, split_node: SplitNode, layout: dict[PaneId, Bounds]):
         """Propagate constraints through split node.
 
         Args:
@@ -111,16 +104,17 @@ class GeometryCalculator:
 
         # Check if we can fit all minimums
         total_min = sum(min_sizes)
-        available = (split_node.bounds.width if split_node.orientation == Orientation.HORIZONTAL
-                    else split_node.bounds.height)
+        available = (
+            split_node.bounds.width
+            if split_node.orientation == Orientation.HORIZONTAL
+            else split_node.bounds.height
+        )
 
         if total_min > available:
             # Need to adjust ratios to meet constraints
             # This is complex - for now, just warn
-            if hasattr(self, 'signals'):
-                self.signals.validation_failed.emit(
-                    ["Insufficient space for minimum sizes"]
-                )
+            if hasattr(self, "signals"):
+                self.signals.validation_failed.emit(["Insufficient space for minimum sizes"])
 
     def _calculate_minimum_size(self, node: PaneNode) -> int:
         """Calculate minimum size for node.
@@ -136,15 +130,13 @@ class GeometryCalculator:
 
         elif isinstance(node, SplitNode):
             # Sum of child minimums plus dividers
-            child_mins = [self._calculate_minimum_size(child)
-                         for child in node.children]
+            child_mins = [self._calculate_minimum_size(child) for child in node.children]
             divider_space = self.divider_width * (len(node.children) - 1)
             return sum(child_mins) + divider_space
 
         return 50  # Default minimum
 
-    def _calculate_recursive(self, node: PaneNode, bounds: Bounds,
-                           result: dict[PaneId, Bounds]):
+    def _calculate_recursive(self, node: PaneNode, bounds: Bounds, result: dict[PaneId, Bounds]):
         """Recursively calculate bounds for tree nodes.
 
         Args:
@@ -159,18 +151,16 @@ class GeometryCalculator:
         elif isinstance(node, SplitNode):
             # Split nodes divide space among children
             child_bounds = self._split_bounds(
-                bounds,
-                node.orientation,
-                node.ratios,
-                len(node.children)
+                bounds, node.orientation, node.ratios, len(node.children)
             )
 
             # Recursively calculate for each child
             for child, child_bound in zip(node.children, child_bounds):
                 self._calculate_recursive(child, child_bound, result)
 
-    def _split_bounds(self, bounds: Bounds, orientation: Orientation,
-                     ratios: list[float], child_count: int) -> list[Bounds]:
+    def _split_bounds(
+        self, bounds: Bounds, orientation: Orientation, ratios: list[float], child_count: int
+    ) -> list[Bounds]:
         """Split bounds according to orientation and ratios.
 
         Args:
@@ -196,8 +186,9 @@ class GeometryCalculator:
         else:
             return self._split_vertical(bounds, ratios, total_divider_space)
 
-    def _split_horizontal(self, bounds: Bounds, ratios: list[float],
-                         divider_space: int) -> list[Bounds]:
+    def _split_horizontal(
+        self, bounds: Bounds, ratios: list[float], divider_space: int
+    ) -> list[Bounds]:
         """Split bounds horizontally.
 
         Args:
@@ -224,10 +215,7 @@ class GeometryCalculator:
             else:
                 child_width = int(available_width * ratio)
 
-            child_bounds.append(Bounds(
-                current_x, bounds.y,
-                child_width, bounds.height
-            ))
+            child_bounds.append(Bounds(current_x, bounds.y, child_width, bounds.height))
 
             # Move past this child and divider
             current_x += child_width
@@ -236,8 +224,9 @@ class GeometryCalculator:
 
         return child_bounds
 
-    def _split_vertical(self, bounds: Bounds, ratios: list[float],
-                       divider_space: int) -> list[Bounds]:
+    def _split_vertical(
+        self, bounds: Bounds, ratios: list[float], divider_space: int
+    ) -> list[Bounds]:
         """Split bounds vertically.
 
         Args:
@@ -264,10 +253,7 @@ class GeometryCalculator:
             else:
                 child_height = int(available_height * ratio)
 
-            child_bounds.append(Bounds(
-                bounds.x, current_y,
-                bounds.width, child_height
-            ))
+            child_bounds.append(Bounds(bounds.x, current_y, bounds.width, child_height))
 
             # Move past this child and divider
             current_y += child_height
@@ -276,8 +262,7 @@ class GeometryCalculator:
 
         return child_bounds
 
-    def calculate_divider_bounds(self, root: PaneNode,
-                                container_bounds: Bounds) -> list[Bounds]:
+    def calculate_divider_bounds(self, root: PaneNode, container_bounds: Bounds) -> list[Bounds]:
         """Calculate bounds for all dividers in the tree.
 
         Args:
@@ -291,8 +276,7 @@ class GeometryCalculator:
         self._collect_divider_bounds(root, container_bounds, dividers)
         return dividers
 
-    def _collect_divider_bounds(self, node: PaneNode, bounds: Bounds,
-                               dividers: list[Bounds]):
+    def _collect_divider_bounds(self, node: PaneNode, bounds: Bounds, dividers: list[Bounds]):
         """Collect divider bounds recursively.
 
         Args:
@@ -312,17 +296,11 @@ class GeometryCalculator:
                 if node.orientation == Orientation.HORIZONTAL:
                     # Vertical divider between horizontal children
                     divider_x = current_bounds.right
-                    dividers.append(Bounds(
-                        divider_x, bounds.y,
-                        self.divider_width, bounds.height
-                    ))
+                    dividers.append(Bounds(divider_x, bounds.y, self.divider_width, bounds.height))
                 else:
                     # Horizontal divider between vertical children
                     divider_y = current_bounds.bottom
-                    dividers.append(Bounds(
-                        bounds.x, divider_y,
-                        bounds.width, self.divider_width
-                    ))
+                    dividers.append(Bounds(bounds.x, divider_y, bounds.width, self.divider_width))
 
             # Recursively process children
             for child, child_bound in zip(node.children, child_bounds):

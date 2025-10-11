@@ -22,11 +22,11 @@ Performance Requirements:
 
 import threading
 from copy import deepcopy
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 # MINIMAL_THEME - The theme that ALWAYS works
 # This is hardcoded and never depends on external resources
-MINIMAL_THEME: Dict[str, Any] = {
+MINIMAL_THEME: dict[str, Any] = {
     "name": "minimal",
     "version": "1.0.0",
     "metadata": {
@@ -324,7 +324,7 @@ def get_global_fallback_color_system() -> FallbackColorSystem:
 
 
 # Convenience functions for quick access
-def get_fallback_theme() -> Dict[str, Any]:
+def get_fallback_theme() -> dict[str, Any]:
     """Get the minimal fallback theme.
 
     Returns:
@@ -387,7 +387,7 @@ def get_fallback_property(property_path: str) -> Any:
         return None
 
 
-def validate_theme_completeness(theme_data: Dict[str, Any]) -> Dict[str, Any]:
+def validate_theme_completeness(theme_data: dict[str, Any]) -> dict[str, Any]:
     """Validate theme completeness and fill missing values.
 
     Args:
@@ -416,7 +416,7 @@ def validate_theme_completeness(theme_data: Dict[str, Any]) -> Dict[str, Any]:
     return complete_theme
 
 
-def _deep_merge(target: Dict[str, Any], source: Dict[str, Any]) -> None:
+def _deep_merge(target: dict[str, Any], source: dict[str, Any]) -> None:
     """Deep merge source dictionary into target dictionary.
 
     Args:
@@ -434,7 +434,7 @@ def _deep_merge(target: Dict[str, Any], source: Dict[str, Any]) -> None:
             target[key] = value
 
 
-def get_safe_color_palette() -> Dict[str, str]:
+def get_safe_color_palette() -> dict[str, str]:
     """Get a safe color palette for emergency fallbacks.
 
     Returns:

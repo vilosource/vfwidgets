@@ -29,17 +29,17 @@ def test_simple_benchmarks():
     # Test simple property access benchmark
     print("\nRunning property access benchmark...")
     result1 = suite.bench_property_access()
-    print(f"Property access: {result1.mean_time*1000:.2f}ms average")
+    print(f"Property access: {result1.mean_time * 1000:.2f}ms average")
 
     # Test widget creation benchmark
     print("\nRunning widget creation benchmark...")
     result2 = suite.bench_widget_creation()
-    print(f"Widget creation: {result2.mean_time*1000:.2f}ms average")
+    print(f"Widget creation: {result2.mean_time * 1000:.2f}ms average")
 
     # Test QSS generation benchmark
     print("\nRunning QSS generation benchmark...")
     result3 = suite.bench_qss_generation()
-    print(f"QSS generation: {result3.mean_time*1000:.2f}ms average")
+    print(f"QSS generation: {result3.mean_time * 1000:.2f}ms average")
 
     # Generate report
     report = suite.generate_report()
@@ -55,14 +55,14 @@ def test_simple_benchmarks():
         print("Failed benchmarks:")
         for failure in validation["failed"]:
             print(
-                f"  {failure['benchmark']}: {failure['actual']*1000:.2f}ms > {failure['requirement']*1000:.2f}ms"
+                f"  {failure['benchmark']}: {failure['actual'] * 1000:.2f}ms > {failure['requirement'] * 1000:.2f}ms"
             )
 
     if validation["passed"]:
         print("Passed benchmarks:")
         for passed in validation["passed"]:
             print(
-                f"  {passed['benchmark']}: {passed['actual']*1000:.2f}ms < {passed['requirement']*1000:.2f}ms"
+                f"  {passed['benchmark']}: {passed['actual'] * 1000:.2f}ms < {passed['requirement'] * 1000:.2f}ms"
             )
 
     print(f"Results saved to: {suite.results_db}")
@@ -95,7 +95,7 @@ def test_regression_detection():
 
     for regression in regressions:
         print(
-            f"  {regression['name']}: {regression['current_time']*1000:.2f}ms vs {regression['baseline_time']*1000:.2f}ms "
+            f"  {regression['name']}: {regression['current_time'] * 1000:.2f}ms vs {regression['baseline_time'] * 1000:.2f}ms "
             f"({regression['threshold_exceeded']:.1f}% slower)"
         )
 

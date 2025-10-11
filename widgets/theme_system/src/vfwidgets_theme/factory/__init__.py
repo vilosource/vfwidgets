@@ -1,4 +1,4 @@
-"""Theme Factory System - Task 19
+"""Theme Factory System - Task 19.
 
 This module provides flexible theme construction and composition tools:
 - ThemeFactory: Main factory for creating themes with builders

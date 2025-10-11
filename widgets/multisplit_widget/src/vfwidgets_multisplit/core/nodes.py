@@ -90,9 +90,7 @@ class LeafNode(PaneNode):
     def clone(self) -> LeafNode:
         """Clone leaf node."""
         return LeafNode(
-            pane_id=self.pane_id,
-            widget_id=self.widget_id,
-            constraints=self.constraints
+            pane_id=self.pane_id, widget_id=self.widget_id, constraints=self.constraints
         )
 
 
@@ -157,5 +155,5 @@ class SplitNode(PaneNode):
             node_id=self.node_id,
             orientation=self.orientation,
             children=cloned_children,
-            ratios=self.ratios.copy()
+            ratios=self.ratios.copy(),
         )

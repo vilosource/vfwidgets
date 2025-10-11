@@ -7,7 +7,7 @@ Uses Qt's property animation system for optimal performance.
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 
 from PySide6.QtCore import (
     QEasingCurve,
@@ -42,13 +42,13 @@ class TabAnimator(QObject):
 
         # Animation constants for Chrome-like feel
         self.INSERTION_DURATION = 200  # ms - smooth but not slow
-        self.REMOVAL_DURATION = 150   # ms - snappier for removals
-        self.HOVER_DURATION = 100     # ms - responsive hover
-        self.REORDER_DURATION = 250   # ms - smooth reordering
+        self.REMOVAL_DURATION = 150  # ms - snappier for removals
+        self.HOVER_DURATION = 100  # ms - responsive hover
+        self.REORDER_DURATION = 250  # ms - smooth reordering
 
         # Active animations tracking
-        self.active_animations: List[QPropertyAnimation] = []
-        self.animation_groups: List[QParallelAnimationGroup] = []
+        self.active_animations: list[QPropertyAnimation] = []
+        self.animation_groups: list[QParallelAnimationGroup] = []
 
     def animate_tab_insertion(self, tab_bar, index: int) -> None:
         """
@@ -63,7 +63,7 @@ class TabAnimator(QObject):
             tab_bar: The ChromeTabBar widget
             index: Index where tab was inserted
         """
-        if not hasattr(tab_bar, 'tabRect') or index >= tab_bar.count():
+        if not hasattr(tab_bar, "tabRect") or index >= tab_bar.count():
             return
 
         # Create animation for tab width expansion
@@ -103,7 +103,7 @@ class TabAnimator(QObject):
             tab_bar: The ChromeTabBar widget
             index: Index of tab being removed
         """
-        if not hasattr(tab_bar, 'tabRect') or index >= tab_bar.count():
+        if not hasattr(tab_bar, "tabRect") or index >= tab_bar.count():
             return
 
         # Create parallel animation group for smooth combined effect
@@ -134,7 +134,7 @@ class TabAnimator(QObject):
                 tab_rect.left() - current_rect.width(),
                 tab_rect.top(),
                 tab_rect.width(),
-                tab_rect.height()
+                tab_rect.height(),
             )
             slide_animation.setStartValue(tab_rect)
             slide_animation.setEndValue(new_rect)
@@ -202,7 +202,7 @@ class TabAnimator(QObject):
             from_index: Original tab position
             to_index: Target tab position
         """
-        if not hasattr(tab_bar, 'tabRect') or from_index == to_index:
+        if not hasattr(tab_bar, "tabRect") or from_index == to_index:
             return
 
         # Create parallel animation group for all affected tabs
@@ -265,9 +265,11 @@ class TabAnimator(QObject):
 
     def is_animating(self) -> bool:
         """Check if any animations are currently running."""
-        return (
-            any(anim.state() == QPropertyAnimation.State.Running for anim in self.active_animations) or
-            any(group.state() == QParallelAnimationGroup.State.Running for group in self.animation_groups)
+        return any(
+            anim.state() == QPropertyAnimation.State.Running for anim in self.active_animations
+        ) or any(
+            group.state() == QParallelAnimationGroup.State.Running
+            for group in self.animation_groups
         )
 
     def _on_insertion_finished(self, index: int) -> None:

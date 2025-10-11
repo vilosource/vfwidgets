@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Validation Framework
-Task 24: Runtime validation system for theme integrity
+Task 24: Runtime validation system for theme integrity.
 
 This module provides comprehensive validation capabilities:
 - Schema validation for themes and widgets

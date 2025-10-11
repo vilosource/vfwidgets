@@ -58,7 +58,7 @@ def demonstrate_automatic_memory_management():
     # Create widgets - they are automatically registered
     widgets = []
     print("\nCreating 10 widgets...")
-    for i in range(10):
+    for _i in range(10):
         widget = MockWidget()
         manager.register_widget(widget)  # In real ThemedWidget, this is automatic
         widgets.append(widget)
@@ -68,7 +68,7 @@ def demonstrate_automatic_memory_management():
 
     # Simulate widget destruction (going out of scope)
     print("\nDestroying widgets by removing references...")
-    widget_ids = [id(w) for w in widgets]
+    [id(w) for w in widgets]
     del widgets  # Remove all references
 
     # Force garbage collection to trigger WeakRef callbacks
@@ -92,7 +92,7 @@ def demonstrate_context_managers():
     # Demonstrate WidgetCreationContext
     print("\nUsing WidgetCreationContext for batch widget creation...")
     with WidgetCreationContext(manager) as context:
-        for i in range(20):
+        for _i in range(20):
             widget = MockWidget()
             context.register_widget(widget)
 
@@ -111,7 +111,7 @@ def demonstrate_context_managers():
     with PerformanceContext() as perf_context:
         # Simulate some work
         more_widgets = []
-        for i in range(100):
+        for _i in range(100):
             widget = MockWidget()
             manager.register_widget(widget)
             more_widgets.append(widget)
@@ -137,7 +137,7 @@ def demonstrate_memory_tracking():
 
     print("Creating widgets with memory tracking...")
     widgets = []
-    for i in range(15):
+    for _i in range(15):
         widget = MockWidget()
         widgets.append(widget)
 
@@ -194,7 +194,7 @@ def demonstrate_performance_monitoring():
     print("Testing widget registration performance...")
     with monitor.measure("widget_registration"):
         widgets = []
-        for i in range(100):
+        for _i in range(100):
             widget = MockWidget()
             manager.register_widget(widget)
             widgets.append(widget)
@@ -249,7 +249,7 @@ def demonstrate_thread_safety():
         try:
             # Create widgets
             widgets = []
-            for i in range(num_widgets):
+            for _i in range(num_widgets):
                 widget = MockWidget()
                 manager.register_widget(widget)
                 widgets.append(widget)
@@ -274,7 +274,8 @@ def demonstrate_thread_safety():
     print("Starting 8 worker threads...")
     for i in range(8):
         thread = threading.Thread(
-            target=worker_thread, args=(i, 25)  # Each thread manages 25 widgets
+            target=worker_thread,
+            args=(i, 25),  # Each thread manages 25 widgets
         )
         threads.append(thread)
         thread.start()
@@ -315,7 +316,7 @@ def demonstrate_stress_test():
         # Create widgets
         widgets = []
         with WidgetCreationContext(manager) as context:
-            for i in range(100):
+            for _i in range(100):
                 widget = MockWidget()
                 context.register_widget(widget)
                 tracker.start_tracking(widget)

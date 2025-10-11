@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 try:
     from PIL import Image, ImageChops, ImageDraw, ImageStat
@@ -86,12 +86,12 @@ class VisualTestFramework:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Results tracking
-        self.test_results: List[VisualTestResult] = []
+        self.test_results: list[VisualTestResult] = []
 
         # Ensure PIL is available for image operations
         if not PIL_AVAILABLE:
             raise ImportError(
-                "PIL (Pillow) is required for visual testing. " "Install with: pip install Pillow"
+                "PIL (Pillow) is required for visual testing. Install with: pip install Pillow"
             )
 
     def capture_widget(
@@ -228,7 +228,7 @@ class VisualTestFramework:
 
     def compare_images(
         self, actual: QImage, expected: QImage, tolerance: Optional[float] = None
-    ) -> Tuple[ComparisonResult, float]:
+    ) -> tuple[ComparisonResult, float]:
         """
         Compare two images with tolerance.
 
@@ -280,7 +280,7 @@ class VisualTestFramework:
             return ComparisonResult.ERROR, 0.0
 
     def generate_diff(
-        self, actual: QImage, expected: QImage, highlight_color: Tuple[int, int, int] = (255, 0, 0)
+        self, actual: QImage, expected: QImage, highlight_color: tuple[int, int, int] = (255, 0, 0)
     ) -> Optional[QImage]:
         """
         Generate a visual diff image highlighting differences.
@@ -319,7 +319,7 @@ class VisualTestFramework:
             new_data = []
             threshold = 10  # Threshold for considering pixels different
 
-            for i, (diff_pixel, orig_pixel) in enumerate(zip(diff_data, result_data)):
+            for _i, (diff_pixel, orig_pixel) in enumerate(zip(diff_data, result_data)):
                 # Check if pixel is significantly different
                 if isinstance(diff_pixel, tuple):
                     diff_intensity = sum(diff_pixel) / len(diff_pixel)
@@ -473,9 +473,9 @@ class VisualTestFramework:
     def batch_test_themes(
         self,
         widget_class: type = ThemedWidget,
-        theme_names: List[str] = None,
+        theme_names: list[str] = None,
         size: QSize = QSize(200, 100),
-    ) -> List[VisualTestResult]:
+    ) -> list[VisualTestResult]:
         """
         Test a widget class with multiple themes.
 
@@ -497,7 +497,7 @@ class VisualTestFramework:
 
         return results
 
-    def generate_test_report(self) -> Dict[str, Any]:
+    def generate_test_report(self) -> dict[str, Any]:
         """
         Generate a comprehensive test report.
 

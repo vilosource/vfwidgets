@@ -62,8 +62,10 @@ class TestAbstractSignal(unittest.TestCase):
 
         def create_handler():
             results = []
+
             def handler(value):
                 results.append(value)
+
             signal.connect(handler)
             return handler
 
@@ -164,5 +166,5 @@ class TestSignalBridge(unittest.TestCase):
         self.assertEqual(qt_signal.emitted_values, [])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

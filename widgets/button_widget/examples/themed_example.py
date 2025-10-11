@@ -8,7 +8,8 @@ This example shows:
 """
 
 import sys
-from PySide6.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QWidget, QPushButton
+
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from vfwidgets_button import ButtonWidget
 from vfwidgets_theme import ThemedApplication, WidgetRole
 

@@ -99,5 +99,5 @@ class TestIDGeneration(unittest.TestCase):
         self.assertFalse(validate_id_format("", "pane"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

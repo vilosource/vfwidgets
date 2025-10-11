@@ -35,7 +35,7 @@ import weakref
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
+from typing import Any, Callable, Optional
 
 # Import Qt components with fallback for headless testing
 try:
@@ -121,8 +121,8 @@ class WidgetNotificationManager:
 
     def __init__(self):
         """Initialize widget notification manager."""
-        self._widgets: Dict[str, weakref.ref] = {}
-        self._widget_signals: Dict[str, Signal] = {}
+        self._widgets: dict[str, weakref.ref] = {}
+        self._widget_signals: dict[str, Signal] = {}
         self._lock = threading.RLock()
         logger.debug("WidgetNotificationManager initialized")
 
@@ -238,7 +238,7 @@ class WidgetNotificationManager:
             logger.error(f"Error notifying widget: {e}")
             return False
 
-    def notify_all_widgets(self, theme_name: str) -> Dict[str, bool]:
+    def notify_all_widgets(self, theme_name: str) -> dict[str, bool]:
         """Notify all registered widgets of theme change.
 
         Args:
@@ -316,8 +316,8 @@ class CallbackRegistry:
 
     def __init__(self):
         """Initialize callback registry."""
-        self._callbacks: Dict[str, ThemeChangeCallback] = {}
-        self._callback_filters: Dict[str, Callable[[str, str], bool]] = {}
+        self._callbacks: dict[str, ThemeChangeCallback] = {}
+        self._callback_filters: dict[str, Callable[[str, str], bool]] = {}
         self._lock = threading.RLock()
         self._stats = {
             "registered_callbacks": 0,
@@ -432,7 +432,7 @@ class CallbackRegistry:
 
         return False
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get callback registry statistics."""
         with self._lock:
             return self._stats.copy()
@@ -455,11 +455,11 @@ class NotificationQueue:
             max_size: Maximum queue size
 
         """
-        self._queue: Deque[NotificationItem] = deque()
-        self._priority_queue: Deque[NotificationItem] = deque()
+        self._queue: deque[NotificationItem] = deque()
+        self._priority_queue: deque[NotificationItem] = deque()
         self._max_size = max_size
         self._processor: Optional[Callable[[str, str], None]] = None
-        self._batch_processor: Optional[Callable[[List[tuple]], None]] = None
+        self._batch_processor: Optional[Callable[[list[tuple]], None]] = None
         self._batch_size = 10
         self._lock = threading.RLock()
         self._processing_thread: Optional[threading.Thread] = None
@@ -527,7 +527,7 @@ class NotificationQueue:
         self._processor = processor
 
     def set_batch_processor(
-        self, processor: Callable[[List[tuple]], None], batch_size: int = 10
+        self, processor: Callable[[list[tuple]], None], batch_size: int = 10
     ) -> None:
         """Set batch notification processor."""
         self._batch_processor = processor
@@ -619,8 +619,8 @@ class EventFilter:
 
     def __init__(self):
         """Initialize event filter."""
-        self._theme_filters: List[Callable[[str], bool]] = []
-        self._widget_filters: List[Callable[[str], bool]] = []
+        self._theme_filters: list[Callable[[str], bool]] = []
+        self._widget_filters: list[Callable[[str], bool]] = []
         self._stats = {"total_checks": 0, "notifications_allowed": 0, "notifications_blocked": 0}
         self._lock = threading.RLock()
         logger.debug("EventFilter initialized")
@@ -676,7 +676,7 @@ class EventFilter:
             self._stats["notifications_allowed"] += 1
             return True
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get filter statistics."""
         with self._lock:
             return self._stats.copy()
@@ -701,7 +701,7 @@ class CrossThreadNotifier:
 
     def __init__(self):
         """Initialize cross-thread notifier."""
-        self._handlers: List[Callable[[str, str], None]] = []
+        self._handlers: list[Callable[[str, str], None]] = []
         self._lock = threading.RLock()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="notifier")
         logger.debug("CrossThreadNotifier initialized")
@@ -783,8 +783,8 @@ class NotificationBatcher:
         """
         self._batch_size = batch_size
         self._flush_interval = flush_interval
-        self._current_batch: List[Tuple[str, str]] = []
-        self._batch_processor: Optional[Callable[[List[tuple]], None]] = None
+        self._current_batch: list[tuple[str, str]] = []
+        self._batch_processor: Optional[Callable[[list[tuple]], None]] = None
         self._lock = threading.RLock()
         self._last_flush = time.time()
         self._flush_timer: Optional[threading.Timer] = None
@@ -792,7 +792,7 @@ class NotificationBatcher:
             f"NotificationBatcher initialized: batch_size={batch_size}, flush_interval={flush_interval}"
         )
 
-    def set_batch_processor(self, processor: Callable[[List[tuple]], None]) -> None:
+    def set_batch_processor(self, processor: Callable[[list[tuple]], None]) -> None:
         """Set batch processor function."""
         self._batch_processor = processor
 
@@ -1074,7 +1074,7 @@ class ThemeNotifier:
                 self._stats.errors += 1
             return False
 
-    def batch_notify_widgets(self, widgets: List[QObject], theme_name: str) -> Dict[QObject, bool]:
+    def batch_notify_widgets(self, widgets: list[QObject], theme_name: str) -> dict[QObject, bool]:
         """Batch notify multiple widgets efficiently.
 
         Args:
@@ -1104,7 +1104,7 @@ class ThemeNotifier:
         """
         self._event_filter.add_theme_filter(filter_func)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get notification statistics.
 
         Returns:
@@ -1143,7 +1143,7 @@ class ThemeNotifier:
         except Exception as e:
             logger.error(f"Error processing queued notification: {e}")
 
-    def _process_notification_batch(self, batch: List[Tuple[str, str]]) -> None:
+    def _process_notification_batch(self, batch: list[tuple[str, str]]) -> None:
         """Process batch of notifications."""
         try:
             for theme_name, widget_id in batch:

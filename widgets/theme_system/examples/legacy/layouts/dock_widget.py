@@ -114,7 +114,7 @@ class DockDemo(ThemedWidget, QMainWindow):
         file_dock = ThemedDockWidget("File Explorer")
         file_list = QListWidget()
         for i in range(10):
-            file_list.addItem(f"file_{i+1}.txt")
+            file_list.addItem(f"file_{i + 1}.txt")
         file_dock.setWidget(file_list)
         self.addDockWidget(Qt.LeftDockWidgetArea, file_dock)
 

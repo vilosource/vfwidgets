@@ -29,7 +29,7 @@ import threading
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Optional, Union
 
 from ..errors import InvalidThemeFormatError, PropertyNotFoundError, ThemeLoadError
 from ..logging import get_debug_logger
@@ -38,10 +38,10 @@ from ..logging import get_debug_logger
 from ..protocols import ColorValue, PropertyKey, PropertyValue
 
 # Type aliases for clarity
-ColorPalette = Dict[str, ColorValue]
-StyleProperties = Dict[str, Any]
-ThemeMetadata = Dict[str, Any]
-TokenColors = List[Dict[str, Any]]
+ColorPalette = dict[str, ColorValue]
+StyleProperties = dict[str, Any]
+ThemeMetadata = dict[str, Any]
+TokenColors = list[dict[str, Any]]
 
 # Color validation patterns
 HEX_COLOR_PATTERN = re.compile(r"^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$")
@@ -216,7 +216,7 @@ class Theme:
 
         raise PropertyNotFoundError(f"Property '{key}' not found in theme '{self.name}'")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert theme to dictionary for serialization."""
         return {
             "name": self.name,
@@ -229,7 +229,7 @@ class Theme:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Theme":
+    def from_dict(cls, data: dict[str, Any]) -> "Theme":
         """Create theme from dictionary."""
         return cls(
             name=data.get("name", "unnamed"),
@@ -275,13 +275,13 @@ class ThemeBuilder:
         self.name = name
         self.version = "1.0.0"
         self.type = "light"
-        self.colors: Dict[str, str] = {}
-        self.styles: Dict[str, Any] = {}
-        self.metadata: Dict[str, Any] = {}
-        self.token_colors: List[Dict[str, Any]] = []
+        self.colors: dict[str, str] = {}
+        self.styles: dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
+        self.token_colors: list[dict[str, Any]] = []
 
         # Checkpoint support
-        self._checkpoints: List[Dict[str, Any]] = []
+        self._checkpoints: list[dict[str, Any]] = []
 
         # Parent tracking for inheritance
         self._parent: Optional[Theme] = None
@@ -320,7 +320,7 @@ class ThemeBuilder:
         self.colors[key] = value
         return self
 
-    def add_colors(self, colors: Dict[str, str]) -> "ThemeBuilder":
+    def add_colors(self, colors: dict[str, str]) -> "ThemeBuilder":
         """Add multiple colors."""
         self.colors.update(colors)
         return self
@@ -335,7 +335,7 @@ class ThemeBuilder:
         self.styles[key] = value
         return self
 
-    def add_styles(self, styles: Dict[str, Any]) -> "ThemeBuilder":
+    def add_styles(self, styles: dict[str, Any]) -> "ThemeBuilder":
         """Add multiple styles."""
         self.styles.update(styles)
         return self
@@ -345,7 +345,7 @@ class ThemeBuilder:
         self.styles.pop(key, None)
         return self
 
-    def set_metadata(self, metadata: Dict[str, Any]) -> "ThemeBuilder":
+    def set_metadata(self, metadata: dict[str, Any]) -> "ThemeBuilder":
         """Set theme metadata."""
         self.metadata = dict(metadata)
         return self
@@ -356,7 +356,7 @@ class ThemeBuilder:
         return self
 
     def add_token_color(
-        self, scope: str, settings: Dict[str, str], name: Optional[str] = None
+        self, scope: str, settings: dict[str, str], name: Optional[str] = None
     ) -> "ThemeBuilder":
         """Add token color for syntax highlighting."""
         token = {"scope": scope, "settings": settings}
@@ -500,9 +500,9 @@ class ValidationResult:
     """Result of theme validation."""
 
     is_valid: bool
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    suggestions: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    suggestions: list[str] = field(default_factory=list)
 
 
 class ThemeValidator:
@@ -521,8 +521,8 @@ class ThemeValidator:
 
     def __init__(self):
         """Initialize validator."""
-        self._errors: List[Dict[str, str]] = []
-        self._suggestions: List[str] = []
+        self._errors: list[dict[str, str]] = []
+        self._suggestions: list[str] = []
 
         # Common property suggestions
         self._property_suggestions = {
@@ -536,7 +536,7 @@ class ThemeValidator:
             "foregroundcolor": "foreground-color",
         }
 
-    def validate(self, theme_data: Dict[str, Any]) -> bool:
+    def validate(self, theme_data: dict[str, Any]) -> bool:
         """Validate theme data structure."""
         self._errors.clear()
         self._suggestions.clear()
@@ -573,7 +573,7 @@ class ThemeValidator:
             self._errors.append({"field": "validation", "message": f"Validation error: {str(e)}"})
             return False
 
-    def _validate_basic_structure(self, data: Dict[str, Any]) -> bool:
+    def _validate_basic_structure(self, data: dict[str, Any]) -> bool:
         """Validate basic theme structure."""
         if not isinstance(data, dict):
             self._errors.append(
@@ -617,7 +617,7 @@ class ThemeValidator:
             return False
         return True
 
-    def _validate_colors(self, colors: Dict[str, Any]) -> bool:
+    def _validate_colors(self, colors: dict[str, Any]) -> bool:
         """Validate color palette."""
         if not isinstance(colors, dict):
             self._errors.append({"field": "colors", "message": "Colors must be a dictionary"})
@@ -638,13 +638,13 @@ class ThemeValidator:
 
         return True
 
-    def _validate_styles(self, styles: Dict[str, Any]) -> bool:
+    def _validate_styles(self, styles: dict[str, Any]) -> bool:
         """Validate style properties."""
         if not isinstance(styles, dict):
             self._errors.append({"field": "styles", "message": "Styles must be a dictionary"})
             return False
 
-        for key, value in styles.items():
+        for key, _value in styles.items():
             if not isinstance(key, str):
                 self._errors.append(
                     {"field": f"styles.{key}", "message": "Style keys must be strings"}
@@ -653,7 +653,7 @@ class ThemeValidator:
 
         return True
 
-    def _validate_token_colors(self, token_colors: List[Any]) -> bool:
+    def _validate_token_colors(self, token_colors: list[Any]) -> bool:
         """Validate token colors for syntax highlighting."""
         if not isinstance(token_colors, list):
             self._errors.append({"field": "tokenColors", "message": "Token colors must be a list"})
@@ -699,15 +699,15 @@ class ThemeValidator:
             or color.startswith("@")  # Allow references
         )
 
-    def get_errors(self) -> List[Dict[str, str]]:
+    def get_errors(self) -> list[dict[str, str]]:
         """Get validation errors."""
         return list(self._errors)
 
-    def get_suggestions(self) -> List[str]:
+    def get_suggestions(self) -> list[str]:
         """Get suggestions for common mistakes."""
         return list(self._suggestions)
 
-    def validate_semantic(self, theme: "Theme") -> List[str]:
+    def validate_semantic(self, theme: "Theme") -> list[str]:
         """Check semantic consistency of theme.
 
         Validates:
@@ -773,7 +773,7 @@ class ThemeValidator:
         except ImportError:
             return None
 
-    def validate_theme_data(self, data: Dict[str, Any]) -> "ValidationResult":
+    def validate_theme_data(self, data: dict[str, Any]) -> "ValidationResult":
         """Validate theme data and return comprehensive results.
 
         Args:
@@ -966,7 +966,7 @@ class ThemeValidator:
 
         return luminance
 
-    def get_available_properties(self, prefix: str) -> List[str]:
+    def get_available_properties(self, prefix: str) -> list[str]:
         """Get list of available properties with given prefix.
 
         Args:
@@ -1066,7 +1066,7 @@ class ThemeComposer:
 
     def __init__(self):
         """Initialize composer."""
-        self._composition_cache: Dict[str, Theme] = {}
+        self._composition_cache: dict[str, Theme] = {}
         self._cache_lock = threading.RLock()
 
     def compose(self, *themes: Theme, name: Optional[str] = None) -> Theme:
@@ -1148,7 +1148,7 @@ class ThemeComposer:
         return composed
 
     def compose_partial(
-        self, base: Theme, overrides: Dict[str, str], name: Optional[str] = None
+        self, base: Theme, overrides: dict[str, str], name: Optional[str] = None
     ) -> Theme:
         """Create variant by applying partial overrides to base theme.
 
@@ -1205,7 +1205,7 @@ class ThemeComposer:
 
         return builder.build()
 
-    def compose_chain(self, themes: List[Theme]) -> Theme:
+    def compose_chain(self, themes: list[Theme]) -> Theme:
         """Compose a chain of themes with later themes overriding earlier ones."""
         if not themes:
             raise ValueError("Cannot compose empty theme chain")
@@ -1219,7 +1219,7 @@ class ThemeComposer:
 
         return result
 
-    def compose_with_strategy(self, themes: List[Theme], strategy: str = "last_wins") -> Theme:
+    def compose_with_strategy(self, themes: list[Theme], strategy: str = "last_wins") -> Theme:
         """Compose themes with specific conflict resolution strategy."""
         if strategy == "priority":
             return self._compose_by_priority(themes)
@@ -1228,7 +1228,7 @@ class ThemeComposer:
         else:
             raise ValueError(f"Unknown composition strategy: {strategy}")
 
-    def _compose_by_priority(self, themes: List[Theme]) -> Theme:
+    def _compose_by_priority(self, themes: list[Theme]) -> Theme:
         """Compose themes by priority metadata."""
         # Sort by priority (higher priority wins)
         sorted_themes = sorted(themes, key=lambda t: t.metadata.get("priority", 0))
@@ -1259,8 +1259,8 @@ class PropertyResolver:
     def __init__(self, theme: Theme, max_cache_size: int = 1000):
         """Initialize resolver with theme and cache size."""
         self.theme = theme
-        self._cache: Dict[str, Any] = {}
-        self._resolving: Set[str] = set()  # Circular reference detection
+        self._cache: dict[str, Any] = {}
+        self._resolving: set[str] = set()  # Circular reference detection
         self._cache_lock = threading.RLock()
         self._max_cache_size = max_cache_size
 
@@ -1435,7 +1435,7 @@ class PropertyResolver:
 
         raise PropertyNotFoundError(f"Property '{key}' not found")
 
-    def resolve_reference(self, value: str, context: Optional[Dict[str, Any]] = None) -> str:
+    def resolve_reference(self, value: str, context: Optional[dict[str, Any]] = None) -> str:
         """Public method to resolve property references in a value.
 
         Args:
@@ -1470,7 +1470,7 @@ class ThemeCollection:
     def __init__(self, name: str):
         """Initialize theme collection."""
         self._name = name
-        self._themes: Dict[str, Theme] = {}
+        self._themes: dict[str, Theme] = {}
         self._theme_lock = threading.RLock()
         logger.debug(f"Created theme collection: {name}")
 
@@ -1490,7 +1490,7 @@ class ThemeCollection:
         with self._theme_lock:
             return self._themes.get(name)
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List all theme names in collection."""
         with self._theme_lock:
             return list(self._themes.keys())
@@ -1511,14 +1511,14 @@ class ThemeCollection:
             logger.debug(f"Cleared all themes from collection '{self._name}'")
 
 
-def validate_theme_data(data: Dict[str, Any]) -> bool:
+def validate_theme_data(data: dict[str, Any]) -> bool:
     """Validate raw theme data structure."""
     logger.debug("Validating theme data structure")
     validator = ThemeValidator()
     return validator.validate(data)
 
 
-def create_theme_from_dict(data: Dict[str, Any]) -> Theme:
+def create_theme_from_dict(data: dict[str, Any]) -> Theme:
     """Create Theme instance from dictionary data."""
     logger.debug("Creating theme from dictionary data")
 

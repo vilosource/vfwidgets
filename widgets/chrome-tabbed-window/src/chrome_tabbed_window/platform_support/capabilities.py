@@ -56,10 +56,10 @@ class PlatformCapabilities:
     def can_use_window_mode(self) -> bool:
         """Check if window mode can be used reliably."""
         return (
-            self.supports_frameless and
-            self.supports_custom_titlebar and
-            self.supports_system_move and
-            not self.is_wsl  # WSL has issues with frameless windows
+            self.supports_frameless
+            and self.supports_custom_titlebar
+            and self.supports_system_move
+            and not self.is_wsl  # WSL has issues with frameless windows
         )
 
     @property

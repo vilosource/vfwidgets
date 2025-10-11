@@ -36,7 +36,7 @@ class TestTreeReconciler(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(pane1_id, generate_widget_id("editor", "1.py")),
-                LeafNode(pane2_id, generate_widget_id("editor", "2.py"))
+                LeafNode(pane2_id, generate_widget_id("editor", "2.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -58,7 +58,7 @@ class TestTreeReconciler(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(pane1_id, generate_widget_id("editor", "1.py")),
-                LeafNode(pane2_id, generate_widget_id("editor", "2.py"))
+                LeafNode(pane2_id, generate_widget_id("editor", "2.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -104,7 +104,7 @@ class TestTreeReconciler(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(common_id, generate_widget_id("editor", "common.py")),
-                LeafNode(removed_id, generate_widget_id("editor", "old.py"))
+                LeafNode(removed_id, generate_widget_id("editor", "old.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -114,7 +114,7 @@ class TestTreeReconciler(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(common_id, generate_widget_id("editor", "common.py")),
-                LeafNode(added_id, generate_widget_id("editor", "new.py"))
+                LeafNode(added_id, generate_widget_id("editor", "new.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -127,5 +127,5 @@ class TestTreeReconciler(unittest.TestCase):
         self.assertNotIn(common_id, diff.added)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

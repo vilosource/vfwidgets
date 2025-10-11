@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Validation Framework Core
-Task 24: Core validation framework implementation
+Task 24: Core validation framework implementation.
 
 This module implements the central validation framework with configurable
 validation modes and comprehensive error handling.
@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class ValidationError(Exception):
     """Base exception for validation errors."""
 
     def __init__(
-        self, message: str, validation_type: ValidationType = None, context: Dict[str, Any] = None
+        self, message: str, validation_type: ValidationType = None, context: dict[str, Any] = None
     ):
         super().__init__(message)
         self.validation_type = validation_type
@@ -61,9 +61,9 @@ class ValidationResult:
     passed: bool
     validation_type: ValidationType
     message: str = ""
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
     duration_ms: float = 0.0
 
     @property
@@ -85,7 +85,7 @@ class ValidationResult:
         """Add a warning to the result."""
         self.warnings.append(warning)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary representation."""
         return {
             "passed": self.passed,
@@ -105,7 +105,7 @@ class ValidationContext:
         self,
         framework: "ValidationFramework",
         validation_type: ValidationType,
-        context: Dict[str, Any] = None,
+        context: dict[str, Any] = None,
     ):
         self.framework = framework
         self.validation_type = validation_type
@@ -172,14 +172,14 @@ class ValidationFramework:
             return
 
         self.mode = mode
-        self._validators: Dict[ValidationType, List[Callable]] = {
+        self._validators: dict[ValidationType, list[Callable]] = {
             ValidationType.SCHEMA: [],
             ValidationType.CONTRACT: [],
             ValidationType.RUNTIME: [],
             ValidationType.PERFORMANCE: [],
         }
 
-        self._results: List[ValidationResult] = []
+        self._results: list[ValidationResult] = []
         self._performance_thresholds = {
             "property_access": 0.001,  # 1ms
             "theme_switch": 0.1,  # 100ms
@@ -238,7 +238,7 @@ class ValidationFramework:
             logger.debug(f"Unregistered {validation_type.name} validator: {validator.__name__}")
 
     @contextmanager
-    def validation_context(self, validation_type: ValidationType, context: Dict[str, Any] = None):
+    def validation_context(self, validation_type: ValidationType, context: dict[str, Any] = None):
         """Create a validation context for tracking and logging."""
         if not self.is_validation_enabled(validation_type):
             # Create a no-op result when validation is disabled
@@ -294,7 +294,7 @@ class ValidationFramework:
 
                 # Validate styles
                 if hasattr(theme, "styles") and isinstance(theme.styles, dict):
-                    for style_name, style_value in theme.styles.items():
+                    for style_name, _style_value in theme.styles.items():
                         if not isinstance(style_name, str):
                             result.add_error(f"Style name must be string, got {type(style_name)}")
 
@@ -313,7 +313,7 @@ class ValidationFramework:
 
         return result
 
-    def validate_contract_implementation(self, obj: Any, protocol: Type) -> ValidationResult:
+    def validate_contract_implementation(self, obj: Any, protocol: type) -> ValidationResult:
         """Validate object implements a protocol/contract."""
         with self.validation_context(
             ValidationType.CONTRACT,
@@ -354,7 +354,7 @@ class ValidationFramework:
 
         return result
 
-    def validate_runtime_state(self, obj: Any, expected_state: Dict[str, Any]) -> ValidationResult:
+    def validate_runtime_state(self, obj: Any, expected_state: dict[str, Any]) -> ValidationResult:
         """Validate object runtime state against expectations."""
         with self.validation_context(
             ValidationType.RUNTIME, {"object_type": type(obj).__name__}
@@ -456,7 +456,7 @@ class ValidationFramework:
         self._performance_thresholds[operation_name] = threshold_seconds
         logger.debug(f"Set performance threshold for {operation_name}: {threshold_seconds}s")
 
-    def get_validation_stats(self) -> Dict[str, Any]:
+    def get_validation_stats(self) -> dict[str, Any]:
         """Get validation statistics."""
         stats = self._validation_stats.copy()
         if stats["total_validations"] > 0:
@@ -472,7 +472,7 @@ class ValidationFramework:
 
         return stats
 
-    def get_recent_results(self, limit: int = 100) -> List[ValidationResult]:
+    def get_recent_results(self, limit: int = 100) -> list[ValidationResult]:
         """Get recent validation results."""
         return self._results[-limit:]
 

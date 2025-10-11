@@ -45,7 +45,7 @@ EXPECTED_FILES = {
         "tests/test_geometry.py",
         "tests/test_reconciler.py",
         "tests/test_transactions.py",
-    ]
+    ],
 }
 
 PHASE0_TESTS = [
@@ -79,7 +79,7 @@ def run_test(test_file: str) -> tuple[bool, str, str]:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
 
         # Parse output for pass/fail
@@ -89,15 +89,15 @@ def run_test(test_file: str) -> tuple[bool, str, str]:
             # Extract test count from output
             if "passed" in output:
                 # Find lines like "5 passed in 0.12s"
-                for line in output.split('\n'):
-                    if 'passed' in line and 'in' in line:
+                for line in output.split("\n"):
+                    if "passed" in line and "in" in line:
                         return True, "PASSED", line.strip()
             return True, "PASSED", "All tests passed"
         else:
             # Extract failure summary
             if "FAILED" in output:
-                for line in output.split('\n'):
-                    if 'failed' in line.lower() or 'error' in line.lower():
+                for line in output.split("\n"):
+                    if "failed" in line.lower() or "error" in line.lower():
                         return False, "FAILED", line.strip()
             return False, "FAILED", "Tests failed"
 
@@ -192,8 +192,9 @@ def main():
     print("-" * 40)
 
     # Count statistics
-    existing_files = sum(1 for cat in EXPECTED_FILES.values()
-                        for f in cat if check_file_exists(f)[0])
+    existing_files = sum(
+        1 for cat in EXPECTED_FILES.values() for f in cat if check_file_exists(f)[0]
+    )
     total_files = sum(len(files) for files in EXPECTED_FILES.values())
 
     passing_tests = sum(1 for _, success, _, _ in test_results if success)

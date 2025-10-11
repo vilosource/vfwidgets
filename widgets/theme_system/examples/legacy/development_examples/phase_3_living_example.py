@@ -132,7 +132,7 @@ def demonstrate_task_16_persistence():
 
         # Create original theme file
         original_theme = Theme(name="Original", styles={"test": "original"})
-        theme_path = persistence.save_theme(original_theme, "backup_test.json")
+        persistence.save_theme(original_theme, "backup_test.json")
 
         # Modify and save again (should create backup)
         modified_theme = Theme(name="Original", styles={"test": "modified"})
@@ -176,7 +176,7 @@ def demonstrate_task_16_persistence():
         print_subsection("7. Integration with ThemedApplication")
 
         # Create themed application
-        app = ThemedApplication() if not QT_AVAILABLE else None
+        ThemedApplication() if not QT_AVAILABLE else None
 
         # This would normally save/load themes for the application
         # For now, demonstrate the API that will be integrated
@@ -377,7 +377,7 @@ def demonstrate_task_17_vscode_import():
     import time
 
     start_time = time.perf_counter()
-    large_theme = importer.import_from_data(large_vscode_theme)
+    importer.import_from_data(large_vscode_theme)
     end_time = time.perf_counter()
 
     import_time_ms = (end_time - start_time) * 1000
@@ -877,7 +877,7 @@ def demonstrate_task_19_theme_factory():
     print_subsection("5. Theme Variants")
 
     # Create variants from existing theme
-    variant_generator = ThemeVariantGenerator()
+    ThemeVariantGenerator()
 
     # Create dark variant from light theme
     if hasattr(web_theme, "colors") and web_theme.colors.get("background") == "#ffffff":
@@ -953,7 +953,7 @@ def demonstrate_task_19_theme_factory():
     # Test simple theme creation
     start_time = time.perf_counter()
     for i in range(10):
-        simple_theme = (
+        (
             factory.create_builder(f"perf_test_{i}")
             .add_color("primary", "#007acc")
             .add_color("background", "#ffffff")
@@ -962,12 +962,12 @@ def demonstrate_task_19_theme_factory():
         )
     simple_time = (time.perf_counter() - start_time) * 1000
 
-    print(f"10 simple themes: {simple_time:.2f}ms total ({simple_time/10:.2f}ms each)")
+    print(f"10 simple themes: {simple_time:.2f}ms total ({simple_time / 10:.2f}ms each)")
 
     # Test complex theme creation
     start_time = time.perf_counter()
     for i in range(5):
-        complex_theme = (
+        (
             factory.create_from_template("material", f"complex_test_{i}")
             .add_colors({f"custom_{j}": f"#ff{j:04x}" for j in range(10)})
             .add_styles({f"style_{j}": {"property": f"value_{j}"} for j in range(5)})
@@ -975,7 +975,7 @@ def demonstrate_task_19_theme_factory():
         )
     complex_time = (time.perf_counter() - start_time) * 1000
 
-    print(f"5 complex themes: {complex_time:.2f}ms total ({complex_time/5:.2f}ms each)")
+    print(f"5 complex themes: {complex_time:.2f}ms total ({complex_time / 5:.2f}ms each)")
 
     # Performance requirement check
     avg_simple = simple_time / 10
@@ -1066,14 +1066,14 @@ def demonstrate_task_19_theme_factory():
 
     # Test validation
     try:
-        invalid_theme = (
+        (
             factory.create_builder("invalid").add_color("", "#ffffff").build()  # Invalid: empty key
         )
     except Exception as e:
         print(f"✓ Validation caught empty color key: {type(e).__name__}")
 
     try:
-        invalid_theme2 = (
+        (
             factory.create_builder("invalid2")
             .add_color("test", "#gggggg")  # Invalid: bad hex
             .build()
@@ -1082,7 +1082,7 @@ def demonstrate_task_19_theme_factory():
         print(f"✓ Validation caught invalid hex color: {type(e).__name__}")
 
     try:
-        empty_theme = factory.create_builder("empty").build()  # Invalid: no colors or styles
+        factory.create_builder("empty").build()  # Invalid: no colors or styles
     except Exception as e:
         print(f"✓ Validation caught empty theme: {type(e).__name__}")
 
@@ -1105,16 +1105,16 @@ def main():
 
     try:
         # Demonstrate Task 16
-        persistence = demonstrate_task_16_persistence()
+        demonstrate_task_16_persistence()
 
         # Demonstrate Task 17
-        imported_theme = demonstrate_task_17_vscode_import()
+        demonstrate_task_17_vscode_import()
 
         # Demonstrate Task 18
         demonstrate_task_18_hot_reload()
 
         # Demonstrate Task 19
-        factory = demonstrate_task_19_theme_factory()
+        demonstrate_task_19_theme_factory()
 
         print_section("Phase 3 Summary - Tasks 16-19 Complete")
         print("Task 16: Theme Persistence System")

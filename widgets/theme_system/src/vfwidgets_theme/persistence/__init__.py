@@ -1,4 +1,4 @@
-"""Theme Persistence Module
+"""Theme Persistence Module.
 
 This module provides theme persistence capabilities including:
 - JSON serialization and deserialization

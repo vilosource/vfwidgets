@@ -31,7 +31,7 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import yaml
 
@@ -151,7 +151,7 @@ class ThemeCache:
             self._cache.clear()
             logger.debug("Cache cleared")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
             hit_rate = (
@@ -262,7 +262,7 @@ class BuiltinThemeManager:
 
     def __init__(self):
         """Initialize builtin theme manager."""
-        self._themes: Dict[str, Theme] = {}
+        self._themes: dict[str, Theme] = {}
         self._load_builtin_themes()
         logger.debug(f"BuiltinThemeManager initialized with {len(self._themes)} themes")
 
@@ -419,7 +419,7 @@ class BuiltinThemeManager:
             # Ensure minimal theme is always available
             self._themes["minimal"] = Theme.from_dict(MINIMAL_THEME)
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List all built-in theme names."""
         return list(self._themes.keys())
 
@@ -465,7 +465,7 @@ class ThemeDiscovery:
 
     def discover_in_directory(
         self, directory: Union[str, Path], recursive: bool = True
-    ) -> List[Theme]:
+    ) -> list[Theme]:
         """Discover themes in directory.
 
         Args:
@@ -536,14 +536,14 @@ class ThemeRepository:
             builtin_manager: Built-in theme manager
 
         """
-        self._themes: Dict[str, Theme] = {}
-        self._metadata: Dict[str, ThemeMetadata] = {}
+        self._themes: dict[str, Theme] = {}
+        self._metadata: dict[str, ThemeMetadata] = {}
         self._cache = cache or ThemeCache()
         self._discovery = discovery or ThemeDiscovery()
         self._builtin_manager = builtin_manager or BuiltinThemeManager()
         self._file_loader = FileThemeLoader()
         self._lock = threading.RLock()
-        self._aliases: Dict[str, str] = {}  # Theme name aliases
+        self._aliases: dict[str, str] = {}  # Theme name aliases
 
         # Load built-in themes
         self._load_builtin_themes()
@@ -758,7 +758,7 @@ class ThemeRepository:
                 return True
             return False
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List all theme names in repository.
 
         Returns:
@@ -851,7 +851,7 @@ class ThemeRepository:
         except Exception as e:
             raise ThemeLoadError(f"Failed to save theme to {path}: {e}")
 
-    def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
+    def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> list[Theme]:
         """Discover and load themes from directory.
 
         Args:
@@ -882,7 +882,7 @@ class ThemeRepository:
         logger.debug(f"Discovered and loaded {len(themes)} themes from {directory}")
         return themes
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get repository statistics.
 
         Returns:

@@ -84,7 +84,9 @@ class MultiSessionTerminalServer(QObject):
         """Setup Flask application with SocketIO."""
         self.app = Flask(__name__)
         self.app.config["SECRET_KEY"] = "terminal_server_secret!"
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
+        self.socketio = SocketIO(
+            self.app, cors_allowed_origins="*", async_mode="threading"
+        )
 
         # Serve terminal HTML for session
         @self.app.route("/terminal/<session_id>")
@@ -216,7 +218,9 @@ class MultiSessionTerminalServer(QObject):
         if not self.backend:
             try:
                 self.backend = create_backend()
-                logger.info(f"Created terminal backend: {self.backend.get_platform_name()}")
+                logger.info(
+                    f"Created terminal backend: {self.backend.get_platform_name()}"
+                )
             except Exception as e:
                 logger.error(f"Failed to create terminal backend: {e}")
                 return
@@ -228,7 +232,8 @@ class MultiSessionTerminalServer(QObject):
                 target=self._read_and_forward_pty_output, session_id=session_id
             )
             logger.info(
-                f"Started terminal process for session {session_id}, " f"PID: {session.child_pid}"
+                f"Started terminal process for session {session_id}, "
+                f"PID: {session.child_pid}"
             )
 
     def _read_and_forward_pty_output(self, session_id: str):
@@ -253,9 +258,13 @@ class MultiSessionTerminalServer(QObject):
                         room=session_id,
                     )
                     # Emit signal from background thread - Qt should handle cross-thread signal
-                    logger.info(f"Emitting session_ended signal for session {session_id}")
+                    logger.info(
+                        f"Emitting session_ended signal for session {session_id}"
+                    )
                     self.session_ended.emit(session_id)
-                    logger.info(f"session_ended signal emitted for session {session_id}")
+                    logger.info(
+                        f"session_ended signal emitted for session {session_id}"
+                    )
                     break
 
                 # Process is alive, poll and read output
@@ -309,7 +318,9 @@ class MultiSessionTerminalServer(QObject):
             - Unix: $SHELL environment variable or bash
         """
         if len(self.sessions) >= self.max_sessions:
-            raise RuntimeError(f"Maximum number of sessions ({self.max_sessions}) reached")
+            raise RuntimeError(
+                f"Maximum number of sessions ({self.max_sessions}) reached"
+            )
 
         # Start server if not running (must be running before creating sessions)
         if not self.running:

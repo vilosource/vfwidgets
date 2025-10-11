@@ -25,7 +25,7 @@ class AbstractSignal:
             handler: Callable to invoke when signal is emitted
         """
         # Check if it's a bound method
-        if hasattr(handler, '__self__') and hasattr(handler, '__name__'):
+        if hasattr(handler, "__self__") and hasattr(handler, "__name__"):
             # Store weak ref to object and method name
             obj_ref = weakref.ref(handler.__self__)
             method_name = handler.__name__
@@ -82,7 +82,9 @@ class AbstractSignal:
     def _cleanup_handlers(self) -> None:
         """Remove dead weak references."""
         self._handlers = [ref for ref in self._handlers if ref() is not None]
-        self._method_refs = [(obj_ref, method) for obj_ref, method in self._method_refs if obj_ref() is not None]
+        self._method_refs = [
+            (obj_ref, method) for obj_ref, method in self._method_refs if obj_ref() is not None
+        ]
 
     def handler_count(self) -> int:
         """Get count of connected handlers.

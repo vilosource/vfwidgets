@@ -7,7 +7,7 @@ Provides pixel-perfect Chrome browser tab rendering with curves, gradients, and 
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Optional, Any
+from typing import Any, Optional
 
 from PySide6.QtCore import QPointF, QRect, Qt
 from PySide6.QtGui import (
@@ -23,6 +23,7 @@ from PySide6.QtGui import (
 
 class TabState(Enum):
     """Tab visual states."""
+
     NORMAL = 0
     HOVER = 1
     ACTIVE = 2
@@ -62,7 +63,7 @@ class ChromeTabRenderer:
     COLOR_CLOSE_PRESSED = QColor("#3C4043")  # Close button pressed
 
     @classmethod
-    def get_tab_colors(cls, theme: Optional[Any] = None) -> Dict[str, QColor]:
+    def get_tab_colors(cls, theme: Optional[Any] = None) -> dict[str, QColor]:
         """
         Get tab colors from theme or fallback to Chrome defaults.
 
@@ -73,41 +74,49 @@ class ChromeTabRenderer:
             Dictionary with color keys: background, tab_normal, tab_hover, tab_active,
             tab_pressed, border, text, text_inactive, close_hover, close_pressed
         """
-        if theme is None or not hasattr(theme, 'colors'):
+        if theme is None or not hasattr(theme, "colors"):
             # Fallback to hardcoded Chrome colors when no theme available
             return {
-                'background': cls.COLOR_BACKGROUND,
-                'tab_normal': cls.COLOR_TAB_NORMAL,
-                'tab_hover': cls.COLOR_TAB_HOVER,
-                'tab_active': cls.COLOR_TAB_ACTIVE,
-                'tab_pressed': cls.COLOR_TAB_PRESSED,
-                'border': cls.COLOR_BORDER,
-                'text': cls.COLOR_TEXT,
-                'text_inactive': cls.COLOR_TEXT_INACTIVE,
-                'close_hover': cls.COLOR_CLOSE_HOVER,
-                'close_pressed': cls.COLOR_CLOSE_PRESSED,
+                "background": cls.COLOR_BACKGROUND,
+                "tab_normal": cls.COLOR_TAB_NORMAL,
+                "tab_hover": cls.COLOR_TAB_HOVER,
+                "tab_active": cls.COLOR_TAB_ACTIVE,
+                "tab_pressed": cls.COLOR_TAB_PRESSED,
+                "border": cls.COLOR_BORDER,
+                "text": cls.COLOR_TEXT,
+                "text_inactive": cls.COLOR_TEXT_INACTIVE,
+                "close_hover": cls.COLOR_CLOSE_HOVER,
+                "close_pressed": cls.COLOR_CLOSE_PRESSED,
             }
 
         # Extract colors from theme
         colors = theme.colors
 
         # Try VS Code tokens first, fallback to generic theme colors
-        bg = colors.get('colors.background', '#2d2d2d')
-        fg = colors.get('colors.foreground', '#cccccc')
-        hover = colors.get('colors.hover', '#404040')
-        border_color = colors.get('colors.border', '#555555')
+        bg = colors.get("colors.background", "#2d2d2d")
+        fg = colors.get("colors.foreground", "#cccccc")
+        hover = colors.get("colors.hover", "#404040")
+        border_color = colors.get("colors.border", "#555555")
 
         return {
-            'background': QColor(colors.get('tab.inactiveBackground', colors.get('editorGroupHeader.tabsBackground', hover))),
-            'tab_normal': QColor(colors.get('tab.inactiveBackground', bg)),
-            'tab_hover': QColor(colors.get('tab.hoverBackground', hover)),
-            'tab_active': QColor(colors.get('tab.activeBackground', colors.get('colors.primary', '#007acc'))),
-            'tab_pressed': QColor(colors.get('tab.hoverBackground', hover)),
-            'border': QColor(colors.get('tab.border', colors.get('editorGroupHeader.tabsBorder', border_color))),
-            'text': QColor(colors.get('tab.activeForeground', fg)),
-            'text_inactive': QColor(colors.get('tab.inactiveForeground', fg)),
-            'close_hover': QColor(colors.get('tab.inactiveForeground', fg)),
-            'close_pressed': QColor(colors.get('tab.activeForeground', fg)),
+            "background": QColor(
+                colors.get(
+                    "tab.inactiveBackground", colors.get("editorGroupHeader.tabsBackground", hover)
+                )
+            ),
+            "tab_normal": QColor(colors.get("tab.inactiveBackground", bg)),
+            "tab_hover": QColor(colors.get("tab.hoverBackground", hover)),
+            "tab_active": QColor(
+                colors.get("tab.activeBackground", colors.get("colors.primary", "#007acc"))
+            ),
+            "tab_pressed": QColor(colors.get("tab.hoverBackground", hover)),
+            "border": QColor(
+                colors.get("tab.border", colors.get("editorGroupHeader.tabsBorder", border_color))
+            ),
+            "text": QColor(colors.get("tab.activeForeground", fg)),
+            "text_inactive": QColor(colors.get("tab.inactiveForeground", fg)),
+            "close_hover": QColor(colors.get("tab.inactiveForeground", fg)),
+            "close_pressed": QColor(colors.get("tab.activeForeground", fg)),
         }
 
     @classmethod
@@ -120,7 +129,7 @@ class ChromeTabRenderer:
         has_close_button: bool = False,
         is_closable: bool = False,
         close_button_state: TabState = TabState.NORMAL,
-        theme: Optional[Any] = None
+        theme: Optional[Any] = None,
     ) -> None:
         """
         Draw a complete Chrome-style tab.
@@ -155,17 +164,14 @@ class ChromeTabRenderer:
             cls.TAB_CURVE_WIDTH,  # Left padding
             0,
             -cls.TAB_CURVE_WIDTH - (30 if is_closable else 10),  # Right padding
-            0
+            0,
         )
         cls._draw_tab_text(painter, text_rect, text, state, colors)
 
         # Draw close button if needed
         if is_closable and has_close_button:
             close_rect = QRect(
-                rect.right() - cls.TAB_CURVE_WIDTH - 24,
-                rect.center().y() - 8,
-                16,
-                16
+                rect.right() - cls.TAB_CURVE_WIDTH - 24, rect.center().y() - 8, 16, 16
             )
             cls._draw_close_button(painter, close_rect, close_button_state, colors)
 
@@ -196,19 +202,19 @@ class ChromeTabRenderer:
 
         # Left curve (bottom to top)
         path.cubicTo(
-            QPointF(left - curve/2, bottom),  # Control point 1
-            QPointF(left, top + curve/2),  # Control point 2
-            QPointF(left + curve/2, top)  # End point
+            QPointF(left - curve / 2, bottom),  # Control point 1
+            QPointF(left, top + curve / 2),  # Control point 2
+            QPointF(left + curve / 2, top),  # End point
         )
 
         # Top edge
-        path.lineTo(right - curve/2, top)
+        path.lineTo(right - curve / 2, top)
 
         # Right curve (top to bottom)
         path.cubicTo(
-            QPointF(right, top + curve/2),  # Control point 1
-            QPointF(right + curve/2, bottom),  # Control point 2
-            QPointF(right + curve, bottom)  # End point
+            QPointF(right, top + curve / 2),  # Control point 1
+            QPointF(right + curve / 2, bottom),  # Control point 2
+            QPointF(right + curve, bottom),  # End point
         )
 
         # Bottom edge (implicit close)
@@ -223,18 +229,18 @@ class ChromeTabRenderer:
         path: QPainterPath,
         rect: QRect,
         state: TabState,
-        colors: Dict[str, QColor]
+        colors: dict[str, QColor],
     ) -> None:
         """Draw tab background with appropriate color/gradient."""
         # Select color based on state
         if state == TabState.ACTIVE:
-            color = colors['tab_active']
+            color = colors["tab_active"]
         elif state == TabState.HOVER:
-            color = colors['tab_hover']
+            color = colors["tab_hover"]
         elif state == TabState.PRESSED:
-            color = colors['tab_pressed']
+            color = colors["tab_pressed"]
         else:
-            color = colors['tab_normal']
+            color = colors["tab_normal"]
 
         # Create subtle gradient for depth
         gradient = QLinearGradient(rect.topLeft(), rect.bottomLeft())
@@ -247,16 +253,22 @@ class ChromeTabRenderer:
         # Add subtle shadow for active tab
         if state == TabState.ACTIVE:
             shadow_path = QPainterPath()
-            shadow_path.addRect(rect.left() - cls.TAB_CURVE_WIDTH, rect.bottom() - 1,
-                               rect.width() + 2 * cls.TAB_CURVE_WIDTH, 2)
+            shadow_path.addRect(
+                rect.left() - cls.TAB_CURVE_WIDTH,
+                rect.bottom() - 1,
+                rect.width() + 2 * cls.TAB_CURVE_WIDTH,
+                2,
+            )
             painter.fillPath(shadow_path, QColor(0, 0, 0, 20))
 
     @classmethod
-    def _draw_tab_border(cls, painter: QPainter, path: QPainterPath, state: TabState, colors: Dict[str, QColor]) -> None:
+    def _draw_tab_border(
+        cls, painter: QPainter, path: QPainterPath, state: TabState, colors: dict[str, QColor]
+    ) -> None:
         """Draw tab border/outline."""
         # Active tabs have a subtle border, inactive tabs have separator lines
         if state == TabState.ACTIVE:
-            pen = QPen(colors['border'], 1)
+            pen = QPen(colors["border"], 1)
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
             painter.setPen(pen)
@@ -268,19 +280,14 @@ class ChromeTabRenderer:
 
     @classmethod
     def _draw_tab_text(
-        cls,
-        painter: QPainter,
-        rect: QRect,
-        text: str,
-        state: TabState,
-        colors: Dict[str, QColor]
+        cls, painter: QPainter, rect: QRect, text: str, state: TabState, colors: dict[str, QColor]
     ) -> None:
         """Draw tab text with appropriate styling."""
         # Set text color
         if state == TabState.ACTIVE:
-            painter.setPen(colors['text'])
+            painter.setPen(colors["text"])
         else:
-            painter.setPen(colors['text_inactive'])
+            painter.setPen(colors["text_inactive"])
 
         # Set font (Chrome uses Segoe UI on Windows, SF Pro on macOS)
         font = QFont("Segoe UI", 9)
@@ -290,15 +297,13 @@ class ChromeTabRenderer:
         # Draw text with elision
         metrics = painter.fontMetrics()
         elided_text = metrics.elidedText(text, Qt.TextElideMode.ElideRight, rect.width())
-        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, elided_text)
+        painter.drawText(
+            rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, elided_text
+        )
 
     @classmethod
     def _draw_close_button(
-        cls,
-        painter: QPainter,
-        rect: QRect,
-        state: TabState,
-        colors: Dict[str, QColor]
+        cls, painter: QPainter, rect: QRect, state: TabState, colors: dict[str, QColor]
     ) -> None:
         """Draw tab close button (X)."""
         # Draw hover background
@@ -309,22 +314,22 @@ class ChromeTabRenderer:
 
         # Draw X
         if state == TabState.HOVER or state == TabState.PRESSED:
-            painter.setPen(QPen(colors['close_hover'], 1.5))
+            painter.setPen(QPen(colors["close_hover"], 1.5))
         else:
-            painter.setPen(QPen(colors['text_inactive'], 1))
+            painter.setPen(QPen(colors["text_inactive"], 1))
 
         margin = 4
         painter.drawLine(
-            rect.left() + margin, rect.top() + margin,
-            rect.right() - margin, rect.bottom() - margin
+            rect.left() + margin, rect.top() + margin, rect.right() - margin, rect.bottom() - margin
         )
         painter.drawLine(
-            rect.left() + margin, rect.bottom() - margin,
-            rect.right() - margin, rect.top() + margin
+            rect.left() + margin, rect.bottom() - margin, rect.right() - margin, rect.top() + margin
         )
 
     @classmethod
-    def draw_new_tab_button(cls, painter: QPainter, rect: QRect, state: TabState, theme: Optional[Any] = None) -> None:
+    def draw_new_tab_button(
+        cls, painter: QPainter, rect: QRect, state: TabState, theme: Optional[Any] = None
+    ) -> None:
         """
         Draw the new tab (+) button.
 
@@ -347,7 +352,7 @@ class ChromeTabRenderer:
             painter.fillRect(rect, QColor(0, 0, 0, 25))
 
         # Draw plus sign
-        painter.setPen(QPen(colors['text_inactive'], 1.5))
+        painter.setPen(QPen(colors["text_inactive"], 1.5))
         center = rect.center()
         size = 6
 
@@ -360,7 +365,9 @@ class ChromeTabRenderer:
         painter.restore()
 
     @classmethod
-    def draw_tab_bar_background(cls, painter: QPainter, rect: QRect, theme: Optional[Any] = None) -> None:
+    def draw_tab_bar_background(
+        cls, painter: QPainter, rect: QRect, theme: Optional[Any] = None
+    ) -> None:
         """
         Draw the tab bar background.
 
@@ -370,4 +377,4 @@ class ChromeTabRenderer:
             theme: Optional theme object for color extraction
         """
         colors = cls.get_tab_colors(theme)
-        painter.fillRect(rect, colors['background'])
+        painter.fillRect(rect, colors["background"])

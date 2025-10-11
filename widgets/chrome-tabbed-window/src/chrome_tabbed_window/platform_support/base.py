@@ -78,11 +78,12 @@ class BasePlatformAdapter(QObject):
 
         # Default implementation using Qt flags
         from PySide6.QtCore import Qt
+
         widget.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowMinMaxButtonsHint |
-            Qt.WindowType.WindowCloseButtonHint
+            Qt.WindowType.Window
+            | Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowMinMaxButtonsHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
         return True
 
@@ -133,14 +134,17 @@ class PlatformFactory:
         # Import platform-specific adapters
         import sys
 
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             from .windows import WindowsPlatformAdapter
+
             return WindowsPlatformAdapter(capabilities, parent)
-        elif sys.platform == 'darwin':
+        elif sys.platform == "darwin":
             from .macos import MacOSPlatformAdapter
+
             return MacOSPlatformAdapter(capabilities, parent)
-        elif sys.platform.startswith('linux'):
+        elif sys.platform.startswith("linux"):
             from .linux import LinuxPlatformAdapter
+
             return LinuxPlatformAdapter(capabilities, parent)
         else:
             # Fallback to base adapter for unknown platforms

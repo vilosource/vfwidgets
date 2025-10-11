@@ -32,11 +32,7 @@ class TestPhase1Integration(unittest.TestCase):
         self.assertEqual(len(model.get_all_pane_ids()), 1)
 
         # Split pane
-        success = controller.split_pane(
-            PaneId("p1"),
-            WidgetId("terminal:1"),
-            WherePosition.BOTTOM
-        )
+        success = controller.split_pane(PaneId("p1"), WidgetId("terminal:1"), WherePosition.BOTTOM)
 
         self.assertTrue(success)
 
@@ -147,8 +143,8 @@ class TestPhase1Integration(unittest.TestCase):
 
         # Serialize
         data = model.to_dict()
-        self.assertIsNotNone(data['root'])
-        self.assertEqual(data['root']['type'], 'split')
+        self.assertIsNotNone(data["root"])
+        self.assertEqual(data["root"]["type"], "split")
 
         # Deserialize
         restored_model = PaneModel.from_dict(data)
@@ -202,5 +198,5 @@ class TestPhase1Integration(unittest.TestCase):
         self.assertFalse(controller.can_redo())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

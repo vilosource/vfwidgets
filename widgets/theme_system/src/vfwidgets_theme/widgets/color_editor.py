@@ -230,8 +230,7 @@ class ColorEditorWidget(ThemedWidget, QWidget):
 
         # Update color swatch
         self._color_swatch.setStyleSheet(
-            f"background-color: {color.name(QColor.NameFormat.HexArgb)}; "
-            f"border: 2px solid #666;"
+            f"background-color: {color.name(QColor.NameFormat.HexArgb)}; border: 2px solid #666;"
         )
 
         # Unblock signals

@@ -40,6 +40,7 @@ class PaneModel:
             return
 
         from .tree_utils import get_all_leaves
+
         for leaf in get_all_leaves(self.root):
             self._pane_registry[leaf.pane_id] = leaf
 
@@ -99,42 +100,43 @@ class PaneModel:
         Returns:
             Serialized model state
         """
+
         def node_to_dict(node: PaneNode) -> dict[str, Any]:
             if isinstance(node, LeafNode):
                 return {
-                    'type': 'leaf',
-                    'pane_id': str(node.pane_id),
-                    'widget_id': str(node.widget_id),
-                    'constraints': {
-                        'min_width': node.constraints.min_width,
-                        'min_height': node.constraints.min_height,
-                        'max_width': node.constraints.max_width,
-                        'max_height': node.constraints.max_height,
-                    }
+                    "type": "leaf",
+                    "pane_id": str(node.pane_id),
+                    "widget_id": str(node.widget_id),
+                    "constraints": {
+                        "min_width": node.constraints.min_width,
+                        "min_height": node.constraints.min_height,
+                        "max_width": node.constraints.max_width,
+                        "max_height": node.constraints.max_height,
+                    },
                 }
             elif isinstance(node, SplitNode):
                 return {
-                    'type': 'split',
-                    'node_id': str(node.node_id),
-                    'orientation': node.orientation.value,
-                    'ratios': node.ratios,
-                    'children': [node_to_dict(child) for child in node.children]
+                    "type": "split",
+                    "node_id": str(node.node_id),
+                    "orientation": node.orientation.value,
+                    "ratios": node.ratios,
+                    "children": [node_to_dict(child) for child in node.children],
                 }
             return {}
 
         data = {
-            'root': node_to_dict(self.root) if self.root else None,
-            'focused_pane_id': str(self.focused_pane_id) if self.focused_pane_id else None
+            "root": node_to_dict(self.root) if self.root else None,
+            "focused_pane_id": str(self.focused_pane_id) if self.focused_pane_id else None,
         }
 
         if include_metadata:
-            data['version'] = '1.0.0'
-            data['widget_version'] = '0.1.0'
+            data["version"] = "1.0.0"
+            data["widget_version"] = "0.1.0"
 
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> 'PaneModel':
+    def from_dict(cls, data: dict[str, Any]) -> "PaneModel":
         """Deserialize model from dictionary.
 
         Args:
@@ -146,38 +148,38 @@ class PaneModel:
         from .types import SizeConstraints
 
         # Check version compatibility
-        version = data.get('version', '1.0.0')
-        if version.split('.')[0] != '1':
+        version = data.get("version", "1.0.0")
+        if version.split(".")[0] != "1":
             raise ValueError(f"Incompatible version: {version}")
 
         def dict_to_node(node_dict: dict[str, Any]) -> Optional[PaneNode]:
             if not node_dict:
                 return None
 
-            if node_dict['type'] == 'leaf':
-                constraints_data = node_dict.get('constraints', {})
+            if node_dict["type"] == "leaf":
+                constraints_data = node_dict.get("constraints", {})
                 return LeafNode(
-                    pane_id=PaneId(node_dict['pane_id']),
-                    widget_id=WidgetId(node_dict['widget_id']),
+                    pane_id=PaneId(node_dict["pane_id"]),
+                    widget_id=WidgetId(node_dict["widget_id"]),
                     constraints=SizeConstraints(
-                        min_width=constraints_data.get('min_width', 50),
-                        min_height=constraints_data.get('min_height', 50),
-                        max_width=constraints_data.get('max_width'),
-                        max_height=constraints_data.get('max_height')
-                    )
+                        min_width=constraints_data.get("min_width", 50),
+                        min_height=constraints_data.get("min_height", 50),
+                        max_width=constraints_data.get("max_width"),
+                        max_height=constraints_data.get("max_height"),
+                    ),
                 )
-            elif node_dict['type'] == 'split':
-                children = [dict_to_node(child) for child in node_dict['children']]
+            elif node_dict["type"] == "split":
+                children = [dict_to_node(child) for child in node_dict["children"]]
                 return SplitNode(
-                    node_id=NodeId(node_dict['node_id']),
-                    orientation=Orientation(node_dict['orientation']),
+                    node_id=NodeId(node_dict["node_id"]),
+                    orientation=Orientation(node_dict["orientation"]),
                     children=[c for c in children if c],
-                    ratios=node_dict['ratios']
+                    ratios=node_dict["ratios"],
                 )
             return None
 
-        root = dict_to_node(data.get('root'))
-        focused = data.get('focused_pane_id')
+        root = dict_to_node(data.get("root"))
+        focused = data.get("focused_pane_id")
 
         model = cls(root=root)
         if focused:

@@ -122,9 +122,7 @@ class TestEmbeddedTerminalServerFlaskRoutes:
         # Mock the template file exists
         mock_template_path = Mock()
         mock_template_path.exists.return_value = True
-        mock_path.return_value.parent.__truediv__.return_value.__truediv__.return_value = (
-            mock_template_path
-        )
+        mock_path.return_value.parent.__truediv__.return_value.__truediv__.return_value = mock_template_path
 
         # Mock file reading
         with patch("builtins.open", mock_open(read_data="<html>test</html>")):
@@ -139,9 +137,7 @@ class TestEmbeddedTerminalServerFlaskRoutes:
         # Mock the template file doesn't exist
         mock_template_path = Mock()
         mock_template_path.exists.return_value = False
-        mock_path.return_value.parent.__truediv__.return_value.__truediv__.return_value = (
-            mock_template_path
-        )
+        mock_path.return_value.parent.__truediv__.return_value.__truediv__.return_value = mock_template_path
 
         server = EmbeddedTerminalServer()
         html = server._get_terminal_html()
@@ -259,7 +255,10 @@ class TestEmbeddedTerminalServerProcessManagement:
         mock_process = Mock()
         mock_process.cpu_percent.return_value = 15.5
         mock_process.memory_info.return_value = Mock()
-        mock_process.memory_info.return_value._asdict.return_value = {"rss": 1024, "vms": 2048}
+        mock_process.memory_info.return_value._asdict.return_value = {
+            "rss": 1024,
+            "vms": 2048,
+        }
         mock_process.status.return_value = "running"
         mock_process_class.return_value = mock_process
 

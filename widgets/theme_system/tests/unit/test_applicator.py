@@ -237,7 +237,7 @@ class TestThemeApplicator(ThemedTestCase):
         """Test applicator meets performance requirements."""
         # Create 100 widgets for performance test
         widgets = [MockWidget() for _ in range(100)]
-        widget_ids = [self.registry.register_widget(w) for w in widgets]
+        [self.registry.register_widget(w) for w in widgets]
 
         # Test theme switching performance (< 100ms for 100 widgets)
         start_time = time.time()
@@ -638,7 +638,7 @@ class TestAsyncThemeApplicator(ThemedTestCase):
             callback_result.append((success, widget_id))
             callback_called.set()
 
-        future = self.async_applicator.apply_theme_async(
+        self.async_applicator.apply_theme_async(
             widget_id, self.sample_theme, callback=completion_callback
         )
 
@@ -791,7 +791,7 @@ class TestApplicatorIntegration(ThemedTestCase):
         )
 
         widgets = [MockWidget() for _ in range(10)]
-        widget_ids = [registry.register_widget(w) for w in widgets]
+        [registry.register_widget(w) for w in widgets]
 
         # Apply theme globally
         results = applicator.apply_theme_globally(theme)
@@ -820,7 +820,7 @@ class TestApplicatorIntegration(ThemedTestCase):
 
         # Create 100 widgets for performance test
         widgets = [MockWidget() for _ in range(100)]
-        widget_ids = [registry.register_widget(w) for w in widgets]
+        [registry.register_widget(w) for w in widgets]
 
         # Measure theme application time
         start_time = time.time()
@@ -852,7 +852,7 @@ class TestApplicatorIntegration(ThemedTestCase):
         initial_objects = len(gc.get_objects())
 
         widgets = [MockWidget() for _ in range(50)]
-        widget_ids = [registry.register_widget(w) for w in widgets]
+        [registry.register_widget(w) for w in widgets]
         applicator.apply_theme_globally(theme)
 
         mid_objects = len(gc.get_objects())

@@ -39,7 +39,7 @@ class TestGeometry(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(pane1_id, generate_widget_id("editor", "1.py")),
-                LeafNode(pane2_id, generate_widget_id("editor", "2.py"))
+                LeafNode(pane2_id, generate_widget_id("editor", "2.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -67,7 +67,7 @@ class TestGeometry(unittest.TestCase):
             orientation=Orientation.VERTICAL,
             children=[
                 LeafNode(pane1_id, generate_widget_id("editor", "1.py")),
-                LeafNode(pane2_id, generate_widget_id("terminal", "bash"))
+                LeafNode(pane2_id, generate_widget_id("terminal", "bash")),
             ],
             ratios=[0.7, 0.3],
         )
@@ -92,7 +92,7 @@ class TestGeometry(unittest.TestCase):
             orientation=Orientation.HORIZONTAL,
             children=[
                 LeafNode(generate_pane_id(), generate_widget_id("editor", "1.py")),
-                LeafNode(generate_pane_id(), generate_widget_id("editor", "2.py"))
+                LeafNode(generate_pane_id(), generate_widget_id("editor", "2.py")),
             ],
             ratios=[0.5, 0.5],
         )
@@ -110,5 +110,5 @@ class TestGeometry(unittest.TestCase):
         self.assertEqual(divider.height, 600)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,6 @@
 """Test suite for themed ButtonWidget integration."""
 
 import pytest
-from PySide6.QtWidgets import QApplication
 from vfwidgets_button import ButtonWidget
 from vfwidgets_theme import ThemedApplication, WidgetRole
 
@@ -57,12 +56,7 @@ def test_button_widget_deprecated_style(app):
 
 def test_button_widget_customization(app):
     """Test button customization options."""
-    btn = ButtonWidget(
-        "Custom",
-        rounded=False,
-        shadow=False,
-        animated=False
-    )
+    btn = ButtonWidget("Custom", rounded=False, shadow=False, animated=False)
     assert btn._rounded is False
     assert btn._shadow_enabled is False
     assert btn._animated is False
@@ -73,9 +67,9 @@ def test_button_widget_signals(app):
     btn = ButtonWidget("Test")
 
     # Button should have custom signals
-    assert hasattr(btn, 'double_clicked')
-    assert hasattr(btn, 'long_pressed')
-    assert hasattr(btn, 'style_changed')
+    assert hasattr(btn, "double_clicked")
+    assert hasattr(btn, "long_pressed")
+    assert hasattr(btn, "style_changed")
 
 
 if __name__ == "__main__":

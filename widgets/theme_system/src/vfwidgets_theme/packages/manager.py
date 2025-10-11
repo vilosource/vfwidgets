@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Theme Package Manager - Task 20
+"""Theme Package Manager - Task 20.
 
 This module provides theme packaging and distribution management with:
 - .vftheme format for packaging themes and metadata
@@ -24,7 +24,7 @@ import time
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from packaging.version import parse as parse_version
 
@@ -81,11 +81,11 @@ class ThemePackage:
     repository: str = ""
 
     # Dependencies
-    dependencies: List[PackageDependency] = field(default_factory=list)
+    dependencies: list[PackageDependency] = field(default_factory=list)
 
     # Package contents
-    themes: Dict[str, Theme] = field(default_factory=dict)
-    assets: Dict[str, bytes] = field(default_factory=dict)
+    themes: dict[str, Theme] = field(default_factory=dict)
+    assets: dict[str, bytes] = field(default_factory=dict)
     readme: str = ""
 
     # Installation metadata
@@ -94,7 +94,7 @@ class ThemePackage:
     installed_by: str = "manual"
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ThemePackage":
+    def from_dict(cls, data: dict[str, Any]) -> "ThemePackage":
         """Create package from dictionary representation."""
         package = cls(
             name=data["name"],
@@ -117,7 +117,7 @@ class ThemePackage:
 
         return package
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert package to dictionary representation."""
         return {
             "name": self.name,
@@ -139,7 +139,7 @@ class ThemePackage:
         """Check if package contains a specific theme."""
         return theme_name in self.themes
 
-    def get_theme_names(self) -> List[str]:
+    def get_theme_names(self) -> list[str]:
         """Get list of theme names in this package."""
         return list(self.themes.keys())
 
@@ -181,7 +181,7 @@ class ThemePackageManager:
         self.install_directory.mkdir(parents=True, exist_ok=True)
 
         # Package registry
-        self._installed_packages: Dict[str, ThemePackage] = {}
+        self._installed_packages: dict[str, ThemePackage] = {}
 
         # Theme factory for package themes
         self._theme_factory = ThemeFactory()
@@ -195,10 +195,10 @@ class ThemePackageManager:
 
     def create_package(
         self,
-        package_info: Dict[str, Any],
-        themes: Dict[str, Theme],
+        package_info: dict[str, Any],
+        themes: dict[str, Theme],
         output_path: Union[str, Path],
-        assets: Dict[str, bytes] = None,
+        assets: dict[str, bytes] = None,
     ) -> Path:
         """Create a .vftheme package file.
 
@@ -253,15 +253,15 @@ class ThemePackageManager:
                         f.write(asset_data)
 
             # Create README
-            readme_content = f"""# {package_info['name']}
+            readme_content = f"""# {package_info["name"]}
 
-{package_info.get('description', 'A VFWidgets theme package')}
+{package_info.get("description", "A VFWidgets theme package")}
 
 ## Author
-{package_info.get('author', 'Unknown')}
+{package_info.get("author", "Unknown")}
 
 ## Themes Included
-{chr(10).join(f'- {name}' for name in themes.keys())}
+{chr(10).join(f"- {name}" for name in themes.keys())}
 
 ## Installation
 Install this package using the VFWidgets Theme Package Manager.
@@ -389,7 +389,7 @@ Install this package using the VFWidgets Theme Package Manager.
             logger.error(f"Failed to uninstall package {package_name}: {e}")
             return False
 
-    def list_packages(self) -> List[ThemePackage]:
+    def list_packages(self) -> list[ThemePackage]:
         """List all installed packages."""
         return list(self._installed_packages.values())
 
@@ -397,7 +397,7 @@ Install this package using the VFWidgets Theme Package Manager.
         """Get installed package by name."""
         return self._installed_packages.get(package_name)
 
-    def list_themes(self, package_name: str = None) -> Dict[str, str]:
+    def list_themes(self, package_name: str = None) -> dict[str, str]:
         """List themes from packages.
 
         Args:
@@ -447,7 +447,7 @@ Install this package using the VFWidgets Theme Package Manager.
 
         return None
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get package manager statistics."""
         total_themes = sum(len(pkg.themes) for pkg in self._installed_packages.values())
         total_size = 0

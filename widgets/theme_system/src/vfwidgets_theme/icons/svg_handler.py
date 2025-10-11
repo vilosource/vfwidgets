@@ -5,7 +5,7 @@ Provides SVG loading, color customization, and caching capabilities.
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from PyQt6.QtCore import QByteArray, QSize, Qt
 from PyQt6.QtGui import QIcon, QPainter, QPixmap
@@ -24,8 +24,8 @@ class SVGIconHandler:
 
     def __init__(self):
         """Initialize SVG icon handler."""
-        self._svg_cache: Dict[str, QByteArray] = {}
-        self._renderer_cache: Dict[str, QSvgRenderer] = {}
+        self._svg_cache: dict[str, QByteArray] = {}
+        self._renderer_cache: dict[str, QSvgRenderer] = {}
 
     def load_svg_icon(
         self, svg_path: Path, size: Optional[QSize] = None, color: Optional[str] = None
@@ -298,7 +298,7 @@ class SVGIconHandler:
         self._renderer_cache.clear()
         logger.info("SVG caches cleared")
 
-    def get_cache_info(self) -> Dict[str, int]:
+    def get_cache_info(self) -> dict[str, int]:
         """Get cache information."""
         return {
             "svg_cache_size": len(self._svg_cache),

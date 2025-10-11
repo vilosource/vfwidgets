@@ -13,16 +13,11 @@ class TestController(unittest.TestCase):
 
     def test_controller_command_execution(self):
         """Test command execution and undo/redo."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("w1"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("w1")))
         controller = PaneController(model)
 
         # Execute split
-        success = controller.split_pane(
-            PaneId("p1"), WidgetId("w2"),
-            WherePosition.RIGHT
-        )
+        success = controller.split_pane(PaneId("p1"), WidgetId("w2"), WherePosition.RIGHT)
         self.assertTrue(success)
         self.assertEqual(len(model.get_all_pane_ids()), 2)
 
@@ -38,9 +33,7 @@ class TestController(unittest.TestCase):
 
     def test_controller_high_level_operations(self):
         """Test high-level controller operations."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         controller = PaneController(model)
 
         # Split pane
@@ -61,9 +54,7 @@ class TestController(unittest.TestCase):
 
     def test_controller_undo_redo_state(self):
         """Test undo/redo state management."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         controller = PaneController(model)
 
         # Initially no undo/redo
@@ -87,9 +78,7 @@ class TestController(unittest.TestCase):
 
     def test_controller_history_management(self):
         """Test undo history management."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         controller = PaneController(model)
         controller.max_undo_levels = 2  # Limit for testing
 
@@ -121,9 +110,7 @@ class TestController(unittest.TestCase):
 
     def test_controller_transactions(self):
         """Test transaction support."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         controller = PaneController(model)
 
         # Test transaction depth tracking
@@ -149,9 +136,7 @@ class TestController(unittest.TestCase):
 
     def test_controller_transaction_rollback(self):
         """Test transaction rollback."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         controller = PaneController(model)
 
         initial_pane_count = len(model.get_all_pane_ids())
@@ -172,5 +157,5 @@ class TestController(unittest.TestCase):
         self.assertEqual(len(controller._transaction_commands), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

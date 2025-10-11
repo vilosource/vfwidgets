@@ -37,7 +37,7 @@ def demo_primary_api():
 
         import_time = time.time() - start
 
-        print(f"✓ Primary imports successful in {import_time*1000:.2f}ms")
+        print(f"✓ Primary imports successful in {import_time * 1000:.2f}ms")
         print(f"✓ ThemedWidget available: {ThemedWidget}")
         print(f"✓ ThemedApplication available: {ThemedApplication}")
 
@@ -78,7 +78,7 @@ def demo_advanced_api():
 
         import_time = time.time() - start
 
-        print(f"✓ Advanced imports successful in {import_time*1000:.2f}ms")
+        print(f"✓ Advanced imports successful in {import_time * 1000:.2f}ms")
         print(f"✓ Protocols available: {ThemeProvider}")
         print(f"✓ Error recovery: {ErrorRecoveryManager}")
         print(f"✓ Fallback theme: {type(MINIMAL_THEME)} with {len(MINIMAL_THEME)} properties")
@@ -153,7 +153,7 @@ def demo_performance_validation():
 
         # Test primary API import performance
         times = []
-        for i in range(5):
+        for _i in range(5):
             # Clear modules to test fresh import
             modules_to_clear = [mod for mod in sys.modules.keys() if "vfwidgets_theme" in mod]
             for mod in modules_to_clear:

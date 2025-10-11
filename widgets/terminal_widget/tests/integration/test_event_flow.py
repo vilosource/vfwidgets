@@ -227,7 +227,9 @@ class TestEventCategoryIntegration:
         assert len(selection_events) == 0
         assert len(key_events) == 0
 
-    def test_event_category_filtering_server_to_widget(self, qtbot, mock_embedded_server):
+    def test_event_category_filtering_server_to_widget(
+        self, qtbot, mock_embedded_server
+    ):
         """Test event category filtering in server-to-widget flow."""
         # Create widget with only INTERACTION events enabled
         config = EventConfig(enabled_categories={EventCategory.INTERACTION})
@@ -345,7 +347,9 @@ class TestBackwardsCompatibilityIntegration:
             warning_call = mock_warn.call_args[0][0]
             assert "deprecated" in warning_call.lower()
 
-    def test_deprecation_warnings_disabled_integration(self, qtbot, mock_embedded_server):
+    def test_deprecation_warnings_disabled_integration(
+        self, qtbot, mock_embedded_server
+    ):
         """Test deprecation warnings can be disabled."""
         widget = TerminalWidget()
         qtbot.addWidget(widget)
@@ -426,15 +430,25 @@ class TestHelperMethodsIntegration:
 class TestRealTerminalIntegration:
     """Integration tests with real terminal processes."""
 
-    def test_real_terminal_full_lifecycle(self, real_terminal_widget, qtbot, event_collector):
+    def test_real_terminal_full_lifecycle(
+        self, real_terminal_widget, qtbot, event_collector
+    ):
         """Test complete lifecycle with real terminal."""
         widget = real_terminal_widget
 
         # Connect event collector to all major signals
-        widget.terminalReady.connect(lambda: event_collector.collect_event("terminal_ready"))
-        widget.processStarted.connect(lambda e: event_collector.collect_event("process_started", e))
-        widget.outputReceived.connect(lambda d: event_collector.collect_event("output_received", d))
-        widget.inputSent.connect(lambda t: event_collector.collect_event("input_sent", t))
+        widget.terminalReady.connect(
+            lambda: event_collector.collect_event("terminal_ready")
+        )
+        widget.processStarted.connect(
+            lambda e: event_collector.collect_event("process_started", e)
+        )
+        widget.outputReceived.connect(
+            lambda d: event_collector.collect_event("output_received", d)
+        )
+        widget.inputSent.connect(
+            lambda t: event_collector.collect_event("input_sent", t)
+        )
 
         # Wait for terminal to be ready
         with qtbot.waitSignal(widget.terminalReady, timeout=15000):
@@ -477,7 +491,9 @@ class TestRealTerminalIntegration:
         assert process_info["running"] is True
         assert isinstance(process_info["pid"], int)
 
-    def test_real_terminal_command_execution_integration(self, real_terminal_widget, qtbot):
+    def test_real_terminal_command_execution_integration(
+        self, real_terminal_widget, qtbot
+    ):
         """Test command execution integration with real terminal."""
         widget = real_terminal_widget
 

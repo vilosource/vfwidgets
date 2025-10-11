@@ -2,9 +2,9 @@
 
 from typing import Optional
 
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPen
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QPainter, QColor, QPen, QIcon, QFont
 
 
 class TabDetachPreview(QWidget):

@@ -8,6 +8,7 @@ from pathlib import Path
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
+
 def verify_imports():
     """Verify all required imports work."""
     errors = []
@@ -117,6 +118,7 @@ def verify_imports():
 
     return errors
 
+
 def verify_functionality():
     """Verify basic functionality works."""
     errors = []
@@ -150,10 +152,7 @@ def verify_functionality():
         assert leaf.pane_id == "pane_test"
 
         split = SplitNode(
-            node_id="node_test",
-            orientation=Orientation.HORIZONTAL,
-            children=[],
-            ratios=[]
+            node_id="node_test", orientation=Orientation.HORIZONTAL, children=[], ratios=[]
         )
         assert split.node_id == "node_test"
 
@@ -192,6 +191,7 @@ def verify_functionality():
 
     return errors
 
+
 def main():
     """Run verification."""
     print("Verifying Phase 0 Implementation...")
@@ -226,6 +226,7 @@ def main():
     else:
         print("✅ Phase 0 implementation complete and verified!")
         return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

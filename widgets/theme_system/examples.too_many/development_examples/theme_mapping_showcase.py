@@ -381,7 +381,7 @@ def demonstrate_performance():
 
     mapping_time = (time.perf_counter() - start_time) * 1000
     print(f"Time for 100 mapping resolutions: {mapping_time:.2f}ms")
-    print(f"Average per resolution: {mapping_time/100:.2f}ms")
+    print(f"Average per resolution: {mapping_time / 100:.2f}ms")
 
     # Show cache statistics
     stats = mapping.get_statistics()

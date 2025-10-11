@@ -278,7 +278,7 @@ class TestThemeBuilder(ThemedTestCase):
 
         # Build should be fast
         start_time = time.perf_counter()
-        theme = builder.build()
+        builder.build()
         build_time = time.perf_counter() - start_time
         assert build_time < 0.1, f"Build took {build_time:.3f}s"
 
@@ -398,10 +398,14 @@ class TestThemeComposer(ThemedTestCase):
         """Composer should handle inheritance chains."""
         grandparent = Theme(name="grandparent", colors={"a": "#aaa", "b": "#bbb", "c": "#ccc"})
         parent = Theme(
-            name="parent", colors={"b": "#BBB"}, metadata={"extends": "grandparent"}  # Override b
+            name="parent",
+            colors={"b": "#BBB"},
+            metadata={"extends": "grandparent"},  # Override b
         )
         child = Theme(
-            name="child", colors={"c": "#CCC"}, metadata={"extends": "parent"}  # Override c
+            name="child",
+            colors={"c": "#CCC"},
+            metadata={"extends": "parent"},  # Override c
         )
 
         # Compose inheritance chain
@@ -433,7 +437,7 @@ class TestThemeComposer(ThemedTestCase):
         )
         override_theme = Theme(
             name="override",
-            colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(250)},
+            colors={f"color_{i}": f"#{(i + 1000):06x}" for i in range(250)},
             styles={f"style_{i}": f"new_value_{i}" for i in range(250)},
         )
 
@@ -527,7 +531,8 @@ class TestPropertyResolver(ThemedTestCase):
     def test_resolver_circular_reference_detection(self):
         """Resolver should detect and handle circular references."""
         circular_theme = Theme(
-            name="circular", colors={"a": "@b", "b": "@c", "c": "@a"}  # Circular reference
+            name="circular",
+            colors={"a": "@b", "b": "@c", "c": "@a"},  # Circular reference
         )
         resolver = PropertyResolver(circular_theme)
 
@@ -636,7 +641,7 @@ class TestThemePerformance(ThemedTestCase):
         }
 
         start_time = time.perf_counter()
-        theme = create_theme_from_dict(theme_data)
+        create_theme_from_dict(theme_data)
         loading_time = time.perf_counter() - start_time
 
         assert loading_time < 0.05, f"Theme loading took {loading_time:.3f}s"
@@ -697,13 +702,13 @@ class TestThemePerformance(ThemedTestCase):
         )
         override_theme = Theme(
             name="override",
-            colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(125)},
+            colors={f"color_{i}": f"#{(i + 1000):06x}" for i in range(125)},
             styles={f"style_{i}": f"new_value_{i}" for i in range(125)},
         )
 
         composer = ThemeComposer()
         start_time = time.perf_counter()
-        composed = composer.compose(base_theme, override_theme)
+        composer.compose(base_theme, override_theme)
         composition_time = time.perf_counter() - start_time
 
         assert composition_time < 0.01, f"Composition took {composition_time:.3f}s"

@@ -27,7 +27,8 @@ class WindowsTerminalBackend(TerminalBackend):
             self.winpty = winpty
         except ImportError as e:
             raise RuntimeError(
-                "Windows terminal backend requires pywinpty. " "Install with: pip install pywinpty"
+                "Windows terminal backend requires pywinpty. "
+                "Install with: pip install pywinpty"
             ) from e
 
     def start_process(self, session: "TerminalSession") -> bool:
@@ -51,14 +52,18 @@ class WindowsTerminalBackend(TerminalBackend):
             session.child_pid = pty.pid if hasattr(pty, "pid") else None
             session.active = True
 
-            logger.info(f"Started Windows terminal process for session {session.session_id}")
+            logger.info(
+                f"Started Windows terminal process for session {session.session_id}"
+            )
             return True
 
         except Exception as e:
             logger.error(f"Failed to start Windows terminal process: {e}")
             return False
 
-    def read_output(self, session: "TerminalSession", max_bytes: int = 1024 * 20) -> Optional[str]:
+    def read_output(
+        self, session: "TerminalSession", max_bytes: int = 1024 * 20
+    ) -> Optional[str]:
         """Read output from the terminal process."""
         pty = session.metadata.get("pty")
         if not pty:
@@ -128,7 +133,9 @@ class WindowsTerminalBackend(TerminalBackend):
                 pty.terminate()
             return True
         except Exception as e:
-            logger.error(f"Failed to terminate process for session {session.session_id}: {e}")
+            logger.error(
+                f"Failed to terminate process for session {session.session_id}: {e}"
+            )
             return False
 
     def cleanup(self, session: "TerminalSession") -> None:

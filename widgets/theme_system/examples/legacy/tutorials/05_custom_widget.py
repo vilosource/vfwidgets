@@ -97,8 +97,8 @@ class ThemedGauge(ThemedWidget):
         fg_color = QColor(self.theme.get("fg", "#000000"))
         needle_color = QColor(self.theme.get("needle", "#ff0000"))
         scale_color = QColor(self.theme.get("scale", "#666666"))
-        value_bg = QColor(self.theme.get("value_bg", "#f0f0f0"))
-        value_fg = QColor(self.theme.get("value_fg", "#000000"))
+        QColor(self.theme.get("value_bg", "#f0f0f0"))
+        QColor(self.theme.get("value_fg", "#000000"))
         danger_color = QColor(self.theme.get("danger", "#ff0000"))
         warning_color = QColor(self.theme.get("warning", "#ffaa00"))
         safe_color = QColor(self.theme.get("safe", "#00aa00"))
@@ -228,7 +228,7 @@ class ThemedProgressRing(ThemedWidget):
 
         # Get theme colors
         bg_color = QColor(self.theme.get("bg", "#f0f0f0"))
-        fg_color = QColor(self.theme.get("fg", "#333333"))
+        QColor(self.theme.get("fg", "#333333"))
         fill_color = QColor(self.theme.get("fill", "#007bff"))
         text_color = QColor(self.theme.get("text", "#000000"))
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Contract Validation
-Task 24: Contract validation for protocols and interfaces
+Task 24: Contract validation for protocols and interfaces.
 
 This module provides contract validation capabilities to ensure
 objects implement required protocols correctly.
 """
 
-from typing import Any, Dict, List, Optional, Protocol, Type, runtime_checkable
+from typing import Any, Optional, Protocol, runtime_checkable
 
 from .framework import ValidationResult, ValidationType
 
@@ -16,8 +16,8 @@ class ThemeProtocol(Protocol):
     """Protocol for theme objects."""
 
     name: str
-    colors: Dict[str, Any]
-    styles: Dict[str, Any]
+    colors: dict[str, Any]
+    styles: dict[str, Any]
 
     def get_color(self, color_name: str) -> str:
         """Get a color value by name."""
@@ -27,7 +27,7 @@ class ThemeProtocol(Protocol):
         """Get a style value by name."""
         ...
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert theme to dictionary representation."""
         ...
 
@@ -57,7 +57,7 @@ class ThemeProviderProtocol(Protocol):
         """Get a theme by name."""
         ...
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List available theme names."""
         ...
 
@@ -91,15 +91,15 @@ class ContractValidator:
     """Validator for protocol contracts."""
 
     def __init__(self):
-        self._protocol_validators: Dict[Type, List[callable]] = {}
+        self._protocol_validators: dict[type, list[callable]] = {}
 
-    def register_protocol_validator(self, protocol: Type, validator: callable):
+    def register_protocol_validator(self, protocol: type, validator: callable):
         """Register a custom validator for a protocol."""
         if protocol not in self._protocol_validators:
             self._protocol_validators[protocol] = []
         self._protocol_validators[protocol].append(validator)
 
-    def validate_protocol_implementation(self, obj: Any, protocol: Type) -> ValidationResult:
+    def validate_protocol_implementation(self, obj: Any, protocol: type) -> ValidationResult:
         """Validate that an object implements a protocol correctly.
 
         Args:
@@ -187,14 +187,14 @@ class ContractValidator:
 
         return result
 
-    def _get_protocol_attributes(self, protocol: Type) -> Dict[str, Any]:
+    def _get_protocol_attributes(self, protocol: type) -> dict[str, Any]:
         """Extract required attributes from protocol."""
         attrs = {}
         if hasattr(protocol, "__annotations__"):
             attrs.update(protocol.__annotations__)
         return attrs
 
-    def _get_protocol_methods(self, protocol: Type) -> Dict[str, Dict[str, Any]]:
+    def _get_protocol_methods(self, protocol: type) -> dict[str, dict[str, Any]]:
         """Extract required methods from protocol."""
         methods = {}
         for name in dir(protocol):
@@ -313,7 +313,7 @@ class ContractValidator:
 _contract_validator = ContractValidator()
 
 
-def validate_protocol_implementation(obj: Any, protocol: Type) -> ValidationResult:
+def validate_protocol_implementation(obj: Any, protocol: type) -> ValidationResult:
     """Validate that an object implements a protocol correctly.
 
     Args:
@@ -327,7 +327,7 @@ def validate_protocol_implementation(obj: Any, protocol: Type) -> ValidationResu
     return _contract_validator.validate_protocol_implementation(obj, protocol)
 
 
-def register_protocol_validator(protocol: Type, validator: callable):
+def register_protocol_validator(protocol: type, validator: callable):
     """Register a custom validator for a protocol.
 
     Args:
@@ -366,7 +366,7 @@ class ContractEnforcer:
     def __init__(self, strict: bool = False):
         self.strict = strict
 
-    def enforce_contract(self, obj: Any, protocol: Type):
+    def enforce_contract(self, obj: Any, protocol: type):
         """Enforce that an object meets contract requirements."""
         result = validate_protocol_implementation(obj, protocol)
 
@@ -404,7 +404,7 @@ def create_mock_theme() -> Any:
         def get_style(self, style_name: str) -> Any:
             return self.styles.get(style_name)
 
-        def to_dict(self) -> Dict[str, Any]:
+        def to_dict(self) -> dict[str, Any]:
             return {"name": self.name, "colors": self.colors, "styles": self.styles}
 
     return MockTheme()

@@ -221,21 +221,15 @@ class DemoMainWindow(QMainWindow):
         widget_menu = view_menu.addMenu("Split with...")
 
         editor_action = QAction("Editor", self)
-        editor_action.triggered.connect(
-            lambda: self.split_with_type("editor:untitled.py")
-        )
+        editor_action.triggered.connect(lambda: self.split_with_type("editor:untitled.py"))
         widget_menu.addAction(editor_action)
 
         terminal_action = QAction("Terminal", self)
-        terminal_action.triggered.connect(
-            lambda: self.split_with_type("terminal:1")
-        )
+        terminal_action.triggered.connect(lambda: self.split_with_type("terminal:1"))
         widget_menu.addAction(terminal_action)
 
         preview_action = QAction("Preview", self)
-        preview_action.triggered.connect(
-            lambda: self.split_with_type("preview:document")
-        )
+        preview_action.triggered.connect(lambda: self.split_with_type("preview:document"))
         widget_menu.addAction(preview_action)
 
         # Help menu
@@ -281,9 +275,7 @@ class DemoMainWindow(QMainWindow):
             else:
                 widget_id = "terminal:2"
 
-            success = self.multisplit.split_pane(
-                current, widget_id, position, 0.5
-            )
+            success = self.multisplit.split_pane(current, widget_id, position, 0.5)
             if success:
                 self.update_status()
 
@@ -291,9 +283,7 @@ class DemoMainWindow(QMainWindow):
         """Split with specific widget type."""
         current = self.multisplit.get_focused_pane()
         if current:
-            self.multisplit.split_pane(
-                current, widget_id, WherePosition.RIGHT, 0.5
-            )
+            self.multisplit.split_pane(current, widget_id, WherePosition.RIGHT, 0.5)
             self.update_status()
 
     def remove_current(self):
@@ -308,9 +298,7 @@ class DemoMainWindow(QMainWindow):
 
     def save_layout(self):
         """Save layout to file."""
-        filepath, _ = QFileDialog.getSaveFileName(
-            self, "Save Layout", "", "JSON Files (*.json)"
-        )
+        filepath, _ = QFileDialog.getSaveFileName(self, "Save Layout", "", "JSON Files (*.json)")
         if filepath:
             if self.multisplit.save_layout(Path(filepath)):
                 self.statusbar.showMessage(f"Layout saved to {filepath}", 3000)
@@ -319,9 +307,7 @@ class DemoMainWindow(QMainWindow):
 
     def load_layout(self):
         """Load layout from file."""
-        filepath, _ = QFileDialog.getOpenFileName(
-            self, "Load Layout", "", "JSON Files (*.json)"
-        )
+        filepath, _ = QFileDialog.getOpenFileName(self, "Load Layout", "", "JSON Files (*.json)")
         if filepath:
             if self.multisplit.load_layout(Path(filepath)):
                 self.statusbar.showMessage(f"Layout loaded from {filepath}", 3000)
@@ -357,10 +343,7 @@ class DemoMainWindow(QMainWindow):
     def on_validation_failed(self, errors: list):
         """Handle validation failure."""
         if errors:
-            QMessageBox.warning(
-                self, "Validation Error",
-                "Operation failed:\n" + "\n".join(errors)
-            )
+            QMessageBox.warning(self, "Validation Error", "Operation failed:\n" + "\n".join(errors))
 
     def show_about(self):
         """Show about dialog."""
@@ -380,7 +363,7 @@ class DemoMainWindow(QMainWindow):
             "<li>Validation system</li>"
             "<li>Widget provider pattern</li>"
             "</ul>"
-            "<p><b>Architecture:</b> Strict MVC with 115+ tests</p>"
+            "<p><b>Architecture:</b> Strict MVC with 115+ tests</p>",
         )
 
     def show_shortcuts(self):
@@ -397,7 +380,7 @@ class DemoMainWindow(QMainWindow):
             "<b>Ctrl+Z</b> - Undo<br>"
             "<b>Ctrl+Y</b> - Redo<br>"
             "<b>Ctrl+S</b> - Save layout<br>"
-            "<b>Ctrl+O</b> - Load layout</p>"
+            "<b>Ctrl+O</b> - Load layout</p>",
         )
 
 
@@ -413,9 +396,13 @@ def main():
     window.show()
 
     # Show welcome message
-    QTimer.singleShot(500, lambda: window.statusbar.showMessage(
-        "Welcome to MultiSplit MVP Demo! Try splitting panes with toolbar buttons or Tab to navigate.", 5000
-    ))
+    QTimer.singleShot(
+        500,
+        lambda: window.statusbar.showMessage(
+            "Welcome to MultiSplit MVP Demo! Try splitting panes with toolbar buttons or Tab to navigate.",
+            5000,
+        ),
+    )
 
     sys.exit(app.exec())
 

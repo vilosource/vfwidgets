@@ -43,7 +43,9 @@ class CustomTerminalServer:
         self.app = Flask(__name__)
         self.app.config["SECRET_KEY"] = "custom_server_secret"
 
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
+        self.socketio = SocketIO(
+            self.app, cors_allowed_origins="*", async_mode="threading"
+        )
 
         self.sessions = {}
         self.backend = create_backend()
@@ -76,7 +78,9 @@ class CustomTerminalServer:
                 self.sessions[session_id] = session
 
                 # Start output reader
-                self.socketio.start_background_task(target=self._read_output, session_id=session_id)
+                self.socketio.start_background_task(
+                    target=self._read_output, session_id=session_id
+                )
 
                 print(f"Created session: {session_id}")
                 return {"session_id": session_id}
@@ -161,10 +165,14 @@ class CustomTerminalServer:
         print(f"Connect terminals to: http://localhost:{self.port}")
         print("=" * 60)
         print("\nTo use this server from Python:")
-        print(f"    terminal = TerminalWidget(server_url='http://localhost:{self.port}')")
+        print(
+            f"    terminal = TerminalWidget(server_url='http://localhost:{self.port}')"
+        )
         print("\nPress Ctrl+C to stop\n")
 
-        self.socketio.run(self.app, port=self.port, debug=False, allow_unsafe_werkzeug=True)
+        self.socketio.run(
+            self.app, port=self.port, debug=False, allow_unsafe_werkzeug=True
+        )
 
 
 def main():

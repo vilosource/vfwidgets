@@ -11,7 +11,7 @@ import threading
 import time
 import types
 from contextlib import contextmanager
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 from ..errors import ExtensionError, SecurityError
 from ..logging import get_logger
@@ -111,7 +111,7 @@ class RestrictedBuiltins:
     }
 
     @classmethod
-    def create_restricted_builtins(cls) -> Dict[str, Any]:
+    def create_restricted_builtins(cls) -> dict[str, Any]:
         """Create restricted builtins dictionary."""
         restricted = {}
 
@@ -294,7 +294,7 @@ class ExtensionSandbox:
         self.restricted_builtins = RestrictedBuiltins.create_restricted_builtins()
 
         # Extension-specific namespaces
-        self._extension_namespaces: Dict[str, Dict[str, Any]] = {}
+        self._extension_namespaces: dict[str, dict[str, Any]] = {}
 
         # Thread-local storage for current extension
         self._local = threading.local()
@@ -362,7 +362,7 @@ class ExtensionSandbox:
                 namespace = self._extension_namespaces.get(extension.id, {})
 
                 # Add function to namespace temporarily
-                original_globals = func.__globals__ if hasattr(func, "__globals__") else {}
+                func.__globals__ if hasattr(func, "__globals__") else {}
 
                 # Create safe execution environment
                 safe_globals = {**namespace}
@@ -405,7 +405,7 @@ class ExtensionSandbox:
         """
         self.security_checker.check_ast(code)
 
-    def create_safe_namespace(self, extension_name: str) -> Dict[str, Any]:
+    def create_safe_namespace(self, extension_name: str) -> dict[str, Any]:
         """Create safe namespace for extension.
 
         Args:

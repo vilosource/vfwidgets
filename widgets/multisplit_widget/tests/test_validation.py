@@ -116,5 +116,5 @@ class TestValidationResult(unittest.TestCase):
         self.assertIn("Test warning", result.warnings)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

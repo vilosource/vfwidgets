@@ -48,6 +48,7 @@ def generate_widget_id(type_hint: str, identifier: str) -> WidgetId:
 def validate_ratio(ratio: float) -> None:
     """Validate a single ratio value."""
     from .types import InvalidRatioError
+
     if not 0.0 < ratio < 1.0:
         raise InvalidRatioError([ratio], "Ratio must be between 0 and 1")
 
@@ -55,6 +56,7 @@ def validate_ratio(ratio: float) -> None:
 def validate_ratios(ratios: list[float]) -> None:
     """Validate a list of split ratios."""
     from .types import InvalidRatioError
+
     if len(ratios) < 2:
         raise InvalidRatioError(ratios, "At least 2 ratios required")
 
@@ -90,7 +92,7 @@ def validate_id_format(id_string: str, id_type: str) -> bool:
         if len(parts) != 2:
             return False
         prefix, hex_part = parts
-        return len(hex_part) == 8 and all(c in '0123456789abcdef' for c in hex_part)
+        return len(hex_part) == 8 and all(c in "0123456789abcdef" for c in hex_part)
     return False
 
 

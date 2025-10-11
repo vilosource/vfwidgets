@@ -65,7 +65,7 @@ class HelloThemeWidget(ThemedWidget):
 
         # Description
         self.desc_label = QLabel(
-            "This is your first themed widget.\n" "Watch how it changes when you switch themes!"
+            "This is your first themed widget.\nWatch how it changes when you switch themes!"
         )
         self.desc_label.setAlignment(Qt.AlignCenter)
         self.desc_label.setWordWrap(True)

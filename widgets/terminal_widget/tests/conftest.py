@@ -68,7 +68,9 @@ def qtbot(qapp, qtbot):
 @pytest.fixture
 def mock_embedded_server():
     """Create a mock EmbeddedTerminalServer for unit testing."""
-    with patch("vfwidgets_terminal.terminal.EmbeddedTerminalServer") as mock_server_class:
+    with patch(
+        "vfwidgets_terminal.terminal.EmbeddedTerminalServer"
+    ) as mock_server_class:
         mock_server = Mock(spec=EmbeddedTerminalServer)
         mock_server.start.return_value = 12345  # Mock port
         mock_server.stop.return_value = 0  # Mock exit code
@@ -202,7 +204,9 @@ def embedded_server() -> Generator[EmbeddedTerminalServer, None, None]:
 @pytest.fixture
 def python_server() -> Generator[EmbeddedTerminalServer, None, None]:
     """Create EmbeddedTerminalServer with Python command."""
-    server = EmbeddedTerminalServer(command="python", args=["-i"], port=0, capture_output=True)
+    server = EmbeddedTerminalServer(
+        command="python", args=["-i"], port=0, capture_output=True
+    )
 
     yield server
 
@@ -247,7 +251,9 @@ def sample_context_menu_event() -> ContextMenuEvent:
 def event_config_all_enabled() -> EventConfig:
     """EventConfig with all categories enabled."""
     return EventConfig(
-        enabled_categories=set(EventCategory), debug_logging=True, throttle_high_frequency=False
+        enabled_categories=set(EventCategory),
+        debug_logging=True,
+        throttle_high_frequency=False,
     )
 
 
@@ -397,9 +403,14 @@ def pytest_runtest_setup(item):
 
 def pytest_addoption(parser):
     """Add custom command line options."""
-    parser.addoption("--slow", action="store_true", default=False, help="run slow tests")
     parser.addoption(
-        "--integration", action="store_true", default=False, help="run integration tests"
+        "--slow", action="store_true", default=False, help="run slow tests"
+    )
+    parser.addoption(
+        "--integration",
+        action="store_true",
+        default=False,
+        help="run integration tests",
     )
     parser.addoption("--gui", action="store_true", default=False, help="run GUI tests")
     parser.addoption(

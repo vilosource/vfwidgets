@@ -63,7 +63,9 @@ class UnixTerminalBackend(TerminalBackend):
             logger.error(f"Failed to start Unix terminal process: {e}")
             return False
 
-    def read_output(self, session: "TerminalSession", max_bytes: int = 1024 * 20) -> Optional[str]:
+    def read_output(
+        self, session: "TerminalSession", max_bytes: int = 1024 * 20
+    ) -> Optional[str]:
         """Read output from the terminal process."""
         if not session.fd:
             return None
@@ -162,7 +164,9 @@ class UnixTerminalBackend(TerminalBackend):
             # Already dead
             return True
         except Exception as e:
-            logger.error(f"Failed to terminate process for session {session.session_id}: {e}")
+            logger.error(
+                f"Failed to terminate process for session {session.session_id}: {e}"
+            )
             return False
 
     def cleanup(self, session: "TerminalSession") -> None:

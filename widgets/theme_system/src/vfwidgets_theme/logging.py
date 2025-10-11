@@ -29,7 +29,7 @@ import threading
 import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 
 class ThemeLogger:
@@ -84,7 +84,7 @@ class ThemeLogger:
         # Prevent propagation to root logger to avoid duplicate messages
         self.logger.propagate = False
 
-    def debug(self, message: str, extra: Optional[Dict[str, Any]] = None) -> None:
+    def debug(self, message: str, extra: Optional[dict[str, Any]] = None) -> None:
         """Log debug message with optional structured data.
 
         Args:
@@ -95,7 +95,7 @@ class ThemeLogger:
         if self.debug_enabled:
             self._log(logging.DEBUG, message, extra)
 
-    def info(self, message: str, extra: Optional[Dict[str, Any]] = None) -> None:
+    def info(self, message: str, extra: Optional[dict[str, Any]] = None) -> None:
         """Log info message with optional structured data.
 
         Args:
@@ -105,7 +105,7 @@ class ThemeLogger:
         """
         self._log(logging.INFO, message, extra)
 
-    def warning(self, message: str, extra: Optional[Dict[str, Any]] = None) -> None:
+    def warning(self, message: str, extra: Optional[dict[str, Any]] = None) -> None:
         """Log warning message with optional structured data.
 
         Args:
@@ -115,7 +115,7 @@ class ThemeLogger:
         """
         self._log(logging.WARNING, message, extra)
 
-    def error(self, message: str, extra: Optional[Dict[str, Any]] = None) -> None:
+    def error(self, message: str, extra: Optional[dict[str, Any]] = None) -> None:
         """Log error message with optional structured data.
 
         Args:
@@ -125,7 +125,7 @@ class ThemeLogger:
         """
         self._log(logging.ERROR, message, extra)
 
-    def _log(self, level: int, message: str, extra: Optional[Dict[str, Any]]) -> None:
+    def _log(self, level: int, message: str, extra: Optional[dict[str, Any]]) -> None:
         """Internal logging method with theme context.
 
         Args:
@@ -280,7 +280,7 @@ class ThemeLogFormatter(logging.Formatter):
 
 
 # Global logger registry
-_logger_registry: Dict[str, ThemeLogger] = {}
+_logger_registry: dict[str, ThemeLogger] = {}
 _registry_lock = threading.Lock()
 
 
@@ -331,7 +331,7 @@ def get_debug_logger(component_name: str) -> ThemeLogger:
 
 # Convenience functions for common logging scenarios
 def log_theme_error(
-    logger: ThemeLogger, error: Exception, context: Optional[Dict[str, Any]] = None
+    logger: ThemeLogger, error: Exception, context: Optional[dict[str, Any]] = None
 ) -> None:
     """Log a theme error with structured context.
 
@@ -441,7 +441,7 @@ class PerformanceTracker:
     """
 
     def __init__(self):
-        self._measurements: Dict[str, list] = {}
+        self._measurements: dict[str, list] = {}
         self._lock = threading.RLock()
 
     @contextmanager
@@ -464,7 +464,7 @@ class PerformanceTracker:
                     self._measurements[operation] = []
                 self._measurements[operation].append(duration_ms)
 
-    def get_stats(self) -> Dict[str, Dict[str, float]]:
+    def get_stats(self) -> dict[str, dict[str, float]]:
         """Get performance statistics.
 
         Returns:

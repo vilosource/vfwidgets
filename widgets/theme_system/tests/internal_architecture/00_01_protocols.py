@@ -18,7 +18,7 @@ Run this example to see protocols in action.
 # Add the source path for imports
 import os
 import sys
-from typing import Any, List
+from typing import Any
 from unittest.mock import Mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -48,7 +48,7 @@ class SimpleThemeProvider:
 
     def __init__(self, theme_data: ThemeData):
         self._theme_data = theme_data
-        self._callbacks: List[StyleCallback] = []
+        self._callbacks: list[StyleCallback] = []
 
     def get_current_theme(self) -> ThemeData:
         """Get the complete current theme data."""
@@ -70,7 +70,6 @@ class SimpleThemeProvider:
 
     def set_theme(self, theme_data: ThemeData) -> None:
         """Update theme and notify subscribers (not in protocol, but useful)."""
-        old_theme = self._theme_data
         self._theme_data = theme_data
 
         # Notify all subscribers (would use Qt signals in real implementation)
@@ -213,7 +212,7 @@ class SimpleStyleGenerator:
         """Get CSS selector for a widget type."""
         return self._selector_map.get(widget_type, "QWidget")
 
-    def merge_styles(self, styles: List[QSSStyle]) -> QSSStyle:
+    def merge_styles(self, styles: list[QSSStyle]) -> QSSStyle:
         """Merge multiple stylesheets into a single stylesheet."""
         # Simple concatenation - real implementation would be smarter
         return "\n".join(style for style in styles if style.strip())

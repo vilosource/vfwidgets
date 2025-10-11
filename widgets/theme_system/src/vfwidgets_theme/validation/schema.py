@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Schema Validation
-Task 24: Schema validation for themes and widgets
+Task 24: Schema validation for themes and widgets.
 
 This module provides comprehensive schema validation capabilities
 for theme system data structures.
@@ -9,7 +9,7 @@ for theme system data structures.
 import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from .framework import ValidationResult, ValidationType
 
@@ -37,8 +37,8 @@ class SchemaField:
     schema_type: SchemaType
     required: bool = True
     default: Any = None
-    validators: List[Callable] = field(default_factory=list)
-    enum_values: Optional[List[Any]] = None
+    validators: list[Callable] = field(default_factory=list)
+    enum_values: Optional[list[Any]] = None
     min_value: Optional[Union[int, float]] = None
     max_value: Optional[Union[int, float]] = None
     min_length: Optional[int] = None
@@ -189,7 +189,7 @@ class SchemaField:
 class Schema:
     """Schema definition for data validation."""
 
-    def __init__(self, name: str, fields: List[SchemaField] = None):
+    def __init__(self, name: str, fields: list[SchemaField] = None):
         self.name = name
         self.fields = fields or []
         self._field_map = {field.name: field for field in self.fields}
@@ -199,7 +199,7 @@ class Schema:
         self.fields.append(field)
         self._field_map[field.name] = field
 
-    def validate(self, data: Dict[str, Any]) -> ValidationResult:
+    def validate(self, data: dict[str, Any]) -> ValidationResult:
         """Validate data against this schema."""
         result = ValidationResult(
             passed=True,
@@ -229,7 +229,7 @@ class Schema:
 
         return result
 
-    def get_default_data(self) -> Dict[str, Any]:
+    def get_default_data(self) -> dict[str, Any]:
         """Get default data structure based on schema."""
         data = {}
         for field in self.fields:
@@ -439,7 +439,7 @@ class StyleSchema(Schema):
         )
 
 
-def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
+def validate_schema(data: dict[str, Any], schema: Schema) -> ValidationResult:
     """Validate data against a schema.
 
     Args:
@@ -454,7 +454,7 @@ def validate_schema(data: Dict[str, Any], schema: Schema) -> ValidationResult:
 
 
 # Schema registry for dynamic schema lookup
-_SCHEMA_REGISTRY: Dict[str, Schema] = {
+_SCHEMA_REGISTRY: dict[str, Schema] = {
     "theme": ThemeSchema(),
     "widget": WidgetSchema(),
     "color": ColorSchema(),
@@ -472,6 +472,6 @@ def register_schema(name: str, schema: Schema):
     _SCHEMA_REGISTRY[name] = schema
 
 
-def get_available_schemas() -> List[str]:
+def get_available_schemas() -> list[str]:
     """Get list of available schema names."""
     return list(_SCHEMA_REGISTRY.keys())

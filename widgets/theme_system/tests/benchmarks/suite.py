@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from PySide6.QtWidgets import QApplication
 
@@ -35,16 +35,16 @@ class BenchmarkResult:
     std_dev: float
     memory_usage: float  # MB
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         result = asdict(self)
         result["timestamp"] = self.timestamp.isoformat()
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "BenchmarkResult":
+    def from_dict(cls, data: dict[str, Any]) -> "BenchmarkResult":
         """Create from dictionary."""
         data = data.copy()
         data["timestamp"] = datetime.fromisoformat(data["timestamp"])
@@ -59,7 +59,7 @@ class BenchmarkSuite:
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
         self.results_db = self.results_dir / "results.db"
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
 
         # Performance requirements (from specs)
         self.requirements = {
@@ -194,9 +194,9 @@ class BenchmarkSuite:
         self.results.append(result)
         self._save_result(result)
 
-        print(f"  Mean time: {mean_time*1000:.2f}ms")
-        print(f"  Median time: {median_time*1000:.2f}ms")
-        print(f"  Std dev: {std_dev*1000:.2f}ms")
+        print(f"  Mean time: {mean_time * 1000:.2f}ms")
+        print(f"  Median time: {median_time * 1000:.2f}ms")
+        print(f"  Std dev: {std_dev * 1000:.2f}ms")
         print(f"  Memory usage: {memory_usage:.2f}MB")
 
         return result
@@ -299,7 +299,7 @@ class BenchmarkSuite:
 
             # Simulate QSS generation
             qss_parts = []
-            for color_name, color_value in theme.colors.items():
+            for _color_name, color_value in theme.colors.items():
                 qss_parts.append(f"color: {color_value};")
 
             for style_name, style_value in theme.styles.items():
@@ -324,7 +324,7 @@ class BenchmarkSuite:
 
             # Create multiple widgets
             widgets = []
-            for i in range(50):
+            for _i in range(50):
                 widget = ThemedWidget()
                 widget.resize(100, 50)
                 widgets.append(widget)
@@ -374,7 +374,7 @@ class BenchmarkSuite:
         def benchmark_func():
             # Create and destroy widgets to test memory efficiency
             widgets = []
-            for i in range(10):
+            for _i in range(10):
                 widget = ThemedWidget()
                 widgets.append(widget)
 
@@ -387,7 +387,7 @@ class BenchmarkSuite:
 
         return self._run_benchmark("bench_memory_efficiency", benchmark_func, 100, 10)
 
-    def run_all_benchmarks(self) -> List[BenchmarkResult]:
+    def run_all_benchmarks(self) -> list[BenchmarkResult]:
         """Run all benchmarks."""
         print("Running comprehensive benchmark suite...")
         print("=" * 50)
@@ -414,7 +414,7 @@ class BenchmarkSuite:
         print("Benchmark suite completed!")
         return results
 
-    def get_historical_results(self, name: str, limit: int = 100) -> List[BenchmarkResult]:
+    def get_historical_results(self, name: str, limit: int = 100) -> list[BenchmarkResult]:
         """Get historical results for a benchmark."""
         with sqlite3.connect(self.results_db) as conn:
             cursor = conn.execute(
@@ -446,7 +446,7 @@ class BenchmarkSuite:
 
             return results
 
-    def detect_regressions(self, threshold: float = 0.2) -> List[Dict[str, Any]]:
+    def detect_regressions(self, threshold: float = 0.2) -> list[dict[str, Any]]:
         """
         Detect performance regressions.
 
@@ -482,7 +482,7 @@ class BenchmarkSuite:
 
         return regressions
 
-    def validate_performance_requirements(self) -> Dict[str, Any]:
+    def validate_performance_requirements(self) -> dict[str, Any]:
         """Validate results against performance requirements."""
         validation_results = {"passed": [], "failed": [], "overall_pass": True}
 
@@ -519,7 +519,7 @@ class BenchmarkSuite:
 
         return validation_results
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate comprehensive benchmark report."""
         if not self.results:
             return {"error": "No benchmark results available"}

@@ -161,7 +161,7 @@ class TestThemeManager(ThemedTestCase):
 
         # Register mock widget
         widget = MockWidget("test-widget")
-        widget_id = manager.register_widget(widget)
+        manager.register_widget(widget)
 
         # Set theme
         manager.set_theme("manager-test-theme")
@@ -185,7 +185,7 @@ class TestThemeManager(ThemedTestCase):
         manager = ThemeManager()
         widget = MockWidget("unregistered-widget")
 
-        widget_id = manager.register_widget(widget)
+        manager.register_widget(widget)
         success = manager.unregister_widget(widget)
 
         self.assertTrue(success)
@@ -639,7 +639,7 @@ class TestThemeManagerPerformance(ThemedTestCase):
                 for i in range(10):
                     theme_name = f"concurrent-theme-{i % 5}"
                     if manager.has_theme(theme_name):
-                        theme = manager.get_theme(theme_name)
+                        manager.get_theme(theme_name)
                         manager.set_theme(theme_name)
 
                 worker_time = time.time() - start_time

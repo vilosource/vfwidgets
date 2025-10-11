@@ -148,7 +148,7 @@ class TerminalProvider(WidgetProvider):
             config: Terminal configuration dictionary
         """
         self._default_config = config.copy()
-        logger.info(f"Set default terminal configuration")
+        logger.info("Set default terminal configuration")
 
     def get_default_config(self) -> Optional[dict]:
         """Get current default configuration.

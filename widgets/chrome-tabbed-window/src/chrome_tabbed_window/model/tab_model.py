@@ -59,8 +59,9 @@ class TabModel(QObject):
 
     # ==================== Core Tab Management ====================
 
-    def add_tab(self, widget: Optional[QWidget], text: str = "",
-                icon: Optional[QIcon] = None) -> int:
+    def add_tab(
+        self, widget: Optional[QWidget], text: str = "", icon: Optional[QIcon] = None
+    ) -> int:
         """
         Add a new tab to the model.
 
@@ -70,8 +71,9 @@ class TabModel(QObject):
         # Just delegate to insert_tab to avoid duplicate logic
         return self.insert_tab(len(self._tabs), widget, text, icon)
 
-    def insert_tab(self, index: int, widget: Optional[QWidget],
-                   text: str = "", icon: Optional[QIcon] = None) -> int:
+    def insert_tab(
+        self, index: int, widget: Optional[QWidget], text: str = "", icon: Optional[QIcon] = None
+    ) -> int:
         """
         Insert a tab at the specified index.
 
@@ -84,12 +86,7 @@ class TabModel(QObject):
         # Clamp index to valid range (QTabWidget behavior)
         index = max(0, min(index, len(self._tabs)))
 
-        tab_data = TabData(
-            widget=widget,
-            text=text,
-            icon=icon,
-            index=index
-        )
+        tab_data = TabData(widget=widget, text=text, icon=icon, index=index)
 
         self._tabs.insert(index, tab_data)
 
@@ -121,7 +118,7 @@ class TabModel(QObject):
         if not self.is_valid_index(index):
             return  # QTabWidget behavior: silently ignore
 
-        was_current = (index == self._current_index)
+        was_current = index == self._current_index
         tab_count_before = len(self._tabs)
 
         # Remove the tab
@@ -311,7 +308,6 @@ class TabModel(QObject):
         if index >= 0 and not self._tabs[index].enabled:
             return
 
-        old_index = self._current_index
         self._current_index = index
 
         # Always emit signal when index changes

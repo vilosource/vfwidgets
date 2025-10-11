@@ -397,7 +397,7 @@ class RegistrationSafetyDemo:
         # Get performance metrics
         metrics = perf_ctx.get_metrics()
         print("  Performance metrics:")
-        print(f"    - Execution time: {metrics.get('execution_time', 0)*1000:.2f}ms")
+        print(f"    - Execution time: {metrics.get('execution_time', 0) * 1000:.2f}ms")
         print(f"    - Memory usage: {metrics.get('memory_usage', 0)} bytes")
         print(f"    - Peak memory: {metrics.get('peak_memory', 0)} bytes")
 

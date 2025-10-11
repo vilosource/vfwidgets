@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Quick test for bidirectional theme switching."""
+
 import sys
 from pathlib import Path
 
@@ -38,7 +39,10 @@ class TestWindow(ThemedMainWindow):
         QTimer.singleShot(6000, lambda: self.switch_and_log(app, "light"))
         QTimer.singleShot(8000, lambda: self.switch_and_log(app, "dark"))
         QTimer.singleShot(
-            10000, lambda: print("\n✅ Test complete! Check if terminal colors changed each time.")
+            10000,
+            lambda: print(
+                "\n✅ Test complete! Check if terminal colors changed each time."
+            ),
         )
 
     def switch_and_log(self, app, theme_name):

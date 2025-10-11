@@ -13,7 +13,7 @@ The metadata system allows rich theme information including:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Optional
 
 from ..core.theme import Theme
 
@@ -56,9 +56,9 @@ class ThemeInfo:
     display_name: str
     description: str
     type: str  # "dark" or "light"
-    tags: List[str]
+    tags: list[str]
     author: Optional[str] = None
-    preview_colors: Dict[str, str] = field(default_factory=dict)
+    preview_colors: dict[str, str] = field(default_factory=dict)
 
 
 class ThemeMetadataProvider:
@@ -83,7 +83,7 @@ class ThemeMetadataProvider:
 
     def __init__(self):
         """Initialize the metadata provider."""
-        self._metadata: Dict[str, ThemeInfo] = {}
+        self._metadata: dict[str, ThemeInfo] = {}
 
     def register_metadata(self, theme_name: str, info: ThemeInfo) -> None:
         """Register metadata for a theme.
@@ -118,7 +118,7 @@ class ThemeMetadataProvider:
         """
         return self._metadata.get(theme_name)
 
-    def get_all_metadata(self) -> Dict[str, ThemeInfo]:
+    def get_all_metadata(self) -> dict[str, ThemeInfo]:
         """Get all registered metadata.
 
         Returns:
@@ -164,7 +164,7 @@ class ThemeMetadataProvider:
         if theme_name in self._metadata:
             del self._metadata[theme_name]
 
-    def filter_by_type(self, theme_type: str) -> List[ThemeInfo]:
+    def filter_by_type(self, theme_type: str) -> list[ThemeInfo]:
         """Filter themes by type.
 
         Args:
@@ -182,7 +182,7 @@ class ThemeMetadataProvider:
         """
         return [info for info in self._metadata.values() if info.type == theme_type]
 
-    def filter_by_tag(self, tag: str) -> List[ThemeInfo]:
+    def filter_by_tag(self, tag: str) -> list[ThemeInfo]:
         """Filter themes by tag.
 
         Args:

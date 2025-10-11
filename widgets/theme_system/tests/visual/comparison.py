@@ -4,7 +4,6 @@ Image Comparison Utilities for Visual Testing
 """
 
 from enum import Enum
-from typing import Dict, Tuple
 
 try:
     from PIL import Image, ImageChops, ImageStat
@@ -213,7 +212,7 @@ class ImageComparator:
         else:
             return self.compare_perceptual(img1, img2)
 
-    def multi_metric_comparison(self, img1: Image.Image, img2: Image.Image) -> Dict[str, float]:
+    def multi_metric_comparison(self, img1: Image.Image, img2: Image.Image) -> dict[str, float]:
         """
         Compare images using multiple metrics.
 
@@ -255,7 +254,7 @@ class ImageComparator:
 
     def get_best_metric(
         self, img1: Image.Image, img2: Image.Image
-    ) -> Tuple[ComparisonMetric, float]:
+    ) -> tuple[ComparisonMetric, float]:
         """
         Find the best metric for comparing two specific images.
 

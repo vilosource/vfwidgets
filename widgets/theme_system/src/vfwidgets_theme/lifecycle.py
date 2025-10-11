@@ -35,12 +35,9 @@ from functools import wraps
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
     NamedTuple,
     Optional,
     Protocol,
-    Set,
     TypeVar,
     runtime_checkable,
 )
@@ -68,7 +65,7 @@ class WidgetLifecycleEvent(NamedTuple):
     widget_id: int
     state: WidgetLifecycleState
     timestamp: float
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 class RegistrationError(Exception):
@@ -80,7 +77,7 @@ class RegistrationError(Exception):
 class BulkOperationError(Exception):
     """Error during bulk registration operations."""
 
-    def __init__(self, message: str, successful_count: int, failed_widgets: List[Any]):
+    def __init__(self, message: str, successful_count: int, failed_widgets: list[Any]):
         super().__init__(message)
         self.successful_count = successful_count
         self.failed_widgets = failed_widgets
@@ -142,13 +139,13 @@ class WidgetRegistry:
 
     def __init__(self):
         """Initialize enhanced widget registry."""
-        self._widgets: Dict[int, weakref.ReferenceType] = {}
-        self._metadata: Dict[int, Dict[str, Any]] = {}
-        self._lifecycle_events: Dict[int, List[WidgetLifecycleEvent]] = {}
-        self._widget_states: Dict[int, WidgetLifecycleState] = {}
+        self._widgets: dict[int, weakref.ReferenceType] = {}
+        self._metadata: dict[int, dict[str, Any]] = {}
+        self._lifecycle_events: dict[int, list[WidgetLifecycleEvent]] = {}
+        self._widget_states: dict[int, WidgetLifecycleState] = {}
         self._lock = threading.RLock()  # Reentrant lock for nested calls
-        self._cleanup_callbacks: List[Callable[[int], None]] = []
-        self._lifecycle_callbacks: List[Callable[[WidgetLifecycleEvent], None]] = []
+        self._cleanup_callbacks: list[Callable[[int], None]] = []
+        self._lifecycle_callbacks: list[Callable[[WidgetLifecycleEvent], None]] = []
 
         # Safety and validation settings
         self._max_registration_attempts = 3
@@ -167,7 +164,7 @@ class WidgetRegistry:
         }
         self._start_time = time.time()  # For uptime tracking
 
-    def register(self, widget: ThemeableWidget, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def register(self, widget: ThemeableWidget, metadata: Optional[dict[str, Any]] = None) -> None:
         """Register a widget with enhanced safety and lifecycle tracking.
 
         Args:
@@ -294,7 +291,7 @@ class WidgetRegistry:
             weak_ref = self._widgets[widget_id]
             return weak_ref() is not None
 
-    def get_metadata(self, widget: ThemeableWidget) -> Optional[Dict[str, Any]]:
+    def get_metadata(self, widget: ThemeableWidget) -> Optional[dict[str, Any]]:
         """Get metadata for a registered widget.
 
         Args:
@@ -350,7 +347,7 @@ class WidgetRegistry:
                 yield widget
 
     def filter_widgets(
-        self, predicate: Callable[[Dict[str, Any]], bool]
+        self, predicate: Callable[[dict[str, Any]], bool]
     ) -> Iterator[ThemeableWidget]:
         """Filter widgets by metadata predicate.
 
@@ -397,9 +394,9 @@ class WidgetRegistry:
 
     def bulk_register(
         self,
-        widgets: List[ThemeableWidget],
-        metadata_list: Optional[List[Optional[Dict[str, Any]]]] = None,
-    ) -> Dict[str, Any]:
+        widgets: list[ThemeableWidget],
+        metadata_list: Optional[list[Optional[dict[str, Any]]]] = None,
+    ) -> dict[str, Any]:
         """Register multiple widgets atomically with comprehensive error handling.
 
         Args:
@@ -499,7 +496,7 @@ class WidgetRegistry:
 
         return result
 
-    def bulk_unregister(self, widgets: List[ThemeableWidget]) -> Dict[str, Any]:
+    def bulk_unregister(self, widgets: list[ThemeableWidget]) -> dict[str, Any]:
         """Unregister multiple widgets efficiently.
 
         Args:
@@ -532,7 +529,7 @@ class WidgetRegistry:
             "per_widget_us": (duration_ms * 1000) / len(widgets) if widgets else 0,
         }
 
-    def get_lifecycle_events(self, widget: ThemeableWidget) -> List[WidgetLifecycleEvent]:
+    def get_lifecycle_events(self, widget: ThemeableWidget) -> list[WidgetLifecycleEvent]:
         """Get lifecycle events for a widget.
 
         Args:
@@ -566,7 +563,7 @@ class WidgetRegistry:
             widget_id = id(widget)
             return self._widget_states.get(widget_id)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get comprehensive registry statistics.
 
         Returns:
@@ -591,7 +588,7 @@ class WidgetRegistry:
 
             return stats
 
-    def validate_integrity(self) -> Dict[str, Any]:
+    def validate_integrity(self) -> dict[str, Any]:
         """Validate registry integrity and detect issues.
 
         Returns:
@@ -618,7 +615,7 @@ class WidgetRegistry:
 
             # Check for dead weak references
             dead_refs = 0
-            for widget_id, weak_ref in self._widgets.items():
+            for _widget_id, weak_ref in self._widgets.items():
                 if weak_ref() is None:
                     dead_refs += 1
 
@@ -658,7 +655,7 @@ class WidgetRegistry:
             return False
 
     def _update_lifecycle_state(
-        self, widget_id: int, state: WidgetLifecycleState, metadata: Optional[Dict[str, Any]] = None
+        self, widget_id: int, state: WidgetLifecycleState, metadata: Optional[dict[str, Any]] = None
     ) -> None:
         """Update widget lifecycle state and emit event.
 
@@ -798,7 +795,7 @@ class LifecycleManager:
         """
         self._registry = registry or WidgetRegistry()
         self._theme_provider: Optional[ThemeProvider] = None
-        self._lifecycle_callbacks: Dict[str, List[Callable]] = defaultdict(list)
+        self._lifecycle_callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lock = threading.RLock()
 
         # Add registry cleanup callback
@@ -890,7 +887,7 @@ class LifecycleManager:
         with self._lock:
             self._lifecycle_callbacks[event].append(callback)
 
-    def batch_register(self, widgets: List[ThemeableWidget]) -> None:
+    def batch_register(self, widgets: list[ThemeableWidget]) -> None:
         """Register multiple widgets efficiently.
 
         Args:
@@ -911,7 +908,7 @@ class LifecycleManager:
             if per_widget_ms > 1:  # Should be much faster than 1ms per widget
                 print(f"Warning: Batch registration averaged {per_widget_ms:.2f}ms per widget")
 
-    def batch_unregister(self, widgets: List[ThemeableWidget]) -> int:
+    def batch_unregister(self, widgets: list[ThemeableWidget]) -> int:
         """Unregister multiple widgets efficiently.
 
         Args:
@@ -1008,7 +1005,7 @@ class ThemeUpdateContext:
         """
         self._manager = lifecycle_manager
         self._start_time: Optional[float] = None
-        self._widgets_updated: List[ThemeableWidget] = []
+        self._widgets_updated: list[ThemeableWidget] = []
 
     def __enter__(self) -> "ThemeUpdateContext":
         """Enter the context manager."""
@@ -1076,7 +1073,7 @@ class WidgetCreationContext:
 
         """
         self._manager = lifecycle_manager
-        self._widgets_created: List[ThemeableWidget] = []
+        self._widgets_created: list[ThemeableWidget] = []
         self._start_time: Optional[float] = None
 
     def __enter__(self) -> "WidgetCreationContext":
@@ -1136,7 +1133,7 @@ class PerformanceContext:
         self._start_time: Optional[float] = None
         self._start_memory: Optional[int] = None
         self._peak_memory: int = 0
-        self._metrics: Dict[str, Any] = {}
+        self._metrics: dict[str, Any] = {}
 
     def __enter__(self) -> "PerformanceContext":
         """Enter the context manager."""
@@ -1161,7 +1158,7 @@ class PerformanceContext:
 
         return False  # Don't suppress exceptions
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get performance metrics.
 
         Returns:
@@ -1203,7 +1200,7 @@ class CleanupScheduler:
 
     def __init__(self):
         """Initialize cleanup scheduler."""
-        self._cleanup_objects: Set[weakref.ReferenceType] = set()
+        self._cleanup_objects: set[weakref.ReferenceType] = set()
         self._lock = threading.RLock()
 
     def schedule_cleanup(self, obj: CleanupProtocol) -> None:
@@ -1328,7 +1325,7 @@ class CleanupValidator:
         except Exception:
             return False
 
-    def validate_multiple(self, objects: List[CleanupProtocol]) -> Dict[str, int]:
+    def validate_multiple(self, objects: list[CleanupProtocol]) -> dict[str, int]:
         """Validate cleanup for multiple objects.
 
         Args:
@@ -1361,8 +1358,8 @@ class MemoryTracker:
 
     def __init__(self):
         """Initialize memory tracker."""
-        self._tracked_objects: Dict[int, weakref.ReferenceType] = {}
-        self._memory_snapshots: Dict[int, Dict[str, Any]] = {}
+        self._tracked_objects: dict[int, weakref.ReferenceType] = {}
+        self._memory_snapshots: dict[int, dict[str, Any]] = {}
         self._lock = threading.RLock()
 
     def start_tracking(self, obj: Any) -> None:
@@ -1386,7 +1383,7 @@ class MemoryTracker:
                 "type": type(obj).__name__,
             }
 
-    def stop_tracking(self, obj: Any) -> Optional[Dict[str, Any]]:
+    def stop_tracking(self, obj: Any) -> Optional[dict[str, Any]]:
         """Stop tracking an object and get final statistics.
 
         Args:
@@ -1473,7 +1470,7 @@ class MemoryTracker:
 
             return len(self._tracked_objects)
 
-    def get_all_statistics(self) -> List[Dict[str, Any]]:
+    def get_all_statistics(self) -> list[dict[str, Any]]:
         """Get statistics for all tracked objects.
 
         Returns:
@@ -1544,8 +1541,8 @@ class LeakDetector:
 
     def __init__(self):
         """Initialize leak detector."""
-        self._tracked_objects: Dict[int, weakref.ReferenceType] = {}
-        self._creation_times: Dict[int, float] = {}
+        self._tracked_objects: dict[int, weakref.ReferenceType] = {}
+        self._creation_times: dict[int, float] = {}
         self._lock = threading.RLock()
 
     def track_object(self, obj: Any) -> None:
@@ -1561,7 +1558,7 @@ class LeakDetector:
             self._tracked_objects[obj_id] = weak_ref
             self._creation_times[obj_id] = time.time()
 
-    def detect_leaks(self, max_age_seconds: float = 60.0) -> List[Dict[str, Any]]:
+    def detect_leaks(self, max_age_seconds: float = 60.0) -> list[dict[str, Any]]:
         """Detect potential memory leaks.
 
         Args:
@@ -1593,7 +1590,7 @@ class LeakDetector:
 
         return potential_leaks
 
-    def force_gc_and_check(self) -> Dict[str, int]:
+    def force_gc_and_check(self) -> dict[str, int]:
         """Force garbage collection and check for leaks.
 
         Returns:
@@ -1653,7 +1650,7 @@ class ResourceReporter:
 
     def __init__(self):
         """Initialize resource reporter."""
-        self._tracked_widgets: List[weakref.ReferenceType] = []
+        self._tracked_widgets: list[weakref.ReferenceType] = []
         self._lock = threading.RLock()
         self._start_time = time.time()
 
@@ -1668,7 +1665,7 @@ class ResourceReporter:
             weak_ref = weakref.ref(widget)
             self._tracked_widgets.append(weak_ref)
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate comprehensive resource usage report.
 
         Returns:
@@ -1703,7 +1700,7 @@ class ResourceReporter:
 
             return report
 
-    def _estimate_total_memory(self, widgets: List[ThemeableWidget]) -> int:
+    def _estimate_total_memory(self, widgets: list[ThemeableWidget]) -> int:
         """Estimate total memory usage for widgets.
 
         Args:
@@ -1725,7 +1722,7 @@ class ResourceReporter:
 
         return total_memory
 
-    def _count_widget_types(self, widgets: List[ThemeableWidget]) -> Dict[str, int]:
+    def _count_widget_types(self, widgets: list[ThemeableWidget]) -> dict[str, int]:
         """Count widgets by type.
 
         Args:
@@ -1743,7 +1740,7 @@ class ResourceReporter:
 
         return dict(type_counts)
 
-    def _get_performance_metrics(self) -> Dict[str, Any]:
+    def _get_performance_metrics(self) -> dict[str, Any]:
         """Get current performance metrics.
 
         Returns:
@@ -1775,7 +1772,7 @@ class PerformanceMonitor:
 
     def __init__(self):
         """Initialize performance monitor."""
-        self._measurements: Dict[str, List[Dict[str, float]]] = defaultdict(list)
+        self._measurements: dict[str, list[dict[str, float]]] = defaultdict(list)
         self._lock = threading.RLock()
 
     @contextmanager
@@ -1804,7 +1801,7 @@ class PerformanceMonitor:
             with self._lock:
                 self._measurements[operation_name].append(measurement)
 
-    def get_metrics(self) -> Dict[str, Dict[str, float]]:
+    def get_metrics(self) -> dict[str, dict[str, float]]:
         """Get performance metrics for all measured operations.
 
         Returns:
@@ -1907,7 +1904,7 @@ def lifecycle_tracked(registry: WidgetRegistry):
     def decorator(cls):
         # Add lifecycle callback to class
         def track_lifecycle(
-            self, state: WidgetLifecycleState, metadata: Optional[Dict[str, Any]] = None
+            self, state: WidgetLifecycleState, metadata: Optional[dict[str, Any]] = None
         ):
             """Track a lifecycle event for this widget."""
             widget_id = id(self)

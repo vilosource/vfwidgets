@@ -109,18 +109,18 @@ class ThemedInput(ThemedWidget, QLineEdit):
         error_border = self.theme.get("error_border", "#cc0000")
         success_border = self.theme.get("success_border", "#00aa00")
         warning_border = self.theme.get("warning_border", "#ff9900")
-        placeholder_color = self.theme.get("placeholder", "#888888")
+        self.theme.get("placeholder", "#888888")
         font = self.theme.get("font", "Arial, sans-serif")
 
         # Choose border color based on validation state
         if self._validation_state == "invalid":
-            active_border = error_border
+            pass
         elif self._validation_state == "valid":
-            active_border = success_border
+            pass
         elif self._validation_state == "warning":
-            active_border = warning_border
+            pass
         else:  # empty
-            active_border = border_color
+            pass
 
         # Generate stylesheet
         stylesheet = f"""

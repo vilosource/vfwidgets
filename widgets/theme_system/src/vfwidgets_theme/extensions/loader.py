@@ -12,7 +12,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 
 from ..errors import ExtensionError
 from ..logging import get_logger
@@ -28,7 +28,7 @@ class ExtensionMetadata:
     OPTIONAL_FIELDS = ["dependencies", "provides", "homepage", "license", "tags"]
 
     @classmethod
-    def parse_from_module(cls, module) -> Dict[str, Any]:
+    def parse_from_module(cls, module) -> dict[str, Any]:
         """Parse extension metadata from module.
 
         Args:
@@ -79,7 +79,7 @@ class ExtensionMetadata:
             raise ExtensionError(f"Invalid version format: {version}")
 
     @classmethod
-    def parse_from_file(cls, metadata_file: Path) -> Dict[str, Any]:
+    def parse_from_file(cls, metadata_file: Path) -> dict[str, Any]:
         """Parse extension metadata from JSON file.
 
         Args:
@@ -124,7 +124,7 @@ class ExtensionHookDiscovery:
     }
 
     @classmethod
-    def discover_hooks(cls, module) -> Dict[str, Callable]:
+    def discover_hooks(cls, module) -> dict[str, Callable]:
         """Discover hook functions in extension module.
 
         Args:
@@ -307,7 +307,7 @@ class ExtensionLoader:
         except Exception as e:
             raise ExtensionError(f"Failed to load module {extension_path}: {e}")
 
-    def _parse_metadata(self, extension_path: Path, module) -> Dict[str, Any]:
+    def _parse_metadata(self, extension_path: Path, module) -> dict[str, Any]:
         """Parse extension metadata."""
         # Try metadata file first
         metadata_file = extension_path.parent / f"{extension_path.stem}.json"
@@ -320,7 +320,7 @@ class ExtensionLoader:
         # Fall back to module metadata
         return self.metadata_parser.parse_from_module(module)
 
-    def _discover_hooks(self, module) -> Dict[str, Callable]:
+    def _discover_hooks(self, module) -> dict[str, Callable]:
         """Discover and validate hooks in module."""
         hooks = self.hook_discovery.discover_hooks(module)
 
@@ -334,7 +334,7 @@ class ExtensionLoader:
 
         return hooks
 
-    def validate_extension_file(self, extension_path: Path) -> List[str]:
+    def validate_extension_file(self, extension_path: Path) -> list[str]:
         """Validate extension file and return list of issues.
 
         Args:

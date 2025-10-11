@@ -199,7 +199,7 @@ class PaneContainer(QWidget, ReconcilerOperations):
         self._visual_renderer = VisualRenderer(self._widget_pool)  # Layer 3: Geometry application
 
         # Geometry cache for spatial navigation
-        self._last_geometries: dict[str, "QRect"] = {}  # pane_id -> geometry
+        self._last_geometries: dict[str, QRect] = {}  # pane_id -> geometry
 
         # Divider management (for drag-to-resize)
         self._dividers: dict[str, list[QWidget]] = {}  # node_id -> list of DividerWidget instances

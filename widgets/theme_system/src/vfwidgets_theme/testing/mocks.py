@@ -17,7 +17,7 @@ maximum flexibility for different test scenarios.
 
 import time
 import weakref
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Optional
 
 from ..protocols import (
     ColorValue,
@@ -64,10 +64,10 @@ class MockThemeProvider:
 
         """
         self._theme_data = theme_data or self._get_default_theme()
-        self._callbacks: Set[StyleCallback] = set()
-        self._call_counts: Dict[str, int] = {}
-        self._call_times: Dict[str, List[float]] = {}
-        self._injected_errors: Dict[str, Exception] = {}
+        self._callbacks: set[StyleCallback] = set()
+        self._call_counts: dict[str, int] = {}
+        self._call_times: dict[str, list[float]] = {}
+        self._injected_errors: dict[str, Exception] = {}
         self._is_thread_safe = True
 
     def _get_default_theme(self) -> ThemeData:
@@ -238,7 +238,7 @@ class MockThemeableWidget:
 
     def get_theme_color(self, key: PropertyKey, default: ColorValue = "#000000") -> ColorValue:
         """Get a color value from the current theme."""
-        start_time = time.perf_counter()
+        time.perf_counter()
         self._property_access_count += 1
 
         try:
@@ -259,7 +259,7 @@ class MockThemeableWidget:
 
     def get_theme_property(self, key: PropertyKey, default: PropertyValue = None) -> PropertyValue:
         """Get any theme property value."""
-        start_time = time.perf_counter()
+        time.perf_counter()
         self._property_access_count += 1
 
         try:
@@ -315,7 +315,7 @@ class MockColorProvider:
 
     """
 
-    def __init__(self, color_map: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, color_map: Optional[dict[str, str]] = None) -> None:
         """Initialize mock color provider.
 
         Args:
@@ -324,10 +324,10 @@ class MockColorProvider:
         """
         self._color_map = color_map or self._get_default_colors()
         self._fallback_color = "#000000"
-        self._call_times: Dict[str, List[float]] = {}
-        self._validation_cache: Dict[str, bool] = {}
+        self._call_times: dict[str, list[float]] = {}
+        self._validation_cache: dict[str, bool] = {}
 
-    def _get_default_colors(self) -> Dict[str, str]:
+    def _get_default_colors(self) -> dict[str, str]:
         """Get default color mapping for testing."""
         return {
             "primary": "#007acc",
@@ -441,7 +441,7 @@ class MockStyleGenerator:
             "tree": "QTreeWidget",
             "table": "QTableWidget",
         }
-        self._call_times: Dict[str, List[float]] = {}
+        self._call_times: dict[str, list[float]] = {}
         self._generation_count = 0
 
     def generate_stylesheet(self, theme: ThemeData, widget: Any) -> QSSStyle:
@@ -491,7 +491,7 @@ class MockStyleGenerator:
 
         return result
 
-    def merge_styles(self, styles: List[QSSStyle]) -> QSSStyle:
+    def merge_styles(self, styles: list[QSSStyle]) -> QSSStyle:
         """Merge multiple stylesheets into a single stylesheet."""
         start_time = time.perf_counter()
 
@@ -551,9 +551,9 @@ class MockWidget:
         """
         self.widget_type = widget_type
         self._stylesheet = ""
-        self._properties: Dict[str, Any] = {}
+        self._properties: dict[str, Any] = {}
         self._parent = None
-        self._children: List[MockWidget] = []
+        self._children: list[MockWidget] = []
         self._visible = True
         self._enabled = True
 
@@ -585,7 +585,7 @@ class MockWidget:
         """Get the widget's parent."""
         return self._parent
 
-    def children(self) -> List["MockWidget"]:
+    def children(self) -> list["MockWidget"]:
         """Get the widget's children."""
         return self._children.copy()
 
@@ -627,19 +627,18 @@ class MockApplication:
         """Initialize mock application."""
         self.current_theme = "default"
         self._widgets: weakref.WeakSet = weakref.WeakSet()
-        self._theme_change_callbacks: List[Callable[[str], None]] = []
+        self._theme_change_callbacks: list[Callable[[str], None]] = []
         self._available_themes = ["default", "dark", "light", "high-contrast"]
 
     def set_theme(self, theme_name: str) -> None:
         """Set the application theme."""
         if theme_name in self._available_themes:
-            old_theme = self.current_theme
             self.current_theme = theme_name
             self._notify_theme_change(theme_name)
         else:
             raise ValueError(f"Theme '{theme_name}' not available")
 
-    def get_available_themes(self) -> List[str]:
+    def get_available_themes(self) -> list[str]:
         """Get list of available themes."""
         return self._available_themes.copy()
 
@@ -651,7 +650,7 @@ class MockApplication:
         """Unregister a widget from theme updates."""
         self._widgets.discard(widget)
 
-    def get_registered_widgets(self) -> List[Any]:
+    def get_registered_widgets(self) -> list[Any]:
         """Get list of registered widgets."""
         return list(self._widgets)
 
@@ -707,7 +706,7 @@ class MockPainter:
         self.pen_color = "#000000"
         self.brush_color = "#ffffff"
         self.font = "Arial 12px"
-        self.draw_operations: List[Dict[str, Any]] = []
+        self.draw_operations: list[dict[str, Any]] = []
 
     def setPen(self, color: str) -> None:
         """Set pen color."""

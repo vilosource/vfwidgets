@@ -130,7 +130,7 @@ class TabCompressionDemo(QMainWindow):
         self.tab_count_label.setText(f"Tabs: {count}")
 
         # Get actual tab width from the tab bar
-        if count > 0 and hasattr(self.tabs, '_tab_bar'):
+        if count > 0 and hasattr(self.tabs, "_tab_bar"):
             tab_bar = self.tabs._tab_bar
             # Get the size hint which shows our calculated width
             size_hint = tab_bar.tabSizeHint(0) if count > 0 else None
@@ -155,9 +155,9 @@ def main():
     """Run the tab compression demo."""
     app = QApplication(sys.argv)
 
-    print("="*60)
+    print("=" * 60)
     print("CHROME TAB COMPRESSION DEMO")
-    print("="*60)
+    print("=" * 60)
     print("\nThis demo shows how tabs compress as more are added:")
     print("- Few tabs (1-4): Maximum width (240px)")
     print("- Medium tabs (5-15): Dynamic compression")
@@ -166,7 +166,7 @@ def main():
     print("- ALL tabs are always visible")
     print("- No scroll buttons needed")
     print("- Exactly like Chrome browser behavior")
-    print("="*60)
+    print("=" * 60)
 
     window = TabCompressionDemo()
     window.show()

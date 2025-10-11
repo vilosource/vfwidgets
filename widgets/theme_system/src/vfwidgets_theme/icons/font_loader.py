@@ -4,7 +4,7 @@ Handles loading icon fonts and creating QIcon objects from font characters.
 """
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QColor, QFont, QFontDatabase, QIcon, QPainter, QPen, QPixmap
@@ -22,7 +22,7 @@ class IconFontLoader:
 
     def __init__(self):
         """Initialize icon font loader."""
-        self._loaded_fonts: Dict[str, str] = {}  # path -> family_name
+        self._loaded_fonts: dict[str, str] = {}  # path -> family_name
         self._font_database = QFontDatabase()
 
     def load_font(self, font_path: Path) -> Optional[str]:
@@ -161,7 +161,7 @@ class IconFontLoader:
         color = QColor(color_str)
         return color if color.isValid() else QColor(Qt.GlobalColor.black)
 
-    def get_loaded_fonts(self) -> Dict[str, str]:
+    def get_loaded_fonts(self) -> dict[str, str]:
         """Get dictionary of loaded fonts (path -> family_name)."""
         return self._loaded_fonts.copy()
 
@@ -251,7 +251,7 @@ class IconFontLoader:
             logger.error(f"Error creating font preview: {e}")
             return None
 
-    def get_font_info(self, font_family: str) -> Dict[str, any]:
+    def get_font_info(self, font_family: str) -> dict[str, any]:
         """Get information about loaded font.
 
         Args:
@@ -263,7 +263,7 @@ class IconFontLoader:
         """
         try:
             font = QFont(font_family)
-            font_info = QFontDatabase().font(font_family, "Regular", 12)
+            QFontDatabase().font(font_family, "Regular", 12)
 
             return {
                 "family": font_family,

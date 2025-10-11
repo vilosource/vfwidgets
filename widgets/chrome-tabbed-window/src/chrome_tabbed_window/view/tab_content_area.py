@@ -36,6 +36,7 @@ class TabContentArea(QStackedWidget):
 
         # Set size policy for proper layout
         from PySide6.QtWidgets import QSizePolicy
+
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def set_model(self, model: TabModel) -> None:

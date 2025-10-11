@@ -32,7 +32,7 @@ class SessionManager:
         try:
             data = self.model.to_dict(include_metadata=True)
 
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(data, f, indent=2)
 
             return True

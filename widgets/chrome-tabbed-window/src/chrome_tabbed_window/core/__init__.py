@@ -15,7 +15,6 @@ __all__ = [
     "TAB_CURVE_RADIUS",
     "CLOSE_BUTTON_SIZE",
     "CLOSE_BUTTON_MARGIN",
-
     # Colors
     "COLOR_BACKGROUND",
     "COLOR_TAB_INACTIVE",
@@ -26,12 +25,10 @@ __all__ = [
     "COLOR_TEXT_INACTIVE",
     "COLOR_CLOSE_HOVER",
     "COLOR_CLOSE_PRESSED",
-
     # Enums
     "TabPosition",
     "TabShape",
     "WindowMode",
-
     # Defaults
     "DEFAULT_ICON_SIZE",
     "DEFAULT_MINIMUM_SIZE",

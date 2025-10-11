@@ -30,12 +30,12 @@ Usage:
 
 import sys
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
@@ -49,7 +49,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from vfwidgets_multisplit import MultisplitWidget, WherePosition, WidgetProvider, Direction
+from vfwidgets_multisplit import Direction, MultisplitWidget, WherePosition, WidgetProvider
 
 
 class TestPaneWidget(QWidget):
@@ -384,7 +384,12 @@ class NavigationTestWindow(QMainWindow):
                 "name": "Complex Nested",
                 "setup_func": setup_nested_layout,
                 "expected_nav": {
-                    "Pane A": {"right": "Pane B or C", "left": "none", "up": "none", "down": "none"},
+                    "Pane A": {
+                        "right": "Pane B or C",
+                        "left": "none",
+                        "up": "none",
+                        "down": "none",
+                    },
                     "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
                     "Pane C": {"left": "Pane A", "up": "Pane B", "right": "none", "down": "none"},
                 },
@@ -404,14 +409,24 @@ class NavigationTestWindow(QMainWindow):
                 "expected_nav": {
                     "Pane A": {"right": "Pane B", "down": "Pane C", "left": "none", "up": "none"},
                     "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
-                    "Pane C": {"up": "Pane A or B", "down": "none", "left": "none", "right": "none"},
+                    "Pane C": {
+                        "up": "Pane A or B",
+                        "down": "none",
+                        "left": "none",
+                        "right": "none",
+                    },
                 },
             },
             {
                 "name": "Normal T",
                 "setup_func": setup_normal_t_layout,
                 "expected_nav": {
-                    "Pane A": {"down": "Pane B or C", "up": "none", "left": "none", "right": "none"},
+                    "Pane A": {
+                        "down": "Pane B or C",
+                        "up": "none",
+                        "left": "none",
+                        "right": "none",
+                    },
                     "Pane B": {"right": "Pane C", "up": "Pane A", "left": "none", "down": "none"},
                     "Pane C": {"left": "Pane B", "up": "Pane A", "right": "none", "down": "none"},
                 },
@@ -420,7 +435,12 @@ class NavigationTestWindow(QMainWindow):
                 "name": "Left T",
                 "setup_func": setup_left_t_layout,
                 "expected_nav": {
-                    "Pane A": {"right": "Pane B or C", "left": "none", "up": "none", "down": "none"},
+                    "Pane A": {
+                        "right": "Pane B or C",
+                        "left": "none",
+                        "up": "none",
+                        "down": "none",
+                    },
                     "Pane B": {"left": "Pane A", "down": "Pane C", "right": "none", "up": "none"},
                     "Pane C": {"left": "Pane A", "up": "Pane B", "right": "none", "down": "none"},
                 },
@@ -429,7 +449,12 @@ class NavigationTestWindow(QMainWindow):
                 "name": "Right T",
                 "setup_func": setup_right_t_layout,
                 "expected_nav": {
-                    "Pane A": {"left": "Pane B or C", "right": "none", "up": "none", "down": "none"},
+                    "Pane A": {
+                        "left": "Pane B or C",
+                        "right": "none",
+                        "up": "none",
+                        "down": "none",
+                    },
                     "Pane B": {"right": "Pane A", "down": "Pane C", "left": "none", "up": "none"},
                     "Pane C": {"right": "Pane A", "up": "Pane B", "left": "none", "down": "none"},
                 },
@@ -450,7 +475,9 @@ class NavigationTestWindow(QMainWindow):
             "Switch scenarios to test different layouts. "
             "Check log for expected vs actual behavior."
         )
-        instructions.setStyleSheet("padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107;")
+        instructions.setStyleSheet(
+            "padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107;"
+        )
         layout.addWidget(instructions)
 
         # Main content area: multisplit on left, controls on right
@@ -470,7 +497,7 @@ class NavigationTestWindow(QMainWindow):
         right_layout.addWidget(scenario_label)
 
         self.scenario_tabs = QTabWidget()
-        for i, scenario in enumerate(self.scenarios):
+        for _i, scenario in enumerate(self.scenarios):
             tab = self._create_scenario_tab(scenario)
             self.scenario_tabs.addTab(tab, scenario["name"])
 
@@ -551,9 +578,9 @@ class NavigationTestWindow(QMainWindow):
 
     def load_scenario(self, index: int):
         """Load a test scenario by rebuilding the layout."""
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"Loading Scenario {index + 1}: {self.scenarios[index]['name']}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         self.current_scenario_index = index
         scenario = self.scenarios[index]
@@ -570,7 +597,7 @@ class NavigationTestWindow(QMainWindow):
         # Build new layout
         scenario["setup_func"](self.multisplit, self.provider)
 
-        print(f"{'='*70}\n")
+        print(f"{'=' * 70}\n")
 
     def on_scenario_changed(self, index: int):
         """Handle scenario tab change."""
@@ -597,7 +624,9 @@ class NavigationTestWindow(QMainWindow):
 
         # Check against expected
         scenario = self.scenarios[self.current_scenario_index]
-        expected_target = scenario["expected_nav"].get(current_label, {}).get(direction.value, "none")
+        expected_target = (
+            scenario["expected_nav"].get(current_label, {}).get(direction.value, "none")
+        )
 
         if success:
             actual = new_label
@@ -634,7 +663,9 @@ class NavigationTestWindow(QMainWindow):
     def eventFilter(self, obj, event):
         """Handle global keyboard shortcuts."""
         if event.type() == event.Type.KeyPress:
-            if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier):
+            if event.modifiers() == (
+                Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier
+            ):
                 if event.key() == Qt.Key.Key_Left:
                     self.test_navigation(Direction.LEFT)
                     return True

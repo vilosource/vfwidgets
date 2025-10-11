@@ -28,7 +28,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 # Import Qt components with fallback for headless testing
 try:
@@ -240,7 +240,7 @@ class ThemeManager:
         """
         return self._repository.has_theme(name)
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List all available themes.
 
         Returns:
@@ -249,7 +249,7 @@ class ThemeManager:
         """
         return self._repository.list_themes()
 
-    def get_builtin_themes(self) -> List[str]:
+    def get_builtin_themes(self) -> list[str]:
         """Get list of built-in theme names.
 
         Returns:
@@ -457,7 +457,7 @@ class ThemeManager:
                 self._stats.errors += 1
             raise ThemeLoadError(f"Failed to save theme to {file_path}: {e}")
 
-    def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> List[Theme]:
+    def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> list[Theme]:
         """Discover and load themes from directory.
 
         Args:
@@ -558,7 +558,7 @@ class ThemeManager:
             with self._lock:
                 self._stats.errors += 1
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get theme manager statistics.
 
         Returns:

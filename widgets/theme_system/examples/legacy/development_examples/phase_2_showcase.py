@@ -26,7 +26,7 @@ import sys
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 # Add src to path for imports
 sys.path.insert(0, "src")
@@ -212,7 +212,7 @@ class Phase2ShowcaseWidget:
                 return attr_selector in self.attributes
         return False
 
-    def apply_theme_mapping(self, mapping_dict: Dict[str, Any]):
+    def apply_theme_mapping(self, mapping_dict: dict[str, Any]):
         """Apply theme properties from mapping."""
         for property_name, value in mapping_dict.items():
             if hasattr(self, property_name):
@@ -244,7 +244,7 @@ class Phase2Showcase:
         self.lifecycle_manager = LifecycleManager(self.widget_registry)
 
         # Performance tracking
-        self.performance_metrics: List[PerformanceMetrics] = []
+        self.performance_metrics: list[PerformanceMetrics] = []
 
         print("Phase 2 Showcase System Initialized")
         print("All 5 tasks integrated and ready for demonstration")

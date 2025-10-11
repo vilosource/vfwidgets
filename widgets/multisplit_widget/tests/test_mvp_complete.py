@@ -75,7 +75,7 @@ class TestMVPComplete(unittest.TestCase):
         self.assertTrue(widget.set_constraints(widget.get_pane_ids()[0], min_width=100))
 
         # Test persistence
-        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             filepath = Path(f.name)
             try:
                 self.assertTrue(widget.save_layout(filepath))
@@ -167,5 +167,5 @@ class TestMVPComplete(unittest.TestCase):
         self.assertEqual(len(widget.get_pane_ids()), 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

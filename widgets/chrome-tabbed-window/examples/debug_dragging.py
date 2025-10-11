@@ -130,9 +130,9 @@ def main():
 
     # Add tabs
     for i in range(3):
-        label = QLabel(f"<h2>Tab {i+1}</h2><p>Watch console for debug output</p>")
+        label = QLabel(f"<h2>Tab {i + 1}</h2><p>Watch console for debug output</p>")
         label.setAlignment(Qt.AlignCenter)
-        window.addTab(label, f"Tab {i+1}")
+        window.addTab(label, f"Tab {i + 1}")
 
     print("=" * 80)
     print("DEBUG WINDOW DRAGGING")

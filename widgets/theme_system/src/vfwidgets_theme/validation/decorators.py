@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Validation Decorators
-Task 24: Validation decorators for easy integration
+Task 24: Validation decorators for easy integration.
 
 This module provides decorators that integrate validation seamlessly
 into the theme system components.
@@ -8,7 +8,7 @@ into the theme system components.
 
 import functools
 import time
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Callable, Optional
 
 from .framework import ValidationFramework, ValidationMode, ValidationType
 
@@ -107,7 +107,7 @@ def validate_theme(func: Callable = None, *, strict: bool = False, theme_arg: st
         return decorator(func)
 
 
-def validate_contract(protocol: Type):
+def validate_contract(protocol: type):
     """Decorator to validate that objects implement required protocols.
 
     Args:
@@ -240,7 +240,7 @@ def require_theme_structure(required_attrs: Optional[set] = None):
     return decorator
 
 
-def require_widget_state(expected_state: Dict[str, Any]):
+def require_widget_state(expected_state: dict[str, Any]):
     """Decorator to validate widget runtime state.
 
     Args:
@@ -324,7 +324,7 @@ def performance_monitor(operation_name: Optional[str] = None, threshold_ms: Opti
     return decorator
 
 
-def validate_return_type(expected_type: Type):
+def validate_return_type(expected_type: type):
     """Decorator to validate function return type.
 
     Args:

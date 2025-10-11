@@ -455,7 +455,7 @@ class TestThemedApplicationWidgetIntegration(ThemedTestCase):
 
     def test_widget_cleanup_on_app_exit(self):
         """Test widgets cleanup properly on application exit."""
-        widgets = [ThemedWidget() for _ in range(5)]
+        [ThemedWidget() for _ in range(5)]
 
         # App cleanup should cleanup all widgets
         self.app.cleanup()
@@ -504,7 +504,6 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
         with patch.object(
             self.app._theme_manager, "load_theme", side_effect=ThemeError("Loading failed")
         ):
-
             # Should not crash - should fallback
             result = self.app.set_theme("failing_theme")
             self.assertFalse(result)
@@ -531,9 +530,8 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
         with patch.object(
             widget, "_on_theme_changed", side_effect=Exception("Widget update failed")
         ):
-
             # Theme change should still work for other widgets
-            result = self.app.set_theme("dark")
+            self.app.set_theme("dark")
             # Result might be True or False depending on error handling
 
             # Application should remain functional
@@ -549,9 +547,8 @@ class TestThemedApplicationErrorHandling(ThemedTestCase):
             "vfwidgets_theme.widgets.application.detect_system_theme",
             side_effect=Exception("System detection failed"),
         ):
-
             # Should handle gracefully
-            result = self.app.auto_detect_system_theme()
+            self.app.auto_detect_system_theme()
             # Should return None or fallback theme
 
             # Application should remain functional

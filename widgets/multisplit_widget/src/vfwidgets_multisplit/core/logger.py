@@ -14,14 +14,14 @@ class ColoredFormatter(logging.Formatter):
     """Colored formatter for console output."""
 
     COLORS = {
-        'DEBUG': '\033[36m',    # Cyan
-        'INFO': '\033[32m',     # Green
-        'WARNING': '\033[33m',  # Yellow
-        'ERROR': '\033[31m',    # Red
-        'CRITICAL': '\033[35m', # Magenta
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
+        "CRITICAL": "\033[35m",  # Magenta
     }
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
 
     def format(self, record):
         """Format log record with colors."""
@@ -41,7 +41,7 @@ def setup_logging(
     level: str = "DEBUG",
     log_file: Optional[Path] = None,
     console: bool = True,
-    detailed: bool = True
+    detailed: bool = True,
 ) -> logging.Logger:
     """Set up logging for MultiSplit widget.
 
@@ -63,8 +63,7 @@ def setup_logging(
     # Detailed format for debugging
     if detailed:
         format_str = (
-            "[%(asctime)s] %(levelname)-8s | %(name)s.%(funcName)s:%(lineno)d | "
-            "%(message)s"
+            "[%(asctime)s] %(levelname)-8s | %(name)s.%(funcName)s:%(lineno)d | %(message)s"
         )
         date_format = "%H:%M:%S.%f"[:-3]  # Include milliseconds
     else:
@@ -86,7 +85,7 @@ def setup_logging(
 
     # File handler
     if log_file:
-        file_handler = logging.FileHandler(log_file, mode='a')
+        file_handler = logging.FileHandler(log_file, mode="a")
         file_handler.setLevel(logging.DEBUG)
         file_formatter = logging.Formatter(format_str, datefmt=date_format)
         file_handler.setFormatter(file_formatter)
@@ -122,8 +121,10 @@ def log_tree_structure(root, title="Tree Structure"):
         if isinstance(node, LeafNode):
             logger.debug(f"{prefix}Leaf[{node.pane_id}]: widget={node.widget_id}")
         elif isinstance(node, SplitNode):
-            logger.debug(f"{prefix}Split[{node.node_id}]: {node.orientation.value}, "
-                        f"ratios={[f'{r:.2f}' for r in node.ratios]}")
+            logger.debug(
+                f"{prefix}Split[{node.node_id}]: {node.orientation.value}, "
+                f"ratios={[f'{r:.2f}' for r in node.ratios]}"
+            )
             for child in node.children:
                 log_node(child, indent + 1)
 

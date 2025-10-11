@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Theme Factory and Builder System - Task 19
+"""Theme Factory and Builder System - Task 19.
 
 This module provides a comprehensive theme construction system with:
 - ThemeFactory: Main factory for creating themed components
@@ -20,7 +20,7 @@ import copy
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 # Import core theme system
 from ..core.theme import Theme
@@ -37,10 +37,10 @@ class ThemeTemplate:
 
     name: str
     description: str
-    base_colors: Dict[str, ColorValue]
-    base_styles: Dict[str, Dict[str, Any]]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    variants: List[str] = field(default_factory=list)  # e.g., ['light', 'dark']
+    base_colors: dict[str, ColorValue]
+    base_styles: dict[str, dict[str, Any]]
+    metadata: dict[str, Any] = field(default_factory=dict)
+    variants: list[str] = field(default_factory=list)  # e.g., ['light', 'dark']
 
     def apply_to_builder(self, builder: "ThemeBuilder") -> "ThemeBuilder":
         """Apply this template to a theme builder."""
@@ -83,9 +83,9 @@ class ThemeBuilder:
 
         """
         self._name = name
-        self._colors: Dict[str, ColorValue] = {}
-        self._styles: Dict[str, Dict[str, Any]] = {}
-        self._metadata: Dict[str, Any] = {}
+        self._colors: dict[str, ColorValue] = {}
+        self._styles: dict[str, dict[str, Any]] = {}
+        self._metadata: dict[str, Any] = {}
         self._type: str = "light"  # Default theme type
         self._description: str = ""
         self._parent_theme: Optional[Theme] = None
@@ -112,7 +112,7 @@ class ThemeBuilder:
         logger.debug(f"Added color {key}: {value}")
         return self
 
-    def add_colors(self, colors: Dict[str, ColorValue]) -> "ThemeBuilder":
+    def add_colors(self, colors: dict[str, ColorValue]) -> "ThemeBuilder":
         """Add multiple colors at once.
 
         Args:
@@ -126,7 +126,7 @@ class ThemeBuilder:
             self.add_color(key, value)
         return self
 
-    def add_style(self, selector: str, properties: Dict[str, Any]) -> "ThemeBuilder":
+    def add_style(self, selector: str, properties: dict[str, Any]) -> "ThemeBuilder":
         """Add a style rule to the theme.
 
         Args:
@@ -144,7 +144,7 @@ class ThemeBuilder:
         logger.debug(f"Added style {selector}: {properties}")
         return self
 
-    def add_styles(self, styles: Dict[str, Dict[str, Any]]) -> "ThemeBuilder":
+    def add_styles(self, styles: dict[str, dict[str, Any]]) -> "ThemeBuilder":
         """Add multiple style rules at once.
 
         Args:
@@ -363,7 +363,7 @@ class ThemeBuilder:
                     f"Invalid hex color format: {color_str}",
                 )
 
-    def _validate_style(self, selector: str, properties: Dict[str, Any]):
+    def _validate_style(self, selector: str, properties: dict[str, Any]):
         """Validate a style rule."""
         if not selector:
             raise ThemeValidationError(
@@ -418,7 +418,7 @@ class ThemeComposer:
 
     def __init__(self):
         """Initialize theme composer."""
-        self._themes: List[tuple[Theme, int]] = []  # (theme, priority)
+        self._themes: list[tuple[Theme, int]] = []  # (theme, priority)
         self._merge_strategy = "override"  # or "blend"
         logger.debug("Created ThemeComposer")
 
@@ -536,7 +536,7 @@ class ThemeVariantGenerator:
 
     def __init__(self):
         """Initialize variant generator."""
-        self._color_transformers: Dict[str, Callable[[str], str]] = {}
+        self._color_transformers: dict[str, Callable[[str], str]] = {}
         self._setup_default_transformers()
         logger.debug("Created ThemeVariantGenerator")
 
@@ -726,7 +726,7 @@ class ThemeFactory:
 
     def __init__(self):
         """Initialize theme factory."""
-        self._templates: Dict[str, ThemeTemplate] = {}
+        self._templates: dict[str, ThemeTemplate] = {}
         self._composer = ThemeComposer()
         self._variant_generator = ThemeVariantGenerator()
 
@@ -769,7 +769,7 @@ class ThemeFactory:
         self._templates[template.name] = template
         logger.debug(f"Registered template: {template.name}")
 
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         """List available template names.
 
         Returns:
@@ -883,7 +883,7 @@ class ThemeFactory:
             .build()
         )
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get factory usage statistics.
 
         Returns:

@@ -26,7 +26,7 @@ import weakref
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Optional
 
 
 @dataclass
@@ -40,11 +40,11 @@ class MemorySnapshot:
     timestamp: float
     total_memory: int
     peak_memory: int
-    object_counts: Dict[str, int]
-    reference_counts: Dict[int, int]
+    object_counts: dict[str, int]
+    reference_counts: dict[int, int]
     tracked_objects: int
     weakref_count: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def compare_to(self, other: "MemorySnapshot") -> "MemoryDelta":
         """Compare this snapshot to another and return the delta.
@@ -80,7 +80,7 @@ class MemoryDelta:
     time_delta: float
     memory_delta: int
     peak_delta: int
-    object_deltas: Dict[str, int]
+    object_deltas: dict[str, int]
     tracked_objects_delta: int
     weakref_delta: int
 
@@ -106,7 +106,7 @@ class MemoryDelta:
 
         return False
 
-    def get_leak_summary(self) -> List[str]:
+    def get_leak_summary(self) -> list[str]:
         """Get summary of potential leak indicators.
 
         Returns:
@@ -161,10 +161,10 @@ class MemoryProfiler:
 
         """
         self.track_weakrefs = track_weakrefs
-        self._snapshots: List[MemorySnapshot] = []
-        self._tracked_objects: Set[int] = set()
-        self._weakrefs: List[weakref.ReferenceType] = []
-        self._operation_profiles: Dict[str, List[MemoryDelta]] = defaultdict(list)
+        self._snapshots: list[MemorySnapshot] = []
+        self._tracked_objects: set[int] = set()
+        self._weakrefs: list[weakref.ReferenceType] = []
+        self._operation_profiles: dict[str, list[MemoryDelta]] = defaultdict(list)
         self._baseline_snapshot: Optional[MemorySnapshot] = None
         self._lock = threading.Lock()
 
@@ -263,7 +263,7 @@ class MemoryProfiler:
 
     def track_widget_lifecycle(
         self, widget_factory: Callable[[], Any], count: int = 100
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Track widget creation and destruction lifecycle.
 
         Args:
@@ -277,7 +277,7 @@ class MemoryProfiler:
         with self.profile_operation("widget_lifecycle"):
             # Create widgets and track them
             widgets = []
-            for i in range(count):
+            for _i in range(count):
                 widget = widget_factory()
                 self.track_object(widget)
                 widgets.append(widget)
@@ -314,7 +314,7 @@ class MemoryProfiler:
                 "total_memory_delta": cleaned_snapshot.compare_to(created_snapshot),
             }
 
-    def detect_leaks(self, sensitivity: float = 1.0) -> List[str]:
+    def detect_leaks(self, sensitivity: float = 1.0) -> list[str]:
         """Detect potential memory leaks from collected data.
 
         Args:
@@ -546,7 +546,7 @@ class MemoryProfiler:
 # Convenience functions for common memory testing patterns
 
 
-def detect_memory_leaks(operation: Callable[[], None], iterations: int = 100) -> List[str]:
+def detect_memory_leaks(operation: Callable[[], None], iterations: int = 100) -> list[str]:
     """Detect memory leaks in a repeated operation.
 
     Args:
@@ -572,7 +572,7 @@ def detect_memory_leaks(operation: Callable[[], None], iterations: int = 100) ->
         profiler.cleanup()
 
 
-def track_widget_lifecycle(widget_factory: Callable[[], Any], count: int = 100) -> Dict[str, Any]:
+def track_widget_lifecycle(widget_factory: Callable[[], Any], count: int = 100) -> dict[str, Any]:
     """Track widget creation and cleanup lifecycle.
 
     Args:
@@ -637,9 +637,9 @@ def memory_leak_test(iterations: int = 100, max_leaks: int = 0):
                 return test_func(*args, **kwargs)
 
             leaks = detect_memory_leaks(test_operation, iterations)
-            assert (
-                len(leaks) <= max_leaks
-            ), f"Memory leaks detected in {test_func.__name__}: {leaks}"
+            assert len(leaks) <= max_leaks, (
+                f"Memory leaks detected in {test_func.__name__}: {leaks}"
+            )
 
         return wrapper
 
@@ -662,7 +662,8 @@ def widget_lifecycle_test(widget_count: int = 100, max_alive_percent: float = 10
 
     def decorator(test_func):
         def wrapper(*args, **kwargs):
-            widget_factory = lambda: test_func(*args, **kwargs)
+            def widget_factory():
+                return test_func(*args, **kwargs)
             stats = track_widget_lifecycle(widget_factory, widget_count)
 
             alive_percent = (stats["widgets_still_alive"] / widget_count) * 100

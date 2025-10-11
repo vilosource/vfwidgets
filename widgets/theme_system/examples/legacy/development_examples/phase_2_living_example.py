@@ -721,9 +721,9 @@ def demonstrate_pattern_matching():
 
         if matches:
             print(f"  Found {len(matches)} matches:")
-            for i, (idx, pattern, result) in enumerate(matches):
+            for i, (_idx, pattern, result) in enumerate(matches):
                 print(
-                    f"    {i+1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}"
+                    f"    {i + 1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}"
                 )
 
             # Get best match
@@ -776,7 +776,7 @@ def demonstrate_pattern_matching():
         print(f"  {target}: {description}")
         matches = matcher.match_patterns(target, mock_widget)
         if matches:
-            for idx, pattern, result in matches:
+            for _idx, pattern, result in matches:
                 print(f"    Match: {pattern.name} (score={result.score:.2f})")
         else:
             print("    No matches")
@@ -828,7 +828,7 @@ def demonstrate_pattern_matching():
     print("Cache Performance:")
     print(f"  Cold cache time: {cold_time:.3f}ms")
     print(f"  Warm cache time: {avg_warm_time:.3f}ms")
-    print(f"  Speedup: {cold_time/avg_warm_time:.1f}x")
+    print(f"  Speedup: {cold_time / avg_warm_time:.1f}x")
 
     # Get cache statistics
     stats = matcher.get_statistics()
@@ -873,7 +873,7 @@ def run_integration_test():
 
     try:
         # Create themed application
-        app = ThemedApplication()
+        ThemedApplication()
 
         # Create widget with property descriptors
         widget = ValidatedWidget()
@@ -936,11 +936,11 @@ def main():
         demonstrate_performance_benchmarks()
 
         # Run Task 12 demonstrations
-        event_widget = demonstrate_event_system()
+        demonstrate_event_system()
         widget1, widget2 = demonstrate_event_integration()
 
         # Run Task 14 demonstrations
-        pattern_matcher = demonstrate_pattern_matching()
+        demonstrate_pattern_matching()
 
         # Integration test
         success = run_integration_test()

@@ -12,6 +12,7 @@ from vfwidgets_multisplit.controller.transaction import (
 
 class MockModel:
     """Mock model for testing."""
+
     def __init__(self):
         self.value = 0
         self.history = []
@@ -19,6 +20,7 @@ class MockModel:
 
 class MockCommand:
     """Mock command for testing."""
+
     def __init__(self, value):
         self.value = value
         self.executed = False
@@ -134,5 +136,5 @@ class TestTransactions(unittest.TestCase):
         self.assertFalse(controller.in_transaction)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

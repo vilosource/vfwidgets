@@ -15,6 +15,7 @@ from ..core.visitor import NodeVisitor
 @dataclass
 class DiffResult:
     """Result of tree diff operation."""
+
     removed: set[PaneId] = field(default_factory=set)
     added: set[PaneId] = field(default_factory=set)
     moved: set[PaneId] = field(default_factory=set)
@@ -48,9 +49,9 @@ class NodeCollector(NodeVisitor):
     def visit_leaf(self, node: LeafNode) -> None:
         """Collect leaf node information."""
         self.nodes[node.pane_id] = {
-            'type': 'leaf',
-            'widget_id': node.widget_id,
-            'parent': node.parent.node_id if node.parent else None
+            "type": "leaf",
+            "widget_id": node.widget_id,
+            "parent": node.parent.node_id if node.parent else None,
         }
 
     def visit_split(self, node: SplitNode) -> None:
@@ -63,8 +64,7 @@ class NodeCollector(NodeVisitor):
 class TreeReconciler:
     """Calculate minimal updates between tree states."""
 
-    def diff(self, old_tree: Optional[PaneNode],
-            new_tree: Optional[PaneNode]) -> DiffResult:
+    def diff(self, old_tree: Optional[PaneNode], new_tree: Optional[PaneNode]) -> DiffResult:
         """Calculate differences between two trees.
 
         Args:
@@ -120,16 +120,16 @@ class TreeReconciler:
             new_info = new_nodes[pane_id]
 
             # Check if parent changed (moved)
-            if old_info['parent'] != new_info['parent']:
+            if old_info["parent"] != new_info["parent"]:
                 result.moved.add(pane_id)
 
             # Check if widget changed (modified)
-            if old_info['widget_id'] != new_info['widget_id']:
+            if old_info["widget_id"] != new_info["widget_id"]:
                 result.modified.add(pane_id)
 
         return result
 
-    def apply_diff(self, diff: DiffResult, operations: 'ReconcilerOperations') -> None:
+    def apply_diff(self, diff: DiffResult, operations: "ReconcilerOperations") -> None:
         """Apply diff result using provided operations.
 
         Args:

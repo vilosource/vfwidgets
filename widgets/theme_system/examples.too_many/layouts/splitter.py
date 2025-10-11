@@ -124,7 +124,7 @@ class SplitterPane(ThemedWidget, QFrame):
         elif self._content_type == "list":
             self.content_widget = QListWidget()
             for i in range(5):
-                self.content_widget.addItem(f"{self._title} Item {i+1}")
+                self.content_widget.addItem(f"{self._title} Item {i + 1}")
         else:
             self.content_widget = QLabel(f"Content for {self._title}")
             self.content_widget.setAlignment(Qt.AlignCenter)

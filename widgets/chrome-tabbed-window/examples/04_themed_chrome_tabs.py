@@ -20,11 +20,11 @@ theme_system_path = base_dir.parent / "theme_system" / "src"
 if theme_system_path.exists():
     sys.path.insert(0, str(theme_system_path))
 
-from PySide6.QtWidgets import QTextEdit, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QWidget
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
+from vfwidgets_theme import ThemedApplication
 
 from chrome_tabbed_window import ChromeTabbedWindow
-from vfwidgets_theme import ThemedApplication
 
 
 def main():

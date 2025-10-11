@@ -50,7 +50,7 @@ class VSCodeThemeImporter:
 
         # Extract relevant colors from VSCode theme
         colors = theme_data.get("colors", {})
-        token_colors = theme_data.get("tokenColors", [])
+        theme_data.get("tokenColors", [])
 
         # Map VSCode colors to VFWidgets structure
         vf_theme = {

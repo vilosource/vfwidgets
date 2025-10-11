@@ -39,7 +39,9 @@ class EditorWidgetProvider(WidgetProvider):
         if widget_type == "textedit":
             # Rich text editor
             editor = QTextEdit()
-            editor.setPlainText(f"Rich Text Editor {self.counter}\n\nClick here and type to test focus tracking.\nThis editor supports:\n- Rich text formatting\n- Multiple lines\n- Copy/paste\n- etc.")
+            editor.setPlainText(
+                f"Rich Text Editor {self.counter}\n\nClick here and type to test focus tracking.\nThis editor supports:\n- Rich text formatting\n- Multiple lines\n- Copy/paste\n- etc."
+            )
             editor.setStyleSheet("""
                 QTextEdit {
                     background-color: #2d3748;
@@ -58,7 +60,9 @@ class EditorWidgetProvider(WidgetProvider):
         elif widget_type == "plaintextedit":
             # Plain text editor
             editor = QPlainTextEdit()
-            editor.setPlainText(f"Plain Text Editor {self.counter}\n\nThis is a plain text editor.\nType here to test focus events.\n\nFeatures:\n- Plain text only\n- Line numbers possible\n- Fast rendering")
+            editor.setPlainText(
+                f"Plain Text Editor {self.counter}\n\nThis is a plain text editor.\nType here to test focus events.\n\nFeatures:\n- Plain text only\n- Line numbers possible\n- Fast rendering"
+            )
             editor.setStyleSheet("""
                 QPlainTextEdit {
                     background-color: #1a202c;
@@ -206,7 +210,7 @@ def test_editor_focus():
         if focus_log:
             print("✅ Text editor focus tracking is working!")
             for i, pane_id in enumerate(focus_log):
-                print(f"  {i+1}. {pane_id}")
+                print(f"  {i + 1}. {pane_id}")
         else:
             print("ℹ️ No focus changes yet - click in different editors to test")
 

@@ -32,7 +32,8 @@ def create_backend() -> TerminalBackend:
             return WindowsTerminalBackend()
         except ImportError as e:
             raise RuntimeError(
-                "Windows terminal backend requires pywinpty. " "Install with: pip install pywinpty"
+                "Windows terminal backend requires pywinpty. "
+                "Install with: pip install pywinpty"
             ) from e
     else:
         # Unix-like systems (Linux, macOS, BSD)

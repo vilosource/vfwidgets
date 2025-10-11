@@ -28,7 +28,7 @@ import threading
 import time
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from ..errors import PropertyNotFoundError, ThemeNotFoundError
 from ..fallbacks import get_fallback_color, get_fallback_property
@@ -70,14 +70,14 @@ class DefaultThemeProvider:
     - Error recovery with graceful degradation
     """
 
-    def __init__(self, themes: Optional[Dict[str, Theme]] = None):
+    def __init__(self, themes: Optional[dict[str, Theme]] = None):
         """Initialize provider with optional theme collection.
 
         Args:
             themes: Dictionary of themes keyed by name
 
         """
-        self._themes: Dict[str, Theme] = themes or {}
+        self._themes: dict[str, Theme] = themes or {}
         self._current_theme: Optional[Theme] = None
         self._property_resolver: Optional[PropertyResolver] = None
         self._stats = ProviderStats()
@@ -264,7 +264,7 @@ class DefaultThemeProvider:
             # Return fallback property instead of raising
             return get_fallback_property(property_key)
 
-    def _get_nested_property(self, data: Dict[str, Any], property_key: str) -> Any:
+    def _get_nested_property(self, data: dict[str, Any], property_key: str) -> Any:
         """Get nested property using dot notation."""
         keys = property_key.split(".")
         current = data
@@ -277,7 +277,7 @@ class DefaultThemeProvider:
 
         return current
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List all available themes.
 
         Returns:
@@ -350,7 +350,7 @@ class DefaultThemeProvider:
 
             return False
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get provider statistics."""
         with self._lock:
             total_accesses = (
@@ -540,7 +540,7 @@ class CachedThemeProvider:
                 self._theme_cache.clear()
                 logger.debug("Invalidated all caches")
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List themes from base provider."""
         return self._base_provider.list_themes()
 
@@ -548,7 +548,7 @@ class CachedThemeProvider:
         """Check if theme exists in base provider."""
         return self._base_provider.has_theme(theme_name)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
             total_requests = self._stats.cache_hits + self._stats.cache_misses
@@ -587,14 +587,14 @@ class CompositeThemeProvider:
     - Error recovery across providers
     """
 
-    def __init__(self, providers: Optional[List[ThemeProvider]] = None):
+    def __init__(self, providers: Optional[list[ThemeProvider]] = None):
         """Initialize composite provider.
 
         Args:
             providers: List of providers in priority order (first = highest priority)
 
         """
-        self._providers: List[ThemeProvider] = providers or []
+        self._providers: list[ThemeProvider] = providers or []
         self._lock = threading.RLock()
         logger.debug(f"CompositeThemeProvider initialized with {len(self._providers)} providers")
 
@@ -651,10 +651,10 @@ class CompositeThemeProvider:
             # No provider has the property, use global fallback
             return get_fallback_property(property_key)
 
-    def list_themes(self) -> List[str]:
+    def list_themes(self) -> list[str]:
         """List themes from all providers with deduplication."""
         with self._lock:
-            themes: Set[str] = set()
+            themes: set[str] = set()
             for provider in self._providers:
                 try:
                     provider_themes = provider.list_themes()
@@ -676,7 +676,7 @@ class CompositeThemeProvider:
 
             return False
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get aggregate statistics from all providers."""
         with self._lock:
             stats = {"total_providers": len(self._providers), "providers": []}
@@ -703,7 +703,7 @@ class CompositeThemeProvider:
 
 
 # Factory functions for creating providers
-def create_default_provider(themes: Optional[Dict[str, Theme]] = None) -> DefaultThemeProvider:
+def create_default_provider(themes: Optional[dict[str, Theme]] = None) -> DefaultThemeProvider:
     """Create default theme provider.
 
     Args:
@@ -733,7 +733,7 @@ def create_cached_provider(
 
 
 def create_composite_provider(
-    providers: Optional[List[ThemeProvider]] = None,
+    providers: Optional[list[ThemeProvider]] = None,
 ) -> CompositeThemeProvider:
     """Create composite provider combining multiple sources.
 

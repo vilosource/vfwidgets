@@ -5,7 +5,7 @@ This module provides the ValidationPanel for displaying accessibility validation
 Phase 4: Validation & Accessibility
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
@@ -54,7 +54,7 @@ class ValidationPanel(ThemedWidget, QWidget):
         super().__init__(parent)
 
         # Validation state
-        self._current_issues: List[Dict] = []
+        self._current_issues: list[dict] = []
         self._wcag_aa_pass: bool = True
         self._wcag_aaa_pass: bool = True
 
@@ -113,14 +113,14 @@ class ValidationPanel(ThemedWidget, QWidget):
         """
         if passes:
             badge.setStyleSheet(
-                "background-color: #4caf50; color: white; " "font-weight: bold; border-radius: 3px;"
+                "background-color: #4caf50; color: white; font-weight: bold; border-radius: 3px;"
             )
         else:
             badge.setStyleSheet(
-                "background-color: #f44336; color: white; " "font-weight: bold; border-radius: 3px;"
+                "background-color: #f44336; color: white; font-weight: bold; border-radius: 3px;"
             )
 
-    def validate_theme(self, theme_colors: Dict[str, str]) -> None:
+    def validate_theme(self, theme_colors: dict[str, str]) -> None:
         """Validate theme colors for accessibility.
 
         Args:
@@ -319,7 +319,7 @@ class ValidationPanel(ThemedWidget, QWidget):
         self._summary_label.setText("No validation performed")
         self._summary_label.setStyleSheet("color: #888; padding: 5px;")
 
-    def get_issues_count(self) -> Tuple[int, int]:
+    def get_issues_count(self) -> tuple[int, int]:
         """Get count of errors and warnings.
 
         Returns:

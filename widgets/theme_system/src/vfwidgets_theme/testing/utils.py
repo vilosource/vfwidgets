@@ -19,7 +19,7 @@ import gc
 import time
 import unittest
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from ..protocols import ColorValue, ThemeData
 from .benchmarks import ThemeBenchmark
@@ -87,7 +87,7 @@ class ThemedTestCase(unittest.TestCase):
         self.memory_profiler.set_baseline()
 
         # Track created widgets for cleanup
-        self._created_widgets: List[Any] = []
+        self._created_widgets: list[Any] = []
 
     def tearDown(self) -> None:
         """Clean up after theme testing."""
@@ -105,7 +105,7 @@ class ThemedTestCase(unittest.TestCase):
 
         super().tearDown()
 
-    def _get_default_theme_data(self) -> Dict[str, Any]:
+    def _get_default_theme_data(self) -> dict[str, Any]:
         """Get default theme data for testing."""
         return {
             "primary_color": "#007acc",
@@ -125,7 +125,7 @@ class ThemedTestCase(unittest.TestCase):
             "margin": "4px",
         }
 
-    def _get_dark_theme_data(self) -> Dict[str, Any]:
+    def _get_dark_theme_data(self) -> dict[str, Any]:
         """Get dark theme data for testing."""
         return {
             "primary_color": "#0078d4",
@@ -145,7 +145,7 @@ class ThemedTestCase(unittest.TestCase):
             "margin": "4px",
         }
 
-    def _get_light_theme_data(self) -> Dict[str, Any]:
+    def _get_light_theme_data(self) -> dict[str, Any]:
         """Get light theme data for testing."""
         return {
             "primary_color": "#0066cc",
@@ -265,7 +265,7 @@ class ThemedTestCase(unittest.TestCase):
     def assert_valid_theme_data(
         self,
         theme_data: ThemeData,
-        required_properties: Optional[List[str]] = None,
+        required_properties: Optional[list[str]] = None,
         msg: Optional[str] = None,
     ) -> None:
         """Assert that theme data is valid and complete.
@@ -368,7 +368,7 @@ class ThemedTestCase(unittest.TestCase):
             self.assertLess(
                 elapsed,
                 max_time,
-                f"Operation '{operation_name}' took {elapsed:.6f}s, " f"expected < {max_time:.6f}s",
+                f"Operation '{operation_name}' took {elapsed:.6f}s, expected < {max_time:.6f}s",
             )
 
     def assert_performance_requirement(
@@ -466,8 +466,8 @@ class ThemedTestCase(unittest.TestCase):
     # Test data generation utilities
 
     def generate_test_theme(
-        self, base_theme: str = "default", overrides: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, base_theme: str = "default", overrides: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """Generate test theme data with optional overrides.
 
         Args:
@@ -495,8 +495,8 @@ class ThemedTestCase(unittest.TestCase):
         return theme_data
 
     def generate_test_widgets(
-        self, widget_types: List[str], count_per_type: int = 1
-    ) -> List[MockWidget]:
+        self, widget_types: list[str], count_per_type: int = 1
+    ) -> list[MockWidget]:
         """Generate multiple test widgets of different types.
 
         Args:
@@ -516,7 +516,7 @@ class ThemedTestCase(unittest.TestCase):
 
         return widgets
 
-    def simulate_theme_switch(self, widgets: List[Any], theme_name: str = "dark") -> float:
+    def simulate_theme_switch(self, widgets: list[Any], theme_name: str = "dark") -> float:
         """Simulate theme switching on multiple widgets.
 
         Args:
@@ -614,8 +614,7 @@ def assert_theme_property(widget: Any, property_key: str, expected_value: Any) -
         raise AssertionError(f"Widget {widget} does not support theme property access")
 
     assert actual_value == expected_value, (
-        f"Theme property '{property_key}' mismatch: "
-        f"expected {expected_value}, got {actual_value}"
+        f"Theme property '{property_key}' mismatch: expected {expected_value}, got {actual_value}"
     )
 
 
@@ -638,14 +637,14 @@ def assert_performance_requirement(
         times.append(end_time - start_time)
 
     avg_time = sum(times) / len(times)
-    assert (
-        avg_time < max_time
-    ), f"Performance requirement not met: avg {avg_time:.6f}s > {max_time:.6f}s"
+    assert avg_time < max_time, (
+        f"Performance requirement not met: avg {avg_time:.6f}s > {max_time:.6f}s"
+    )
 
 
 def generate_test_theme(
-    base_theme: str = "default", overrides: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+    base_theme: str = "default", overrides: Optional[dict[str, Any]] = None
+) -> dict[str, Any]:
     """Generate test theme data with optional overrides.
 
     Args:

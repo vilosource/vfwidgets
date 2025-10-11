@@ -14,7 +14,12 @@ class TestEventThroughput:
     """Test event processing throughput and performance."""
 
     def test_high_frequency_selection_events(
-        self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel, performance_timer
+        self,
+        qtbot,
+        mock_embedded_server,
+        mock_qwebengineview,
+        mock_qwebchannel,
+        performance_timer,
     ):
         """Test handling high-frequency selection change events."""
         widget = TerminalWidget()
@@ -43,7 +48,12 @@ class TestEventThroughput:
         assert throughput > 1000  # At least 1000 events per second
 
     def test_high_frequency_key_events(
-        self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel, performance_timer
+        self,
+        qtbot,
+        mock_embedded_server,
+        mock_qwebengineview,
+        mock_qwebchannel,
+        performance_timer,
     ):
         """Test handling high-frequency key events."""
         widget = TerminalWidget()
@@ -69,7 +79,12 @@ class TestEventThroughput:
         assert performance_timer.elapsed < 2.0
 
     def test_mixed_event_throughput(
-        self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel, performance_timer
+        self,
+        qtbot,
+        mock_embedded_server,
+        mock_qwebengineview,
+        mock_qwebchannel,
+        performance_timer,
     ):
         """Test throughput with mixed event types."""
         widget = TerminalWidget()
@@ -108,7 +123,12 @@ class TestEventThroughput:
         assert performance_timer.elapsed < 1.0
 
     def test_event_throughput_with_filtering(
-        self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel, performance_timer
+        self,
+        qtbot,
+        mock_embedded_server,
+        mock_qwebengineview,
+        mock_qwebchannel,
+        performance_timer,
     ):
         """Test event throughput with category filtering enabled."""
         # Enable only INTERACTION events
@@ -427,7 +447,9 @@ class TestStressTests:
 
         # Start threads
         for thread_id in range(num_threads):
-            thread = threading.Thread(target=event_generator, args=(thread_id, events_per_thread))
+            thread = threading.Thread(
+                target=event_generator, args=(thread_id, events_per_thread)
+            )
             threads.append(thread)
             thread.start()
 
@@ -437,7 +459,9 @@ class TestStressTests:
 
         # Should receive events from all threads
         expected_total = num_threads * events_per_thread
-        assert len(events_received) >= expected_total * 0.9  # Allow some timing variance
+        assert (
+            len(events_received) >= expected_total * 0.9
+        )  # Allow some timing variance
 
     def test_edge_case_resilience(
         self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel
@@ -464,7 +488,9 @@ class TestStressTests:
         for i, case in enumerate(edge_cases):
             try:
                 widget.bridge.on_selection_changed(case)
-                widget.bridge.on_key_pressed(case[:1] if case else "a", "Key", False, False, False)
+                widget.bridge.on_key_pressed(
+                    case[:1] if case else "a", "Key", False, False, False
+                )
                 widget.bridge.on_title_changed(case)
             except Exception as e:
                 errors_count += 1
@@ -479,7 +505,12 @@ class TestBenchmarks:
     """Benchmark tests for performance comparison."""
 
     def test_event_processing_benchmark(
-        self, qtbot, mock_embedded_server, mock_qwebengineview, mock_qwebchannel, benchmark
+        self,
+        qtbot,
+        mock_embedded_server,
+        mock_qwebengineview,
+        mock_qwebchannel,
+        benchmark,
     ):
         """Benchmark event processing performance."""
         widget = TerminalWidget()

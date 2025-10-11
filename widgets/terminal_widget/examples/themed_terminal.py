@@ -168,7 +168,9 @@ class ThemedTerminalWindow(ThemedMainWindow):
         # Terminal uses xterm.js which has its own theming
         # (we'll demonstrate passing theme colors in the 20% case below)
         self.terminal = TerminalWidget(debug=False)
-        layout.addWidget(self.terminal, 1)  # 1 = stretch, terminal takes remaining space
+        layout.addWidget(
+            self.terminal, 1
+        )  # 1 = stretch, terminal takes remaining space
 
         # Connect terminal events
         self.terminal.terminal_ready.connect(self._on_terminal_ready)
@@ -233,17 +235,23 @@ class ThemedTerminalWindow(ThemedMainWindow):
         toolbar_layout.addWidget(QLabel("Terminal Theme:"))
 
         compact_btn = QPushButton("Compact")
-        compact_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(COMPACT_THEME))
+        compact_btn.clicked.connect(
+            lambda: self.terminal.set_terminal_theme(COMPACT_THEME)
+        )
         compact_btn.setToolTip("Tight spacing (lineHeight: 1.0)")
         toolbar_layout.addWidget(compact_btn)
 
         relaxed_btn = QPushButton("Relaxed")
-        relaxed_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(RELAXED_THEME))
+        relaxed_btn.clicked.connect(
+            lambda: self.terminal.set_terminal_theme(RELAXED_THEME)
+        )
         relaxed_btn.setToolTip("Generous spacing (lineHeight: 1.5, letterSpacing: 1)")
         toolbar_layout.addWidget(relaxed_btn)
 
         accessible_btn = QPushButton("Accessible")
-        accessible_btn.clicked.connect(lambda: self.terminal.set_terminal_theme(ACCESSIBLE_THEME))
+        accessible_btn.clicked.connect(
+            lambda: self.terminal.set_terminal_theme(ACCESSIBLE_THEME)
+        )
         accessible_btn.setToolTip(
             "High contrast with extra spacing (lineHeight: 1.6, letterSpacing: 1.5)"
         )
@@ -287,7 +295,9 @@ class ThemedTerminalWindow(ThemedMainWindow):
             print(f"📝 Current theme: {theme.name}")
             print(f"   - Background: {theme.colors.get('editor.background', 'N/A')}")
             print(f"   - Foreground: {theme.colors.get('editor.foreground', 'N/A')}")
-            print(f"   - Selection: {theme.colors.get('editor.selectionBackground', 'N/A')}")
+            print(
+                f"   - Selection: {theme.colors.get('editor.selectionBackground', 'N/A')}"
+            )
 
             # In a real integration, you might pass these to terminal:
             # self.terminal.set_theme({

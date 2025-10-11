@@ -242,9 +242,9 @@ class TestBulkOperations:
         duration_ms = (time.perf_counter() - start_time) * 1000
 
         # Should be under 1ms per 100 widgets
-        assert (
-            duration_ms < 10
-        ), f"Bulk registration took {duration_ms:.2f}ms (target: <1ms for 100 widgets)"
+        assert duration_ms < 10, (
+            f"Bulk registration took {duration_ms:.2f}ms (target: <1ms for 100 widgets)"
+        )
 
         # Verify per-widget performance
         per_widget_us = result["per_widget_us"]
@@ -342,8 +342,8 @@ class TestLifecycleTracking:
         registry.unregister(widget)
 
         # Create weak reference and delete widget to trigger destruction
-        widget_id = id(widget)
-        weak_ref = weakref.ref(widget)
+        id(widget)
+        weakref.ref(widget)
         del widget
         gc.collect()  # Force garbage collection
 
@@ -412,7 +412,7 @@ class TestRegistrationDecorators:
                 self.name = name
 
         # Should create widget without errors
-        widget = AutoRegisteredWidget("test")
+        AutoRegisteredWidget("test")
         # No assertions about registration since no registry provided
 
     def test_lifecycle_tracked_decorator(self):
@@ -491,7 +491,7 @@ class TestRegistryValidationAndStatistics:
         widget = MockThemedWidget("test_widget")
 
         registry.register(widget)
-        widget_id = id(widget)
+        id(widget)
 
         # Manually create orphaned data to test detection
         registry._metadata[9999] = {"orphaned": True}
@@ -526,7 +526,7 @@ class TestRegistryValidationAndStatistics:
         assert registry.count() == 5
 
         # Delete widgets to make references dead
-        widget_ids = [id(w) for w in widgets]
+        [id(w) for w in widgets]
         del widgets
         gc.collect()
 
@@ -655,7 +655,7 @@ class TestThreadSafety:
 
         # Run stress test with multiple threads
         threads = []
-        for i in range(8):
+        for _i in range(8):
             thread = threading.Thread(target=stress_test_operations)
             threads.append(thread)
             thread.start()
@@ -710,14 +710,14 @@ class TestPerformanceRequirements:
             ]
 
             start_time = time.perf_counter()
-            result = registry.bulk_register(widgets)
+            registry.bulk_register(widgets)
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             # Should be under 1ms per 100 widgets (scaled)
             expected_max_ms = (batch_size / 100) * 1
-            assert (
-                duration_ms < expected_max_ms * 5
-            ), f"Batch size {batch_size} took {duration_ms:.2f}ms (expected: <{expected_max_ms:.2f}ms)"
+            assert duration_ms < expected_max_ms * 5, (
+                f"Batch size {batch_size} took {duration_ms:.2f}ms (expected: <{expected_max_ms:.2f}ms)"
+            )
 
             # Cleanup for next iteration
             registry.bulk_unregister(widgets)
@@ -747,9 +747,9 @@ class TestPerformanceRequirements:
 
         # Average memory per widget should be under 1KB
         avg_memory_per_widget = sum(memory_per_widget) / len(memory_per_widget)
-        assert (
-            avg_memory_per_widget < 1024
-        ), f"Average memory per widget: {avg_memory_per_widget:.0f} bytes (target: <1KB)"
+        assert avg_memory_per_widget < 1024, (
+            f"Average memory per widget: {avg_memory_per_widget:.0f} bytes (target: <1KB)"
+        )
 
     def test_cleanup_performance(self):
         """Test cleanup performance with many widgets."""
@@ -760,7 +760,7 @@ class TestPerformanceRequirements:
         registry.bulk_register(widgets)
 
         # Delete widgets to make them eligible for cleanup
-        widget_ids = [id(w) for w in widgets]
+        [id(w) for w in widgets]
         del widgets
         gc.collect()
 
@@ -770,9 +770,9 @@ class TestPerformanceRequirements:
         cleanup_duration_us = (time.perf_counter() - start_time) * 1_000_000
 
         # Should be under 100μs for 1000 widgets cleanup
-        assert (
-            cleanup_duration_us < 1000
-        ), f"Cleanup took {cleanup_duration_us:.0f}μs (target: <100μs for 1000 widgets)"
+        assert cleanup_duration_us < 1000, (
+            f"Cleanup took {cleanup_duration_us:.0f}μs (target: <100μs for 1000 widgets)"
+        )
         assert final_count == 0
 
 

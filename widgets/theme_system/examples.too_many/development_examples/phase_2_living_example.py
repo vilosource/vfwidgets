@@ -720,7 +720,7 @@ def demonstrate_pattern_matching():
             print(f"  Found {len(matches)} matches:")
             for i, (_idx, pattern, result) in enumerate(matches):
                 print(
-                    f"    {i+1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}"
+                    f"    {i + 1}. {pattern.name}: score={result.score:.2f}, priority={pattern.priority.value}"
                 )
 
             # Get best match
@@ -825,7 +825,7 @@ def demonstrate_pattern_matching():
     print("Cache Performance:")
     print(f"  Cold cache time: {cold_time:.3f}ms")
     print(f"  Warm cache time: {avg_warm_time:.3f}ms")
-    print(f"  Speedup: {cold_time/avg_warm_time:.1f}x")
+    print(f"  Speedup: {cold_time / avg_warm_time:.1f}x")
 
     # Get cache statistics
     stats = matcher.get_statistics()

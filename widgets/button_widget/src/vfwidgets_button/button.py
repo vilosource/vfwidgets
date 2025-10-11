@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QGraphicsDropShadowEffect, QPushButton
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
     from vfwidgets_theme.widgets.roles import WidgetRole, set_widget_role
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -35,6 +36,7 @@ class ButtonStyle(Enum):
 
 
 if THEME_AVAILABLE:
+
     class ButtonWidget(ThemedWidget, QPushButton):
         """Theme-aware enhanced button widget.
 
@@ -62,13 +64,13 @@ if THEME_AVAILABLE:
 
         # Theme configuration - maps theme tokens to button properties
         theme_config = {
-            'bg': 'button.background',
-            'fg': 'button.foreground',
-            'hover_bg': 'button.hoverBackground',
-            'pressed_bg': 'button.pressedBackground',
-            'disabled_bg': 'button.disabledBackground',
-            'disabled_fg': 'button.disabledForeground',
-            'border': 'button.border',
+            "bg": "button.background",
+            "fg": "button.foreground",
+            "hover_bg": "button.hoverBackground",
+            "pressed_bg": "button.pressedBackground",
+            "disabled_bg": "button.disabledBackground",
+            "disabled_fg": "button.disabledForeground",
+            "border": "button.border",
         }
 
         # Custom signals

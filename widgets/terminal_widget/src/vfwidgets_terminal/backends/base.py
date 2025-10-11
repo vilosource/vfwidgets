@@ -29,7 +29,9 @@ class TerminalBackend(ABC):
         pass
 
     @abstractmethod
-    def read_output(self, session: "TerminalSession", max_bytes: int = 1024 * 20) -> Optional[str]:
+    def read_output(
+        self, session: "TerminalSession", max_bytes: int = 1024 * 20
+    ) -> Optional[str]:
         """
         Read output from the terminal process.
 

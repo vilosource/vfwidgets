@@ -7,7 +7,7 @@ for the icon theme system.
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Optional
 
 from ..logging import get_logger
 
@@ -24,16 +24,16 @@ class FileAssociationManager:
     def __init__(self):
         """Initialize file association manager."""
         # Extension mappings (extension -> icon_name)
-        self.extension_mappings: Dict[str, str] = {}
+        self.extension_mappings: dict[str, str] = {}
 
         # Filename mappings (filename -> icon_name)
-        self.filename_mappings: Dict[str, str] = {}
+        self.filename_mappings: dict[str, str] = {}
 
         # Pattern mappings (regex_pattern -> icon_name)
-        self.pattern_mappings: List[tuple] = []  # [(compiled_regex, icon_name), ...]
+        self.pattern_mappings: list[tuple] = []  # [(compiled_regex, icon_name), ...]
 
         # Language mappings (language -> icon_name)
-        self.language_mappings: Dict[str, str] = {}
+        self.language_mappings: dict[str, str] = {}
 
         # Priority order for resolution
         self.resolution_order = ["exact_filename", "pattern_match", "extension", "language"]
@@ -450,19 +450,19 @@ class FileAssociationManager:
 
         logger.info(f"Saved associations to {file_path}")
 
-    def get_all_extensions(self) -> Set[str]:
+    def get_all_extensions(self) -> set[str]:
         """Get all mapped extensions."""
         return set(self.extension_mappings.keys())
 
-    def get_all_filenames(self) -> Set[str]:
+    def get_all_filenames(self) -> set[str]:
         """Get all mapped filenames."""
         return set(self.filename_mappings.keys())
 
-    def get_all_languages(self) -> Set[str]:
+    def get_all_languages(self) -> set[str]:
         """Get all mapped languages."""
         return set(self.language_mappings.keys())
 
-    def get_all_icon_names(self) -> Set[str]:
+    def get_all_icon_names(self) -> set[str]:
         """Get all unique icon names used in mappings."""
         icon_names = set()
         icon_names.update(self.extension_mappings.values())
@@ -512,7 +512,7 @@ class FileAssociationManager:
         self.language_mappings.clear()
         logger.info("Cleared all file associations")
 
-    def get_statistics(self) -> Dict[str, int]:
+    def get_statistics(self) -> dict[str, int]:
         """Get mapping statistics."""
         return {
             "extension_mappings": len(self.extension_mappings),

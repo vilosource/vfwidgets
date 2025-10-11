@@ -22,7 +22,7 @@ Task 9 Implementation Features:
 import threading
 import uuid
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 try:
     from PySide6.QtCore import QObject, Signal, pyqtSignal
@@ -106,7 +106,7 @@ class ThemeableMixin:
         self._is_themeable_registered = False
         self._is_themeable_ready = False
 
-    def setup_theming(self, theme_config: Optional[Dict[str, str]] = None) -> None:
+    def setup_theming(self, theme_config: Optional[dict[str, str]] = None) -> None:
         """Set up theming for this widget.
 
         Args:
@@ -338,7 +338,7 @@ class NotificationMixin:
                 self.theme_applied = Signal()
 
         self._notification_manager: Optional[ThemeManager] = None
-        self._notification_callbacks: Set[Callable] = set()
+        self._notification_callbacks: set[Callable] = set()
 
     def setup_notifications(self) -> None:
         """Set up theme change notifications."""
@@ -402,7 +402,7 @@ class CacheMixin:
     def __init__(self, *args, **kwargs):
         """Initialize cache mixin."""
         super().__init__(*args, **kwargs)
-        self._cache: Dict[str, Any] = {}
+        self._cache: dict[str, Any] = {}
         self._cache_lock = threading.RLock()
         self._cache_hits = 0
         self._cache_misses = 0
@@ -438,7 +438,7 @@ class CacheMixin:
         total = self._cache_hits + self._cache_misses
         return self._cache_hits / total if total > 0 else 0.0
 
-    def get_cache_statistics(self) -> Dict[str, Any]:
+    def get_cache_statistics(self) -> dict[str, Any]:
         """Get cache statistics."""
         return {
             "cache_size": len(self._cache),
@@ -519,7 +519,7 @@ class CompositeMixin(ThemeableMixin, PropertyMixin, NotificationMixin, CacheMixi
         """Initialize composite mixin."""
         super().__init__(*args, **kwargs)
 
-    def setup_complete_theming(self, theme_config: Optional[Dict[str, str]] = None) -> None:
+    def setup_complete_theming(self, theme_config: Optional[dict[str, str]] = None) -> None:
         """Set up complete theming with all capabilities."""
         try:
             # Set up all components
@@ -547,7 +547,7 @@ class CompositeMixin(ThemeableMixin, PropertyMixin, NotificationMixin, CacheMixi
 
 
 # Utility functions for mixin usage
-def add_theming_to_widget(widget: QWidget, theme_config: Optional[Dict[str, str]] = None) -> bool:
+def add_theming_to_widget(widget: QWidget, theme_config: Optional[dict[str, str]] = None) -> bool:
     """Add theming capabilities to an existing widget instance.
 
     This function dynamically adds theming to a widget that wasn't
@@ -622,7 +622,7 @@ def remove_theming_from_widget(widget: QWidget) -> bool:
 
 
 # Decorators for automatic theming setup
-def themeable(theme_config: Optional[Dict[str, str]] = None):
+def themeable(theme_config: Optional[dict[str, str]] = None):
     """Decorator to automatically set up theming for widget classes.
 
     Usage:

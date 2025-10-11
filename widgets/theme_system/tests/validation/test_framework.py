@@ -182,7 +182,7 @@ class TestValidationDecorators:
     def test_validate_theme_decorator(self):
         """Test theme validation decorator."""
         ValidationFramework.reset_instance()
-        framework = ValidationFramework(ValidationMode.DEBUG)
+        ValidationFramework(ValidationMode.DEBUG)
 
         @validate_theme
         def process_theme(theme):

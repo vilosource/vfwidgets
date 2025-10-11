@@ -159,9 +159,9 @@ class MenuButton(WindowControlButton):
                 action = self._move_to_window_submenu.addAction(window_title)
                 # Use lambda with default arguments to capture current values
                 action.triggered.connect(
-                    lambda checked=False, idx=current_tab_index, win=window_ref: self._parent_app._move_tab_to_window(
-                        idx, win
-                    )
+                    lambda checked=False,
+                    idx=current_tab_index,
+                    win=window_ref: self._parent_app._move_tab_to_window(idx, win)
                 )
 
             # Insert submenu after "New Window", before separator

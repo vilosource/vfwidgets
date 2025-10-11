@@ -16,10 +16,13 @@ class TestWherePosition(unittest.TestCase):
     def test_where_position_complete(self):
         """Test all WherePosition values are present."""
         positions = [
-            WherePosition.LEFT, WherePosition.RIGHT,
-            WherePosition.TOP, WherePosition.BOTTOM,
-            WherePosition.BEFORE, WherePosition.AFTER,
-            WherePosition.REPLACE
+            WherePosition.LEFT,
+            WherePosition.RIGHT,
+            WherePosition.TOP,
+            WherePosition.BOTTOM,
+            WherePosition.BEFORE,
+            WherePosition.AFTER,
+            WherePosition.REPLACE,
         ]
         self.assertEqual(len(positions), 7)
         self.assertTrue(all(isinstance(p, WherePosition) for p in positions))
@@ -105,18 +108,9 @@ class TestNodeParentReferences(unittest.TestCase):
         from vfwidgets_multisplit.core.nodes import LeafNode, SplitNode
         from vfwidgets_multisplit.core.utils import generate_node_id, generate_pane_id
 
-        root = SplitNode(
-            node_id=generate_node_id(),
-            orientation=Orientation.HORIZONTAL
-        )
-        leaf1 = LeafNode(
-            pane_id=generate_pane_id(),
-            widget_id=WidgetId("w1")
-        )
-        leaf2 = LeafNode(
-            pane_id=generate_pane_id(),
-            widget_id=WidgetId("w2")
-        )
+        root = SplitNode(node_id=generate_node_id(), orientation=Orientation.HORIZONTAL)
+        leaf1 = LeafNode(pane_id=generate_pane_id(), widget_id=WidgetId("w1"))
+        leaf2 = LeafNode(pane_id=generate_pane_id(), widget_id=WidgetId("w2"))
 
         root.add_child(leaf1)
         root.add_child(leaf2)
@@ -131,22 +125,10 @@ class TestNodeParentReferences(unittest.TestCase):
         from vfwidgets_multisplit.core.nodes import LeafNode, SplitNode
         from vfwidgets_multisplit.core.utils import generate_node_id, generate_pane_id
 
-        root = SplitNode(
-            node_id=generate_node_id(),
-            orientation=Orientation.HORIZONTAL
-        )
-        leaf1 = LeafNode(
-            pane_id=generate_pane_id(),
-            widget_id=WidgetId("w1")
-        )
-        leaf2 = LeafNode(
-            pane_id=generate_pane_id(),
-            widget_id=WidgetId("w2")
-        )
-        leaf3 = LeafNode(
-            pane_id=generate_pane_id(),
-            widget_id=WidgetId("w3")
-        )
+        root = SplitNode(node_id=generate_node_id(), orientation=Orientation.HORIZONTAL)
+        leaf1 = LeafNode(pane_id=generate_pane_id(), widget_id=WidgetId("w1"))
+        leaf2 = LeafNode(pane_id=generate_pane_id(), widget_id=WidgetId("w2"))
+        leaf3 = LeafNode(pane_id=generate_pane_id(), widget_id=WidgetId("w3"))
 
         # Test add_child
         root.add_child(leaf1, 0.6)
@@ -169,5 +151,5 @@ class TestNodeParentReferences(unittest.TestCase):
         self.assertEqual(root.ratios[0], 1.0)  # Should be renormalized
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

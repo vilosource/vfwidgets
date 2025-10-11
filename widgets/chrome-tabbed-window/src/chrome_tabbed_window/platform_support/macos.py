@@ -44,7 +44,7 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
         super().setup_widget(widget)
 
         # Setup traffic lights for frameless windows
-        if hasattr(widget, '_window_mode') and widget._window_mode == WindowMode.Frameless:
+        if hasattr(widget, "_window_mode") and widget._window_mode == WindowMode.Frameless:
             self._setup_traffic_lights(widget)
 
         # Enable native fullscreen support
@@ -55,7 +55,7 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
 
     def _setup_traffic_lights(self, widget: QWidget) -> bool:
         """Setup native macOS traffic light buttons."""
-        if not sys.platform == 'darwin':
+        if sys.platform != "darwin":
             return False
 
         try:
@@ -84,22 +84,22 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
             # For now, we'll use Qt's built-in macOS integration
 
             # Hide the default title bar but keep the window controls
-            if hasattr(window, 'setProperty'):
-                window.setProperty('_q_macOSCustomizeWindow', True)
+            if hasattr(window, "setProperty"):
+                window.setProperty("_q_macOSCustomizeWindow", True)
 
         except Exception:
             pass
 
     def _enable_native_fullscreen(self, widget: QWidget) -> bool:
         """Enable native macOS fullscreen support."""
-        if not sys.platform == 'darwin':
+        if sys.platform != "darwin":
             return False
 
         try:
             window = widget.windowHandle()
-            if window and hasattr(window, 'setProperty'):
+            if window and hasattr(window, "setProperty"):
                 # Enable native fullscreen
-                window.setProperty('_q_macOSFullScreen', True)
+                window.setProperty("_q_macOSFullScreen", True)
                 return True
         except Exception:
             pass
@@ -133,9 +133,9 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
                 flags |= Qt.WindowType.FramelessWindowHint
 
                 # Keep window controls visible
-                if hasattr(window, 'setProperty'):
-                    window.setProperty('_q_macOSHideTitleBar', True)
-                    window.setProperty('_q_macOSKeepControls', True)
+                if hasattr(window, "setProperty"):
+                    window.setProperty("_q_macOSHideTitleBar", True)
+                    window.setProperty("_q_macOSKeepControls", True)
 
                 window.setFlags(flags)
                 self._native_title_bar_hidden = True
@@ -155,14 +155,14 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
     def handle_window_resize(self, widget: QWidget, edge, global_pos) -> bool:
         """Handle window resize with macOS optimizations."""
         # Try native resize first
-        if hasattr(widget.windowHandle(), 'startSystemResize'):
+        if hasattr(widget.windowHandle(), "startSystemResize"):
             try:
                 # Map edge to Qt edge constant
                 edge_map = {
-                    'left': Qt.Edge.LeftEdge,
-                    'right': Qt.Edge.RightEdge,
-                    'top': Qt.Edge.TopEdge,
-                    'bottom': Qt.Edge.BottomEdge,
+                    "left": Qt.Edge.LeftEdge,
+                    "right": Qt.Edge.RightEdge,
+                    "top": Qt.Edge.TopEdge,
+                    "bottom": Qt.Edge.BottomEdge,
                 }
 
                 qt_edges = 0
@@ -207,10 +207,11 @@ class MacOSPlatformAdapter(BasePlatformAdapter):
         """Check if macOS is in dark mode."""
         try:
             import subprocess
-            result = subprocess.run([
-                'defaults', 'read', '-g', 'AppleInterfaceStyle'
-            ], capture_output=True, text=True)
 
-            return result.stdout.strip() == 'Dark'
+            result = subprocess.run(
+                ["defaults", "read", "-g", "AppleInterfaceStyle"], capture_output=True, text=True
+            )
+
+            return result.stdout.strip() == "Dark"
         except Exception:
             return False

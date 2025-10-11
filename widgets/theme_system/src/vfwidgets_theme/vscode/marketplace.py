@@ -12,7 +12,7 @@ import tempfile
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import aiofiles
 import aiohttp
@@ -37,7 +37,7 @@ class ThemeExtension:
     publisher: str
     download_url: Optional[str] = None
     local_path: Optional[Path] = None
-    themes: List[str] = None  # Theme files within extension
+    themes: list[str] = None  # Theme files within extension
 
     def __post_init__(self):
         if self.themes is None:
@@ -83,7 +83,7 @@ class MarketplaceClient:
         if self._session:
             await self._session.close()
 
-    async def search_themes(self, query: str, limit: int = 20) -> List[ThemeExtension]:
+    async def search_themes(self, query: str, limit: int = 20) -> list[ThemeExtension]:
         """Search VSCode marketplace for themes.
 
         Note: Due to marketplace API authentication requirements,
@@ -107,7 +107,7 @@ class MarketplaceClient:
 
         return local_themes + suggestions
 
-    async def _search_local_themes(self, query: str, limit: int) -> List[ThemeExtension]:
+    async def _search_local_themes(self, query: str, limit: int) -> list[ThemeExtension]:
         """Search locally cached themes."""
         local_themes = []
 
@@ -134,7 +134,7 @@ class MarketplaceClient:
 
         return local_themes
 
-    def _matches_query(self, manifest: Dict[str, Any], query: str) -> bool:
+    def _matches_query(self, manifest: dict[str, Any], query: str) -> bool:
         """Check if extension manifest matches search query."""
         query_lower = query.lower()
 
@@ -158,7 +158,7 @@ class MarketplaceClient:
 
         return False
 
-    def _get_popular_theme_suggestions(self, query: str, limit: int) -> List[ThemeExtension]:
+    def _get_popular_theme_suggestions(self, query: str, limit: int) -> list[ThemeExtension]:
         """Get suggestions for popular themes based on query."""
         if limit <= 0:
             return []
@@ -204,7 +204,6 @@ class MarketplaceClient:
                 or "dark" in query_lower
                 and "dark" in theme_data["description"].lower()
             ):
-
                 extension = ThemeExtension(
                     id=theme_data["id"],
                     name=theme_data["name"],
@@ -247,7 +246,7 @@ class MarketplaceClient:
         )
         return None
 
-    def import_from_extension(self, extension_path: Path) -> List[Theme]:
+    def import_from_extension(self, extension_path: Path) -> list[Theme]:
         """Extract themes from a VSCode extension.
 
         Args:
@@ -279,7 +278,7 @@ class MarketplaceClient:
         logger.info(f"Successfully imported {len(themes)} themes")
         return themes
 
-    def _import_from_vsix(self, vsix_path: Path) -> List[Theme]:
+    def _import_from_vsix(self, vsix_path: Path) -> list[Theme]:
         """Import themes from .vsix file."""
         themes = []
 
@@ -300,7 +299,7 @@ class MarketplaceClient:
 
         return themes
 
-    def _import_from_directory(self, extension_dir: Path) -> List[Theme]:
+    def _import_from_directory(self, extension_dir: Path) -> list[Theme]:
         """Import themes from extension directory."""
         themes = []
 
@@ -333,7 +332,7 @@ class MarketplaceClient:
 
         return themes
 
-    def _load_theme_file(self, theme_path: Path, contribution: Dict[str, Any]) -> Optional[Theme]:
+    def _load_theme_file(self, theme_path: Path, contribution: dict[str, Any]) -> Optional[Theme]:
         """Load a single theme file."""
         try:
             with open(theme_path) as f:
@@ -351,7 +350,7 @@ class MarketplaceClient:
             logger.error(f"Error loading theme file {theme_path}: {e}")
             return None
 
-    def _manifest_to_extension(self, manifest: Dict[str, Any], local_path: Path) -> ThemeExtension:
+    def _manifest_to_extension(self, manifest: dict[str, Any], local_path: Path) -> ThemeExtension:
         """Convert package.json manifest to ThemeExtension."""
         extension_id = f"{manifest.get('publisher', 'unknown')}.{manifest.get('name', 'unknown')}"
 
@@ -374,7 +373,7 @@ class MarketplaceClient:
             themes=themes,
         )
 
-    def get_cached_extensions(self) -> List[ThemeExtension]:
+    def get_cached_extensions(self) -> list[ThemeExtension]:
         """Get list of cached extensions."""
         extensions = []
 

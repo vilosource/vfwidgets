@@ -12,7 +12,7 @@ import threading
 import time
 import weakref
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -334,7 +334,7 @@ class ComplexApplicationScenario:
         print(f"Created {len(self.themes)} test themes")
         return themes
 
-    def test_theme_application_performance(self) -> Dict[str, Any]:
+    def test_theme_application_performance(self) -> dict[str, Any]:
         """Test theme application performance with many widgets."""
         if not self.widgets or not self.themes:
             return {"error": "Application or themes not set up"}
@@ -373,7 +373,7 @@ class ComplexApplicationScenario:
                 }
 
                 results["application_times"].append(theme_result)
-                print(f"Applied {theme.name} to {applied_count} widgets in {duration*1000:.2f}ms")
+                print(f"Applied {theme.name} to {applied_count} widgets in {duration * 1000:.2f}ms")
 
             # Calculate totals
             results["total_time"] = sum(t["duration_ms"] for t in results["application_times"])
@@ -388,7 +388,7 @@ class ComplexApplicationScenario:
             results["errors"].append(f"Theme application test failed: {e}")
             return results
 
-    def test_memory_usage(self) -> Dict[str, Any]:
+    def test_memory_usage(self) -> dict[str, Any]:
         """Test memory usage with complex application."""
         results = {
             "initial_widgets": len(self.widget_refs),
@@ -416,7 +416,7 @@ class ComplexApplicationScenario:
             results["error"] = f"Memory test failed: {e}"
             return results
 
-    def test_concurrent_theme_changes(self) -> Dict[str, Any]:
+    def test_concurrent_theme_changes(self) -> dict[str, Any]:
         """Test concurrent theme changes from multiple threads."""
         results = {
             "thread_count": 3,
@@ -486,7 +486,7 @@ class ComplexApplicationScenario:
             results["errors"].append(f"Concurrent test failed: {e}")
             return results
 
-    def run_full_scenario(self) -> Dict[str, Any]:
+    def run_full_scenario(self) -> dict[str, Any]:
         """Run the complete complex application scenario."""
         print("Running Complex Application Scenario...")
         print("=" * 50)

@@ -26,7 +26,9 @@ class TestFocusSystemSetup:
         # Verify focus proxy event filter was installed
         mock_focus_proxy.installEventFilter.assert_called_with(widget)
 
-    def test_focus_detection_setup_delayed(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_focus_detection_setup_delayed(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test focus detection setup when focus proxy is not immediately available."""
         # Mock focus proxy to be unavailable initially
         mock_focus_proxy = Mock()
@@ -77,7 +79,9 @@ class TestFocusSystemSetup:
 class TestEventFiltering:
     """Test the eventFilter method and focus event handling."""
 
-    def test_event_filter_focus_in(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_event_filter_focus_in(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test eventFilter handling FocusIn events."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -100,7 +104,9 @@ class TestEventFiltering:
         focus_signal.assert_called_once()
         assert result is False
 
-    def test_event_filter_focus_out(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_event_filter_focus_out(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test eventFilter handling FocusOut events."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -123,7 +129,9 @@ class TestEventFiltering:
         focus_signal.assert_called_once()
         assert result is False
 
-    def test_event_filter_other_events(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_event_filter_other_events(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test eventFilter with non-focus events."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -151,7 +159,9 @@ class TestEventFiltering:
         focus_out_signal.assert_not_called()
         mock_super.assert_called()
 
-    def test_event_filter_wrong_object(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_event_filter_wrong_object(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test eventFilter with object that's not the focus proxy."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -177,7 +187,9 @@ class TestEventFiltering:
         focus_signal.assert_not_called()
         mock_super.assert_called()
 
-    def test_event_filter_debug_logging(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_event_filter_debug_logging(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test eventFilter debug logging when debug is enabled."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -201,7 +213,9 @@ class TestEventFiltering:
 class TestFocusEventCategoryFiltering:
     """Test focus events respect event category configuration."""
 
-    def test_focus_events_enabled(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_focus_events_enabled(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test focus events when FOCUS category is enabled."""
         from vfwidgets_terminal import EventConfig
 
@@ -227,11 +241,15 @@ class TestFocusEventCategoryFiltering:
         # Should emit signal because FOCUS category is enabled
         focus_signal.assert_called_once()
 
-    def test_focus_events_disabled(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_focus_events_disabled(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test focus events when FOCUS category is disabled."""
         from vfwidgets_terminal import EventConfig
 
-        config = EventConfig(enabled_categories={EventCategory.LIFECYCLE})  # FOCUS not included
+        config = EventConfig(
+            enabled_categories={EventCategory.LIFECYCLE}
+        )  # FOCUS not included
 
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -253,7 +271,9 @@ class TestFocusEventCategoryFiltering:
         # Should not emit signal because FOCUS category is disabled
         focus_signal.assert_not_called()
 
-    def test_focus_category_dynamic_change(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_focus_category_dynamic_change(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test changing focus category dynamically."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -314,7 +334,9 @@ class TestFocusSignalForwarding:
         new_signal.assert_called_once()
         old_signal.assert_called_once()
 
-    def test_focus_lost_signal_forwarding(self, qtbot, mock_embedded_server, mock_qwebengineview):
+    def test_focus_lost_signal_forwarding(
+        self, qtbot, mock_embedded_server, mock_qwebengineview
+    ):
         """Test focusLost signal forwards to deprecated focus_lost."""
         mock_focus_proxy = Mock()
         mock_qwebengineview.focusProxy.return_value = mock_focus_proxy
@@ -369,7 +391,9 @@ class TestDebugWebEngineView:
         view.set_debug(False)
         assert view.debug_enabled is False
 
-    def test_debug_web_engine_view_in_terminal_widget(self, qtbot, mock_embedded_server):
+    def test_debug_web_engine_view_in_terminal_widget(
+        self, qtbot, mock_embedded_server
+    ):
         """Test that TerminalWidget uses DebugWebEngineView."""
         widget = TerminalWidget()
         qtbot.addWidget(widget)
@@ -469,8 +493,12 @@ class TestFocusSystemIntegration:
             widgets.append(widget)
 
             # Track focus events for each widget
-            widget.focusReceived.connect(lambda w=i: focus_events.append(f"widget_{w}_focus_in"))
-            widget.focusLost.connect(lambda w=i: focus_events.append(f"widget_{w}_focus_out"))
+            widget.focusReceived.connect(
+                lambda w=i: focus_events.append(f"widget_{w}_focus_in")
+            )
+            widget.focusLost.connect(
+                lambda w=i: focus_events.append(f"widget_{w}_focus_out")
+            )
 
         # Simulate focus events on different widgets
         for _i, widget in enumerate(widgets):

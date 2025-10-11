@@ -7,7 +7,7 @@ import sqlite3
 import statistics
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
 class BenchmarkResults:
@@ -16,7 +16,7 @@ class BenchmarkResults:
     def __init__(self, results_db: Path):
         self.results_db = results_db
 
-    def get_results_summary(self, days: int = 30) -> Dict[str, Any]:
+    def get_results_summary(self, days: int = 30) -> dict[str, Any]:
         """Get summary of results from the last N days."""
         cutoff_date = datetime.now() - timedelta(days=days)
 
@@ -49,7 +49,7 @@ class BenchmarkResults:
 
             return summary
 
-    def get_trend_analysis(self, benchmark_name: str, days: int = 30) -> Dict[str, Any]:
+    def get_trend_analysis(self, benchmark_name: str, days: int = 30) -> dict[str, Any]:
         """Analyze trends for a specific benchmark."""
         cutoff_date = datetime.now() - timedelta(days=days)
 
@@ -82,8 +82,8 @@ class BenchmarkResults:
         memory_usage = [dp["memory_usage"] for dp in data_points]
 
         # Simple linear trend (positive = getting slower, negative = getting faster)
-        time_trend = self._calculate_trend([i for i in range(len(times))], times)
-        memory_trend = self._calculate_trend([i for i in range(len(memory_usage))], memory_usage)
+        time_trend = self._calculate_trend(list(range(len(times))), times)
+        memory_trend = self._calculate_trend(list(range(len(memory_usage))), memory_usage)
 
         # Performance stability (coefficient of variation)
         time_stability = statistics.stdev(times) / statistics.mean(times) if times else 0
@@ -100,7 +100,7 @@ class BenchmarkResults:
             "improvement_factor": times[0] / times[-1] if times[-1] > 0 else 1.0,
         }
 
-    def _calculate_trend(self, x: List[float], y: List[float]) -> float:
+    def _calculate_trend(self, x: list[float], y: list[float]) -> float:
         """Calculate simple linear trend (slope)."""
         if len(x) != len(y) or len(x) < 2:
             return 0.0
@@ -118,7 +118,7 @@ class BenchmarkResults:
         slope = (n * sum_xy - sum_x * sum_y) / denominator
         return slope
 
-    def detect_anomalies(self, benchmark_name: str, threshold: float = 2.0) -> List[Dict[str, Any]]:
+    def detect_anomalies(self, benchmark_name: str, threshold: float = 2.0) -> list[dict[str, Any]]:
         """Detect anomalous results using standard deviation."""
         with sqlite3.connect(self.results_db) as conn:
             cursor = conn.execute(
@@ -167,7 +167,7 @@ class BenchmarkResults:
 
         return sorted(anomalies, key=lambda x: x["z_score"], reverse=True)
 
-    def compare_benchmarks(self, benchmark_names: List[str], days: int = 30) -> Dict[str, Any]:
+    def compare_benchmarks(self, benchmark_names: list[str], days: int = 30) -> dict[str, Any]:
         """Compare performance of multiple benchmarks."""
         cutoff_date = datetime.now() - timedelta(days=days)
         comparison = {}
@@ -218,7 +218,7 @@ class BenchmarkResults:
         else:
             return {"comparison": comparison, "error": "No data available for comparison"}
 
-    def generate_performance_dashboard(self) -> Dict[str, Any]:
+    def generate_performance_dashboard(self) -> dict[str, Any]:
         """Generate a comprehensive performance dashboard."""
         summary = self.get_results_summary(30)
 
@@ -248,12 +248,12 @@ class BenchmarkResults:
         }
 
     def _calculate_health_score(
-        self, summary: Dict[str, Any], trends: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, summary: dict[str, Any], trends: dict[str, Any]
+    ) -> dict[str, Any]:
         """Calculate overall performance health score (0-100)."""
         scores = []
 
-        for benchmark_name, trend_data in trends.items():
+        for _benchmark_name, trend_data in trends.items():
             if "error" in trend_data:
                 continue
 
@@ -274,7 +274,7 @@ class BenchmarkResults:
         return {
             "overall_score": overall_score,
             "rating": self._score_to_rating(overall_score),
-            "individual_scores": {name: score for name, score in zip(trends.keys(), scores)},
+            "individual_scores": dict(zip(trends.keys(), scores)),
         }
 
     def _score_to_rating(self, score: float) -> str:
@@ -291,8 +291,8 @@ class BenchmarkResults:
             return "Critical"
 
     def _generate_recommendations(
-        self, summary: Dict[str, Any], trends: Dict[str, Any], anomalies: Dict[str, Any]
-    ) -> List[str]:
+        self, summary: dict[str, Any], trends: dict[str, Any], anomalies: dict[str, Any]
+    ) -> list[str]:
         """Generate performance improvement recommendations."""
         recommendations = []
 

@@ -29,7 +29,7 @@ def test_widget_creation():
         from src.vfwidgets_theme import ThemedApplication, ThemedWidget
 
         # Create application
-        app = ThemedApplication([])
+        ThemedApplication([])
 
         # Create test widget
         class TestWidget(ThemedWidget, QLabel):
@@ -65,7 +65,7 @@ def test_theme_switching():
         if available_themes:
             theme_name = available_themes[0]
             if isinstance(theme_name, str):
-                result = app.set_theme(theme_name)
+                app.set_theme(theme_name)
                 print(f"✓ Theme switching successful: {theme_name}")
                 return True
 

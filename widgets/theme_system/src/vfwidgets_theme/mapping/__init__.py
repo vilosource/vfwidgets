@@ -1,4 +1,4 @@
-"""Theme Mapping System
+"""Theme Mapping System.
 
 Provides advanced CSS selector-based theme mapping with validation,
 conflict resolution, and visual debugging support.

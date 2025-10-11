@@ -35,6 +35,7 @@ class TestErrorWidget(unittest.TestCase):
             item = widget.layout().itemAt(i)
             if item and item.widget():
                 from PySide6.QtWidgets import QLabel
+
                 if isinstance(item.widget(), QLabel):
                     if item.widget().text() == "Updated message":
                         found_updated_message = True
@@ -58,8 +59,8 @@ class TestErrorWidget(unittest.TestCase):
         widget = ErrorWidget("Test error")
 
         # Should have retry_clicked signal
-        self.assertTrue(hasattr(widget, 'retry_clicked'))
+        self.assertTrue(hasattr(widget, "retry_clicked"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

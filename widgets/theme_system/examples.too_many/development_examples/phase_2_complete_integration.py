@@ -356,7 +356,7 @@ def demonstrate_integration():
         mapping.get_mapping(widget)
 
     end_time = time.perf_counter()
-    print(f"Applied mappings to 100 widgets in {(end_time - start_time)*1000:.2f}ms")
+    print(f"Applied mappings to 100 widgets in {(end_time - start_time) * 1000:.2f}ms")
 
     # Show mapping statistics
     stats = mapping.get_statistics()

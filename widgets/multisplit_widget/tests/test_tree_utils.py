@@ -29,7 +29,7 @@ class TestTreeUtils(unittest.TestCase):
         ratios = [0.0, 0.0, 0.0]
         normalized = normalize_ratios(ratios)
         self.assertAlmostEqual(sum(normalized), 1.0)
-        self.assertTrue(all(r == 1.0/3.0 for r in normalized))
+        self.assertTrue(all(r == 1.0 / 3.0 for r in normalized))
 
     def test_validate_ratios(self):
         """Test ratio validation."""
@@ -46,10 +46,7 @@ class TestTreeUtils(unittest.TestCase):
         """Test finding nodes by ID."""
         # Create simple tree
         pane_id = generate_pane_id()
-        leaf = LeafNode(
-            pane_id=pane_id,
-            widget_id=generate_widget_id("editor", "main.py")
-        )
+        leaf = LeafNode(pane_id=pane_id, widget_id=generate_widget_id("editor", "main.py"))
 
         # Find existing node
         found = find_node_by_id(leaf, pane_id)
@@ -142,5 +139,5 @@ class TestTreeUtils(unittest.TestCase):
         self.assertGreater(len(errors), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

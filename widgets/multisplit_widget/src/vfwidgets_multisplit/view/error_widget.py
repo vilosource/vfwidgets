@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QFrame, QLabel, QPushButton, QVBoxLayout, QWidget
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
     from vfwidgets_theme.widgets.roles import WidgetRole, set_widget_role
+
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
@@ -18,21 +19,21 @@ except ImportError:
 
 
 if THEME_AVAILABLE:
+
     class ErrorWidget(ThemedWidget, QWidget):
         """Widget to display error states with theme integration."""
 
         # Theme configuration - maps theme tokens to error widget properties
         theme_config = {
-            'error_fg': 'errorForeground',
-            'error_bg': 'inputValidation.errorBackground',
-            'error_border': 'inputValidation.errorBorder',
+            "error_fg": "errorForeground",
+            "error_bg": "inputValidation.errorBackground",
+            "error_border": "inputValidation.errorBorder",
         }
 
         # Signals
         retry_clicked = Signal()
 
-        def __init__(self, error_message: str = "An error occurred",
-                     parent: QWidget = None):
+        def __init__(self, error_message: str = "An error occurred", parent: QWidget = None):
             """Initialize error widget.
 
             Args:
@@ -126,12 +127,13 @@ else:
 
 
 if THEME_AVAILABLE:
+
     class ValidationOverlay(ThemedWidget, QWidget):
         """Overlay to show validation errors with theme integration."""
 
         theme_config = {
-            'error_bg': 'inputValidation.errorBackground',
-            'error_fg': 'errorForeground',
+            "error_bg": "inputValidation.errorBackground",
+            "error_fg": "errorForeground",
         }
 
         def __init__(self, parent: QWidget = None):
@@ -142,14 +144,12 @@ if THEME_AVAILABLE:
 
             # Semi-transparent background
             palette = self.palette()
-            palette.setColor(QPalette.ColorRole.Window,
-                            Qt.GlobalColor.transparent)
+            palette.setColor(QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
             self.setPalette(palette)
 
             # Layout for messages
             self.layout = QVBoxLayout(self)
-            self.layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                    Qt.AlignmentFlag.AlignRight)
+            self.layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
 
             self.messages = []
 
@@ -212,6 +212,7 @@ if THEME_AVAILABLE:
                 frame.deleteLater()
 
 else:
+
     class ValidationOverlay(QWidget):
         """ValidationOverlay without theme support (theme system not installed)."""
 

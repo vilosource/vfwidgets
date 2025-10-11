@@ -22,7 +22,7 @@ import os
 import sys
 import threading
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -55,8 +55,8 @@ class ThreadSafetyDemo:
     """
 
     def __init__(self):
-        self.results: Dict[str, Any] = {}
-        self.demo_widgets: List[Any] = []
+        self.results: dict[str, Any] = {}
+        self.demo_widgets: list[Any] = []
 
     def run_all_demos(self):
         """Run all thread safety demonstrations."""
@@ -106,7 +106,7 @@ class ThreadSafetyDemo:
             thread.join()
 
         # Verify singleton behavior
-        unique_instances = set(instance_id for _, instance_id in instances)
+        unique_instances = {instance_id for _, instance_id in instances}
         print(f"✅ Created {len(instances)} instance references")
         print(f"✅ All references point to same object: {len(unique_instances) == 1}")
 
@@ -220,7 +220,7 @@ class ThreadSafetyDemo:
         signal_manager = ThemeSignalManager()
         signal_results = []
 
-        def signal_handler(theme_name: str, theme_data: Dict[str, Any]):
+        def signal_handler(theme_name: str, theme_data: dict[str, Any]):
             signal_results.append(
                 {
                     "theme_name": theme_name,
@@ -344,7 +344,7 @@ class ThreadSafetyDemo:
             # Queue-based loading demo
             queue_results = []
 
-            def queue_callback(theme_name: str, theme_data: Dict[str, Any]):
+            def queue_callback(theme_name: str, theme_data: dict[str, Any]):
                 queue_results.append((theme_name, len(theme_data)))
 
             for theme_name in theme_names:
@@ -445,10 +445,10 @@ class ThreadSafetyDemo:
         total_widgets = registry.get_widget_count()
 
         print(f"✅ Processed {len(operation_times)} operations in {total_time:.3f}s")
-        print(f"✅ Average operation time: {avg_operation_time*1000000:.2f}μs (target: <50μs)")
-        print(f"✅ Average lock time: {avg_lock_time*1000000:.2f}μs (target: <1μs)")
+        print(f"✅ Average operation time: {avg_operation_time * 1000000:.2f}μs (target: <50μs)")
+        print(f"✅ Average lock time: {avg_lock_time * 1000000:.2f}μs (target: <1μs)")
         print(f"✅ Total widgets registered: {total_widgets}")
-        print(f"✅ Operations per second: {len(operation_times)/total_time:.0f}")
+        print(f"✅ Operations per second: {len(operation_times) / total_time:.0f}")
         print("✅ Concurrent threads supported: 10 (target: 8+)")
 
         self.results["performance"] = {
@@ -590,7 +590,7 @@ class ThreadSafetyDemo:
         total_themes = sum(r["themes_cached"] for r in memory_results)
         total_styles = sum(r["styles_cached"] for r in memory_results)
 
-        print(f"✅ Memory increase: {memory_increase / (1024*1024):.2f} MB")
+        print(f"✅ Memory increase: {memory_increase / (1024 * 1024):.2f} MB")
         print(f"✅ Themes cached across all threads: {total_themes}")
         print(f"✅ Styles cached across all threads: {total_styles}")
         print(
@@ -616,11 +616,11 @@ class ThreadSafetyDemo:
         print("=" * 60)
 
         # Performance requirements check
-        perf_metrics = get_performance_metrics()
+        get_performance_metrics()
 
         print("\n📊 Performance Requirements Validation:")
         print(
-            f"{'✅' if self.results['performance']['avg_lock_time'] < 0.000001 else '❌'} Lock acquisition: {self.results['performance']['avg_lock_time']*1000000:.2f}μs (target: <1μs)"
+            f"{'✅' if self.results['performance']['avg_lock_time'] < 0.000001 else '❌'} Lock acquisition: {self.results['performance']['avg_lock_time'] * 1000000:.2f}μs (target: <1μs)"
         )
         print(
             f"{'✅' if self.results['caching']['hit_rate'] > 0.9 else '❌'} Cache hit rate: {self.results['caching']['hit_rate']:.1%} (target: >90%)"

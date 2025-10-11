@@ -163,7 +163,7 @@ def test_focus_tracking():
         if focus_log:
             print("✅ Focus tracking is working!")
             for i, pane_id in enumerate(focus_log):
-                print(f"  {i+1}. {pane_id}")
+                print(f"  {i + 1}. {pane_id}")
         else:
             print("❌ No focus changes detected")
 

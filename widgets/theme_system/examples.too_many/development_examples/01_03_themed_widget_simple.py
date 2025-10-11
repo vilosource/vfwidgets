@@ -373,11 +373,11 @@ class SimpleExample:
                 if hasattr(widget, "theme_statistics"):
                     stats = widget.theme_statistics
                     print(
-                        f"   - Widget {i+1}: {stats.get('update_count', 0)} updates, "
+                        f"   - Widget {i + 1}: {stats.get('update_count', 0)} updates, "
                         f"cache hit rate: {stats.get('hit_rate', 0):.1%}"
                     )
             except Exception as e:
-                print(f"   - Widget {i+1}: stats unavailable ({e})")
+                print(f"   - Widget {i + 1}: stats unavailable ({e})")
 
     def cleanup(self):
         """Clean up the example."""

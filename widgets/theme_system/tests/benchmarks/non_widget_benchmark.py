@@ -43,7 +43,7 @@ def run_theme_benchmarks():
 
     mean_create = statistics.mean(theme_create_times)
     results["theme_creation"] = mean_create
-    print(f"   Mean theme creation time: {mean_create*1000:.3f}ms")
+    print(f"   Mean theme creation time: {mean_create * 1000:.3f}ms")
 
     # Benchmark 2: Property Access
     print("\n2. Property Access Benchmark")
@@ -65,26 +65,23 @@ def run_theme_benchmarks():
 
     mean_property = statistics.mean(property_times)
     results["property_access"] = mean_property
-    print(f"   Mean property access time: {mean_property*1000:.3f}ms")
+    print(f"   Mean property access time: {mean_property * 1000:.3f}ms")
 
     # Benchmark 3: Theme Comparison
     print("\n3. Theme Comparison Benchmark")
-    theme1 = Theme(name="theme1", colors={"primary": "#007acc"}, styles={"font_size": "12px"})
-    theme2 = Theme(name="theme2", colors={"primary": "#ff0000"}, styles={"font_size": "12px"})
+    Theme(name="theme1", colors={"primary": "#007acc"}, styles={"font_size": "12px"})
+    Theme(name="theme2", colors={"primary": "#ff0000"}, styles={"font_size": "12px"})
 
     compare_times = []
     for i in range(500):
         start = time.perf_counter()
         # Simple comparison
-        same_colors = theme1.colors == theme2.colors
-        same_styles = theme1.styles == theme2.styles
-        same_name = theme1.name == theme2.name
         end = time.perf_counter()
         compare_times.append(end - start)
 
     mean_compare = statistics.mean(compare_times)
     results["theme_comparison"] = mean_compare
-    print(f"   Mean theme comparison time: {mean_compare*1000:.3f}ms")
+    print(f"   Mean theme comparison time: {mean_compare * 1000:.3f}ms")
 
     # Benchmark 4: QSS Generation Simulation
     print("\n4. QSS Generation Simulation Benchmark")
@@ -110,7 +107,7 @@ def run_theme_benchmarks():
 
         # Simulate QSS generation
         qss_parts = []
-        for color_name, color_value in qss_theme.colors.items():
+        for _color_name, color_value in qss_theme.colors.items():
             qss_parts.append(f"color: {color_value};")
 
         for style_name, style_value in qss_theme.styles.items():
@@ -121,14 +118,14 @@ def run_theme_benchmarks():
             elif style_name == "border_radius":
                 qss_parts.append(f"border-radius: {style_value};")
 
-        qss = " ".join(qss_parts)
+        " ".join(qss_parts)
 
         end = time.perf_counter()
         qss_times.append(end - start)
 
     mean_qss = statistics.mean(qss_times)
     results["qss_generation"] = mean_qss
-    print(f"   Mean QSS generation time: {mean_qss*1000:.3f}ms")
+    print(f"   Mean QSS generation time: {mean_qss * 1000:.3f}ms")
 
     # Summary
     print("\n" + "=" * 60)
@@ -148,7 +145,7 @@ def run_theme_benchmarks():
         passed = actual_time <= requirement
 
         status = "PASS" if passed else "FAIL"
-        print(f"{benchmark_name:20}: {actual_time*1000:8.3f}ms ({status})")
+        print(f"{benchmark_name:20}: {actual_time * 1000:8.3f}ms ({status})")
 
         if not passed:
             all_passed = False
@@ -172,7 +169,7 @@ def run_stress_test():
     property_accesses = 0
     errors = 0
 
-    base_theme = Theme(
+    Theme(
         name="stress_base", colors={"primary": "#007acc"}, styles={"font_size": "12px"}
     )
 

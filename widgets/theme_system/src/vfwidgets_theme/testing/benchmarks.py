@@ -25,7 +25,7 @@ import tracemalloc
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 
 @dataclass
@@ -49,9 +49,9 @@ class BenchmarkResult:
     memory_usage_bytes: int = 0
     cache_hits: int = 0
     cache_misses: int = 0
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def cache_hit_rate(self) -> float:
@@ -61,7 +61,7 @@ class BenchmarkResult:
             return 0.0
         return (self.cache_hits / total_requests) * 100.0
 
-    def meets_requirements(self, requirements: Dict[str, float]) -> bool:
+    def meets_requirements(self, requirements: dict[str, float]) -> bool:
         """Check if benchmark results meet performance requirements.
 
         Args:
@@ -112,7 +112,7 @@ class BenchmarkResult:
 
         return True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert benchmark result to dictionary for serialization."""
         return {
             "operation_name": self.operation_name,
@@ -162,7 +162,7 @@ class ThemeBenchmark:
 
         """
         self.enable_memory_tracking = enable_memory_tracking
-        self._results: List[BenchmarkResult] = []
+        self._results: list[BenchmarkResult] = []
         self._performance_requirements = {
             "theme_switch_time": 0.1,  # 100ms for 100 widgets
             "property_access_time": 0.000001,  # 1μs
@@ -210,7 +210,7 @@ class ThemeBenchmark:
                 tracemalloc.stop()
 
     def benchmark_theme_switch(
-        self, widgets: List[Any], iterations: int = 50, themes: Optional[List[str]] = None
+        self, widgets: list[Any], iterations: int = 50, themes: Optional[list[str]] = None
     ) -> BenchmarkResult:
         """Benchmark theme switching performance across multiple widgets.
 
@@ -254,7 +254,7 @@ class ThemeBenchmark:
         return self._create_benchmark_result(operation_name, data, iterations)
 
     def benchmark_property_access(
-        self, provider: Any, properties: Optional[List[str]] = None, iterations: int = 1000
+        self, provider: Any, properties: Optional[list[str]] = None, iterations: int = 1000
     ) -> BenchmarkResult:
         """Benchmark theme property access performance.
 
@@ -278,11 +278,11 @@ class ThemeBenchmark:
 
         with self._measure_performance(operation_name) as data:
             for prop in properties:
-                for i in range(iterations):
+                for _i in range(iterations):
                     start_time = time.perf_counter()
 
                     try:
-                        value = provider.get_property(prop)
+                        provider.get_property(prop)
                         # Track cache statistics if available
                         if hasattr(provider, "_cache_hits"):
                             data["cache_hits"] += getattr(provider, "_cache_hits", 0)
@@ -317,7 +317,7 @@ class ThemeBenchmark:
             widgets = []
 
             # Create widgets and measure memory growth
-            for i in range(widget_count):
+            for _i in range(widget_count):
                 start_time = time.perf_counter()
 
                 try:
@@ -330,7 +330,7 @@ class ThemeBenchmark:
                 data["times"].append(end_time - start_time)
 
             # Perform theme switches and measure memory stability
-            for switch in range(theme_switches):
+            for _switch in range(theme_switches):
                 switch_start = time.perf_counter()
 
                 for widget in widgets:
@@ -376,12 +376,13 @@ class ThemeBenchmark:
             pass
 
         with self._measure_performance(operation_name) as data:
-            for iteration in range(iterations):
+            for _iteration in range(iterations):
                 callbacks = []
 
                 # Registration phase
                 for i in range(callback_count):
-                    callback = lambda name, i=i: None  # Unique callback per iteration
+                    def callback(name, i=i):
+                        return None  # Unique callback per iteration
 
                     start_time = time.perf_counter()
                     try:
@@ -410,8 +411,8 @@ class ThemeBenchmark:
     def benchmark_style_generation(
         self,
         generator: Any,
-        theme_data: Dict[str, Any],
-        widget_types: Optional[List[str]] = None,
+        theme_data: dict[str, Any],
+        widget_types: Optional[list[str]] = None,
         iterations: int = 100,
     ) -> BenchmarkResult:
         """Benchmark QSS style generation performance.
@@ -436,7 +437,7 @@ class ThemeBenchmark:
 
         with self._measure_performance(operation_name) as data:
             for widget in widgets:
-                for i in range(iterations):
+                for _i in range(iterations):
                     start_time = time.perf_counter()
 
                     try:
@@ -471,7 +472,7 @@ class ThemeBenchmark:
         """
         operation_name = f"Concurrent Access ({thread_count} threads)"
 
-        def worker_function(thread_id: int) -> List[float]:
+        def worker_function(thread_id: int) -> list[float]:
             """Worker function for concurrent testing."""
             times = []
             properties = ["primary_color", "background", "foreground"]
@@ -481,7 +482,7 @@ class ThemeBenchmark:
 
                 start_time = time.perf_counter()
                 try:
-                    value = provider.get_property(prop)
+                    provider.get_property(prop)
                 except Exception:
                     pass  # Include error handling time
                 end_time = time.perf_counter()
@@ -518,7 +519,7 @@ class ThemeBenchmark:
         return result
 
     def _create_benchmark_result(
-        self, operation_name: str, measurement_data: Dict[str, Any], iterations: int
+        self, operation_name: str, measurement_data: dict[str, Any], iterations: int
     ) -> BenchmarkResult:
         """Create a BenchmarkResult from measurement data.
 
@@ -586,7 +587,7 @@ class ThemeBenchmark:
         self._results.append(result)
         return result
 
-    def get_all_results(self) -> List[BenchmarkResult]:
+    def get_all_results(self) -> list[BenchmarkResult]:
         """Get all benchmark results from this session."""
         return self._results.copy()
 
@@ -658,7 +659,7 @@ class ThemeBenchmark:
 # Convenience functions for quick benchmarking
 
 
-def benchmark_theme_switch(widgets: List[Any], iterations: int = 50) -> BenchmarkResult:
+def benchmark_theme_switch(widgets: list[Any], iterations: int = 50) -> BenchmarkResult:
     """Quick benchmark for theme switching performance.
 
     Args:
@@ -705,7 +706,7 @@ def benchmark_memory_usage(
     return benchmark.benchmark_memory_usage(widget_factory, widget_count)
 
 
-def validate_performance_requirements(results: List[BenchmarkResult]) -> Dict[str, bool]:
+def validate_performance_requirements(results: list[BenchmarkResult]) -> dict[str, bool]:
     """Validate benchmark results against performance requirements.
 
     Args:
@@ -759,7 +760,7 @@ def performance_test(max_time: float):
 
             elapsed = end_time - start_time
             assert elapsed < max_time, (
-                f"Test {test_func.__name__} took {elapsed:.6f}s, " f"expected < {max_time:.6f}s"
+                f"Test {test_func.__name__} took {elapsed:.6f}s, expected < {max_time:.6f}s"
             )
 
             return result
@@ -792,8 +793,7 @@ def memory_test(max_memory_mb: float):
 
             peak_mb = peak / (1024 * 1024)
             assert peak_mb < max_memory_mb, (
-                f"Test {test_func.__name__} used {peak_mb:.2f}MB, "
-                f"expected < {max_memory_mb:.2f}MB"
+                f"Test {test_func.__name__} used {peak_mb:.2f}MB, expected < {max_memory_mb:.2f}MB"
             )
 
             return result

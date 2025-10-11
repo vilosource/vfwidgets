@@ -202,7 +202,6 @@ class TestThemePreview:
         """Test previewing a theme without persistence."""
         # Set initial theme
         app.set_theme("dark")
-        original_theme = app.current_theme_name
 
         # Preview different theme
         app.preview_theme("light")
@@ -300,7 +299,6 @@ class TestThemePreview:
     def test_preview_while_previewing(self, app):
         """Test previewing another theme while already previewing."""
         app.set_theme("dark")
-        original_theme = app.current_theme_name
 
         # Start preview
         app.preview_theme("light")

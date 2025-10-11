@@ -33,7 +33,9 @@ class ChromeTabBar(QTabBar):
     tabMiddleClicked = Signal(int)  # Middle click on tab
     newTabRequested = Signal()  # Request to add new tab
     tabDetachRequested = Signal(int)  # Request to detach tab to new window
-    tabMoveToWindowRequested = Signal(int, object)  # Request to move tab to existing window (tab_index, target_window)
+    tabMoveToWindowRequested = Signal(
+        int, object
+    )  # Request to move tab to existing window (tab_index, target_window)
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize the Chrome tab bar."""
@@ -113,7 +115,7 @@ class ChromeTabBar(QTabBar):
 
     def _sync_with_model(self) -> None:
         """Synchronize view with current model state."""
-        if not hasattr(self, '_model'):
+        if not hasattr(self, "_model"):
             return
 
         # Clear and rebuild tabs
@@ -131,7 +133,7 @@ class ChromeTabBar(QTabBar):
 
     def _on_tab_added(self, index: int) -> None:
         """Handle tab addition from model."""
-        text = self._model.tab_text(index) if hasattr(self, '_model') else ""
+        text = self._model.tab_text(index) if hasattr(self, "_model") else ""
         self.insertTab(index, text)
 
         # Animation removed to ensure proper sync
@@ -145,12 +147,12 @@ class ChromeTabBar(QTabBar):
 
     def _on_tab_text_changed(self, index: int) -> None:
         """Handle tab text change from model."""
-        if hasattr(self, '_model') and index < self.count():
+        if hasattr(self, "_model") and index < self.count():
             self.setTabText(index, self._model.tab_text(index))
 
     def _on_tab_icon_changed(self, index: int) -> None:
         """Handle tab icon change from model."""
-        if hasattr(self, '_model') and index < self.count():
+        if hasattr(self, "_model") and index < self.count():
             self.setTabIcon(index, self._model.tab_icon(index))
 
     def _on_current_changed(self, index: int) -> None:
@@ -186,7 +188,6 @@ class ChromeTabBar(QTabBar):
         if self.currentIndex() >= 0:
             self._paint_chrome_tab_with_renderer(painter, self.currentIndex(), True, theme)
 
-
         # Paint new tab button
         self.new_tab_button_rect = self._calculate_new_tab_button_position()
         state = TabState.HOVER if self.new_tab_button_hovered else TabState.NORMAL
@@ -201,12 +202,14 @@ class ChromeTabBar(QTabBar):
         parent_window = self.parent()
         while parent_window:
             # Check if parent has get_current_theme method (is a ThemedWidget)
-            if hasattr(parent_window, 'get_current_theme'):
+            if hasattr(parent_window, "get_current_theme"):
                 return parent_window.get_current_theme()
             parent_window = parent_window.parent()
         return None
 
-    def _paint_chrome_tab_with_renderer(self, painter: QPainter, index: int, is_active: bool, theme=None) -> None:
+    def _paint_chrome_tab_with_renderer(
+        self, painter: QPainter, index: int, is_active: bool, theme=None
+    ) -> None:
         """Paint a single Chrome-style tab using ChromeTabRenderer."""
         rect = self.tabRect(index)
         text = self.tabText(index)
@@ -221,7 +224,11 @@ class ChromeTabBar(QTabBar):
 
         # Check if close button is hovered for this tab
         close_button_state = TabState.NORMAL
-        if index == self._close_button_hovered and hasattr(self, '_model') and self._model.tabs_closable():
+        if (
+            index == self._close_button_hovered
+            and hasattr(self, "_model")
+            and self._model.tabs_closable()
+        ):
             close_button_state = TabState.HOVER
 
         # Use ChromeTabRenderer to draw the tab with theme
@@ -231,9 +238,9 @@ class ChromeTabBar(QTabBar):
             text,
             state,
             has_close_button=True,
-            is_closable=hasattr(self, '_model') and self._model.tabs_closable(),
+            is_closable=hasattr(self, "_model") and self._model.tabs_closable(),
             close_button_state=close_button_state,
-            theme=theme
+            theme=theme,
         )
 
     def _paint_chrome_tab(self, painter: QPainter, index: int, is_active: bool) -> None:
@@ -266,11 +273,14 @@ class ChromeTabBar(QTabBar):
         text_rect = rect.adjusted(10, 0, -30, 0)  # Leave room for close button
         painter.setPen(text_color)
         text = self.tabText(index)
-        painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                        self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, text_rect.width()))
+        painter.drawText(
+            text_rect,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            self.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, text_rect.width()),
+        )
 
         # Draw close button if closable
-        if hasattr(self, '_model') and self._model.tabs_closable():
+        if hasattr(self, "_model") and self._model.tabs_closable():
             self._paint_close_button(painter, index, rect)
 
     def _create_chrome_tab_path(self, rect: QRect) -> QPainterPath:
@@ -288,15 +298,13 @@ class ChromeTabBar(QTabBar):
         path.lineTo(rect.left() + slant, rect.top() + radius)
 
         # Top left curve
-        path.quadTo(rect.left() + slant, rect.top(),
-                   rect.left() + slant + radius, rect.top())
+        path.quadTo(rect.left() + slant, rect.top(), rect.left() + slant + radius, rect.top())
 
         # Top edge
         path.lineTo(rect.right() - slant - radius, rect.top())
 
         # Top right curve
-        path.quadTo(rect.right() - slant, rect.top(),
-                   rect.right() - slant, rect.top() + radius)
+        path.quadTo(rect.right() - slant, rect.top(), rect.right() - slant, rect.top() + radius)
 
         # Right slanted edge
         path.lineTo(rect.right() + slant, rect.bottom())
@@ -317,10 +325,18 @@ class ChromeTabBar(QTabBar):
         # Draw X
         painter.setPen(QPen(self.COLOR_TEXT_INACTIVE, 1.5))
         margin = 4
-        painter.drawLine(button_rect.left() + margin, button_rect.top() + margin,
-                        button_rect.right() - margin, button_rect.bottom() - margin)
-        painter.drawLine(button_rect.left() + margin, button_rect.bottom() - margin,
-                        button_rect.right() - margin, button_rect.top() + margin)
+        painter.drawLine(
+            button_rect.left() + margin,
+            button_rect.top() + margin,
+            button_rect.right() - margin,
+            button_rect.bottom() - margin,
+        )
+        painter.drawLine(
+            button_rect.left() + margin,
+            button_rect.bottom() - margin,
+            button_rect.right() - margin,
+            button_rect.top() + margin,
+        )
 
     def _close_button_rect(self, tab_rect: QRect) -> QRect:
         """Get the close button rect for a tab."""
@@ -357,7 +373,11 @@ class ChromeTabBar(QTabBar):
                 tab_rect = self.tabRect(index)
                 close_rect = self._close_button_rect(tab_rect)
 
-                if close_rect.contains(event.pos()) and hasattr(self, '_model') and self._model.tabs_closable():
+                if (
+                    close_rect.contains(event.pos())
+                    and hasattr(self, "_model")
+                    and self._model.tabs_closable()
+                ):
                     # Final validation before emitting signal
                     if index < self.count():
                         self.tabCloseClicked.emit(index)
@@ -402,7 +422,6 @@ class ChromeTabBar(QTabBar):
 
         # Update hovered tab with animation
         if index != self._hovered_tab:
-            old_hovered = self._hovered_tab
             self._hovered_tab = index
 
             # Update hover state (animation removed)
@@ -416,7 +435,7 @@ class ChromeTabBar(QTabBar):
             self.update()
 
         # Check close button hover
-        if index >= 0 and hasattr(self, '_model') and self._model.tabs_closable():
+        if index >= 0 and hasattr(self, "_model") and self._model.tabs_closable():
             tab_rect = self.tabRect(index)
             close_rect = self._close_button_rect(tab_rect)
             if close_rect.contains(event.pos()):
@@ -523,7 +542,7 @@ class ChromeTabBar(QTabBar):
     def leaveEvent(self, event) -> None:
         """Handle mouse leave."""
         # Animate hover out effect
-        if hasattr(self, '_animator') and self._hovered_tab >= 0:
+        if hasattr(self, "_animator") and self._hovered_tab >= 0:
             self._animator.animate_hover(self, False)
 
         self._hovered_tab = -1
@@ -586,7 +605,7 @@ class ChromeTabBar(QTabBar):
         available_width -= new_tab_space
 
         # Account for window controls in frameless mode
-        if hasattr(self.parent(), '_window_controls') and self.parent()._window_controls:
+        if hasattr(self.parent(), "_window_controls") and self.parent()._window_controls:
             available_width -= 138  # WindowControls fixed width
 
         # Calculate width per tab
@@ -609,8 +628,7 @@ class ChromeTabBar(QTabBar):
             x = 8
             y = (self.height() - self.new_tab_button_size.height()) // 2
 
-        return QRect(x, y, self.new_tab_button_size.width(),
-                     self.new_tab_button_size.height())
+        return QRect(x, y, self.new_tab_button_size.width(), self.new_tab_button_size.height())
 
     def _paint_drag_indicator(self, painter: QPainter) -> None:
         """Paint insertion indicator between tabs during drag operation."""
@@ -705,10 +723,11 @@ class ChromeTabBar(QTabBar):
         drop_index = self._calculate_drop_index(mouse_pos)
 
         # Perform reorder if position changed
-        if (drop_index != self._dragged_tab_index and
-            drop_index != self._dragged_tab_index + 1 and
-            hasattr(self, '_model')):
-
+        if (
+            drop_index != self._dragged_tab_index
+            and drop_index != self._dragged_tab_index + 1
+            and hasattr(self, "_model")
+        ):
             # Adjust drop index if moving left
             if drop_index > self._dragged_tab_index:
                 drop_index -= 1

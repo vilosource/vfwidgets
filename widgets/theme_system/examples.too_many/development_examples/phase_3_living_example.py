@@ -961,7 +961,7 @@ def demonstrate_task_19_theme_factory():
         )
     simple_time = (time.perf_counter() - start_time) * 1000
 
-    print(f"10 simple themes: {simple_time:.2f}ms total ({simple_time/10:.2f}ms each)")
+    print(f"10 simple themes: {simple_time:.2f}ms total ({simple_time / 10:.2f}ms each)")
 
     # Test complex theme creation
     start_time = time.perf_counter()
@@ -974,7 +974,7 @@ def demonstrate_task_19_theme_factory():
         )
     complex_time = (time.perf_counter() - start_time) * 1000
 
-    print(f"5 complex themes: {complex_time:.2f}ms total ({complex_time/5:.2f}ms each)")
+    print(f"5 complex themes: {complex_time:.2f}ms total ({complex_time / 5:.2f}ms each)")
 
     # Performance requirement check
     avg_simple = simple_time / 10

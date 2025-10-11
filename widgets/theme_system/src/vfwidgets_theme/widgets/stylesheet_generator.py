@@ -169,7 +169,7 @@ class StylesheetGenerator:
 {prefix} QPushButton[role="secondary"] {{
     background-color: {btn_sec_bg};
     color: {btn_sec_fg};
-    border: 1px solid {ColorTokenRegistry.get('input.border', self.theme)};
+    border: 1px solid {ColorTokenRegistry.get("input.border", self.theme)};
 }}
 
 {prefix} QPushButton[role="secondary"]:hover {{
@@ -226,13 +226,13 @@ class StylesheetGenerator:
 /* QRadioButton and QCheckBox */
 {prefix} QRadioButton,
 {prefix} QCheckBox {{
-    color: {ColorTokenRegistry.get('colors.foreground', self.theme)};
+    color: {ColorTokenRegistry.get("colors.foreground", self.theme)};
     spacing: 5px;
 }}
 
 {prefix} QRadioButton:disabled,
 {prefix} QCheckBox:disabled {{
-    color: {ColorTokenRegistry.get('colors.disabledForeground', self.theme)};
+    color: {ColorTokenRegistry.get("colors.disabledForeground", self.theme)};
 }}
 """
 
@@ -432,7 +432,7 @@ QPlainTextEdit[role="editor"],
 {prefix} QTableView {{
     background-color: {list_bg};
     color: {list_fg};
-    gridline-color: {ColorTokenRegistry.get('table.gridColor', self.theme)};
+    gridline-color: {ColorTokenRegistry.get("table.gridColor", self.theme)};
     border: none;
 }}
 
@@ -443,11 +443,11 @@ QPlainTextEdit[role="editor"],
 }}
 
 {prefix} QHeaderView::section {{
-    background-color: {ColorTokenRegistry.get('table.headerBackground', self.theme)};
-    color: {ColorTokenRegistry.get('table.headerForeground', self.theme)};
+    background-color: {ColorTokenRegistry.get("table.headerBackground", self.theme)};
+    color: {ColorTokenRegistry.get("table.headerForeground", self.theme)};
     padding: 4px;
     border: none;
-    border-bottom: 1px solid {ColorTokenRegistry.get('table.gridColor', self.theme)};
+    border-bottom: 1px solid {ColorTokenRegistry.get("table.gridColor", self.theme)};
 }}
 """
 
@@ -473,11 +473,11 @@ QPlainTextEdit[role="editor"],
 }}
 
 {prefix} QComboBox:hover {{
-    background-color: {ColorTokenRegistry.get('list.hoverBackground', self.theme)};
+    background-color: {ColorTokenRegistry.get("list.hoverBackground", self.theme)};
 }}
 
 {prefix} QComboBox:focus {{
-    border-color: {ColorTokenRegistry.get('input.focusBorder', self.theme)};
+    border-color: {ColorTokenRegistry.get("input.focusBorder", self.theme)};
 }}
 
 {prefix} QComboBox::drop-down {{
@@ -497,8 +497,8 @@ QPlainTextEdit[role="editor"],
 {prefix} QComboBox QAbstractItemView {{
     background-color: {dropdown_bg};
     color: {combo_fg};
-    selection-background-color: {ColorTokenRegistry.get('list.activeSelectionBackground', self.theme)};
-    selection-color: {ColorTokenRegistry.get('list.activeSelectionForeground', self.theme)};
+    selection-background-color: {ColorTokenRegistry.get("list.activeSelectionBackground", self.theme)};
+    selection-color: {ColorTokenRegistry.get("list.activeSelectionForeground", self.theme)};
     border: 1px solid {combo_border};
 }}
 """
@@ -609,12 +609,12 @@ QPlainTextEdit[role="editor"],
 }}
 
 {prefix} QMenu::item:disabled {{
-    color: {ColorTokenRegistry.get('colors.disabledForeground', self.theme)};
+    color: {ColorTokenRegistry.get("colors.disabledForeground", self.theme)};
 }}
 
 {prefix} QMenu::separator {{
     height: 1px;
-    background-color: {ColorTokenRegistry.get('menu.separatorBackground', self.theme)};
+    background-color: {ColorTokenRegistry.get("menu.separatorBackground", self.theme)};
     margin: 4px 0;
 }}
 """
@@ -748,8 +748,8 @@ QPlainTextEdit[role="editor"],
 
 /* QStatusBar */
 {prefix} QStatusBar {{
-    background-color: {ColorTokenRegistry.get('statusBar.background', self.theme)};
-    color: {ColorTokenRegistry.get('statusBar.foreground', self.theme)};
+    background-color: {ColorTokenRegistry.get("statusBar.background", self.theme)};
+    color: {ColorTokenRegistry.get("statusBar.foreground", self.theme)};
     border-top: 1px solid {border_color};
 }}
 """
@@ -768,7 +768,7 @@ QPlainTextEdit[role="editor"],
 }}
 
 {prefix} QLabel:disabled {{
-    color: {ColorTokenRegistry.get('colors.disabledForeground', self.theme)};
+    color: {ColorTokenRegistry.get("colors.disabledForeground", self.theme)};
 }}
 """
 
@@ -781,10 +781,10 @@ QPlainTextEdit[role="editor"],
         return f"""
 /* QProgressBar */
 {prefix} QProgressBar {{
-    border: 1px solid {ColorTokenRegistry.get('colors.contrastBorder', self.theme)};
+    border: 1px solid {ColorTokenRegistry.get("colors.contrastBorder", self.theme)};
     border-radius: 2px;
     text-align: center;
-    background-color: {ColorTokenRegistry.get('colors.background', self.theme)};
+    background-color: {ColorTokenRegistry.get("colors.background", self.theme)};
 }}
 
 {prefix} QProgressBar::chunk {{

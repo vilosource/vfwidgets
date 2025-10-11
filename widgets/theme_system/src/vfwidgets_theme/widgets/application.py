@@ -35,7 +35,7 @@ import time
 import weakref
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Optional, Union
 
 import yaml
 
@@ -112,7 +112,7 @@ class ApplicationConfig:
     default_theme: str = "default"
     auto_detect_system: bool = True
     persist_theme: bool = True
-    theme_directories: List[str] = field(default_factory=list)
+    theme_directories: list[str] = field(default_factory=list)
     vscode_integration: bool = True
     performance_monitoring: bool = False
     cache_themes: bool = True
@@ -182,7 +182,7 @@ class ApplicationThemeManager:
             logger.error(f"Error coordinating theme switch: {e}")
             return False
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get performance statistics."""
         with self._lock:
             stats = self._performance_stats.copy()
@@ -253,7 +253,7 @@ def detect_system_theme() -> Optional[str]:
         return None
 
 
-def find_vscode_themes() -> List[Path]:
+def find_vscode_themes() -> list[Path]:
     """Find VSCode theme files in common locations."""
     theme_paths = []
 
@@ -355,7 +355,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
     _instance = None
     _instance_lock = threading.Lock()
 
-    def __init__(self, args=None, theme_config: Optional[Dict[str, Any]] = None):
+    def __init__(self, args=None, theme_config: Optional[dict[str, Any]] = None):
         """Initialize themed application with automatic setup.
 
         All complexity is hidden here:
@@ -394,7 +394,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         # Application state
         self._current_theme: Optional[Theme] = None
-        self._theme_directories: Set[Path] = set()
+        self._theme_directories: set[Path] = set()
         self._system_theme_monitoring = False
         self._is_initialized = False
 
@@ -409,7 +409,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         # Task 18: Hot reload state
         self._hot_reloader: Optional[HotReloader] = None
         self._hot_reload_enabled = False
-        self._theme_file_paths: Dict[str, Path] = {}  # theme_name -> file_path mapping
+        self._theme_file_paths: dict[str, Path] = {}  # theme_name -> file_path mapping
 
         # Performance tracking
         self._startup_time = time.perf_counter()
@@ -491,7 +491,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             )
 
     @property
-    def available_themes(self) -> List[str]:
+    def available_themes(self) -> list[str]:
         """Get list of available theme names."""
         if self._theme_manager:
             return self._theme_manager.list_themes()
@@ -597,7 +597,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         """Get the currently active theme."""
         return self._current_theme
 
-    def get_available_themes(self) -> List[Union[str, Theme]]:
+    def get_available_themes(self) -> list[Union[str, Theme]]:
         """Get list of all available themes.
 
         Returns a list of theme names that can be used with set_theme().
@@ -931,7 +931,6 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                 and self._theme_manager.has_theme(detected_theme)
                 and (not self._current_theme or detected_theme != self._current_theme.name)
             ):
-
                 logger.debug(f"System theme changed to: {detected_theme}")
                 self.set_theme(detected_theme)
 
@@ -972,7 +971,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error reloading current theme: {e}")
             return False
 
-    def get_performance_statistics(self) -> Dict[str, Any]:
+    def get_performance_statistics(self) -> dict[str, Any]:
         """Get application-level performance statistics.
 
         Returns:
@@ -1027,7 +1026,6 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
         """
         try:
-
             # If no theme name provided, use current theme
             if theme_name is None:
                 if self._current_theme:
@@ -1051,7 +1049,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error getting theme info for '{theme_name}': {e}")
             return None
 
-    def get_all_theme_info(self) -> Dict[str, "ThemeInfo"]:
+    def get_all_theme_info(self) -> dict[str, "ThemeInfo"]:
         """Get metadata for all available themes.
 
         Returns:
@@ -1128,7 +1126,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             logger.error(f"Error toggling theme: {e}")
             return False
 
-    def cycle_theme(self, theme_list: Optional[List[str]] = None, reverse: bool = False) -> bool:
+    def cycle_theme(self, theme_list: Optional[list[str]] = None, reverse: bool = False) -> bool:
         """Cycle to the next theme in a list.
 
         If no list provided, cycles through all available themes.
@@ -1321,7 +1319,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         except Exception as e:
             logger.error(f"Error initializing hot reload: {e}")
 
-    def enable_hot_reload(self, watch_directories: Optional[List[Union[str, Path]]] = None) -> bool:
+    def enable_hot_reload(self, watch_directories: Optional[list[Union[str, Path]]] = None) -> bool:
         """Enable theme hot reloading.
 
         Args:
@@ -1361,7 +1359,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
                     logger.debug(f"Watching directory for changes: {dir_path}")
 
             # Watch individual theme files
-            for theme_name, file_path in self._theme_file_paths.items():
+            for _theme_name, file_path in self._theme_file_paths.items():
                 if file_path.exists():
                     self._hot_reloader.watch_file(file_path)
                     logger.debug(f"Watching theme file: {file_path}")
@@ -1403,7 +1401,7 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         """Check if hot reload is currently enabled."""
         return self._hot_reload_enabled and self._hot_reloader is not None
 
-    def get_hot_reload_statistics(self) -> Dict[str, Any]:
+    def get_hot_reload_statistics(self) -> dict[str, Any]:
         """Get hot reload statistics."""
         if self._hot_reloader:
             return self._hot_reloader.get_statistics()
@@ -1562,10 +1560,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             path_obj = Path(file_path)
 
             # Remove from theme file paths mapping
-            theme_name = None
             for name, path in list(self._theme_file_paths.items()):
                 if path == path_obj:
-                    theme_name = name
                     del self._theme_file_paths[name]
                     break
 
@@ -1648,7 +1644,7 @@ def get_global_theme() -> Optional[str]:
     return None
 
 
-def get_global_available_themes() -> List[str]:
+def get_global_available_themes() -> list[str]:
     """Get list of globally available themes."""
     app = get_themed_application()
     if app:

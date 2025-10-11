@@ -105,7 +105,7 @@ def main():
 
     # Step 3: Create themed widgets
     print("\nStep 3: Create themed widgets")
-    window = MyWindow()  # This creates multiple themed widgets
+    MyWindow()  # This creates multiple themed widgets
     print("✅ All widgets created and automatically themed")
 
     # Step 4: Switch themes and see automatic updates

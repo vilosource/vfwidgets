@@ -25,7 +25,7 @@ Performance Requirements:
 
 import threading
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 from weakref import WeakSet
 
 # Import base ThemeError from protocols
@@ -217,8 +217,8 @@ class ErrorRecoveryManager:
 
     def __init__(self):
         self._lock = threading.RLock()
-        self._error_counts: Dict[str, int] = {}
-        self._last_error_time: Dict[str, float] = {}
+        self._error_counts: dict[str, int] = {}
+        self._last_error_time: dict[str, float] = {}
         self._notification_callbacks: WeakSet = WeakSet()
 
         # Import fallback functions (avoid circular imports)
@@ -242,7 +242,7 @@ class ErrorRecoveryManager:
         self,
         error: ThemeError,
         operation: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
         fallback_data: Optional[Any] = None,
         notify_user: bool = False,
         log_error: bool = True,
@@ -286,7 +286,7 @@ class ErrorRecoveryManager:
         self,
         error: ThemeError,
         operation: str,
-        context: Optional[Dict[str, Any]],
+        context: Optional[dict[str, Any]],
         fallback_data: Optional[Any],
     ) -> Any:
         """Get appropriate fallback value for specific error type."""
@@ -312,8 +312,8 @@ class ErrorRecoveryManager:
             return self._fallback_functions["get_fallback_theme"]()
 
     def apply_graceful_degradation(
-        self, theme_data: Dict[str, Any], operation: str
-    ) -> Dict[str, Any]:
+        self, theme_data: dict[str, Any], operation: str
+    ) -> dict[str, Any]:
         """Apply graceful degradation to partially invalid theme data.
 
         Args:
@@ -352,7 +352,7 @@ class ErrorRecoveryManager:
 
         return corrected_theme
 
-    def _fix_colors(self, colors: Dict[str, Any]) -> None:
+    def _fix_colors(self, colors: dict[str, Any]) -> None:
         """Fix invalid color values in place."""
         required_colors = ["primary", "background", "text", "border"]
 
@@ -360,7 +360,7 @@ class ErrorRecoveryManager:
             if color_key not in colors or not self._is_valid_color(colors[color_key]):
                 colors[color_key] = self._fallback_functions["get_fallback_color"](color_key)
 
-    def _fix_fonts(self, fonts: Dict[str, Any]) -> None:
+    def _fix_fonts(self, fonts: dict[str, Any]) -> None:
         """Fix invalid font values in place."""
         if "default" not in fonts or not isinstance(fonts["default"], str):
             fonts["default"] = "Arial, sans-serif"
@@ -368,7 +368,7 @@ class ErrorRecoveryManager:
         if "size" not in fonts or not isinstance(fonts["size"], (int, str)):
             fonts["size"] = 12
 
-    def _fix_spacing(self, spacing: Dict[str, Any]) -> None:
+    def _fix_spacing(self, spacing: dict[str, Any]) -> None:
         """Fix invalid spacing values in place."""
         if "default" not in spacing or not isinstance(spacing["default"], (int, float)):
             spacing["default"] = 8
@@ -401,7 +401,7 @@ class ErrorRecoveryManager:
         return color.lower() in named_colors
 
     def _log_error(
-        self, error: ThemeError, operation: str, context: Optional[Dict[str, Any]]
+        self, error: ThemeError, operation: str, context: Optional[dict[str, Any]]
     ) -> None:
         """Log error with structured information."""
         log_data = {
@@ -441,7 +441,7 @@ class ErrorRecoveryManager:
         """
         self._notification_callbacks.add(callback)
 
-    def get_error_statistics(self) -> Dict[str, Dict[str, Any]]:
+    def get_error_statistics(self) -> dict[str, dict[str, Any]]:
         """Get error statistics for monitoring and debugging.
 
         Returns:
@@ -467,7 +467,7 @@ class ErrorRecoveryManager:
             self._last_error_time.clear()
 
     def handle_error(
-        self, error: Exception, operation: str, context: Optional[Dict[str, Any]] = None
+        self, error: Exception, operation: str, context: Optional[dict[str, Any]] = None
     ) -> Any:
         """Handle any error (not just ThemeError) with appropriate fallback.
 

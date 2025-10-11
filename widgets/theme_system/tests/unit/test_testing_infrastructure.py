@@ -417,7 +417,7 @@ class TestPerformanceBenchmarking(ThemedTestCase):
             "memory_overhead_per_widget": 10240,  # 10KB for testing
         }
 
-        meets_requirements = result.meets_requirements(requirements)
+        result.meets_requirements(requirements)
         # Note: This might fail in test environment due to overhead, which is acceptable
 
         # Test with strict requirements that should fail
@@ -461,7 +461,7 @@ class TestMemoryProfiling(ThemedTestCase):
         self.assertIsInstance(snapshot1.object_counts, dict)
 
         # Create some objects
-        widgets = [self.create_test_widget() for _ in range(5)]
+        [self.create_test_widget() for _ in range(5)]
 
         # Take second snapshot
         snapshot2 = profiler.take_snapshot("after_widgets")
@@ -476,7 +476,7 @@ class TestMemoryProfiling(ThemedTestCase):
         profiler = MemoryProfiler()
 
         with profiler.profile_operation("widget_creation"):
-            widgets = [self.create_test_widget() for _ in range(10)]
+            [self.create_test_widget() for _ in range(10)]
 
         # Check that operation was profiled
         self.assertIn("widget_creation", profiler._operation_profiles)
@@ -544,9 +544,9 @@ class TestMemoryProfiling(ThemedTestCase):
 
         # Simulate lightweight operations
         with profiler.profile_operation("lightweight_op"):
-            widget = self.create_test_widget()
+            self.create_test_widget()
 
-        meets_requirements = profiler.validate_memory_requirements()
+        profiler.validate_memory_requirements()
         # Note: This might fail in test environment due to overhead, which is acceptable for testing infrastructure
 
     def test_memory_report_generation(self):
@@ -556,7 +556,7 @@ class TestMemoryProfiling(ThemedTestCase):
 
         # Run some operations
         with profiler.profile_operation("test_operation"):
-            widgets = [self.create_test_widget() for _ in range(3)]
+            [self.create_test_widget() for _ in range(3)]
 
         try:
             report = profiler.generate_report()
@@ -646,7 +646,7 @@ class TestPerformanceDecorators(ThemedTestCase):
     def test_memory_decorator(self):
         """Test the memory_test decorator."""
         # This should pass with minimal memory usage
-        data = [i for i in range(100)]
+        data = list(range(100))
         return data
 
     @memory_leak_test(iterations=5, max_leaks=3)  # Allow some test overhead

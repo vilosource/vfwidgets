@@ -1,4 +1,4 @@
-"""VFWidgets Theme System - Pattern Recognition
+"""VFWidgets Theme System - Pattern Recognition.
 
 This module provides pattern recognition capabilities for theme matching,
 complementing the CSS selector system with additional pattern types.

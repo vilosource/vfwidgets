@@ -51,9 +51,9 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
 
         # Phase 3: Theme Change
         # Change theme and verify widget receives update
-        old_theme_name = self.app.get_current_theme().name
+        self.app.get_current_theme().name
         self.app.set_theme("dark")
-        new_theme_name = self.app.get_current_theme().name
+        self.app.get_current_theme().name
 
         # Widget should have received update
         # (Actual verification depends on theme content)
@@ -152,7 +152,7 @@ class TestWidgetLifecycleIntegration(ThemedTestCase):
         widget_refs = []
 
         # Create widgets dynamically
-        for i in range(20):
+        for _i in range(20):
             widget = ThemedWidget()
             widget_refs.append(weakref.ref(widget))
 

@@ -137,7 +137,9 @@ class ModernEventsDemo(QMainWindow):
         # Set up demo commands
         self._setup_demo_commands()
 
-        self.event_log.log_event("DEMO", "Demo initialized", "All event categories enabled")
+        self.event_log.log_event(
+            "DEMO", "Demo initialized", "All event categories enabled"
+        )
 
     def _setup_event_monitoring(self):
         """Set up comprehensive event monitoring."""
@@ -150,7 +152,9 @@ class ModernEventsDemo(QMainWindow):
         )
 
         self.terminal.serverStarted.connect(
-            lambda url: self.event_log.log_event("LIFECYCLE", "serverStarted", f"Server at {url}")
+            lambda url: self.event_log.log_event(
+                "LIFECYCLE", "serverStarted", f"Server at {url}"
+            )
         )
 
         self.terminal.terminalClosed.connect(
@@ -193,7 +197,9 @@ class ModernEventsDemo(QMainWindow):
         )
 
         self.terminal.inputSent.connect(
-            lambda text: self.event_log.log_event("CONTENT", "inputSent", f"Sent: {text[:30]}...")
+            lambda text: self.event_log.log_event(
+                "CONTENT", "inputSent", f"Sent: {text[:30]}..."
+            )
         )
 
         # === INTERACTION EVENTS ===
@@ -203,11 +209,15 @@ class ModernEventsDemo(QMainWindow):
 
         # === FOCUS EVENTS ===
         self.terminal.focusReceived.connect(
-            lambda: self.event_log.log_event("FOCUS", "focusReceived", "Terminal gained focus")
+            lambda: self.event_log.log_event(
+                "FOCUS", "focusReceived", "Terminal gained focus"
+            )
         )
 
         self.terminal.focusLost.connect(
-            lambda: self.event_log.log_event("FOCUS", "focusLost", "Terminal lost focus")
+            lambda: self.event_log.log_event(
+                "FOCUS", "focusLost", "Terminal lost focus"
+            )
         )
 
         # === APPEARANCE EVENTS ===
@@ -218,11 +228,15 @@ class ModernEventsDemo(QMainWindow):
         )
 
         self.terminal.titleChanged.connect(
-            lambda title: self.event_log.log_event("APPEARANCE", "titleChanged", f"Title: {title}")
+            lambda title: self.event_log.log_event(
+                "APPEARANCE", "titleChanged", f"Title: {title}"
+            )
         )
 
         self.terminal.bellActivated.connect(
-            lambda: self.event_log.log_event("APPEARANCE", "bellActivated", "Terminal bell rang!")
+            lambda: self.event_log.log_event(
+                "APPEARANCE", "bellActivated", "Terminal bell rang!"
+            )
         )
 
         self.terminal.scrollOccurred.connect(
@@ -288,10 +302,14 @@ class ModernEventsDemo(QMainWindow):
 
         if event.selected_text:
             # Add action for selected text
-            search_action = QAction(f"🔍 Demo: Search '{event.selected_text[:15]}...'", menu)
+            search_action = QAction(
+                f"🔍 Demo: Search '{event.selected_text[:15]}...'", menu
+            )
             search_action.triggered.connect(
                 lambda: self.event_log.log_event(
-                    "DEMO", "customAction", f"Search requested for: {event.selected_text}"
+                    "DEMO",
+                    "customAction",
+                    f"Search requested for: {event.selected_text}",
                 )
             )
             menu.addAction(search_action)
@@ -329,7 +347,9 @@ class ModernEventsDemo(QMainWindow):
 
         def send_demo_commands():
             """Send some demo commands to trigger events."""
-            self.event_log.log_event("DEMO", "autoCommands", "Starting automatic demo commands")
+            self.event_log.log_event(
+                "DEMO", "autoCommands", "Starting automatic demo commands"
+            )
 
             # Send various commands to demonstrate events
             commands = [
@@ -346,10 +366,14 @@ class ModernEventsDemo(QMainWindow):
             ]
 
             for command, delay in commands:
-                QTimer.singleShot(delay, lambda cmd=command: self.terminal.send_command(cmd))
+                QTimer.singleShot(
+                    delay, lambda cmd=command: self.terminal.send_command(cmd)
+                )
 
         # Start demo commands after terminal is ready
-        self.terminal.terminalReady.connect(lambda: QTimer.singleShot(2000, send_demo_commands))
+        self.terminal.terminalReady.connect(
+            lambda: QTimer.singleShot(2000, send_demo_commands)
+        )
 
     def closeEvent(self, event):
         """Handle window close."""

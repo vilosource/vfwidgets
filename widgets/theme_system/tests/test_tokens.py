@@ -129,9 +129,9 @@ class TestTokensClass:
         registry_tokens = ColorTokenRegistry.get_all_token_names()
 
         # Should match registry count exactly
-        assert len(tokens) == len(
-            registry_tokens
-        ), f"Expected {len(registry_tokens)} tokens, got {len(tokens)}"
+        assert len(tokens) == len(registry_tokens), (
+            f"Expected {len(registry_tokens)} tokens, got {len(tokens)}"
+        )
 
     def test_all_tokens_matches_registry_exactly(self):
         """Test that all tokens match ColorTokenRegistry exactly."""
@@ -290,9 +290,9 @@ class TestTokensClass:
         for const_name, expected_value in test_cases:
             if hasattr(Tokens, const_name):
                 actual_value = getattr(Tokens, const_name)
-                assert (
-                    actual_value == expected_value
-                ), f"{const_name} should be '{expected_value}', got '{actual_value}'"
+                assert actual_value == expected_value, (
+                    f"{const_name} should be '{expected_value}', got '{actual_value}'"
+                )
 
     def test_tokens_class_has_docstring(self):
         """Test that Tokens class has documentation."""

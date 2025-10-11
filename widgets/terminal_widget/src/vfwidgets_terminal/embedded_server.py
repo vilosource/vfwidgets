@@ -128,7 +128,9 @@ class EmbeddedTerminalServer(QObject):
         self.app.config["fd"] = None
         self.app.config["child_pid"] = None
 
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
+        self.socketio = SocketIO(
+            self.app, cors_allowed_origins="*", async_mode="threading"
+        )
 
         # Setup routes
         @self.app.route("/")
@@ -188,7 +190,9 @@ class EmbeddedTerminalServer(QObject):
                 self._set_winsize(fd, 24, 80)
 
                 # Start output reader
-                self.socketio.start_background_task(target=self._read_and_forward_output)
+                self.socketio.start_background_task(
+                    target=self._read_and_forward_output
+                )
 
                 logger.info(f"Started process {child_pid}: {self.command}")
                 self.process_started.emit()
@@ -216,7 +220,9 @@ class EmbeddedTerminalServer(QObject):
 
             if self.app.config["fd"]:
                 timeout_sec = 0
-                (data_ready, _, _) = select.select([self.app.config["fd"]], [], [], timeout_sec)
+                (data_ready, _, _) = select.select(
+                    [self.app.config["fd"]], [], [], timeout_sec
+                )
 
                 if data_ready:
                     try:
@@ -226,7 +232,9 @@ class EmbeddedTerminalServer(QObject):
 
                         # Emit to browser
                         self.socketio.emit(
-                            "pty-output", {"output": output}, namespace=WEBSOCKET_NAMESPACE
+                            "pty-output",
+                            {"output": output},
+                            namespace=WEBSOCKET_NAMESPACE,
                         )
 
                         # Capture if requested
@@ -247,10 +255,14 @@ class EmbeddedTerminalServer(QObject):
                 if pid == self.child_pid:
                     if os.WIFEXITED(status):
                         exit_code = os.WEXITSTATUS(status)
-                        logger.info(f"Process {self.child_pid} exited with code {exit_code}")
+                        logger.info(
+                            f"Process {self.child_pid} exited with code {exit_code}"
+                        )
                     elif os.WIFSIGNALED(status):
                         sig = os.WTERMSIG(status)
-                        logger.info(f"Process {self.child_pid} terminated by signal {sig}")
+                        logger.info(
+                            f"Process {self.child_pid} terminated by signal {sig}"
+                        )
                         exit_code = -sig
             except Exception:
                 pass  # Process already dead or not accessible

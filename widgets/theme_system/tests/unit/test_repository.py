@@ -231,7 +231,7 @@ class TestThemeRepository(ThemedTestCase):
                     theme = Theme.from_dict(theme_data)
 
                     self.repository.add_theme(theme)
-                    retrieved = self.repository.get_theme(theme.name)
+                    self.repository.get_theme(theme.name)
                     results.append(f"{worker_id}-{i}")
 
                     # Simulate some processing time

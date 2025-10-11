@@ -471,7 +471,9 @@ class KeyboardDrivenWindow(QMainWindow):
                 if hasattr(pane_widget, "editor"):
                     # Disconnect first to avoid duplicate connections
                     try:
-                        pane_widget.editor.focus_navigation_requested.disconnect(self.navigate_focus)
+                        pane_widget.editor.focus_navigation_requested.disconnect(
+                            self.navigate_focus
+                        )
                     except:
                         pass  # Not connected yet
 
@@ -713,7 +715,7 @@ class KeyboardDrivenWindow(QMainWindow):
         # Note: Deleted panes are automatically cleaned up via widget_closing() lifecycle hook
         for pid, pane_widget in list(self.provider.panes.items()):
             try:
-                is_focused = (pid == new_pane_id)
+                is_focused = pid == new_pane_id
                 print(f"[FOCUS] Setting {pid[:8]} focused={is_focused}")
                 pane_widget.update_header_style(is_focused)
             except RuntimeError as e:

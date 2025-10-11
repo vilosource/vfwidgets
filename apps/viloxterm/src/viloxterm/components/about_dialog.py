@@ -60,7 +60,7 @@ class AboutDialog(QDialog):
         layout.addSpacing(20)
 
         # License and author info
-        info_label = QLabel(f"<b>Author:</b> {__author__}<br>" f"<b>License:</b> {__license__}")
+        info_label = QLabel(f"<b>Author:</b> {__author__}<br><b>License:</b> {__license__}")
         info_label.setWordWrap(True)
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
@@ -70,10 +70,10 @@ class AboutDialog(QDialog):
 
         # Built with section
         built_with_label = QLabel(
-            f"<b>Built with:</b><br>"
-            f"• VFWidgets (Theme System, Multisplit, Terminal)<br>"
-            f"• PySide6 (Qt for Python)<br>"
-            f"• Chrome Tabbed Window"
+            "<b>Built with:</b><br>"
+            "• VFWidgets (Theme System, Multisplit, Terminal)<br>"
+            "• PySide6 (Qt for Python)<br>"
+            "• Chrome Tabbed Window"
         )
         built_with_label.setWordWrap(True)
         built_with_label.setAlignment(Qt.AlignmentFlag.AlignCenter)

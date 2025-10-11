@@ -245,7 +245,7 @@ TIPS
                 QMessageBox.warning(
                     self,
                     "Error",
-                    f"Failed to reload bindings:\n{e}\n\n" f"Check if the JSON file is valid.",
+                    f"Failed to reload bindings:\n{e}\n\nCheck if the JSON file is valid.",
                 )
 
     def _reset_bindings(self):
@@ -253,7 +253,7 @@ TIPS
         reply = QMessageBox.question(
             self,
             "Reset to Defaults",
-            "This will reset all keyboard shortcuts to their default values.\n\n" "Continue?",
+            "This will reset all keyboard shortcuts to their default values.\n\nContinue?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 

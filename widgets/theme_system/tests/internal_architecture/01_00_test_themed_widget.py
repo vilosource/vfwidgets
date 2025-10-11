@@ -102,7 +102,7 @@ class SimpleThemedWidget(ThemedWidget):
         app = ThemedApplication.instance()
         if app:
             info = f"""Current Theme: {app.current_theme_name}
-Available Themes: {', '.join(app.available_themes)}
+Available Themes: {", ".join(app.available_themes)}
 Theme Type: {app.theme_type}"""
         else:
             info = "ThemedApplication not initialized"

@@ -151,7 +151,9 @@ class AdvancedTerminalWindow(QMainWindow):
         add_terminal_layout.addWidget(add_bash_btn)
 
         add_python_btn = QPushButton("+ New Python Terminal")
-        add_python_btn.clicked.connect(lambda: self.add_terminal("Python", "python", ["-i"]))
+        add_python_btn.clicked.connect(
+            lambda: self.add_terminal("Python", "python", ["-i"])
+        )
         add_terminal_layout.addWidget(add_python_btn)
 
         add_terminal_layout.addStretch()
@@ -165,14 +167,21 @@ class AdvancedTerminalWindow(QMainWindow):
         """Add a new terminal tab."""
         # Create terminal with output capture
         terminal = TerminalWidget(
-            command=command, args=args, capture_output=self.capture_check.isChecked(), debug=True
+            command=command,
+            args=args,
+            capture_output=self.capture_check.isChecked(),
+            debug=True,
         )
 
         # Connect signals
-        terminal.terminal_ready.connect(lambda: self.update_status(f"Terminal '{name}' ready"))
+        terminal.terminal_ready.connect(
+            lambda: self.update_status(f"Terminal '{name}' ready")
+        )
         terminal.output_received.connect(self.handle_output)
         terminal.terminal_closed.connect(
-            lambda code: self.update_status(f"Terminal '{name}' closed with code {code}")
+            lambda code: self.update_status(
+                f"Terminal '{name}' closed with code {code}"
+            )
         )
 
         # Add to tabs
@@ -224,7 +233,9 @@ class AdvancedTerminalWindow(QMainWindow):
         if terminal and terminal.capture_output:
             from PySide6.QtWidgets import QFileDialog
 
-            filename, _ = QFileDialog.getSaveFileName(self, "Save Output", "", "Text Files (*.txt)")
+            filename, _ = QFileDialog.getSaveFileName(
+                self, "Save Output", "", "Text Files (*.txt)"
+            )
             if filename:
                 terminal.save_output(filename)
                 self.update_status(f"Output saved to {filename}")

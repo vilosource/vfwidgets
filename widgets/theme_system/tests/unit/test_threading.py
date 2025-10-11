@@ -8,7 +8,7 @@ async operations, and Qt signal/slot integration.
 import asyncio
 import threading
 import time
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -38,7 +38,7 @@ class TestThreadSafeThemeManager(ThemedTestCase):
             thread.join()
 
         # All instances should be the same object
-        assert len(set(id(instance) for instance in instances)) == 1
+        assert len({id(instance) for instance in instances}) == 1
         assert all(instance is instances[0] for instance in instances)
 
     def test_double_checked_locking(self):
@@ -402,7 +402,7 @@ class TestAsyncThemeLoading(ThemedTestCase):
         queue = ThemeLoadQueue()
         load_order = []
 
-        def load_callback(theme_name: str, theme_data: Dict[str, Any]):
+        def load_callback(theme_name: str, theme_data: dict[str, Any]):
             load_order.append(theme_name)
 
         # Queue multiple themes
@@ -490,7 +490,7 @@ class TestQtSignalSlotIntegration(ThemedTestCase):
         manager = ThemeSignalManager()
         signal_results = []
 
-        def signal_handler(theme_name: str, theme_data: Dict[str, Any]):
+        def signal_handler(theme_name: str, theme_data: dict[str, Any]):
             signal_results.append((theme_name, theme_data))
 
         # Connect handler
@@ -585,7 +585,7 @@ class TestQtSignalSlotIntegration(ThemedTestCase):
             thread_info.append(threading.current_thread().ident)
 
         # Connect from main thread
-        main_thread_id = threading.current_thread().ident
+        threading.current_thread().ident
         manager.theme_changed.connect(signal_handler)
 
         # Emit from different thread
@@ -822,7 +822,7 @@ class TestPerformanceUnderLoad(ThemedTestCase):
         manager = ThemeSignalManager()
         emission_times = []
 
-        def signal_handler(theme_name: str, theme_data: Dict[str, Any]):
+        def signal_handler(theme_name: str, theme_data: dict[str, Any]):
             pass  # Minimal handler
 
         manager.theme_changed.connect(signal_handler)
@@ -846,7 +846,7 @@ class TestPerformanceUnderLoad(ThemedTestCase):
         """Test support for 8+ concurrent threads without contention."""
         from src.vfwidgets_theme.threading import ThemeCache, ThreadSafeThemeManager
 
-        manager = ThreadSafeThemeManager.get_instance()
+        ThreadSafeThemeManager.get_instance()
         thread_results = []
 
         def concurrent_operation(thread_id: int):

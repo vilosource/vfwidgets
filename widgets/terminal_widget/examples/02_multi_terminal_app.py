@@ -47,7 +47,7 @@ class MultiTerminalApp(QMainWindow):
 
         # Add initial terminals (all using shared server)
         for i in range(5):
-            self.add_terminal(f"Terminal {i+1}")
+            self.add_terminal(f"Terminal {i + 1}")
 
         # Add "+" button to create new terminals
         self.tabs.setCornerWidget(self._create_add_button())
@@ -61,7 +61,9 @@ class MultiTerminalApp(QMainWindow):
 
         button = QPushButton("+")
         button.setFixedSize(30, 30)
-        button.clicked.connect(lambda: self.add_terminal(f"Terminal {self.tabs.count() + 1}"))
+        button.clicked.connect(
+            lambda: self.add_terminal(f"Terminal {self.tabs.count() + 1}")
+        )
         return button
 
     def add_terminal(self, name: str):

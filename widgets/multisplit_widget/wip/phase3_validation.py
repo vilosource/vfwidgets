@@ -11,6 +11,7 @@ from pathlib import Path
 src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
+
 def check_phase3_components():
     """Check that all Phase 3 components exist and work."""
     print("🔍 Phase 3 MVP Validation")
@@ -20,6 +21,7 @@ def check_phase3_components():
     try:
         from vfwidgets_multisplit.view.container import StyledSplitter
         from vfwidgets_multisplit.view.error_widget import ErrorWidget, ValidationOverlay
+
         print("✅ P3.1: Visual Polish - StyledSplitter, ErrorWidget, ValidationOverlay")
     except ImportError as e:
         print(f"❌ P3.1: Visual Polish - {e}")
@@ -32,13 +34,14 @@ def check_phase3_components():
         # Test validation integration
         from vfwidgets_multisplit.core.model import PaneModel
         from vfwidgets_multisplit.core.validation import OperationValidator, ValidationResult
+
         model = PaneModel()
         controller = PaneController(model)
 
         # Check validation is enabled
-        assert hasattr(controller, 'enable_validation')
-        assert hasattr(controller, '_validator')
-        assert hasattr(controller, 'validate_and_execute')
+        assert hasattr(controller, "enable_validation")
+        assert hasattr(controller, "_validator")
+        assert hasattr(controller, "validate_and_execute")
         print("✅ P3.2: Validation System - OperationValidator, validation integration")
     except (ImportError, AssertionError) as e:
         print(f"❌ P3.2: Validation System - {e}")
@@ -51,8 +54,8 @@ def check_phase3_components():
 
         # Test constraint methods exist
         calc = GeometryCalculator()
-        assert hasattr(calc, 'calculate_layout')
-        assert hasattr(calc, '_apply_constraints')
+        assert hasattr(calc, "calculate_layout")
+        assert hasattr(calc, "_apply_constraints")
         print("✅ P3.3: Size Constraints - Constraint enforcement, SetConstraintsCommand")
     except (ImportError, AssertionError) as e:
         print(f"❌ P3.3: Size Constraints - {e}")
@@ -62,6 +65,7 @@ def check_phase3_components():
     try:
         # Check that the main file exists and has the class
         import importlib.util
+
         spec = importlib.util.find_spec("vfwidgets_multisplit.multisplit")
         assert spec is not None, "multisplit module not found"
 
@@ -74,6 +78,7 @@ def check_phase3_components():
         return False
 
     return True
+
 
 def test_mvp_functionality():
     """Test core MVP functionality."""
@@ -96,7 +101,7 @@ def test_mvp_functionality():
             "def save_layout",
             "def load_layout",
             "widget_needed = Signal",
-            "validation_failed = Signal"
+            "validation_failed = Signal",
         ]
 
         for feature in mvp_features:
@@ -116,6 +121,7 @@ def test_mvp_functionality():
         print(f"❌ MVP test failed: {e}")
         return False
 
+
 def main():
     """Main validation routine."""
     components_ok = check_phase3_components()
@@ -131,6 +137,7 @@ def main():
     else:
         print("❌ MVP validation failed")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

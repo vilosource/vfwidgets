@@ -1,4 +1,4 @@
-"""VSCode Theme Importer
+"""VSCode Theme Importer.
 
 This module provides VSCode theme import capabilities including:
 - VSCode theme JSON format parsing
@@ -11,7 +11,7 @@ This module provides VSCode theme import capabilities including:
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from ..core.theme import Theme
 from ..errors import ThemeError
@@ -192,9 +192,9 @@ class VSCodeColorMapper:
 
         """
         self.include_unmapped = include_unmapped
-        self._unmapped_colors: Set[str] = set()
+        self._unmapped_colors: set[str] = set()
 
-    def map_colors(self, vscode_colors: Dict[str, str]) -> Dict[str, str]:
+    def map_colors(self, vscode_colors: dict[str, str]) -> dict[str, str]:
         """Map VSCode colors to Qt theme colors.
 
         Args:
@@ -227,7 +227,7 @@ class VSCodeColorMapper:
         """Find fallback mapping for unmapped VSCode color key."""
         vscode_key_lower = vscode_key.lower()
 
-        for pattern, qt_suffix in self.FALLBACK_PATTERNS.items():
+        for pattern, _qt_suffix in self.FALLBACK_PATTERNS.items():
             if pattern in vscode_key_lower:
                 # Convert camelCase to dot notation
                 parts = []
@@ -247,7 +247,7 @@ class VSCodeColorMapper:
 
         return None
 
-    def get_unmapped_colors(self) -> Set[str]:
+    def get_unmapped_colors(self) -> set[str]:
         """Get set of colors that couldn't be mapped."""
         return self._unmapped_colors.copy()
 
@@ -259,7 +259,7 @@ class TokenColorMapper:
         """Initialize token color mapper."""
         pass
 
-    def map_token_colors(self, token_colors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def map_token_colors(self, token_colors: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Map VSCode tokenColors to theme format.
 
         Args:
@@ -354,7 +354,7 @@ class VSCodeImporter:
             raise VSCodeImportError(f"Failed to import VSCode theme from {vscode_path}: {e}") from e
 
     def import_from_data(
-        self, vscode_data: Dict[str, Any], theme_name: Optional[str] = None
+        self, vscode_data: dict[str, Any], theme_name: Optional[str] = None
     ) -> Theme:
         """Import VSCode theme from data dictionary.
 
@@ -379,7 +379,7 @@ class VSCodeImporter:
         except Exception as e:
             raise VSCodeImportError(f"Failed to import VSCode theme from data: {e}") from e
 
-    def _load_vscode_file(self, file_path: Path) -> Dict[str, Any]:
+    def _load_vscode_file(self, file_path: Path) -> dict[str, Any]:
         """Load VSCode theme file."""
         if not file_path.exists():
             raise VSCodeImportError(f"VSCode theme file not found: {file_path}")
@@ -397,7 +397,7 @@ class VSCodeImporter:
 
         return data
 
-    def _extract_theme_info(self, vscode_data: Dict[str, Any]) -> VSCodeThemeInfo:
+    def _extract_theme_info(self, vscode_data: dict[str, Any]) -> VSCodeThemeInfo:
         """Extract theme information from VSCode data."""
         return VSCodeThemeInfo(
             name=vscode_data.get("name", "Imported VSCode Theme"),
@@ -407,7 +407,7 @@ class VSCodeImporter:
             version=vscode_data.get("version", "1.0.0"),
         )
 
-    def _import_from_data(self, vscode_data: Dict[str, Any], theme_info: VSCodeThemeInfo) -> Theme:
+    def _import_from_data(self, vscode_data: dict[str, Any], theme_info: VSCodeThemeInfo) -> Theme:
         """Import theme from VSCode data and theme info."""
         logger.debug(f"Importing VSCode theme: {theme_info.name}")
 
@@ -493,7 +493,7 @@ class VSCodeImporter:
         except (ValueError, IndexError):
             return "dark"
 
-    def get_import_summary(self) -> Dict[str, Any]:
+    def get_import_summary(self) -> dict[str, Any]:
         """Get summary of last import operation."""
         return {
             "mapped_colors": len(self.color_mapper.COLOR_MAP),

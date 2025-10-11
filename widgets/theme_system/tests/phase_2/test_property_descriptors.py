@@ -274,7 +274,7 @@ class TestComputedProperty:
         mock_obj = Mock()
 
         # First call
-        result1 = computed.compute(mock_obj)
+        computed.compute(mock_obj)
         assert call_count == 1
 
         # Invalidate cache
@@ -640,9 +640,9 @@ class TestPerformanceCharacteristics:
 
         # Should be very fast for cached access
         avg_time_ns = (end_time - start_time) * 1_000_000_000 / 1000
-        assert (
-            avg_time_ns < 10000
-        ), f"Property access too slow: {avg_time_ns}ns avg"  # Relaxed to 10μs
+        assert avg_time_ns < 10000, (
+            f"Property access too slow: {avg_time_ns}ns avg"
+        )  # Relaxed to 10μs
 
         # Only first access should call _get_theme_property
         assert widget.call_count == 1

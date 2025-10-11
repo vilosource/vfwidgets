@@ -84,7 +84,7 @@ class TestWidgetRegistrySystem(ThemedTestCase):
         assert registry.count() == 1
 
         # Simulate widget destruction
-        widget_id = id(widget)
+        id(widget)
         del widget
         gc.collect()  # Force garbage collection
 
@@ -100,7 +100,7 @@ class TestWidgetRegistrySystem(ThemedTestCase):
         widgets = []  # Keep references to prevent immediate GC
 
         # Create and register 100 widgets
-        for i in range(100):
+        for _i in range(100):
             widget = MockWidget()
             widgets.append(widget)  # Keep reference
             registry.register(widget)
@@ -133,9 +133,9 @@ class TestWidgetRegistrySystem(ThemedTestCase):
 
         # WeakRef cleanup timing can be unpredictable in tests
         # The important thing is that most widgets are cleaned up, proving the mechanism works
-        assert (
-            remaining <= 5
-        ), f"Expected ≤5 widgets remaining, but {remaining} remain (most widgets should be cleaned up)"
+        assert remaining <= 5, (
+            f"Expected ≤5 widgets remaining, but {remaining} remain (most widgets should be cleaned up)"
+        )
 
     @performance_test(max_time=0.01)  # 10ms = 0.01 seconds
     def test_registration_performance(self):
@@ -161,7 +161,7 @@ class TestWidgetRegistrySystem(ThemedTestCase):
         threads = []
 
         def register_widgets():
-            for i in range(10):
+            for _i in range(10):
                 widget = MockWidget()
                 widgets.append(widget)
                 registry.register(widget)
@@ -359,7 +359,7 @@ class TestContextManagers(ThemedTestCase):
 
         # Create widgets within context
         with WidgetCreationContext(manager) as context:
-            for i in range(10):
+            for _i in range(10):
                 widget = MockWidget()
                 context.register_widget(widget)
 
@@ -389,7 +389,7 @@ class TestContextManagers(ThemedTestCase):
 
         # Test context manager with exception
         try:
-            with ThemeUpdateContext(manager) as context:
+            with ThemeUpdateContext(manager):
                 raise ValueError("Test error")
         except ValueError:
             pass  # Expected
@@ -406,7 +406,7 @@ class TestContextManagers(ThemedTestCase):
 
         # Use context manager repeatedly
         for _ in range(100):
-            with ThemeUpdateContext(manager) as context:
+            with ThemeUpdateContext(manager):
                 widgets = [MockWidget() for _ in range(10)]
                 for widget in widgets:
                     manager.register_widget(widget)
@@ -443,7 +443,7 @@ class TestCleanupProtocols(ThemedTestCase):
 
         # Create objects that need cleanup
         cleanup_objects = []
-        for i in range(5):
+        for _i in range(5):
             obj = Mock()
             obj.cleanup = Mock()
             obj.is_cleanup_required = Mock(return_value=True)
@@ -507,7 +507,7 @@ class TestCleanupProtocols(ThemedTestCase):
         scheduler = CleanupScheduler()
 
         # Schedule cleanup for 1000 objects
-        for i in range(1000):
+        for _i in range(1000):
             obj = Mock()
             obj.cleanup = Mock()
             obj.is_cleanup_required = Mock(return_value=True)
@@ -556,7 +556,7 @@ class TestMemoryDiagnostics(ThemedTestCase):
 
         # Create some objects that would leak
         leaked_objects = []
-        for i in range(10):
+        for _i in range(10):
             obj = MockWidget()
             leaked_objects.append(obj)
             detector.track_object(obj)
@@ -611,7 +611,7 @@ class TestMemoryDiagnostics(ThemedTestCase):
         from src.vfwidgets_theme.lifecycle import LeakDetector, MemoryTracker
 
         # Use diagnostics repeatedly
-        for cycle in range(50):
+        for _cycle in range(50):
             tracker = MemoryTracker()
             detector = LeakDetector()
 
@@ -649,7 +649,7 @@ class TestIntegrationScenarios(ThemedTestCase):
 
         # Create and register widgets
         widgets = []
-        for i in range(10):
+        for _i in range(10):
             widget = MockWidget()
             widgets.append(widget)
 
@@ -681,7 +681,7 @@ class TestIntegrationScenarios(ThemedTestCase):
             widgets = []
 
             # Create many widgets
-            for i in range(100):
+            for _i in range(100):
                 widget = MockWidget()
                 widgets.append(widget)
                 manager.register_widget(widget)
@@ -750,7 +750,7 @@ class TestIntegrationScenarios(ThemedTestCase):
             try:
                 # Each thread creates and manages widgets
                 widgets = []
-                for i in range(20):
+                for _i in range(20):
                     widget = MockWidget()
                     widgets.append(widget)
                     manager.register_widget(widget)

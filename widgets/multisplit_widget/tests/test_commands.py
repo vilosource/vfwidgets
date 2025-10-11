@@ -14,9 +14,7 @@ class TestCommands(unittest.TestCase):
     def test_split_pane_command_execute(self):
         """Test split pane command execution."""
         # Create initial model with single pane
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         model._rebuild_registry()
 
         # Create split command
@@ -38,15 +36,11 @@ class TestCommands(unittest.TestCase):
     def test_split_pane_command_undo(self):
         """Test split pane command undo."""
         # Create initial model
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor")))
         model._rebuild_registry()
 
         # Execute and undo split
-        command = SplitPaneCommand(
-            model, PaneId("p1"), WidgetId("terminal"), WherePosition.RIGHT
-        )
+        command = SplitPaneCommand(model, PaneId("p1"), WidgetId("terminal"), WherePosition.RIGHT)
 
         # Execute
         command.execute()
@@ -64,14 +58,10 @@ class TestCommands(unittest.TestCase):
 
     def test_split_pane_replace_position(self):
         """Test split pane with REPLACE position."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("old"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("old")))
         model._rebuild_registry()
 
-        command = SplitPaneCommand(
-            model, PaneId("p1"), WidgetId("new"), WherePosition.REPLACE
-        )
+        command = SplitPaneCommand(model, PaneId("p1"), WidgetId("new"), WherePosition.REPLACE)
 
         command.execute()
 
@@ -83,10 +73,7 @@ class TestCommands(unittest.TestCase):
     def test_remove_pane_command(self):
         """Test remove pane command."""
         # Create tree with multiple panes
-        root = SplitNode(
-            node_id=NodeId("root"),
-            orientation=Orientation.HORIZONTAL
-        )
+        root = SplitNode(node_id=NodeId("root"), orientation=Orientation.HORIZONTAL)
         leaf1 = LeafNode(PaneId("p1"), WidgetId("editor"))
         leaf2 = LeafNode(PaneId("p2"), WidgetId("terminal"))
 
@@ -108,10 +95,7 @@ class TestCommands(unittest.TestCase):
     def test_remove_pane_command_undo(self):
         """Test remove pane command undo."""
         # Create tree with multiple panes
-        root = SplitNode(
-            node_id=NodeId("root"),
-            orientation=Orientation.HORIZONTAL
-        )
+        root = SplitNode(node_id=NodeId("root"), orientation=Orientation.HORIZONTAL)
         leaf1 = LeafNode(PaneId("p1"), WidgetId("editor"))
         leaf2 = LeafNode(PaneId("p2"), WidgetId("terminal"))
 
@@ -137,13 +121,9 @@ class TestCommands(unittest.TestCase):
 
     def test_command_can_execute_undo(self):
         """Test command execution state tracking."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("test"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("test")))
 
-        command = SplitPaneCommand(
-            model, PaneId("p1"), WidgetId("new"), WherePosition.RIGHT
-        )
+        command = SplitPaneCommand(model, PaneId("p1"), WidgetId("new"), WherePosition.RIGHT)
 
         # Initially can execute, cannot undo
         self.assertTrue(command.can_execute())
@@ -162,10 +142,7 @@ class TestCommands(unittest.TestCase):
     def test_split_pane_before_after_positions(self):
         """Test split pane with BEFORE and AFTER positions."""
         # Create parent with existing children
-        root = SplitNode(
-            node_id=NodeId("root"),
-            orientation=Orientation.HORIZONTAL
-        )
+        root = SplitNode(node_id=NodeId("root"), orientation=Orientation.HORIZONTAL)
         leaf1 = LeafNode(PaneId("p1"), WidgetId("first"))
         leaf2 = LeafNode(PaneId("p2"), WidgetId("second"))
 
@@ -175,9 +152,7 @@ class TestCommands(unittest.TestCase):
         model = PaneModel(root=root)
 
         # Insert BEFORE p2
-        command = SplitPaneCommand(
-            model, PaneId("p2"), WidgetId("middle"), WherePosition.BEFORE
-        )
+        command = SplitPaneCommand(model, PaneId("p2"), WidgetId("middle"), WherePosition.BEFORE)
         command.execute()
 
         # Should have 3 children now
@@ -191,5 +166,5 @@ class TestCommands(unittest.TestCase):
         self.assertEqual(children_widgets[2], WidgetId("second"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

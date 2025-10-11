@@ -1,4 +1,4 @@
-"""Theme Event System with Qt Integration
+"""Theme Event System with Qt Integration.
 
 Provides Qt signals/slots based event system for efficient theme change notifications
 with debouncing, performance optimization, and testing support.
@@ -9,7 +9,7 @@ import time
 import weakref
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 try:
     from PySide6.QtCore import QObject, QTimer, Signal, Slot
@@ -82,7 +82,7 @@ class EventRecord:
 
     timestamp: float
     event_type: str
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
     widget_id: Optional[str] = None
     property_name: Optional[str] = None
     old_value: Any = None
@@ -132,17 +132,17 @@ class ThemeEventSystem(QObject):
         self._debounce_timer.timeout.connect(self._flush_pending_events)
 
         # Pending events for debouncing
-        self._pending_events: List[EventRecord] = []
+        self._pending_events: list[EventRecord] = []
         self._pending_lock = RLock()
 
         # Event filtering
-        self._filtered_properties: Set[str] = set()  # Properties to ignore
-        self._filtered_widgets: Set[str] = set()  # Widgets to ignore
+        self._filtered_properties: set[str] = set()  # Properties to ignore
+        self._filtered_widgets: set[str] = set()  # Widgets to ignore
         self._max_events_per_cycle = 100  # Max events to process per debounce cycle
 
         # Event replay for testing
         self._recording_enabled = False
-        self._event_history: List[EventRecord] = []
+        self._event_history: list[EventRecord] = []
         self._max_history_size = 1000
 
         # Performance monitoring
@@ -150,7 +150,7 @@ class ThemeEventSystem(QObject):
         self._logger = logging.getLogger(__name__)
 
         # Widget weak references for cleanup
-        self._widget_refs: Dict[str, weakref.ReferenceType] = {}
+        self._widget_refs: dict[str, weakref.ReferenceType] = {}
 
     def enable_recording(self, max_history: int = 1000) -> None:
         """Enable event recording for replay and debugging."""
@@ -165,7 +165,7 @@ class ThemeEventSystem(QObject):
         self._event_history.clear()
         self._logger.info("Event recording disabled")
 
-    def get_event_history(self) -> List[EventRecord]:
+    def get_event_history(self) -> list[EventRecord]:
         """Get recorded event history."""
         return self._event_history.copy()
 
@@ -350,7 +350,7 @@ class ThemeEventSystem(QObject):
         )
         self.widget_theme_applied.emit(widget_id, theme_name)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get event system statistics."""
         return {
             "debounce_interval_ms": self._debounce_interval_ms,
@@ -422,7 +422,7 @@ class ThemeEventSystem(QObject):
         event_type: str,
         widget_id: Optional[str] = None,
         property_name: Optional[str] = None,
-        data: Optional[Dict[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
     ) -> None:
         """Record an event for replay/debugging."""
         if not self._recording_enabled:

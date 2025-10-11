@@ -7,7 +7,7 @@ internal theme representation, mapping colors and properties appropriately.
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ..core.theme import Theme, ThemeColors, ThemeProperties
 from ..errors import ThemeSystemError
@@ -21,8 +21,8 @@ class VSCodeTokenColor:
     """Represents a VSCode token color definition."""
 
     name: Optional[str] = None
-    scope: Optional[List[str]] = None
-    settings: Optional[Dict[str, str]] = None
+    scope: Optional[list[str]] = None
+    settings: Optional[dict[str, str]] = None
 
 
 class VSCodeThemeImporter:
@@ -162,7 +162,7 @@ class VSCodeThemeImporter:
         except Exception as e:
             raise ThemeSystemError(f"Error importing theme from {theme_path}: {e}")
 
-    def import_theme(self, theme_data: Dict[str, Any], theme_name: str) -> Theme:
+    def import_theme(self, theme_data: dict[str, Any], theme_name: str) -> Theme:
         """Import theme from VSCode theme data.
 
         Args:
@@ -203,7 +203,7 @@ class VSCodeThemeImporter:
         logger.info(f"Successfully converted VSCode theme: {theme_name}")
         return theme
 
-    def _determine_theme_type(self, theme_data: Dict[str, Any]) -> str:
+    def _determine_theme_type(self, theme_data: dict[str, Any]) -> str:
         """Determine if theme is light or dark."""
         # Check explicit type
         theme_type = theme_data.get("type")
@@ -228,7 +228,7 @@ class VSCodeThemeImporter:
         # Default to dark
         return "dark"
 
-    def _extract_colors(self, theme_data: Dict[str, Any]) -> ThemeColors:
+    def _extract_colors(self, theme_data: dict[str, Any]) -> ThemeColors:
         """Extract and map colors from VSCode theme."""
         vscode_colors = theme_data.get("colors", {})
         mapped_colors = {}
@@ -295,7 +295,7 @@ class VSCodeThemeImporter:
 
         return "#000000"
 
-    def _add_color_fallbacks(self, mapped_colors: Dict[str, str], vscode_colors: Dict[str, str]):
+    def _add_color_fallbacks(self, mapped_colors: dict[str, str], vscode_colors: dict[str, str]):
         """Add fallback colors for essential properties with namespaced keys."""
         # Ensure we have basic colors (using namespaced keys)
         if "colors.background" not in mapped_colors and "editor.background" not in mapped_colors:
@@ -340,7 +340,7 @@ class VSCodeThemeImporter:
 
         return color
 
-    def _extract_token_colors(self, theme_data: Dict[str, Any]) -> List[VSCodeTokenColor]:
+    def _extract_token_colors(self, theme_data: dict[str, Any]) -> list[VSCodeTokenColor]:
         """Extract token color rules from theme."""
         token_colors = []
         token_color_data = theme_data.get("tokenColors", [])
@@ -356,7 +356,7 @@ class VSCodeThemeImporter:
 
         return token_colors
 
-    def _normalize_scope(self, scope) -> Optional[List[str]]:
+    def _normalize_scope(self, scope) -> Optional[list[str]]:
         """Normalize token scope to list format."""
         if not scope:
             return None
@@ -393,7 +393,7 @@ class VSCodeThemeImporter:
         except Exception as e:
             raise ThemeSystemError(f"Error exporting theme to VSCode format: {e}")
 
-    def _convert_to_vscode_format(self, theme: Theme) -> Dict[str, Any]:
+    def _convert_to_vscode_format(self, theme: Theme) -> dict[str, Any]:
         """Convert our theme to VSCode format."""
         vscode_theme = {"name": theme.name, "type": theme.type, "colors": {}, "tokenColors": []}
 

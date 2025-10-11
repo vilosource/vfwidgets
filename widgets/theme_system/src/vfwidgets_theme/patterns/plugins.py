@@ -1,11 +1,11 @@
-"""Plugin System for Pattern Matching
+"""Plugin System for Pattern Matching.
 
 This module provides a plugin system for extending pattern matching
 capabilities with custom pattern types.
 """
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from ..widgets.base import ThemedWidget
@@ -37,7 +37,7 @@ class PatternPlugin(ABC):
         pattern: str,
         target: str,
         widget: "ThemedWidget",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ) -> MatchResult:
         """Check if target matches the pattern.
 
@@ -66,7 +66,7 @@ class PatternPlugin(ABC):
         """
         pass
 
-    def get_info(self) -> Dict[str, Any]:
+    def get_info(self) -> dict[str, Any]:
         """Get plugin information."""
         return {
             "name": self.name,
@@ -83,7 +83,7 @@ class PluginManager:
     """
 
     def __init__(self):
-        self._plugins: Dict[str, PatternPlugin] = {}
+        self._plugins: dict[str, PatternPlugin] = {}
 
     def register_plugin(self, plugin: PatternPlugin) -> bool:
         """Register a pattern plugin.
@@ -120,11 +120,11 @@ class PluginManager:
         """Get a plugin by name."""
         return self._plugins.get(plugin_name)
 
-    def list_plugins(self) -> Dict[str, PatternPlugin]:
+    def list_plugins(self) -> dict[str, PatternPlugin]:
         """Get all registered plugins."""
         return self._plugins.copy()
 
-    def get_plugin_info(self) -> Dict[str, Dict[str, Any]]:
+    def get_plugin_info(self) -> dict[str, dict[str, Any]]:
         """Get information about all plugins."""
         return {name: plugin.get_info() for name, plugin in self._plugins.items()}
 
@@ -146,7 +146,7 @@ class HierarchyPlugin(PatternPlugin):
         pattern: str,
         target: str,
         widget: "ThemedWidget",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ) -> MatchResult:
         """Match hierarchy patterns like "Dialog.Button" or "Window>Panel>Button".
 
@@ -202,7 +202,7 @@ class StatePlugin(PatternPlugin):
         pattern: str,
         target: str,
         widget: "ThemedWidget",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ) -> MatchResult:
         """Match state patterns like "enabled", "visible", "focused".
 
@@ -260,7 +260,7 @@ class GeometryPlugin(PatternPlugin):
         pattern: str,
         target: str,
         widget: "ThemedWidget",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ) -> MatchResult:
         """Match geometry patterns like "width>100", "height<50", "x=0".
 

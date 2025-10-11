@@ -26,7 +26,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Add the source directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -323,7 +323,7 @@ class PerformanceMonitorWidget(ThemedWidget):
             except Exception as e:
                 print(f"Error updating performance stats: {e}")
 
-    def _display_stats(self, stats: Dict[str, Any]):
+    def _display_stats(self, stats: dict[str, Any]):
         """Display performance statistics."""
         if not QT_AVAILABLE or not hasattr(self, "stats_display"):
             return

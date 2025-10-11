@@ -6,7 +6,7 @@ in the theme editor. Tokens are organized into categories for easy navigation.
 Phase 1: Core Infrastructure
 """
 
-from typing import Dict, List, Optional, Set
+from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -59,8 +59,8 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
         super().__init__(parent)
 
         # Token organization
-        self._categories: Dict[str, List[tuple[str, str]]] = {}
-        self._all_tokens: Set[str] = set()
+        self._categories: dict[str, list[tuple[str, str]]] = {}
+        self._all_tokens: set[str] = set()
         self._current_filter: str = ""
 
         # Build token database

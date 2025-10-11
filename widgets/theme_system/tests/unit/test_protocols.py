@@ -55,9 +55,9 @@ class TestThemeProviderProtocol:
                     abstract_methods.add(method_name)
 
         # All required methods should be in the protocol
-        assert required_methods.issubset(
-            abstract_methods
-        ), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(abstract_methods), (
+            f"Missing methods: {required_methods - abstract_methods}"
+        )
 
     def test_theme_provider_mock_implementation(self):
         """Test that mock objects can implement ThemeProvider protocol."""
@@ -128,9 +128,9 @@ class TestThemeableWidgetProtocol:
                 if hasattr(item, "__isabstractmethod__") and item.__isabstractmethod__:
                     abstract_items.add(item_name)
 
-        assert required_items.issubset(
-            abstract_items
-        ), f"Missing items: {required_items - abstract_items}"
+        assert required_items.issubset(abstract_items), (
+            f"Missing items: {required_items - abstract_items}"
+        )
 
     def test_themeable_widget_mock_implementation(self):
         """Test mock implementation of ThemeableWidget."""
@@ -196,9 +196,9 @@ class TestColorProviderProtocol:
                 if hasattr(method, "__isabstractmethod__") and method.__isabstractmethod__:
                     abstract_methods.add(method_name)
 
-        assert required_methods.issubset(
-            abstract_methods
-        ), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(abstract_methods), (
+            f"Missing methods: {required_methods - abstract_methods}"
+        )
 
     def test_color_provider_mock_implementation(self):
         """Test mock implementation of ColorProvider."""
@@ -261,9 +261,9 @@ class TestStyleGeneratorProtocol:
                 if hasattr(method, "__isabstractmethod__") and method.__isabstractmethod__:
                     abstract_methods.add(method_name)
 
-        assert required_methods.issubset(
-            abstract_methods
-        ), f"Missing methods: {required_methods - abstract_methods}"
+        assert required_methods.issubset(abstract_methods), (
+            f"Missing methods: {required_methods - abstract_methods}"
+        )
 
     def test_style_generator_mock_implementation(self):
         """Test mock implementation of StyleGenerator."""

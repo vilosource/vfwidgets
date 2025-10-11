@@ -14,12 +14,7 @@ def test_focus_tracking():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model._rebuild_registry()
 
     # Test setting focus
@@ -60,12 +55,7 @@ def test_focus_signals():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model._rebuild_registry()
 
     # Track signal emissions
@@ -106,13 +96,8 @@ def test_focus_manager():
     model.root = SplitNode(
         NodeId("split1"),
         Orientation.HORIZONTAL,
-        [leaf1, SplitNode(
-            NodeId("split2"),
-            Orientation.VERTICAL,
-            [leaf2, leaf3],
-            [0.5, 0.5]
-        )],
-        [0.5, 0.5]
+        [leaf1, SplitNode(NodeId("split2"), Orientation.VERTICAL, [leaf2, leaf3], [0.5, 0.5])],
+        [0.5, 0.5],
     )
     model._rebuild_registry()
 
@@ -156,12 +141,7 @@ def test_focus_manager_navigation():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model._rebuild_registry()
     model.set_focused_pane(PaneId("p1"))
 
@@ -214,12 +194,7 @@ def test_focus_commands():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model._rebuild_registry()
 
     # Test focus command
@@ -261,12 +236,7 @@ def test_keyboard_navigation(qtbot):
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model._rebuild_registry()
     model.set_focused_pane(PaneId("p1"))
 
@@ -293,12 +263,7 @@ def test_set_ratios_command():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("w1"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("w2"))
 
-    split_node = SplitNode(
-        NodeId("split1"),
-        Orientation.HORIZONTAL,
-        [leaf1, leaf2],
-        [0.5, 0.5]
-    )
+    split_node = SplitNode(NodeId("split1"), Orientation.HORIZONTAL, [leaf1, leaf2], [0.5, 0.5])
     model.root = split_node
     model._rebuild_registry()
 
@@ -332,12 +297,7 @@ def test_session_manager():
     leaf1 = LeafNode(PaneId("p1"), WidgetId("editor:main.py"))
     leaf2 = LeafNode(PaneId("p2"), WidgetId("terminal:1"))
 
-    model.root = SplitNode(
-        NodeId("split1"),
-        Orientation.VERTICAL,
-        [leaf1, leaf2],
-        [0.7, 0.3]
-    )
+    model.root = SplitNode(NodeId("split1"), Orientation.VERTICAL, [leaf1, leaf2], [0.7, 0.3])
     model._rebuild_registry()
     model.set_focused_pane(PaneId("p1"))
 
@@ -349,7 +309,7 @@ def test_session_manager():
     assert "0.7" in json_str
 
     # Test file save/load
-    with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
         filepath = Path(f.name)
 
     try:
@@ -390,11 +350,7 @@ def test_phase2_integration(qtbot):
     model.root = LeafNode(PaneId("p0"), WidgetId("initial"))
     model._rebuild_registry()
 
-    controller.split_pane(
-        PaneId("p0"),
-        WidgetId("editor:main.py"),
-        WherePosition.LEFT
-    )
+    controller.split_pane(PaneId("p0"), WidgetId("editor:main.py"), WherePosition.LEFT)
 
     # Check what panes we have
     all_panes = model.get_all_pane_ids()

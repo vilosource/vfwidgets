@@ -496,7 +496,7 @@ class ViloxTermApp(ChromeTabbedWindow):
             terminal.terminalReady.connect(on_ready)
             # Connect shortcut handling
             terminal.shortcutPressed.connect(self._on_terminal_shortcut)
-            logger.debug(f"Connected to terminalReady signal, waiting for terminal to be ready")
+            logger.debug("Connected to terminalReady signal, waiting for terminal to be ready")
 
         # Check if initial pane already exists (it's created during __init__)
         initial_pane_id = multisplit.get_focused_pane()
@@ -508,7 +508,7 @@ class ViloxTermApp(ChromeTabbedWindow):
                 connect_to_terminal_ready(terminal)
             else:
                 # Not a terminal widget yet, wait for it to be created
-                logger.debug(f"Pane exists but widget not ready, waiting for pane_added")
+                logger.debug("Pane exists but widget not ready, waiting for pane_added")
 
                 def on_pane_added(pane_id: str):
                     """Handle pane_added signal."""
@@ -523,7 +523,7 @@ class ViloxTermApp(ChromeTabbedWindow):
                 multisplit.pane_added.connect(on_pane_added)
         else:
             # No pane yet, wait for pane_added signal
-            logger.debug(f"No initial pane yet, waiting for pane_added signal")
+            logger.debug("No initial pane yet, waiting for pane_added signal")
 
             def on_pane_added(pane_id: str):
                 """Handle pane_added signal."""

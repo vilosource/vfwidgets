@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """VFWidgets Theme System - Runtime Assertions
-Task 24: Runtime assertion system for theme validation
+Task 24: Runtime assertion system for theme validation.
 
 This module provides runtime assertion capabilities for validating
 system state and invariants during theme operations.
@@ -11,7 +11,7 @@ import threading
 import time
 import traceback
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from .framework import (
     ValidationFramework,
@@ -23,7 +23,7 @@ from .framework import (
 class AssertionError(Exception):
     """Custom assertion error with context."""
 
-    def __init__(self, message: str, context: Dict[str, Any] = None):
+    def __init__(self, message: str, context: dict[str, Any] = None):
         super().__init__(message)
         self.context = context or {}
         self.stack_trace = traceback.format_stack()[:-1]  # Exclude current frame
@@ -37,7 +37,7 @@ class RuntimeAssertion:
         name: str,
         assertion_func: Callable[[Any], bool],
         message: str = "",
-        context: Dict[str, Any] = None,
+        context: dict[str, Any] = None,
     ):
         self.name = name
         self.assertion_func = assertion_func
@@ -82,7 +82,7 @@ class RuntimeAssertion:
         self.call_count = 0
         self.failure_count = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get assertion statistics."""
         return {
             "name": self.name,
@@ -99,9 +99,9 @@ class AssertionContext:
     def __init__(self, name: str, framework: ValidationFramework = None):
         self.name = name
         self.framework = framework or ValidationFramework.get_instance()
-        self.assertions: List[RuntimeAssertion] = []
+        self.assertions: list[RuntimeAssertion] = []
         self.start_time = None
-        self.errors: List[str] = []
+        self.errors: list[str] = []
 
     def add_assertion(self, assertion: RuntimeAssertion):
         """Add an assertion to this context."""
@@ -162,8 +162,8 @@ class AssertionRegistry:
     """Registry for runtime assertions."""
 
     def __init__(self):
-        self._assertions: Dict[str, RuntimeAssertion] = {}
-        self._contexts: Dict[str, AssertionContext] = {}
+        self._assertions: dict[str, RuntimeAssertion] = {}
+        self._contexts: dict[str, AssertionContext] = {}
         self._lock = threading.RLock()
 
     def register(self, assertion: RuntimeAssertion):
@@ -180,7 +180,7 @@ class AssertionRegistry:
         """Get an assertion by name."""
         return self._assertions.get(name)
 
-    def get_all(self) -> Dict[str, RuntimeAssertion]:
+    def get_all(self) -> dict[str, RuntimeAssertion]:
         """Get all registered assertions."""
         with self._lock:
             return self._assertions.copy()
@@ -203,7 +203,7 @@ class AssertionRegistry:
             for assertion in self._assertions.values():
                 assertion.reset_stats()
 
-    def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_stats(self) -> dict[str, dict[str, Any]]:
         """Get statistics for all assertions."""
         with self._lock:
             return {name: assertion.get_stats() for name, assertion in self._assertions.items()}
@@ -227,7 +227,7 @@ def register_assertion(
     name: str,
     assertion_func: Callable[[Any], bool],
     message: str = "",
-    context: Dict[str, Any] = None,
+    context: dict[str, Any] = None,
 ) -> RuntimeAssertion:
     """Register a runtime assertion.
 
@@ -356,7 +356,7 @@ def _application_has_theme_manager(app: Any) -> bool:
 
 
 # Theme system assertion groups
-def theme_assertions() -> List[RuntimeAssertion]:
+def theme_assertions() -> list[RuntimeAssertion]:
     """Get theme-related assertions."""
     return [
         RuntimeAssertion(
@@ -370,7 +370,7 @@ def theme_assertions() -> List[RuntimeAssertion]:
     ]
 
 
-def widget_assertions() -> List[RuntimeAssertion]:
+def widget_assertions() -> list[RuntimeAssertion]:
     """Get widget-related assertions."""
     return [
         RuntimeAssertion(
@@ -384,15 +384,15 @@ def widget_assertions() -> List[RuntimeAssertion]:
     ]
 
 
-def performance_assertions() -> List[RuntimeAssertion]:
+def performance_assertions() -> list[RuntimeAssertion]:
     """Get performance-related assertions."""
 
-    def _theme_switch_fast_enough(context: Dict[str, Any]) -> bool:
+    def _theme_switch_fast_enough(context: dict[str, Any]) -> bool:
         """Assert theme switch completed within time limit."""
         duration_ms = context.get("duration_ms", 0)
         return duration_ms < 100  # 100ms threshold
 
-    def _memory_usage_reasonable(context: Dict[str, Any]) -> bool:
+    def _memory_usage_reasonable(context: dict[str, Any]) -> bool:
         """Assert memory usage is within reasonable bounds."""
         memory_mb = context.get("memory_mb", 0)
         return memory_mb < 10  # 10MB threshold for theme operations
@@ -484,7 +484,7 @@ def reset_all_assertions():
     _assertion_registry.reset_all_stats()
 
 
-def get_assertion_stats() -> Dict[str, Dict[str, Any]]:
+def get_assertion_stats() -> dict[str, dict[str, Any]]:
     """Get statistics for all assertions."""
     return _assertion_registry.get_all_stats()
 

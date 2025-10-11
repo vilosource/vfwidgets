@@ -6,7 +6,7 @@ and access required functionality.
 
 import weakref
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from ..core.theme import Theme, ThemeColors
 from ..errors import ExtensionError
@@ -24,7 +24,7 @@ class ExtensionAPI:
 
     def __init__(self):
         """Initialize extension API."""
-        self._registered_apis: Dict[str, Any] = {}
+        self._registered_apis: dict[str, Any] = {}
         self._theme_manager = None  # Will be set by system
         self._event_system = None  # Will be set by system
 
@@ -82,7 +82,7 @@ class ExtensionAPI:
             return self._theme_manager.get_theme(name)
         return None
 
-    def list_themes(self) -> List[Theme]:
+    def list_themes(self) -> list[Theme]:
         """Get list of available themes.
 
         Returns:
@@ -126,7 +126,7 @@ class ExtensionAPI:
         except Exception as e:
             raise ExtensionError(f"Failed to create theme: {e}")
 
-    def modify_theme_colors(self, theme: Theme, color_changes: Dict[str, str]) -> Theme:
+    def modify_theme_colors(self, theme: Theme, color_changes: dict[str, str]) -> Theme:
         """Modify theme colors.
 
         Args:
@@ -372,7 +372,7 @@ class ExtensionAPI:
         logger.debug(f"Setting config for {extension_name}.{key} = {value}")
 
     # Validation API
-    def validate_theme(self, theme: Theme) -> List[str]:
+    def validate_theme(self, theme: Theme) -> list[str]:
         """Validate theme and return list of issues.
 
         Args:

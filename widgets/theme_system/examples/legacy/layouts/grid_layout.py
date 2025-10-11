@@ -295,7 +295,7 @@ class DynamicGrid(ThemedWidget):
         content = random.choice(contents)
         cell_type = random.choice(types)
 
-        cell = ThemedGridCell(f"{content} {len(self._cells)+1}", cell_type)
+        cell = ThemedGridCell(f"{content} {len(self._cells) + 1}", cell_type)
         self._cells.append(cell)
         self.grid_layout.addWidget(cell, row, col)
 

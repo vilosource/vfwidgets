@@ -40,22 +40,29 @@ DEFAULT_SIZE_HINT = QSize(400, 300)
 # QTabWidget Compatibility Enums
 # Use QTabWidget enums for 100% compatibility
 
+
 class TabPosition(IntEnum):
     """Tab position enum matching QTabWidget.TabPosition."""
+
     North = 0
     South = 1
     West = 2
     East = 3
 
+
 class TabShape(IntEnum):
     """Tab shape enum matching QTabWidget.TabShape."""
+
     Rounded = 0
     Triangular = 1
 
+
 class WindowMode(IntEnum):
     """Window mode for ChromeTabbedWindow."""
+
     Embedded = 0  # Normal widget embedded in parent
     Frameless = 1  # Top-level frameless window
+
 
 # Property Defaults (matching QTabWidget)
 DEFAULT_TAB_POSITION = TabPosition.North

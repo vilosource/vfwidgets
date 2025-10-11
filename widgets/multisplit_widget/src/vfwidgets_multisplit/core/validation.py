@@ -39,9 +39,9 @@ class OperationValidator:
         """
         self.model = model
 
-    def validate_split(self, target_pane_id: PaneId,
-                      position: WherePosition,
-                      ratio: float = 0.5) -> ValidationResult:
+    def validate_split(
+        self, target_pane_id: PaneId, position: WherePosition, ratio: float = 0.5
+    ) -> ValidationResult:
         """Validate split operation.
 
         Args:
@@ -66,6 +66,7 @@ class OperationValidator:
 
         # Check for maximum depth
         from .tree_utils import get_tree_depth
+
         if self.model.root:
             current_depth = get_tree_depth(self.model.root)
             if current_depth >= 10:
@@ -124,6 +125,7 @@ class OperationValidator:
 
         # Check ratios sum to 1.0
         from .tree_utils import validate_ratios
+
         if not validate_ratios(ratios):
             result.add_error("Ratios must sum to 1.0")
 
@@ -156,6 +158,7 @@ class OperationValidator:
 
         # Check registry consistency
         from .tree_utils import get_all_leaves
+
         leaves = get_all_leaves(self.model.root)
         registry_ids = set(self.model.get_all_pane_ids())
         tree_ids = {leaf.pane_id for leaf in leaves}

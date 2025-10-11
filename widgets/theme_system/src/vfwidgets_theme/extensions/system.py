@@ -9,7 +9,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Optional
 
 from ..errors import ExtensionError
 from ..logging import get_logger
@@ -31,14 +31,14 @@ class Extension:
     author: str
     path: Path
     module: Any = None
-    dependencies: List[str] = field(default_factory=list)
-    provides: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+    provides: list[str] = field(default_factory=list)
     enabled: bool = True
     loaded_at: float = field(default_factory=time.time)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Extension hooks
-    hooks: Dict[str, Callable] = field(default_factory=dict)
+    hooks: dict[str, Callable] = field(default_factory=dict)
 
     def __post_init__(self):
         """Post-initialization setup."""
@@ -93,30 +93,30 @@ class ExtensionSystem:
 
         """
         self.extensions_dir = extensions_dir or Path.home() / ".vfwidgets" / "extensions"
-        self.extensions: Dict[str, Extension] = {}
+        self.extensions: dict[str, Extension] = {}
         self.sandbox = ExtensionSandbox()
         self.api = ExtensionAPI()
         self.loader = ExtensionLoader()
 
         # Extension monitoring
-        self._file_monitors: Dict[str, float] = {}  # path -> last_modified
+        self._file_monitors: dict[str, float] = {}  # path -> last_modified
         self._hot_reload_enabled = False
         self._monitor_thread: Optional[threading.Thread] = None
         self._shutdown_event = threading.Event()
 
         # Dependency graph
-        self._dependency_graph: Dict[str, Set[str]] = {}
-        self._load_order: List[str] = []
+        self._dependency_graph: dict[str, set[str]] = {}
+        self._load_order: list[str] = []
 
         # Hook registry
-        self._hook_listeners: Dict[str, List[str]] = {}  # hook_name -> extension_ids
+        self._hook_listeners: dict[str, list[str]] = {}  # hook_name -> extension_ids
 
         # Ensure extensions directory exists
         ensure_directory(self.extensions_dir)
 
         logger.info(f"Extension system initialized with directory: {self.extensions_dir}")
 
-    def discover_extensions(self) -> List[Path]:
+    def discover_extensions(self) -> list[Path]:
         """Discover extension files in extensions directory.
 
         Returns:
@@ -269,11 +269,11 @@ class ExtensionSystem:
         """Get extension by ID."""
         return self.extensions.get(extension_id)
 
-    def list_extensions(self) -> List[Extension]:
+    def list_extensions(self) -> list[Extension]:
         """Get list of all loaded extensions."""
         return list(self.extensions.values())
 
-    def list_enabled_extensions(self) -> List[Extension]:
+    def list_enabled_extensions(self) -> list[Extension]:
         """Get list of enabled extensions."""
         return [ext for ext in self.extensions.values() if ext.enabled]
 
@@ -289,7 +289,7 @@ class ExtensionSystem:
             self.extensions[extension_id].enabled = False
             logger.info(f"Disabled extension: {extension_id}")
 
-    def call_hook(self, hook_name: str, *args, **kwargs) -> List[Any]:
+    def call_hook(self, hook_name: str, *args, **kwargs) -> list[Any]:
         """Call a hook on all extensions that provide it.
 
         Args:

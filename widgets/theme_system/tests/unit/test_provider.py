@@ -548,7 +548,7 @@ class TestProviderPerformance(ThemedTestCase):
 
         # Measure cached access performance
         start_time = time.time()
-        for i in range(1000):  # Many access to get good measurement
+        for _i in range(1000):  # Many access to get good measurement
             self.provider.get_color("color0")
         total_time = time.time() - start_time
 
@@ -580,8 +580,8 @@ class TestProviderPerformance(ThemedTestCase):
 
                 # Perform many property accesses
                 for i in range(100):
-                    color = self.provider.get_color(f"color{i % 10}")
-                    style = self.provider.get_property(f"styles.Widget{i % 10}")
+                    self.provider.get_color(f"color{i % 10}")
+                    self.provider.get_property(f"styles.Widget{i % 10}")
 
                 worker_time = time.time() - start_time
                 results.append(worker_time)

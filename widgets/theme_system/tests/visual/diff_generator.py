@@ -5,7 +5,6 @@ Visual Diff Generator for Theme Testing
 
 import colorsys
 from enum import Enum
-from typing import Tuple
 
 try:
     from PIL import Image, ImageDraw, ImageEnhance, ImageFont
@@ -35,7 +34,7 @@ class DiffGenerator:
         self,
         actual: Image.Image,
         expected: Image.Image,
-        highlight_color: Tuple[int, int, int] = (255, 0, 0),
+        highlight_color: tuple[int, int, int] = (255, 0, 0),
         threshold: int = 10,
     ) -> Image.Image:
         """
@@ -84,7 +83,7 @@ class DiffGenerator:
         actual: Image.Image,
         expected: Image.Image,
         separator_width: int = 2,
-        separator_color: Tuple[int, int, int] = (128, 128, 128),
+        separator_color: tuple[int, int, int] = (128, 128, 128),
     ) -> Image.Image:
         """
         Generate side-by-side comparison.
@@ -211,7 +210,7 @@ class DiffGenerator:
 
         return result
 
-    def _get_heatmap_color(self, intensity: float, colormap: str) -> Tuple[int, int, int]:
+    def _get_heatmap_color(self, intensity: float, colormap: str) -> tuple[int, int, int]:
         """
         Get color for heatmap based on intensity.
 

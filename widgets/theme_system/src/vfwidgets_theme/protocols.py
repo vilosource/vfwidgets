@@ -22,10 +22,10 @@ hiding all architectural complexity behind simple inheritance.
 """
 
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Protocol, TypeAlias, runtime_checkable
+from typing import Any, Callable, Protocol, TypeAlias, runtime_checkable
 
 # Type Aliases for better IDE support and cleaner interfaces
-ThemeData: TypeAlias = Dict[str, Any]
+ThemeData: TypeAlias = dict[str, Any]
 """Type alias for theme data dictionaries."""
 
 ColorValue: TypeAlias = str
@@ -436,7 +436,7 @@ class StyleGenerator(Protocol):
         ...
 
     @abstractmethod
-    def merge_styles(self, styles: List[QSSStyle]) -> QSSStyle:
+    def merge_styles(self, styles: list[QSSStyle]) -> QSSStyle:
         """Merge multiple stylesheets into a single stylesheet.
 
         Args:

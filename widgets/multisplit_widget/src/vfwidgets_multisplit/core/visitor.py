@@ -14,7 +14,7 @@ class NodeVisitor(ABC):
     """Abstract visitor for tree nodes."""
 
     @abstractmethod
-    def visit_leaf(self, node: 'LeafNode') -> Any:
+    def visit_leaf(self, node: "LeafNode") -> Any:
         """Visit a leaf node.
 
         Args:
@@ -26,7 +26,7 @@ class NodeVisitor(ABC):
         pass
 
     @abstractmethod
-    def visit_split(self, node: 'SplitNode') -> Any:
+    def visit_split(self, node: "SplitNode") -> Any:
         """Visit a split node.
 
         Args:

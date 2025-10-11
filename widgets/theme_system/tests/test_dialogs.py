@@ -42,7 +42,6 @@ class TestThemePickerDialog:
     def test_preview_mode(self, app):
         """Test preview mode functionality."""
         app.set_theme("dark")
-        original_theme = app.current_theme_name
 
         dialog = ThemePickerDialog(preview_mode=True)
 

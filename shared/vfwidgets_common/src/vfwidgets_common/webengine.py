@@ -6,9 +6,8 @@ like WSL where hardware acceleration is not available.
 
 import logging
 import os
-from typing import Optional
 
-from .platform import is_wsl, is_remote_desktop
+from .platform import is_remote_desktop, is_wsl
 
 logger = logging.getLogger(__name__)
 
@@ -23,20 +22,24 @@ def get_chromium_flags_for_environment() -> list[str]:
 
     if is_wsl():
         # WSL requires software rendering and GPU disable
-        flags.extend([
-            "--disable-gpu",
-            "--disable-software-rasterizer",
-            "--disable-dev-shm-usage",  # Avoid /dev/shm issues in containers
-            "--no-sandbox",  # Required for some WSL configurations
-        ])
+        flags.extend(
+            [
+                "--disable-gpu",
+                "--disable-software-rasterizer",
+                "--disable-dev-shm-usage",  # Avoid /dev/shm issues in containers
+                "--no-sandbox",  # Required for some WSL configurations
+            ]
+        )
         logger.info("WSL detected: Using software rendering for Qt WebEngine")
 
     elif is_remote_desktop():
         # Remote desktop benefits from reduced GPU usage
-        flags.extend([
-            "--disable-gpu",
-            "--disable-software-rasterizer",
-        ])
+        flags.extend(
+            [
+                "--disable-gpu",
+                "--disable-software-rasterizer",
+            ]
+        )
         logger.info("Remote desktop detected: Disabling GPU acceleration")
 
     return flags
@@ -136,5 +139,5 @@ def log_webengine_configuration() -> None:
     logger.info(f"  LIBGL Software: {info['libgl_software'] or '(none)'}")
     logger.info(f"  Qt Quick Backend: {info['qt_quick_backend'] or '(default)'}")
 
-    if info['recommended_flags']:
+    if info["recommended_flags"]:
         logger.info(f"  Recommended Flags: {' '.join(info['recommended_flags'])}")

@@ -47,7 +47,7 @@ def main():
     print(f"Available themes: {app.available_themes}")
 
     # Now create your widget - it inherits from QWidget through ThemedWidget
-    widget = MyWidget()
+    MyWidget()
     print("Widget created with automatic theming!")
 
     # Switch themes - widget updates automatically!

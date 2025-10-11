@@ -1,4 +1,4 @@
-"""Advanced Theme Mapping with CSS Selector Support and Validation
+"""Advanced Theme Mapping with CSS Selector Support and Validation.
 
 This module implements Task 13: CSS selector-based theme mapping with conflict
 resolution, composition support, visual debugging, and comprehensive validation.
@@ -23,11 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    List,
     Optional,
-    Set,
-    Tuple,
 )
 
 if TYPE_CHECKING:
@@ -103,8 +99,8 @@ class SelectorPart:
 
     type: SelectorType
     value: str
-    attributes: Dict[str, str] = field(default_factory=dict)
-    pseudo_classes: Set[str] = field(default_factory=set)
+    attributes: dict[str, str] = field(default_factory=dict)
+    pseudo_classes: set[str] = field(default_factory=set)
     combinator: Optional[str] = None  # ' ', '>', '~', '+'
 
 
@@ -112,8 +108,8 @@ class SelectorPart:
 class ParsedSelector:
     """Represents a fully parsed CSS selector."""
 
-    parts: List[SelectorPart]
-    specificity: Tuple[int, int, int, int]  # inline, id, class/attr, element
+    parts: list[SelectorPart]
+    specificity: tuple[int, int, int, int]  # inline, id, class/attr, element
     raw_selector: str
 
 
@@ -122,12 +118,12 @@ class MappingRule:
     """Represents a single theme mapping rule."""
 
     selector: ParsedSelector
-    properties: Dict[PropertyKey, PropertyValue]
+    properties: dict[PropertyKey, PropertyValue]
     priority: MappingPriority = MappingPriority.NORMAL
     name: Optional[str] = None
     description: Optional[str] = None
     enabled: bool = True
-    conditions: List[Callable[["ThemedWidget"], bool]] = field(default_factory=list)
+    conditions: list[Callable[["ThemedWidget"], bool]] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
 
 
@@ -135,7 +131,7 @@ class SelectorMatcher:
     """High-performance selector matching engine."""
 
     def __init__(self):
-        self._cache: Dict[str, bool] = {}
+        self._cache: dict[str, bool] = {}
         self._cache_lock = threading.RLock()
         self._max_cache_size = 1000
         self._cache_hits = 0
@@ -260,7 +256,7 @@ class SelectorMatcher:
         ]
         return "::".join(parts)
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache performance statistics."""
         with self._cache_lock:
             total = self._cache_hits + self._cache_misses
@@ -326,7 +322,7 @@ class SelectorParser:
         except Exception as e:
             raise MappingError(f"Failed to parse selector '{selector}': {e}")
 
-    def _split_selector(self, selector: str) -> List[str]:
+    def _split_selector(self, selector: str) -> list[str]:
         """Split selector by combinators while preserving them."""
         # Simple implementation - split on whitespace and combinators
         parts = []
@@ -420,7 +416,7 @@ class SelectorParser:
             type=selector_type, value=value, attributes=attributes, pseudo_classes=pseudo_classes
         )
 
-    def _calculate_specificity(self, parts: List[SelectorPart]) -> Tuple[int, int, int, int]:
+    def _calculate_specificity(self, parts: list[SelectorPart]) -> tuple[int, int, int, int]:
         """Calculate CSS specificity (inline, id, class/attr, element)."""
         inline = 0  # We don't support inline styles
         id_count = 0
@@ -446,8 +442,8 @@ class ConflictResolver:
     """Resolves conflicts when multiple mappings apply to a widget."""
 
     def resolve(
-        self, rules: List[MappingRule], strategy: ConflictResolution
-    ) -> Dict[PropertyKey, PropertyValue]:
+        self, rules: list[MappingRule], strategy: ConflictResolution
+    ) -> dict[PropertyKey, PropertyValue]:
         """Resolve conflicts and return final property mapping."""
         if not rules:
             return {}
@@ -469,7 +465,7 @@ class ConflictResolver:
         # Default fallback
         return self._resolve_by_priority(rules)
 
-    def _resolve_by_priority(self, rules: List[MappingRule]) -> Dict[PropertyKey, PropertyValue]:
+    def _resolve_by_priority(self, rules: list[MappingRule]) -> dict[PropertyKey, PropertyValue]:
         """Resolve by priority, then by specificity."""
         # Sort by priority (descending), then by specificity (descending)
         sorted_rules = sorted(
@@ -482,14 +478,14 @@ class ConflictResolver:
 
         return result
 
-    def _resolve_by_merge(self, rules: List[MappingRule]) -> Dict[PropertyKey, PropertyValue]:
+    def _resolve_by_merge(self, rules: list[MappingRule]) -> dict[PropertyKey, PropertyValue]:
         """Merge all rules, with later rules overriding earlier ones."""
         result = {}
         for rule in rules:
             result.update(rule.properties)
         return result
 
-    def _resolve_by_specificity(self, rules: List[MappingRule]) -> Dict[PropertyKey, PropertyValue]:
+    def _resolve_by_specificity(self, rules: list[MappingRule]) -> dict[PropertyKey, PropertyValue]:
         """Resolve by CSS specificity rules."""
         sorted_rules = sorted(rules, key=lambda r: r.selector.specificity, reverse=True)
 
@@ -532,15 +528,15 @@ class ThemeMapping:
         self._resolver = ConflictResolver()
 
         # Mapping storage
-        self._rules: List[MappingRule] = []
+        self._rules: list[MappingRule] = []
         self._rules_lock = threading.RLock()
 
         # Widget registry for tracking
-        self._widget_mappings: Dict[str, Set[int]] = defaultdict(set)  # widget_id -> rule indices
-        self._widget_refs: Dict[str, weakref.ReferenceType] = {}
+        self._widget_mappings: dict[str, set[int]] = defaultdict(set)  # widget_id -> rule indices
+        self._widget_refs: dict[str, weakref.ReferenceType] = {}
 
         # Performance tracking
-        self._mapping_cache: Dict[str, Dict[PropertyKey, PropertyValue]] = {}
+        self._mapping_cache: dict[str, dict[PropertyKey, PropertyValue]] = {}
         self._cache_lock = threading.RLock()
         self._stats = {
             "rules_applied": 0,
@@ -551,7 +547,7 @@ class ThemeMapping:
         }
 
         # Validation
-        self._validators: List[Callable[[MappingRule], bool]] = []
+        self._validators: list[Callable[[MappingRule], bool]] = []
 
         if self.debug:
             logger.debug("ThemeMapping initialized")
@@ -559,11 +555,11 @@ class ThemeMapping:
     def add_rule(
         self,
         selector: str,
-        properties: Dict[PropertyKey, PropertyValue],
+        properties: dict[PropertyKey, PropertyValue],
         priority: MappingPriority = MappingPriority.NORMAL,
         name: Optional[str] = None,
         description: Optional[str] = None,
-        conditions: List[Callable[["ThemedWidget"], bool]] = None,
+        conditions: list[Callable[["ThemedWidget"], bool]] = None,
     ) -> int:
         """Add a mapping rule.
 
@@ -643,7 +639,7 @@ class ThemeMapping:
             logger.error(f"Failed to remove rule {rule_index}: {e}")
             return False
 
-    def get_mapping(self, widget: "ThemedWidget") -> Dict[PropertyKey, PropertyValue]:
+    def get_mapping(self, widget: "ThemedWidget") -> dict[PropertyKey, PropertyValue]:
         """Get resolved theme mapping for a widget.
 
         Args:
@@ -703,7 +699,7 @@ class ThemeMapping:
             logger.error(f"Failed to get mapping for widget: {e}")
             return {}
 
-    def get_applicable_rules(self, widget: "ThemedWidget") -> List[Tuple[int, MappingRule]]:
+    def get_applicable_rules(self, widget: "ThemedWidget") -> list[tuple[int, MappingRule]]:
         """Get all rules that apply to a widget (for debugging)."""
         try:
             matching_rules = self._find_matching_rules(widget)
@@ -742,7 +738,7 @@ class ThemeMapping:
         if self.debug:
             logger.debug("Cleared all mapping rules")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get mapping system statistics."""
         with self._rules_lock, self._cache_lock:
             active_rules = sum(1 for rule in self._rules if rule is not None)
@@ -758,7 +754,7 @@ class ThemeMapping:
 
     # Private methods
 
-    def _find_matching_rules(self, widget: "ThemedWidget") -> List[MappingRule]:
+    def _find_matching_rules(self, widget: "ThemedWidget") -> list[MappingRule]:
         """Find all rules that match the widget."""
         matching_rules = []
 
@@ -797,7 +793,7 @@ class ThemeMapping:
             raise MappingError("Rule must have at least one property")
 
         # Validate property types
-        for key, value in rule.properties.items():
+        for key, _value in rule.properties.items():
             if not isinstance(key, str):
                 raise MappingError(f"Property key must be string, got {type(key)}")
 
@@ -834,7 +830,7 @@ class ThemeMapping:
         try:
             from ..events.system import get_global_event_system
 
-            event_system = get_global_event_system()
+            get_global_event_system()
             # Custom notification for mapping events
             # Note: This would need corresponding signals in the event system
         except Exception as e:
@@ -846,20 +842,20 @@ class ThemeMapping:
         try:
             from ..events.system import get_global_event_system
 
-            event_system = get_global_event_system()
+            get_global_event_system()
             # Custom notification for mapping events
         except Exception as e:
             if self.debug:
                 logger.warning(f"Failed to notify rule removed: {e}")
 
     def _notify_mapping_applied(
-        self, widget_id: str, rule_count: int, mapping: Dict[str, Any]
+        self, widget_id: str, rule_count: int, mapping: dict[str, Any]
     ) -> None:
         """Notify event system of mapping application."""
         try:
             from ..events.system import get_global_event_system
 
-            event_system = get_global_event_system()
+            get_global_event_system()
             # Custom notification for mapping events
         except Exception as e:
             if self.debug:
@@ -872,7 +868,7 @@ class ThemeMappingVisualizer:
     def __init__(self, mapping: ThemeMapping):
         self.mapping = mapping
 
-    def generate_debug_report(self, widget: "ThemedWidget") -> Dict[str, Any]:
+    def generate_debug_report(self, widget: "ThemedWidget") -> dict[str, Any]:
         """Generate a comprehensive debug report for a widget."""
         widget_id = getattr(widget, "_widget_id", f"widget_{id(widget)}")
 
@@ -914,7 +910,7 @@ class ThemeMappingVisualizer:
 
     def explain_property_source(
         self, widget: "ThemedWidget", property_key: PropertyKey
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Explain where a property value comes from."""
         applicable_rules = self.mapping.get_applicable_rules(widget)
 

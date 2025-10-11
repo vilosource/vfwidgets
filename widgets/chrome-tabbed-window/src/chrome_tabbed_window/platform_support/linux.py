@@ -35,8 +35,8 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         super().__init__(capabilities, parent)
 
         # Detect display server
-        self.is_wayland = 'WAYLAND_DISPLAY' in os.environ
-        self.is_x11 = 'DISPLAY' in os.environ and not self.is_wayland
+        self.is_wayland = "WAYLAND_DISPLAY" in os.environ
+        self.is_x11 = "DISPLAY" in os.environ and not self.is_wayland
 
         # Detect desktop environment
         self.desktop_env = self._detect_desktop_environment()
@@ -59,37 +59,33 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
     def _detect_desktop_environment(self) -> str:
         """Detect the current desktop environment."""
         # Check common desktop environment variables
-        desktop_vars = [
-            'XDG_CURRENT_DESKTOP',
-            'DESKTOP_SESSION',
-            'GDMSESSION'
-        ]
+        desktop_vars = ["XDG_CURRENT_DESKTOP", "DESKTOP_SESSION", "GDMSESSION"]
 
         for var in desktop_vars:
             if var in os.environ:
                 env = os.environ[var].lower()
-                if 'gnome' in env:
-                    return 'gnome'
-                elif 'kde' in env or 'plasma' in env:
-                    return 'kde'
-                elif 'xfce' in env:
-                    return 'xfce'
-                elif 'mate' in env:
-                    return 'mate'
-                elif 'cinnamon' in env:
-                    return 'cinnamon'
-                elif 'lxde' in env:
-                    return 'lxde'
-                elif 'lxqt' in env:
-                    return 'lxqt'
+                if "gnome" in env:
+                    return "gnome"
+                elif "kde" in env or "plasma" in env:
+                    return "kde"
+                elif "xfce" in env:
+                    return "xfce"
+                elif "mate" in env:
+                    return "mate"
+                elif "cinnamon" in env:
+                    return "cinnamon"
+                elif "lxde" in env:
+                    return "lxde"
+                elif "lxqt" in env:
+                    return "lxqt"
 
         # Fallback detection
-        if os.path.exists('/usr/bin/gnome-shell'):
-            return 'gnome'
-        elif os.path.exists('/usr/bin/kwin'):
-            return 'kde'
+        if os.path.exists("/usr/bin/gnome-shell"):
+            return "gnome"
+        elif os.path.exists("/usr/bin/kwin"):
+            return "kde"
 
-        return 'unknown'
+        return "unknown"
 
     def _detect_compositor(self) -> bool:
         """Detect if a compositor is running."""
@@ -99,11 +95,7 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
 
         if self.is_x11:
             # Check for common X11 compositors
-            compositors = [
-                'COMPIZ_CONFIG_PROFILE',
-                'KWIN_COMPOSE',
-                '_COMPIZ_WM_WINDOW_OPACITY'
-            ]
+            compositors = ["COMPIZ_CONFIG_PROFILE", "KWIN_COMPOSE", "_COMPIZ_WM_WINDOW_OPACITY"]
 
             for comp in compositors:
                 if comp in os.environ:
@@ -112,8 +104,10 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
             # Check if a compositor process is running
             try:
                 import subprocess
-                result = subprocess.run(['pgrep', '-f', 'compiz|compton|picom|kwin'],
-                                      capture_output=True)
+
+                result = subprocess.run(
+                    ["pgrep", "-f", "compiz|compton|picom|kwin"], capture_output=True
+                )
                 return result.returncode == 0
             except Exception:
                 pass
@@ -123,14 +117,14 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
     def _setup_wayland_features(self, widget: QWidget) -> None:
         """Setup Wayland-specific features."""
         # Wayland limitations and features
-        if hasattr(widget, '_window_mode') and widget._window_mode == WindowMode.Frameless:
+        if hasattr(widget, "_window_mode") and widget._window_mode == WindowMode.Frameless:
             # Wayland has limited window positioning control
             # Client-side decorations are preferred
             self._enable_client_side_decorations(widget)
 
     def _setup_x11_features(self, widget: QWidget) -> None:
         """Setup X11-specific features."""
-        if hasattr(widget, '_window_mode') and widget._window_mode == WindowMode.Frameless:
+        if hasattr(widget, "_window_mode") and widget._window_mode == WindowMode.Frameless:
             # Set EWMH hints for better window manager integration
             self._set_ewmh_hints(widget)
 
@@ -140,9 +134,9 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
 
     def _setup_desktop_environment_features(self, widget: QWidget) -> None:
         """Setup desktop environment specific features."""
-        if self.desktop_env == 'gnome':
+        if self.desktop_env == "gnome":
             self._setup_gnome_features(widget)
-        elif self.desktop_env == 'kde':
+        elif self.desktop_env == "kde":
             self._setup_kde_features(widget)
 
     def _enable_client_side_decorations(self, widget: QWidget) -> bool:
@@ -151,7 +145,7 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
             # Set window properties for client-side decorations
             window = widget.windowHandle()
             if window:
-                window.setProperty('_GTK_THEME_VARIANT', 'dark')
+                window.setProperty("_GTK_THEME_VARIANT", "dark")
                 return True
         except Exception:
             pass
@@ -165,12 +159,12 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         try:
             # Set window type hints
             window = widget.windowHandle()
-            if window and hasattr(window, 'setProperty'):
+            if window and hasattr(window, "setProperty"):
                 # Set window type to normal
-                window.setProperty('_NET_WM_WINDOW_TYPE', '_NET_WM_WINDOW_TYPE_NORMAL')
+                window.setProperty("_NET_WM_WINDOW_TYPE", "_NET_WM_WINDOW_TYPE_NORMAL")
 
                 # Set window state hints
-                window.setProperty('_NET_WM_STATE', '_NET_WM_STATE_ABOVE')
+                window.setProperty("_NET_WM_STATE", "_NET_WM_STATE_ABOVE")
 
                 return True
         except Exception:
@@ -184,10 +178,10 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
 
         try:
             window = widget.windowHandle()
-            if window and hasattr(window, 'setProperty'):
+            if window and hasattr(window, "setProperty"):
                 # Enable shadow
-                window.setProperty('_COMPTON_SHADOW', 1)
-                window.setProperty('_KDE_NET_WM_SHADOW', 1)
+                window.setProperty("_COMPTON_SHADOW", 1)
+                window.setProperty("_KDE_NET_WM_SHADOW", 1)
                 return True
         except Exception:
             pass
@@ -198,9 +192,9 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         # GNOME Shell integration
         try:
             window = widget.windowHandle()
-            if window and hasattr(window, 'setProperty'):
+            if window and hasattr(window, "setProperty"):
                 # Use GNOME's client-side decorations
-                window.setProperty('_GTK_CSD', 1)
+                window.setProperty("_GTK_CSD", 1)
         except Exception:
             pass
 
@@ -209,9 +203,9 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         # KDE Plasma integration
         try:
             window = widget.windowHandle()
-            if window and hasattr(window, 'setProperty'):
+            if window and hasattr(window, "setProperty"):
                 # Use KDE's window decorations
-                window.setProperty('_KDE_NET_WM_WINDOW_TYPE_OVERRIDE', 1)
+                window.setProperty("_KDE_NET_WM_WINDOW_TYPE_OVERRIDE", 1)
         except Exception:
             pass
 
@@ -235,13 +229,13 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         if self.is_wayland:
             # Wayland has limited resize support
             # Try Qt's built-in methods
-            if hasattr(widget.windowHandle(), 'startSystemResize'):
+            if hasattr(widget.windowHandle(), "startSystemResize"):
                 try:
                     edge_map = {
-                        'left': Qt.Edge.LeftEdge,
-                        'right': Qt.Edge.RightEdge,
-                        'top': Qt.Edge.TopEdge,
-                        'bottom': Qt.Edge.BottomEdge,
+                        "left": Qt.Edge.LeftEdge,
+                        "right": Qt.Edge.RightEdge,
+                        "top": Qt.Edge.TopEdge,
+                        "bottom": Qt.Edge.BottomEdge,
                     }
 
                     qt_edges = 0
@@ -260,29 +254,32 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
     def can_use_native_menu_bar(self) -> bool:
         """Check if native Linux menu bar can be used."""
         # Global menu support varies by desktop environment
-        return self.desktop_env in ['gnome', 'kde']
+        return self.desktop_env in ["gnome", "kde"]
 
     def supports_global_menu(self) -> bool:
         """Check if global menu is supported."""
         return (
-            self.desktop_env == 'kde' or
-            'UBUNTU_MENUPROXY' in os.environ or
-            'APPMENU_DISPLAY_BOTH' in os.environ
+            self.desktop_env == "kde"
+            or "UBUNTU_MENUPROXY" in os.environ
+            or "APPMENU_DISPLAY_BOTH" in os.environ
         )
 
     def get_theme_name(self) -> str:
         """Get the current system theme name."""
         try:
-            if self.desktop_env == 'gnome':
+            if self.desktop_env == "gnome":
                 import subprocess
-                result = subprocess.run([
-                    'gsettings', 'get', 'org.gnome.desktop.interface', 'gtk-theme'
-                ], capture_output=True, text=True)
+
+                result = subprocess.run(
+                    ["gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"],
+                    capture_output=True,
+                    text=True,
+                )
                 return result.stdout.strip().strip("'")
 
-            elif self.desktop_env == 'kde':
+            elif self.desktop_env == "kde":
                 # Read KDE theme from config
-                kde_config = os.path.expanduser('~/.config/kdeglobals')
+                kde_config = os.path.expanduser("~/.config/kdeglobals")
                 if os.path.exists(kde_config):
                     # Parse KDE config for theme
                     pass
@@ -290,18 +287,21 @@ class LinuxPlatformAdapter(BasePlatformAdapter):
         except Exception:
             pass
 
-        return 'default'
+        return "default"
 
     def is_dark_theme(self) -> bool:
         """Check if the system is using a dark theme."""
         try:
-            if self.desktop_env == 'gnome':
+            if self.desktop_env == "gnome":
                 import subprocess
-                result = subprocess.run([
-                    'gsettings', 'get', 'org.gnome.desktop.interface', 'gtk-theme'
-                ], capture_output=True, text=True)
+
+                result = subprocess.run(
+                    ["gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"],
+                    capture_output=True,
+                    text=True,
+                )
                 theme = result.stdout.strip().lower()
-                return 'dark' in theme
+                return "dark" in theme
 
         except Exception:
             pass

@@ -42,7 +42,7 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
         super().setup_widget(widget)
 
         # Enable DWM shadow for frameless windows
-        if hasattr(widget, '_window_mode') and widget._window_mode == WindowMode.Frameless:
+        if hasattr(widget, "_window_mode") and widget._window_mode == WindowMode.Frameless:
             self._enable_dwm_shadow(widget)
 
         # Setup Windows 11 rounded corners if available
@@ -53,7 +53,7 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
 
     def _enable_dwm_shadow(self, widget: QWidget) -> bool:
         """Enable DWM shadow for better visual integration."""
-        if not sys.platform == 'win32':
+        if sys.platform != "win32":
             return False
 
         try:
@@ -70,11 +70,10 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
 
             # Call DwmExtendFrameIntoClientArea
             result = ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(
-                int(hwnd),
-                ctypes.byref(margins)
+                int(hwnd), ctypes.byref(margins)
             )
 
-            self._dwm_shadow_enabled = (result == 0)
+            self._dwm_shadow_enabled = result == 0
             return self._dwm_shadow_enabled
 
         except Exception:
@@ -83,7 +82,7 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
 
     def _setup_rounded_corners(self, widget: QWidget) -> bool:
         """Setup Windows 11 rounded corners if available."""
-        if not sys.platform == 'win32':
+        if sys.platform != "win32":
             return False
 
         try:
@@ -91,8 +90,9 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
 
             # Windows 11 build number check
             import platform
+
             windows_version = platform.version()
-            build_number = int(windows_version.split('.')[-1])
+            build_number = int(windows_version.split(".")[-1])
 
             if build_number < 22000:  # Windows 11 minimum build
                 return False
@@ -111,7 +111,7 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
                 int(hwnd),
                 DWM_WINDOW_CORNER_PREFERENCE,
                 ctypes.byref(corner_preference),
-                ctypes.sizeof(corner_preference)
+                ctypes.sizeof(corner_preference),
             )
 
             return result == 0
@@ -149,14 +149,14 @@ class WindowsPlatformAdapter(BasePlatformAdapter):
     def handle_window_resize(self, widget: QWidget, edge, global_pos) -> bool:
         """Handle window resize with Windows-specific optimizations."""
         # Try to use system resize if available
-        if hasattr(widget.windowHandle(), 'startSystemResize'):
+        if hasattr(widget.windowHandle(), "startSystemResize"):
             try:
                 # Map edge to Qt edge constant
                 edge_map = {
-                    'left': Qt.Edge.LeftEdge,
-                    'right': Qt.Edge.RightEdge,
-                    'top': Qt.Edge.TopEdge,
-                    'bottom': Qt.Edge.BottomEdge,
+                    "left": Qt.Edge.LeftEdge,
+                    "right": Qt.Edge.RightEdge,
+                    "top": Qt.Edge.TopEdge,
+                    "bottom": Qt.Edge.BottomEdge,
                 }
 
                 qt_edges = 0

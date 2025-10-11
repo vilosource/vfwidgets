@@ -19,7 +19,7 @@ fixtures that automatically handle common testing scenarios.
 import gc
 import time
 import weakref
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import pytest
 
@@ -39,7 +39,7 @@ from src.vfwidgets_theme.testing.mocks import (
 
 
 @pytest.fixture
-def default_theme() -> Dict[str, Any]:
+def default_theme() -> dict[str, Any]:
     """Default theme configuration for testing.
 
     Returns a minimal but complete theme suitable for most tests.
@@ -69,7 +69,7 @@ def default_theme() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def dark_theme() -> Dict[str, Any]:
+def dark_theme() -> dict[str, Any]:
     """Dark theme configuration for testing.
 
     Returns a complete dark theme suitable for testing dark mode functionality.
@@ -99,7 +99,7 @@ def dark_theme() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def light_theme() -> Dict[str, Any]:
+def light_theme() -> dict[str, Any]:
     """Light theme configuration for testing.
 
     Returns a light theme with enhanced contrast for testing
@@ -129,7 +129,7 @@ def light_theme() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def high_contrast_theme() -> Dict[str, Any]:
+def high_contrast_theme() -> dict[str, Any]:
     """High contrast theme configuration for testing.
 
     Returns a high contrast theme for testing accessibility
@@ -159,7 +159,7 @@ def high_contrast_theme() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def incomplete_theme() -> Dict[str, Any]:
+def incomplete_theme() -> dict[str, Any]:
     """Incomplete theme configuration for testing error recovery.
 
     Returns a theme with missing properties to test fallback
@@ -173,7 +173,7 @@ def incomplete_theme() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def invalid_theme() -> Dict[str, Any]:
+def invalid_theme() -> dict[str, Any]:
     """Invalid theme configuration for testing validation.
 
     Returns a theme with invalid values to test validation
@@ -305,9 +305,9 @@ def performance_timer():
 
         def assert_within_limit(self):
             """Assert that elapsed time is within the specified limit."""
-            assert (
-                self.elapsed < self.max_time
-            ), f"Operation took {self.elapsed:.6f}s, expected < {self.max_time:.6f}s"
+            assert self.elapsed < self.max_time, (
+                f"Operation took {self.elapsed:.6f}s, expected < {self.max_time:.6f}s"
+            )
 
     return PerformanceTimer
 
@@ -320,7 +320,7 @@ def theme_switch_benchmark():
     across multiple widgets and validates against requirements.
     """
 
-    def benchmark(widgets: List[Any], iterations: int = 100) -> Dict[str, float]:
+    def benchmark(widgets: list[Any], iterations: int = 100) -> dict[str, float]:
         """Benchmark theme switching performance.
 
         Args:
@@ -332,7 +332,7 @@ def theme_switch_benchmark():
         """
         times = []
 
-        for i in range(iterations):
+        for _i in range(iterations):
             start_time = time.perf_counter()
 
             # Simulate theme switch
@@ -359,7 +359,7 @@ def theme_switch_benchmark():
 def property_access_benchmark():
     """Benchmark fixture for property access performance."""
 
-    def benchmark(provider: Any, properties: List[str], iterations: int = 1000) -> Dict[str, float]:
+    def benchmark(provider: Any, properties: list[str], iterations: int = 1000) -> dict[str, float]:
         """Benchmark property access performance.
 
         Args:
@@ -373,11 +373,11 @@ def property_access_benchmark():
         times = []
 
         for prop in properties:
-            for i in range(iterations):
+            for _i in range(iterations):
                 start_time = time.perf_counter()
 
                 try:
-                    value = provider.get_property(prop)
+                    provider.get_property(prop)
                 except Exception:
                     pass  # Include error handling time
 
@@ -448,7 +448,7 @@ def memory_tracker():
 
             return delta
 
-        def assert_no_leaks(self, allowed_types: Optional[List[str]] = None):
+        def assert_no_leaks(self, allowed_types: Optional[list[str]] = None):
             """Assert that no memory leaks occurred."""
             delta = self.get_memory_delta()
             allowed_types = allowed_types or []
@@ -512,7 +512,7 @@ def widget_lifecycle_tracker():
 def theme_validator():
     """Theme validation fixture for testing theme data integrity."""
 
-    def validate(theme_data: Dict[str, Any]) -> Dict[str, List[str]]:
+    def validate(theme_data: dict[str, Any]) -> dict[str, list[str]]:
         """Validate theme data and return any issues found.
 
         Args:
@@ -586,7 +586,7 @@ def error_injection_helper():
             if hasattr(provider, "inject_error"):
                 provider.inject_error(method, error)
 
-        def inject_random_errors(self, obj, methods: List[str], error_rate: float = 0.1):
+        def inject_random_errors(self, obj, methods: list[str], error_rate: float = 0.1):
             """Inject random errors into object methods."""
             import random
 
@@ -735,7 +735,7 @@ def performance_validator(performance_requirements):
         if requirement_key and requirement_key in performance_requirements:
             max_time = performance_requirements[requirement_key]
             assert measured_time < max_time, (
-                f"{operation_name} took {measured_time:.6f}s, " f"requirement is < {max_time:.6f}s"
+                f"{operation_name} took {measured_time:.6f}s, requirement is < {max_time:.6f}s"
             )
             return True
 

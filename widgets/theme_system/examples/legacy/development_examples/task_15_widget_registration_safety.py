@@ -29,7 +29,6 @@ import time
 import weakref
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import List
 
 # Add src to path for imports
 sys.path.insert(0, "src")
@@ -163,7 +162,7 @@ class RegistrationSafetyDemo:
 
         return widgets
 
-    def demonstrate_lifecycle_tracking(self, widgets: List[DemoWidget]):
+    def demonstrate_lifecycle_tracking(self, widgets: list[DemoWidget]):
         """Demonstrate complete widget lifecycle tracking."""
         print("\n" + "=" * 60)
         print("2. LIFECYCLE TRACKING")
@@ -389,17 +388,17 @@ class RegistrationSafetyDemo:
 
             # Register with metadata
             metadata_list = [{"perf_test": True, "index": i} for i in range(50)]
-            result = self.registry.bulk_register(perf_widgets, metadata_list)
+            self.registry.bulk_register(perf_widgets, metadata_list)
 
             # Perform some operations
             for widget in perf_widgets[:10]:
-                events = self.registry.get_lifecycle_events(widget)
-                metadata = self.registry.get_metadata(widget)
+                self.registry.get_lifecycle_events(widget)
+                self.registry.get_metadata(widget)
 
         # Get performance metrics
         metrics = perf_ctx.get_metrics()
         print("  Performance metrics:")
-        print(f"    - Execution time: {metrics.get('execution_time', 0)*1000:.2f}ms")
+        print(f"    - Execution time: {metrics.get('execution_time', 0) * 1000:.2f}ms")
         print(f"    - Memory usage: {metrics.get('memory_usage', 0)} bytes")
         print(f"    - Peak memory: {metrics.get('peak_memory', 0)} bytes")
 
@@ -428,7 +427,7 @@ class RegistrationSafetyDemo:
 
         return perf_widgets
 
-    def demonstrate_memory_leak_prevention(self, test_widgets: List[DemoWidget]):
+    def demonstrate_memory_leak_prevention(self, test_widgets: list[DemoWidget]):
         """Demonstrate zero memory leak guarantee."""
         print("\n" + "=" * 60)
         print("7. MEMORY LEAK PREVENTION")
@@ -449,7 +448,7 @@ class RegistrationSafetyDemo:
         print(f"  Created {len(weak_refs)} weak references to test widgets")
 
         # Delete strong references to widgets
-        widget_ids = [id(widget) for widget in test_widgets]
+        [id(widget) for widget in test_widgets]
         print(f"  Deleting strong references to {len(test_widgets)} widgets...")
 
         for widget in test_widgets:
@@ -466,7 +465,7 @@ class RegistrationSafetyDemo:
         print("-" * 40)
 
         # Force registry cleanup
-        final_count = self.registry.count()
+        self.registry.count()
         final_stats = self.registry.get_statistics()
 
         print(f"  Active widgets: {final_stats['active_widgets']}")
@@ -548,8 +547,8 @@ class RegistrationSafetyDemo:
             # Run all demonstrations
             widgets = self.demonstrate_basic_safety_features()
             self.demonstrate_lifecycle_tracking(widgets)
-            bulk_widgets = self.demonstrate_bulk_operations()
-            decorated_widgets = self.demonstrate_decorators()
+            self.demonstrate_bulk_operations()
+            self.demonstrate_decorators()
             self.demonstrate_thread_safety()
             perf_widgets = self.demonstrate_performance_monitoring()
             self.demonstrate_memory_leak_prevention(perf_widgets)

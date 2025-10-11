@@ -138,7 +138,9 @@ class TerminalConfigurationWindow(QMainWindow):
         self.line_height_spin.setSingleStep(0.1)
         self.line_height_spin.setDecimals(1)
         self.line_height_spin.setSuffix("x")
-        self.line_height_spin.setToolTip("Line spacing multiplier (1.0 = tight, 1.5 = relaxed)")
+        self.line_height_spin.setToolTip(
+            "Line spacing multiplier (1.0 = tight, 1.5 = relaxed)"
+        )
         layout.addRow("Line height:", self.line_height_spin)
 
         # Letter spacing control (pixels: 0 to 5)
@@ -157,21 +159,30 @@ class TerminalConfigurationWindow(QMainWindow):
         compact_btn = QPushButton("Compact")
         compact_btn.setToolTip("lineHeight: 1.0, letterSpacing: 0")
         compact_btn.clicked.connect(
-            lambda: (self.line_height_spin.setValue(1.0), self.letter_spacing_spin.setValue(0))
+            lambda: (
+                self.line_height_spin.setValue(1.0),
+                self.letter_spacing_spin.setValue(0),
+            )
         )
         presets_layout.addWidget(compact_btn)
 
         normal_btn = QPushButton("Normal")
         normal_btn.setToolTip("lineHeight: 1.2, letterSpacing: 0")
         normal_btn.clicked.connect(
-            lambda: (self.line_height_spin.setValue(1.2), self.letter_spacing_spin.setValue(0))
+            lambda: (
+                self.line_height_spin.setValue(1.2),
+                self.letter_spacing_spin.setValue(0),
+            )
         )
         presets_layout.addWidget(normal_btn)
 
         relaxed_btn = QPushButton("Relaxed")
         relaxed_btn.setToolTip("lineHeight: 1.5, letterSpacing: 1")
         relaxed_btn.clicked.connect(
-            lambda: (self.line_height_spin.setValue(1.5), self.letter_spacing_spin.setValue(1.0))
+            lambda: (
+                self.line_height_spin.setValue(1.5),
+                self.letter_spacing_spin.setValue(1.0),
+            )
         )
         presets_layout.addWidget(relaxed_btn)
 
@@ -360,7 +371,9 @@ class TerminalConfigurationWindow(QMainWindow):
         if index >= 0:
             self.bell_style_combo.setCurrentIndex(index)
 
-        self.right_click_word_check.setChecked(config.get("rightClickSelectsWord", False))
+        self.right_click_word_check.setChecked(
+            config.get("rightClickSelectsWord", False)
+        )
         self.convert_eol_check.setChecked(config.get("convertEol", False))
 
 

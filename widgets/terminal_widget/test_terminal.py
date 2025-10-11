@@ -38,11 +38,17 @@ def test_basic_terminal(debug=False):
     # Connect signals to verify they work
     terminal.terminal_ready.connect(lambda: print("✅ Signal: Terminal is ready!"))
 
-    terminal.server_started.connect(lambda url: print(f"✅ Signal: Server started at {url}"))
+    terminal.server_started.connect(
+        lambda url: print(f"✅ Signal: Server started at {url}")
+    )
 
-    terminal.command_started.connect(lambda cmd: print(f"✅ Signal: Command started: {cmd}"))
+    terminal.command_started.connect(
+        lambda cmd: print(f"✅ Signal: Command started: {cmd}")
+    )
 
-    terminal.output_received.connect(lambda data: print(f"📤 Output received: {len(data)} chars"))
+    terminal.output_received.connect(
+        lambda data: print(f"📤 Output received: {len(data)} chars")
+    )
 
     terminal.terminal_closed.connect(
         lambda code: print(f"✅ Signal: Terminal closed with code {code}")
@@ -51,10 +57,14 @@ def test_basic_terminal(debug=False):
     # Add new signal connections for testing enhanced features (Phase 1-4)
     if debug:
         print("🔌 Connecting enhanced event signals for testing...")
-        terminal.focus_received.connect(lambda: print("🎯 FOCUS: Terminal received focus!"))
+        terminal.focus_received.connect(
+            lambda: print("🎯 FOCUS: Terminal received focus!")
+        )
         terminal.focus_lost.connect(lambda: print("❌ FOCUS: Terminal lost focus!"))
         terminal.selection_changed.connect(
-            lambda text: print(f"📝 SELECTION: '{text[:50]}{'...' if len(text) > 50 else ''}'")
+            lambda text: print(
+                f"📝 SELECTION: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+            )
         )
         terminal.context_menu_requested.connect(
             lambda pos, text: print(
@@ -95,7 +105,9 @@ def test_basic_terminal(debug=False):
 
     def test_process_info():
         info = terminal.get_process_info()
-        print(f"Test 2: Process info: PID={info.get('pid')}, Command={info.get('command')}")
+        print(
+            f"Test 2: Process info: PID={info.get('pid')}, Command={info.get('command')}"
+        )
 
     def test_clear():
         print("Test 3: Clearing terminal...")
@@ -142,7 +154,9 @@ def test_python_terminal():
         print("Sending Python commands...")
         terminal.send_command("print('Hello from Python!')")
         QTimer.singleShot(500, lambda: terminal.send_command("2 + 2"))
-        QTimer.singleShot(1000, lambda: terminal.send_command("import sys; print(sys.version)"))
+        QTimer.singleShot(
+            1000, lambda: terminal.send_command("import sys; print(sys.version)")
+        )
 
     terminal.terminal_ready.connect(send_python_commands)
 
@@ -203,7 +217,9 @@ def main():
         help="Test mode to run",
     )
     parser.add_argument(
-        "--debug", action="store_true", help="Enable debug logging for enhanced event testing"
+        "--debug",
+        action="store_true",
+        help="Enable debug logging for enhanced event testing",
     )
 
     args = parser.parse_args()

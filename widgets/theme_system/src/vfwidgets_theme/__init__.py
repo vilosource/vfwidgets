@@ -1,4 +1,4 @@
-"""VFWidgets Theme System
+"""VFWidgets Theme System.
 
 A comprehensive, performance-first theme system for PySide6/Qt applications
 built on clean architecture principles.

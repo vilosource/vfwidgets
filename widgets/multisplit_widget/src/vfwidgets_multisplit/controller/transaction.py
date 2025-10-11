@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class TransactionContext:
     """Context manager for atomic command transactions."""
 
-    def __init__(self, controller: 'PaneController'):
+    def __init__(self, controller: "PaneController"):
         """Initialize transaction context.
 
         Args:
@@ -60,7 +60,7 @@ class TransactionContext:
         self.controller._end_transaction(self)
         return False  # Don't suppress exceptions
 
-    def add_command(self, command: 'Command'):
+    def add_command(self, command: "Command"):
         """Add command to transaction.
 
         Args:
@@ -76,7 +76,7 @@ class TransactionContext:
 class NestedTransactionContext(TransactionContext):
     """Context for nested transactions."""
 
-    def __init__(self, controller: 'PaneController', parent: TransactionContext):
+    def __init__(self, controller: "PaneController", parent: TransactionContext):
         """Initialize nested transaction.
 
         Args:
@@ -108,7 +108,7 @@ class NestedTransactionContext(TransactionContext):
 
 
 @contextmanager
-def transaction(controller: 'PaneController'):
+def transaction(controller: "PaneController"):
     """Convenience context manager for transactions.
 
     Args:
@@ -127,7 +127,7 @@ def transaction(controller: 'PaneController'):
 
 
 @contextmanager
-def atomic_operation(controller: 'PaneController', name: str):
+def atomic_operation(controller: "PaneController", name: str):
     """Named atomic operation for better debugging.
 
     Args:

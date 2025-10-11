@@ -242,7 +242,7 @@ class TestPatternMatcher:
 
         # First match - should be cached
         matches1 = self.matcher.match_patterns("TestWidget", self.widget)
-        cache_misses_1 = self.matcher._stats["cache_misses"]
+        self.matcher._stats["cache_misses"]
 
         # Second match - should hit cache
         matches2 = self.matcher.match_patterns("TestWidget", self.widget)

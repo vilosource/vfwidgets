@@ -1,4 +1,4 @@
-"""Robust Property Descriptors with Type Safety and Validation
+"""Robust Property Descriptors with Type Safety and Validation.
 
 This module implements Task 11: type-safe property descriptors with validation,
 caching, and inheritance support. These descriptors integrate seamlessly with
@@ -23,10 +23,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    List,
     Optional,
-    Type,
     Union,
     get_args,
     get_origin,
@@ -146,7 +143,7 @@ class RegexRule(ValidationRule):
 class EnumRule(ValidationRule):
     """Validation rule for enumerated values."""
 
-    allowed_values: List[Any] = field(default_factory=list)
+    allowed_values: list[Any] = field(default_factory=list)
 
     def __post_init__(self):
         if self.name == "validation_rule":  # Default wasn't overridden
@@ -178,9 +175,9 @@ class PropertyCache:
     """High-performance cache for property values with memory management."""
 
     def __init__(self, max_size: int = 1000):
-        self._cache: Dict[str, Any] = {}
-        self._access_times: Dict[str, float] = {}
-        self._access_counts: Dict[str, int] = {}
+        self._cache: dict[str, Any] = {}
+        self._access_times: dict[str, float] = {}
+        self._access_counts: dict[str, int] = {}
         self._max_size = max_size
         self._lock = threading.RLock()
         self._hits = 0
@@ -246,7 +243,7 @@ class PropertyCache:
         return self._hits / total if total > 0 else 0.0
 
     @property
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         with self._lock:
             return {
@@ -262,7 +259,7 @@ class ComputedProperty:
     """Represents a computed property with dependency tracking and caching."""
 
     def __init__(
-        self, compute_func: Callable, dependencies: List[str] = None, cache_enabled: bool = True
+        self, compute_func: Callable, dependencies: list[str] = None, cache_enabled: bool = True
     ):
         self.compute_func = compute_func
         self.dependencies = dependencies or []
@@ -312,9 +309,9 @@ class PropertyDescriptor:
     def __init__(
         self,
         name: str,
-        type_hint: Type,
+        type_hint: type,
         *,
-        validator: Optional[Union[ValidationRule, Callable, List[ValidationRule]]] = None,
+        validator: Optional[Union[ValidationRule, Callable, list[ValidationRule]]] = None,
         default: Any = None,
         computed: Optional[ComputedProperty] = None,
         cache_enabled: bool = True,
@@ -366,7 +363,7 @@ class PropertyDescriptor:
         if self.debug:
             logger.debug(f"PropertyDescriptor bound: {owner.__name__}.{name}")
 
-    def __get__(self, obj: Optional["ThemedWidget"], objtype: Type = None):
+    def __get__(self, obj: Optional["ThemedWidget"], objtype: type = None):
         """Get property value with type checking and caching."""
         # Return descriptor itself when accessed from class
         if obj is None:
@@ -478,7 +475,7 @@ class PropertyDescriptor:
             logger.error(f"Error setting property {self.name}: {e}")
             raise
 
-    def _process_validators(self, validator) -> List[ValidationRule]:
+    def _process_validators(self, validator) -> list[ValidationRule]:
         """Process various validator formats into ValidationRule objects."""
         if validator is None:
             return []
@@ -603,7 +600,7 @@ class PropertyDescriptor:
             self.computed.invalidate_cache()
 
     @property
-    def statistics(self) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """Get performance and usage statistics."""
         with self._lock:
             return {
@@ -657,7 +654,7 @@ class PropertyDescriptor:
                 logger.warning(f"Failed to notify validation failure for {self.name}: {e}")
 
     @classmethod
-    def get_global_cache_stats(cls) -> Dict[str, Any]:
+    def get_global_cache_stats(cls) -> dict[str, Any]:
         """Get global cache statistics."""
         return cls._global_cache.stats
 
@@ -683,7 +680,7 @@ def regex_validator(pattern: Union[str, Pattern], error_msg: str = None) -> Rege
     return rule
 
 
-def enum_validator(allowed_values: List[Any], error_msg: str = None) -> EnumRule:
+def enum_validator(allowed_values: list[Any], error_msg: str = None) -> EnumRule:
     """Create an enum validation rule."""
     rule = EnumRule(name="enum", allowed_values=allowed_values)
     if error_msg:
@@ -697,7 +694,7 @@ def color_validator() -> RegexRule:
     return regex_validator(color_pattern, "Must be a valid CSS color")
 
 
-def computed_property(dependencies: List[str] = None, cache: bool = True):
+def computed_property(dependencies: list[str] = None, cache: bool = True):
     """Decorator for creating computed properties."""
 
     def decorator(func):

@@ -65,13 +65,40 @@ class PythonHighlighter(QSyntaxHighlighter):
         keyword_format.setForeground(QColor(86, 156, 214))  # VSCode blue
         keyword_format.setFontWeight(QFont.Weight.Bold)
         keywords = [
-            'def', 'class', 'import', 'from', 'as', 'if', 'elif', 'else',
-            'for', 'while', 'return', 'yield', 'lambda', 'with', 'try',
-            'except', 'finally', 'raise', 'assert', 'break', 'continue',
-            'pass', 'del', 'is', 'not', 'in', 'and', 'or', 'True', 'False', 'None'
+            "def",
+            "class",
+            "import",
+            "from",
+            "as",
+            "if",
+            "elif",
+            "else",
+            "for",
+            "while",
+            "return",
+            "yield",
+            "lambda",
+            "with",
+            "try",
+            "except",
+            "finally",
+            "raise",
+            "assert",
+            "break",
+            "continue",
+            "pass",
+            "del",
+            "is",
+            "not",
+            "in",
+            "and",
+            "or",
+            "True",
+            "False",
+            "None",
         ]
         for keyword in keywords:
-            self.highlighting_rules.append((f'\\b{keyword}\\b', keyword_format))
+            self.highlighting_rules.append((f"\\b{keyword}\\b", keyword_format))
 
         # Strings - orange
         string_format = QTextCharFormat()
@@ -83,16 +110,17 @@ class PythonHighlighter(QSyntaxHighlighter):
         comment_format = QTextCharFormat()
         comment_format.setForeground(QColor(106, 153, 85))  # VSCode green
         comment_format.setFontItalic(True)
-        self.highlighting_rules.append(('#[^\n]*', comment_format))
+        self.highlighting_rules.append(("#[^\n]*", comment_format))
 
         # Functions - yellow
         function_format = QTextCharFormat()
         function_format.setForeground(QColor(220, 220, 170))  # VSCode yellow
-        self.highlighting_rules.append(('\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()', function_format))
+        self.highlighting_rules.append(("\\b[A-Za-z_][A-Za-z0-9_]*(?=\\()", function_format))
 
     def highlightBlock(self, text):
         """Apply syntax highlighting to a block of text."""
         import re
+
         for pattern, text_format in self.highlighting_rules:
             for match in re.finditer(pattern, text):
                 self.setFormat(match.start(), match.end() - match.start(), text_format)
@@ -110,7 +138,7 @@ class CodeEditor(QPlainTextEdit):
         self.setFont(font)
 
         # Set tab width
-        self.setTabStopDistance(self.fontMetrics().horizontalAdvance(' ') * 4)
+        self.setTabStopDistance(self.fontMetrics().horizontalAdvance(" ") * 4)
 
         # Add syntax highlighting
         self.highlighter = PythonHighlighter(self.document())
@@ -743,9 +771,7 @@ class EnhancedDemoWindow(QMainWindow):
 
     def load_layout(self):
         """Load layout from file."""
-        filepath, _ = QFileDialog.getOpenFileName(
-            self, "Load Layout", "", "JSON Files (*.json)"
-        )
+        filepath, _ = QFileDialog.getOpenFileName(self, "Load Layout", "", "JSON Files (*.json)")
         if filepath:
             if self.multisplit.load_layout(Path(filepath)):
                 self.statusbar.showMessage("Layout loaded", 3000)
@@ -774,11 +800,10 @@ class EnhancedDemoWindow(QMainWindow):
         self.pane_label.setText(f"Panes: {len(panes)}")
 
         # Widget count
-        (self.provider.editor_count +
-                        self.provider.terminal_count +
-                        self.provider.widget_count)
-        self.widget_label.setText(f"Editors: {self.provider.editor_count}, "
-                                 f"Terminals: {self.provider.terminal_count}")
+        (self.provider.editor_count + self.provider.terminal_count + self.provider.widget_count)
+        self.widget_label.setText(
+            f"Editors: {self.provider.editor_count}, Terminals: {self.provider.terminal_count}"
+        )
 
         # Undo/redo
         undo_text = "↶" if self.multisplit.can_undo() else ""
@@ -806,7 +831,10 @@ class EnhancedDemoWindow(QMainWindow):
 
     def show_shortcuts(self):
         """Show keyboard shortcuts."""
-        QMessageBox.information(self, "Keyboard Shortcuts", """
+        QMessageBox.information(
+            self,
+            "Keyboard Shortcuts",
+            """
             <h3>Navigation</h3>
             <b>Tab</b> - Next pane<br>
             <b>Shift+Tab</b> - Previous pane<br>
@@ -824,30 +852,37 @@ class EnhancedDemoWindow(QMainWindow):
             <h3>Layout</h3>
             <b>Ctrl+S</b> - Save layout<br>
             <b>Ctrl+O</b> - Load layout
-        """)
+        """,
+        )
 
     def show_about(self):
         """Show about dialog."""
-        QMessageBox.about(self, "About", """
+        QMessageBox.about(
+            self,
+            "About",
+            """
             <h2>MultiSplit Widget Demo</h2>
             <p>Enhanced demonstration with real widgets</p>
             <p><b>Version:</b> MVP Complete</p>
             <p><b>Tests:</b> 115 passing</p>
             <p><b>Architecture:</b> Strict MVC</p>
-        """)
+        """,
+        )
 
 
 def main():
     """Run enhanced demo."""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="MultiSplit Widget Demo")
-    parser.add_argument("--debug", action="store_true",
-                      help="Enable detailed debug logging")
-    parser.add_argument("--log-file", type=str,
-                      help="Log to file (e.g., debug.log)")
-    parser.add_argument("--log-level", type=str, default="INFO",
-                      choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-                      help="Set logging level")
+    parser.add_argument("--debug", action="store_true", help="Enable detailed debug logging")
+    parser.add_argument("--log-file", type=str, help="Log to file (e.g., debug.log)")
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Set logging level",
+    )
     args = parser.parse_args()
 
     # Configure logging
@@ -860,12 +895,7 @@ def main():
     log_file = Path(args.log_file) if args.log_file else None
 
     # Setup logging
-    setup_logging(
-        level=log_level,
-        log_file=log_file,
-        console=True,
-        detailed=args.debug
-    )
+    setup_logging(level=log_level, log_file=log_file, console=True, detailed=args.debug)
 
     logger.info("=" * 60)
     logger.info("MultiSplit Widget Demo Starting")

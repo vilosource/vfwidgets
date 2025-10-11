@@ -161,7 +161,7 @@ def demonstrate_mock_objects():
 
     try:
         provider.get_property("any_key")
-        assert False, "Should have raised error"
+        raise AssertionError("Should have raised error")
     except ThemePropertyError:
         print("✓ Error injection working correctly")
 
@@ -177,7 +177,7 @@ def demonstrate_performance_benchmarking():
     # Create test widgets
     widgets = []
     provider = MockThemeProvider()
-    for i in range(20):
+    for _i in range(20):
         widget = DemoThemedWidget(provider)
         widgets.append(widget)
 
@@ -221,7 +221,7 @@ def demonstrate_memory_profiling():
     with profiler.profile_operation("widget_creation"):
         widgets = []
         provider = MockThemeProvider()
-        for i in range(20):
+        for _i in range(20):
             widget = DemoThemedWidget(provider)
             profiler.track_object(widget)
             widgets.append(widget)

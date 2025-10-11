@@ -236,7 +236,7 @@ class TestBackupManager:
 
             # Create more backups than the limit
             backup_paths = []
-            for i in range(5):
+            for _i in range(5):
                 backup_path = backup_manager.create_backup(original_file)
                 backup_paths.append(backup_path)
                 # Small delay to ensure different timestamps

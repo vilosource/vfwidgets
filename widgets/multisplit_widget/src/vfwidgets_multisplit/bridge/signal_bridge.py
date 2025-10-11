@@ -32,14 +32,14 @@ class SignalBridge:
         """Initialize bridge with empty connections."""
         self._bridges: list[tuple[AbstractSignal, QtSignalProtocol, Any]] = []
 
-    def bridge_to_qt(self, abstract_signal: AbstractSignal,
-                     qt_signal: QtSignalProtocol) -> None:
+    def bridge_to_qt(self, abstract_signal: AbstractSignal, qt_signal: QtSignalProtocol) -> None:
         """Create bridge from abstract signal to Qt signal.
 
         Args:
             abstract_signal: Source signal from Model
             qt_signal: Target Qt signal in View
         """
+
         # Create relay function
         def relay(*args, **kwargs):
             # Qt signals typically don't use kwargs
@@ -51,14 +51,14 @@ class SignalBridge:
         # Store bridge info for cleanup
         self._bridges.append((abstract_signal, qt_signal, relay))
 
-    def bridge_from_qt(self, qt_signal: QtSignalProtocol,
-                      abstract_signal: AbstractSignal) -> None:
+    def bridge_from_qt(self, qt_signal: QtSignalProtocol, abstract_signal: AbstractSignal) -> None:
         """Create bridge from Qt signal to abstract signal.
 
         Args:
             qt_signal: Source Qt signal from View
             abstract_signal: Target signal in Model
         """
+
         # Create relay function
         def relay(*args):
             abstract_signal.emit(*args)
@@ -76,9 +76,9 @@ class SignalBridge:
                 source, target, relay = bridge
                 try:
                     # Try to disconnect
-                    if hasattr(source, 'disconnect'):
+                    if hasattr(source, "disconnect"):
                         source.disconnect(relay)
-                    if hasattr(target, 'disconnect'):
+                    if hasattr(target, "disconnect"):
                         target.disconnect(relay)
                 except:
                     pass  # Ignore disconnect errors during cleanup

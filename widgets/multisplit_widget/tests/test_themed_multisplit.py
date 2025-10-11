@@ -22,7 +22,7 @@ def test_styled_splitter_creation(app):
     """Test StyledSplitter with theme integration."""
     splitter = StyledSplitter(Qt.Orientation.Horizontal)
     assert splitter.theme is not None
-    assert hasattr(splitter, 'on_theme_changed')
+    assert hasattr(splitter, "on_theme_changed")
 
 
 def test_styled_splitter_theme_access(app):
@@ -38,7 +38,7 @@ def test_error_widget_creation(app):
     """Test ErrorWidget with theme integration."""
     error = ErrorWidget("Test error")
     assert error.theme is not None
-    assert hasattr(error, 'on_theme_changed')
+    assert hasattr(error, "on_theme_changed")
 
 
 def test_error_widget_theme_access(app):
@@ -60,7 +60,7 @@ def test_validation_overlay_creation(app):
     """Test ValidationOverlay with theme integration."""
     overlay = ValidationOverlay()
     assert overlay.theme is not None
-    assert hasattr(overlay, 'on_theme_changed')
+    assert hasattr(overlay, "on_theme_changed")
 
 
 def test_validation_overlay_show_error(app):
@@ -72,6 +72,7 @@ def test_validation_overlay_show_error(app):
 
 def test_multisplit_widget_basic(app):
     """Test basic MultisplitWidget creation (components should be themed)."""
+
     # Create simple widget provider
     class SimpleProvider:
         def provide_widget(self, widget_id, pane_id):

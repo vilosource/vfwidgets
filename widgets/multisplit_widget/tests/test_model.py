@@ -28,10 +28,7 @@ class TestPaneModel(unittest.TestCase):
     def test_model_with_split_tree(self):
         """Test model with split tree structure."""
         # Create tree structure
-        root = SplitNode(
-            node_id=generate_node_id(),
-            orientation=Orientation.HORIZONTAL
-        )
+        root = SplitNode(node_id=generate_node_id(), orientation=Orientation.HORIZONTAL)
         leaf1 = LeafNode(generate_pane_id(), WidgetId("editor"))
         leaf2 = LeafNode(generate_pane_id(), WidgetId("terminal"))
 
@@ -47,13 +44,11 @@ class TestPaneModel(unittest.TestCase):
 
     def test_model_serialization(self):
         """Test model serialization/deserialization."""
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("editor:main.py"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("editor:main.py")))
 
         data = model.to_dict()
-        self.assertEqual(data['root']['type'], 'leaf')
-        self.assertEqual(data['root']['widget_id'], 'editor:main.py')
+        self.assertEqual(data["root"]["type"], "leaf")
+        self.assertEqual(data["root"]["widget_id"], "editor:main.py")
 
         model2 = PaneModel.from_dict(data)
         self.assertIsInstance(model2.root, LeafNode)
@@ -62,19 +57,13 @@ class TestPaneModel(unittest.TestCase):
     def test_complex_tree_serialization(self):
         """Test serialization of complex tree structure."""
         # Create complex tree
-        root = SplitNode(
-            node_id=NodeId("root"),
-            orientation=Orientation.VERTICAL
-        )
+        root = SplitNode(node_id=NodeId("root"), orientation=Orientation.VERTICAL)
 
         # Top pane
         top_pane = LeafNode(PaneId("top"), WidgetId("editor"))
 
         # Bottom split
-        bottom_split = SplitNode(
-            node_id=NodeId("bottom_split"),
-            orientation=Orientation.HORIZONTAL
-        )
+        bottom_split = SplitNode(node_id=NodeId("bottom_split"), orientation=Orientation.HORIZONTAL)
 
         left_pane = LeafNode(PaneId("left"), WidgetId("terminal"))
         right_pane = LeafNode(PaneId("right"), WidgetId("browser"))
@@ -89,9 +78,9 @@ class TestPaneModel(unittest.TestCase):
 
         # Test serialization
         data = model.to_dict()
-        self.assertEqual(data['focused_pane_id'], 'top')
-        self.assertEqual(data['root']['type'], 'split')
-        self.assertEqual(len(data['root']['children']), 2)
+        self.assertEqual(data["focused_pane_id"], "top")
+        self.assertEqual(data["root"]["type"], "split")
+        self.assertEqual(len(data["root"]["children"]), 2)
 
         # Test deserialization
         model2 = PaneModel.from_dict(data)
@@ -113,5 +102,5 @@ class TestPaneModel(unittest.TestCase):
         self.assertTrue(valid)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

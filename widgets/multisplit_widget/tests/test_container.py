@@ -30,9 +30,7 @@ class TestContainer(unittest.TestCase):
 
     def test_container_creation(self):
         """Test container widget creation."""
-        PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("test"))
-        )
+        PaneModel(root=LeafNode(PaneId("p1"), WidgetId("test")))
 
         # Test creation without Qt app (just test the constructor logic)
         try:
@@ -50,15 +48,13 @@ class TestContainer(unittest.TestCase):
         provider = TestWidgetProvider()
 
         # Test that provider follows protocol
-        self.assertTrue(hasattr(provider, 'provide_widget'))
+        self.assertTrue(hasattr(provider, "provide_widget"))
         self.assertTrue(callable(provider.provide_widget))
 
     def test_container_logic_without_qt(self):
         """Test container logic without requiring Qt."""
         # Test the core logic that doesn't require Qt widgets
-        model = PaneModel(
-            root=LeafNode(PaneId("p1"), WidgetId("test"))
-        )
+        model = PaneModel(root=LeafNode(PaneId("p1"), WidgetId("test")))
 
         # Create mock container to test logic
         class MockContainer:
@@ -86,17 +82,11 @@ class TestContainer(unittest.TestCase):
     def test_tree_building_logic(self):
         """Test the tree building logic."""
         # Create a complex tree structure
-        root = SplitNode(
-            node_id=NodeId("root"),
-            orientation=Orientation.HORIZONTAL
-        )
+        root = SplitNode(node_id=NodeId("root"), orientation=Orientation.HORIZONTAL)
 
         leaf1 = LeafNode(PaneId("p1"), WidgetId("editor"))
 
-        vertical_split = SplitNode(
-            node_id=NodeId("vsplit"),
-            orientation=Orientation.VERTICAL
-        )
+        vertical_split = SplitNode(node_id=NodeId("vsplit"), orientation=Orientation.VERTICAL)
 
         leaf2 = LeafNode(PaneId("p2"), WidgetId("terminal"))
         leaf3 = LeafNode(PaneId("p3"), WidgetId("browser"))
@@ -121,8 +111,8 @@ class TestContainer(unittest.TestCase):
         # Import the class to test signal definitions
 
         # Check signal definitions exist
-        self.assertTrue(hasattr(PaneContainer, 'widget_needed'))
-        self.assertTrue(hasattr(PaneContainer, 'pane_focused'))
+        self.assertTrue(hasattr(PaneContainer, "widget_needed"))
+        self.assertTrue(hasattr(PaneContainer, "pane_focused"))
 
 
 # Note: Full Qt tests would look like this if pytest-qt is available:
@@ -157,5 +147,5 @@ def test_container_with_provider(qtbot):
 """
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

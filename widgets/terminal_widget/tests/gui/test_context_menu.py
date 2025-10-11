@@ -80,7 +80,9 @@ class TestContextMenuEventCreation:
         from vfwidgets_terminal import EventConfig
 
         # Create widget with INTERACTION category disabled
-        config = EventConfig(enabled_categories={EventCategory.LIFECYCLE})  # No INTERACTION
+        config = EventConfig(
+            enabled_categories={EventCategory.LIFECYCLE}
+        )  # No INTERACTION
         widget = TerminalWidget(event_config=config)
         qtbot.addWidget(widget)
 
@@ -101,7 +103,9 @@ class TestDefaultContextMenu:
     """Test default context menu creation and behavior."""
 
     @patch("vfwidgets_terminal.terminal.QMenu")
-    def test_default_context_menu_no_selection(self, mock_qmenu_class, qtbot, mock_embedded_server):
+    def test_default_context_menu_no_selection(
+        self, mock_qmenu_class, qtbot, mock_embedded_server
+    ):
         """Test default context menu with no text selected."""
         mock_menu = Mock()
         mock_qmenu_class.return_value = mock_menu
@@ -184,7 +188,9 @@ class TestDefaultContextMenu:
 
             mock_server.send_input.assert_called_once_with(clipboard_text)
 
-    def test_default_context_menu_paste_empty_clipboard(self, qtbot, mock_embedded_server):
+    def test_default_context_menu_paste_empty_clipboard(
+        self, qtbot, mock_embedded_server
+    ):
         """Test paste action with empty clipboard."""
         widget = TerminalWidget()
         qtbot.addWidget(widget)
@@ -264,7 +270,9 @@ class TestCustomContextMenuHandlers:
         # Custom menu should be shown
         custom_menu.exec_.assert_called_once()
 
-    def test_custom_context_menu_handler_returns_none(self, qtbot, mock_embedded_server):
+    def test_custom_context_menu_handler_returns_none(
+        self, qtbot, mock_embedded_server
+    ):
         """Test custom context menu handler that returns None."""
         widget = TerminalWidget()
         qtbot.addWidget(widget)
@@ -341,7 +349,9 @@ class TestCustomContextMenuHandlers:
         assert len(widget.custom_context_actions) == 0
 
     @patch("vfwidgets_terminal.terminal.QMenu")
-    def test_custom_actions_in_default_menu(self, mock_qmenu_class, qtbot, mock_embedded_server):
+    def test_custom_actions_in_default_menu(
+        self, mock_qmenu_class, qtbot, mock_embedded_server
+    ):
         """Test custom actions are added to default menu."""
         mock_menu = Mock()
         mock_qmenu_class.return_value = mock_menu
@@ -498,7 +508,9 @@ class TestContextMenuIntegration:
         context_event = context_events[0]
         assert context_event.position == pos
 
-    def test_context_menu_with_custom_handler_integration(self, real_terminal_widget, qtbot):
+    def test_context_menu_with_custom_handler_integration(
+        self, real_terminal_widget, qtbot
+    ):
         """Test context menu with custom handler integration."""
         widget = real_terminal_widget
 
@@ -526,7 +538,9 @@ class TestContextMenuIntegration:
         assert len(custom_menu_calls) == 1
 
     @pytest.mark.slow
-    def test_context_menu_performance(self, real_terminal_widget, qtbot, performance_timer):
+    def test_context_menu_performance(
+        self, real_terminal_widget, qtbot, performance_timer
+    ):
         """Test context menu performance."""
         widget = real_terminal_widget
 

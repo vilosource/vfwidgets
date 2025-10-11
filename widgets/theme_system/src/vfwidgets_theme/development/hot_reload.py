@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hot Reload System - Task 18
+"""Hot Reload System - Task 18.
 
 This module provides hot reloading functionality for theme files during development.
 It watches theme files for changes and automatically reloads them with debouncing
@@ -18,7 +18,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any, Callable, Optional
 
 try:
     from PySide6.QtCore import QFileSystemWatcher, QObject, QTimer, Signal
@@ -128,11 +128,11 @@ class HotReloader(QObject):
         self.reload_timer.timeout.connect(self._perform_reload)
 
         # State tracking
-        self.watched_files: Dict[str, Path] = {}
-        self.watched_directories: Set[Path] = set()
-        self.pending_reloads: Set[Path] = set()
+        self.watched_files: dict[str, Path] = {}
+        self.watched_directories: set[Path] = set()
+        self.pending_reloads: set[Path] = set()
         self.reload_callback: Optional[Callable[[Path], bool]] = None
-        self.last_reload_times: Dict[Path, float] = {}
+        self.last_reload_times: dict[Path, float] = {}
 
         # Statistics
         self.reload_events: list[ReloadEvent] = []
@@ -441,7 +441,7 @@ class HotReloader(QObject):
         else:
             self.logger.debug(f"Reload time: {reload_time_ms:.2f}ms for {file_path}")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get hot reload statistics."""
         success_rate = (
             (self.successful_reloads / self.total_reloads * 100) if self.total_reloads > 0 else 0

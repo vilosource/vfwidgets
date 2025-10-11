@@ -1,4 +1,4 @@
-"""Theme Persistence Storage System
+"""Theme Persistence Storage System.
 
 This module implements comprehensive theme persistence with:
 - JSON serialization for theme data
@@ -14,7 +14,7 @@ import json
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ..core.theme import Theme
 from ..errors import ThemeError
@@ -37,8 +37,8 @@ class ThemeValidationResult:
     """Result of theme validation."""
 
     is_valid: bool
-    errors: List[str]
-    warnings: List[str]
+    errors: list[str]
+    warnings: list[str]
 
     @property
     def has_errors(self) -> bool:
@@ -87,7 +87,7 @@ class BackupManager:
             except Exception:
                 pass  # Ignore backup cleanup errors
 
-    def list_backups(self, base_name: str) -> List[Path]:
+    def list_backups(self, base_name: str) -> list[Path]:
         """List available backups for a theme."""
         pattern = f"{base_name}_*.bak"
         return sorted(self.backup_dir.glob(pattern), reverse=True)
@@ -107,7 +107,7 @@ class ThemeMigrator:
     CURRENT_VERSION = "1.0.0"
 
     @classmethod
-    def detect_version(cls, theme_data: Dict[str, Any]) -> str:
+    def detect_version(cls, theme_data: dict[str, Any]) -> str:
         """Detect theme format version."""
         # Check for version field
         if "version" in theme_data:
@@ -120,7 +120,7 @@ class ThemeMigrator:
         return "unknown"
 
     @classmethod
-    def migrate_theme(cls, theme_data: Dict[str, Any]) -> Dict[str, Any]:
+    def migrate_theme(cls, theme_data: dict[str, Any]) -> dict[str, Any]:
         """Migrate theme data to current format."""
         version = cls.detect_version(theme_data)
 
@@ -136,7 +136,7 @@ class ThemeMigrator:
         raise ThemeFormatError(f"Unsupported theme version: {version}")
 
     @classmethod
-    def _migrate_from_v09(cls, theme_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _migrate_from_v09(cls, theme_data: dict[str, Any]) -> dict[str, Any]:
         """Migrate from v0.9 format."""
         migrated = {
             "version": cls.CURRENT_VERSION,
@@ -164,7 +164,7 @@ class ThemeMigrator:
         return migrated
 
     @classmethod
-    def _migrate_unknown(cls, theme_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _migrate_unknown(cls, theme_data: dict[str, Any]) -> dict[str, Any]:
         """Best effort migration for unknown format."""
         # Try to extract what we can
         migrated = {
@@ -208,7 +208,7 @@ class ThemeValidator:
     RECOMMENDED_FIELDS = ["description", "author", "created_at"]
 
     @classmethod
-    def validate_theme(cls, theme_data: Dict[str, Any]) -> ThemeValidationResult:
+    def validate_theme(cls, theme_data: dict[str, Any]) -> ThemeValidationResult:
         """Validate theme data structure."""
         errors = []
         warnings = []
@@ -252,7 +252,7 @@ class ThemeValidator:
         return ThemeValidationResult(is_valid=len(errors) == 0, errors=errors, warnings=warnings)
 
     @classmethod
-    def _validate_properties(cls, properties: Any) -> List[str]:
+    def _validate_properties(cls, properties: Any) -> list[str]:
         """Validate properties structure."""
         errors = []
 
@@ -267,7 +267,7 @@ class ThemeValidator:
 
             # Basic value validation
             if value is None:
-                warnings = []  # Allow None values
+                pass  # Allow None values
             elif isinstance(value, (str, int, float, bool)):
                 pass  # Valid primitive types
             elif isinstance(value, dict):
@@ -279,7 +279,7 @@ class ThemeValidator:
         return errors
 
     @classmethod
-    def _validate_version(cls, version: Any) -> List[str]:
+    def _validate_version(cls, version: Any) -> list[str]:
         """Validate version field."""
         errors = []
 
@@ -407,7 +407,7 @@ class ThemePersistence:
         except Exception as e:
             raise PersistenceError(f"Failed to load theme: {e}") from e
 
-    def list_themes(self) -> List[Path]:
+    def list_themes(self) -> list[Path]:
         """List available theme files."""
         patterns = ["*.json", "*.json.gz"]
         theme_files = []
@@ -417,7 +417,7 @@ class ThemePersistence:
 
         return sorted(theme_files)
 
-    def get_theme_info(self, path: Path) -> Dict[str, Any]:
+    def get_theme_info(self, path: Path) -> dict[str, Any]:
         """Get theme metadata without full loading."""
         try:
             file_path = Path(path)
@@ -443,7 +443,7 @@ class ThemePersistence:
         except Exception as e:
             return {"error": str(e)}
 
-    def _serialize_theme(self, theme: Theme) -> Dict[str, Any]:
+    def _serialize_theme(self, theme: Theme) -> dict[str, Any]:
         """Serialize Theme object to dictionary."""
         # Use the theme's built-in to_dict method and enhance with persistence fields
         theme_dict = theme.to_dict()
@@ -469,7 +469,7 @@ class ThemePersistence:
             "properties": properties,  # Unified properties for easier validation
         }
 
-    def _deserialize_theme(self, theme_data: Dict[str, Any]) -> Theme:
+    def _deserialize_theme(self, theme_data: dict[str, Any]) -> Theme:
         """Deserialize dictionary to Theme object."""
         from ..core.theme import Theme as ThemeClass
 

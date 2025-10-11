@@ -40,7 +40,7 @@ class PlatformDetector:
         caps = PlatformCapabilities(
             platform_name=platform_name,
             window_system=window_system,
-            desktop_environment=desktop_env
+            desktop_environment=desktop_env,
         )
 
         # Detect specific capabilities
@@ -179,7 +179,7 @@ class PlatformDetector:
             # Windows 10+ has per-monitor DPI support
             version = platform.version()
             try:
-                major = int(version.split('.')[0])
+                major = int(version.split(".")[0])
                 if major >= 10:
                     caps.supports_per_monitor_dpi = True
             except (ValueError, IndexError):

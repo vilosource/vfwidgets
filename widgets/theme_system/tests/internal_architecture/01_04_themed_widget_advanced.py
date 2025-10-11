@@ -26,7 +26,7 @@ import threading
 import time
 import weakref
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Add the source directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -191,7 +191,7 @@ class AdvancedThemedButton(ThemedWidget):
         # Reset state after delay (simulated)
         # In real Qt app, this would use QTimer
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get button-specific performance statistics."""
         stats = self.theme_statistics.copy()
         stats.update(
@@ -370,7 +370,7 @@ class ThreadedThemeWorker:
     Shows how ThemedWidget works safely across threads.
     """
 
-    def __init__(self, widgets: List[ThemedWidget]):
+    def __init__(self, widgets: list[ThemedWidget]):
         self._widgets = [weakref.ref(w) for w in widgets]
         self._running = False
 
@@ -395,7 +395,7 @@ class ThreadedThemeWorker:
                     widget = widget_ref()
                     if widget and hasattr(widget, "theme"):
                         # This should be thread-safe thanks to ThemedWidget's architecture
-                        bg = widget.theme.get("background", "#ffffff")
+                        widget.theme.get("background", "#ffffff")
                         # In real usage, you might update data models or perform calculations
 
                 time.sleep(0.5)  # Simulate work
@@ -595,7 +595,7 @@ class AdvancedExample:
 
         # Perform theme changes while worker is running
         themes = ["dark", "light", "default"]
-        for i, theme in enumerate(themes):
+        for _i, theme in enumerate(themes):
             print(f"🔄 Switching to {theme} while threads are active...")
             self.app.set_theme(theme)
             time.sleep(0.2)  # Let worker run
@@ -708,14 +708,14 @@ class AdvancedExample:
             if hasattr(widget, "get_performance_stats"):
                 try:
                     stats = widget.get_performance_stats()
-                    print(f"   Widget {i+1} ({type(widget).__name__}):")
+                    print(f"   Widget {i + 1} ({type(widget).__name__}):")
                     for key, value in stats.items():
                         if isinstance(value, float):
                             print(f"     - {key}: {value:.3f}")
                         else:
                             print(f"     - {key}: {value}")
                 except Exception as e:
-                    print(f"   Widget {i+1}: stats error - {e}")
+                    print(f"   Widget {i + 1}: stats error - {e}")
 
         # Memory profiler statistics
         print("\n🧠 Memory Statistics:")

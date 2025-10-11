@@ -29,7 +29,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Optional
 
 try:
     from PySide6.QtCore import QMutex, QMutexLocker, QObject, QThread, QTimer, Signal
@@ -77,8 +77,8 @@ class ThreadSafeThemeManager:
             with ThreadSafeThemeManager._lock:
                 if not ThreadSafeThemeManager._initialized:
                     self._config_lock = threading.RLock()
-                    self._configuration: Dict[str, Any] = {}
-                    self._providers: Dict[str, ThemeProvider] = {}
+                    self._configuration: dict[str, Any] = {}
+                    self._providers: dict[str, ThemeProvider] = {}
                     self._thread_local = threading.local()
                     ThreadSafeThemeManager._initialized = True
 
@@ -89,12 +89,12 @@ class ThreadSafeThemeManager:
             return cls()
         return cls._instance
 
-    def configure(self, config: Dict[str, Any]) -> None:
+    def configure(self, config: dict[str, Any]) -> None:
         """Configure the theme manager (thread-safe)."""
         with self._config_lock:
             self._configuration.update(config)
 
-    def get_configuration(self) -> Dict[str, Any]:
+    def get_configuration(self) -> dict[str, Any]:
         """Get current configuration (thread-safe)."""
         with self._config_lock:
             return self._configuration.copy()
@@ -116,7 +116,7 @@ class ThreadSafeThemeManager:
             delattr(self._thread_local, "cache")
 
     @property
-    def thread_cache(self) -> Dict[str, Any]:
+    def thread_cache(self) -> dict[str, Any]:
         """Get thread-local cache."""
         if not hasattr(self._thread_local, "cache"):
             self._thread_local.cache = {}
@@ -136,7 +136,7 @@ class ThemeLock:
         self._lock = threading.RLock()
         self._acquisition_count = 0
         self._owner_thread: Optional[int] = None
-        self._acquisition_times: List[float] = []
+        self._acquisition_times: list[float] = []
 
     def acquire(self, timeout: Optional[float] = None) -> bool:
         """Acquire the lock with optional timeout."""
@@ -201,7 +201,7 @@ class PropertyLock:
     """
 
     def __init__(self):
-        self._property_locks: Dict[str, threading.RLock] = {}
+        self._property_locks: dict[str, threading.RLock] = {}
         self._locks_lock = threading.Lock()
 
     def _get_property_lock(self, property_name: str) -> threading.RLock:
@@ -281,7 +281,7 @@ class NotificationLock:
     Uses lock ordering to prevent deadlocks in notification chains.
     """
 
-    _global_lock_order: Dict[str, int] = {}
+    _global_lock_order: dict[str, int] = {}
     _next_order: int = 0
     _order_lock = threading.Lock()
 
@@ -320,17 +320,17 @@ class ThemeCache:
         self._thread_local = threading.local()
 
     @property
-    def _cache(self) -> Dict[str, Dict[str, Any]]:
+    def _cache(self) -> dict[str, dict[str, Any]]:
         """Get thread-local cache."""
         if not hasattr(self._thread_local, "cache"):
             self._thread_local.cache = {}
         return self._thread_local.cache
 
-    def set_theme(self, theme_name: str, theme_data: Dict[str, Any]) -> None:
+    def set_theme(self, theme_name: str, theme_data: dict[str, Any]) -> None:
         """Set theme data in thread-local cache."""
         self._cache[theme_name] = theme_data.copy()
 
-    def get_theme(self, theme_name: str) -> Optional[Dict[str, Any]]:
+    def get_theme(self, theme_name: str) -> Optional[dict[str, Any]]:
         """Get theme data from thread-local cache."""
         return self._cache.get(theme_name)
 
@@ -342,7 +342,7 @@ class ThemeCache:
         """Clear all cached themes."""
         self._cache.clear()
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         return {
             "cached_themes": len(self._cache),
@@ -362,7 +362,7 @@ class StyleCache:
         self._thread_local = threading.local()
 
     @property
-    def _cache(self) -> Dict[str, str]:
+    def _cache(self) -> dict[str, str]:
         """Get thread-local style cache."""
         if not hasattr(self._thread_local, "style_cache"):
             self._thread_local.style_cache = {}
@@ -399,10 +399,10 @@ class PropertyCache:
     def __init__(self):
         self._thread_local = threading.local()
         self._invalidation_lock = threading.Lock()
-        self._global_invalidations: Set[str] = set()
+        self._global_invalidations: set[str] = set()
 
     @property
-    def _cache(self) -> Dict[str, Dict[str, Any]]:
+    def _cache(self) -> dict[str, dict[str, Any]]:
         """Get thread-local property cache."""
         if not hasattr(self._thread_local, "property_cache"):
             self._thread_local.property_cache = {}
@@ -506,12 +506,12 @@ class ThemeLoadQueue:
     """
 
     def __init__(self):
-        self._queue: List[Tuple[str, Callable[[str, Dict[str, Any]], None]]] = []
+        self._queue: list[tuple[str, Callable[[str, dict[str, Any]], None]]] = []
         self._queue_lock = threading.Lock()
         self._processing = False
 
     def enqueue_load(
-        self, theme_name: str, callback: Callable[[str, Dict[str, Any]], None]
+        self, theme_name: str, callback: Callable[[str, dict[str, Any]], None]
     ) -> None:
         """Enqueue a theme for loading."""
         with self._queue_lock:
@@ -541,7 +541,7 @@ class ThemeLoadQueue:
         finally:
             self._processing = False
 
-    def _load_theme_data(self, theme_name: str) -> Dict[str, Any]:
+    def _load_theme_data(self, theme_name: str) -> dict[str, Any]:
         """Load theme data (placeholder implementation)."""
         # This would be replaced with actual theme loading logic
         return {
@@ -565,9 +565,9 @@ class AsyncThemeLoader:
 
     def __init__(self):
         self._executor = ThreadPoolExecutor(max_workers=4)
-        self._active_loads: Dict[str, asyncio.Future] = {}
+        self._active_loads: dict[str, asyncio.Future] = {}
 
-    async def load_theme(self, theme_name: str) -> Dict[str, Any]:
+    async def load_theme(self, theme_name: str) -> dict[str, Any]:
         """Load theme asynchronously."""
         if theme_name in self._active_loads:
             return await self._active_loads[theme_name]
@@ -584,7 +584,7 @@ class AsyncThemeLoader:
         finally:
             self._active_loads.pop(theme_name, None)
 
-    def _load_theme_sync(self, theme_name: str) -> Dict[str, Any]:
+    def _load_theme_sync(self, theme_name: str) -> dict[str, Any]:
         """Synchronous theme loading (runs in thread pool)."""
         try:
             # Simulate theme loading with some processing time
@@ -620,7 +620,7 @@ class AsyncThemeLoader:
             return future.cancel()
         return False
 
-    def get_active_loads(self) -> List[str]:
+    def get_active_loads(self) -> list[str]:
         """Get list of currently loading themes."""
         return list(self._active_loads.keys())
 
@@ -645,7 +645,7 @@ if QT_AVAILABLE:
             self._emission_lock = threading.Lock()
             self._connection_count = 0
 
-        def emit_theme_changed(self, theme_name: str, theme_data: Dict[str, Any]) -> None:
+        def emit_theme_changed(self, theme_name: str, theme_data: dict[str, Any]) -> None:
             """Emit theme changed signal (thread-safe)."""
             with self._emission_lock:
                 self.theme_changed.emit(theme_name, theme_data)
@@ -660,7 +660,7 @@ if QT_AVAILABLE:
             with self._emission_lock:
                 self.error_occurred.emit(error_type, error_message)
 
-        def connect_theme_handler(self, handler: Callable[[str, Dict[str, Any]], None]) -> None:
+        def connect_theme_handler(self, handler: Callable[[str, dict[str, Any]], None]) -> None:
             """Connect theme change handler."""
             self.theme_changed.connect(handler)
             self._connection_count += 1
@@ -675,9 +675,9 @@ else:
         """Fallback signal manager when Qt is not available."""
 
         def __init__(self):
-            self._handlers: List[Callable] = []
+            self._handlers: list[Callable] = []
 
-        def emit_theme_changed(self, theme_name: str, theme_data: Dict[str, Any]) -> None:
+        def emit_theme_changed(self, theme_name: str, theme_data: dict[str, Any]) -> None:
             for handler in self._handlers:
                 try:
                     handler(theme_name, theme_data)
@@ -690,7 +690,7 @@ else:
         def emit_error(self, error_type: str, error_message: str) -> None:
             logger.error(f"{error_type}: {error_message}")
 
-        def connect_theme_handler(self, handler: Callable[[str, Dict[str, Any]], None]) -> None:
+        def connect_theme_handler(self, handler: Callable[[str, dict[str, Any]], None]) -> None:
             self._handlers.append(handler)
 
         def get_connection_count(self) -> int:
@@ -705,8 +705,8 @@ class CrossThreadNotifier:
     """
 
     def __init__(self):
-        self._handlers: List[Callable[[str, Any], None]] = []
-        self._notification_queue: List[Tuple[str, Any]] = []
+        self._handlers: list[Callable[[str, Any], None]] = []
+        self._notification_queue: list[tuple[str, Any]] = []
         self._queue_lock = threading.Lock()
         self._processing = False
 
@@ -762,7 +762,7 @@ class WidgetNotificationProxy:
 
     def __init__(self):
         self._registered_widgets: weakref.WeakSet = weakref.WeakSet()
-        self._notification_queue: List[Tuple[Any, str, Any]] = []
+        self._notification_queue: list[tuple[Any, str, Any]] = []
         self._queue_lock = threading.Lock()
 
         if QT_AVAILABLE:
@@ -863,8 +863,8 @@ class AtomicOperations:
     """
 
     def __init__(self):
-        self._counters: Dict[str, int] = {}
-        self._counter_locks: Dict[str, threading.Lock] = {}
+        self._counters: dict[str, int] = {}
+        self._counter_locks: dict[str, threading.Lock] = {}
         self._locks_lock = threading.Lock()
 
     def _get_counter_lock(self, counter_name: str) -> threading.Lock:
@@ -912,8 +912,8 @@ class ConcurrentRegistry:
     """
 
     def __init__(self):
-        self._widgets: Dict[str, weakref.ref] = {}
-        self._metadata: Dict[str, Dict[str, Any]] = {}
+        self._widgets: dict[str, weakref.ref] = {}
+        self._metadata: dict[str, dict[str, Any]] = {}
         self._rw_lock = ReadWriteLock()
         self._counter = AtomicOperations()
 
@@ -952,7 +952,7 @@ class ConcurrentRegistry:
         """Get total widget count."""
         return self._counter.get_counter("total_widgets")
 
-    def get_all_widgets(self) -> List[Any]:
+    def get_all_widgets(self) -> list[Any]:
         """Get all registered widgets."""
         widgets = []
         with self._rw_lock.read_lock():
@@ -989,9 +989,9 @@ class DeadlockDetection:
     """
 
     def __init__(self):
-        self._lock_graph: Dict[int, Set[str]] = defaultdict(set)
-        self._lock_owners: Dict[str, int] = {}
-        self._warnings: List[str] = []
+        self._lock_graph: dict[int, set[str]] = defaultdict(set)
+        self._lock_owners: dict[str, int] = {}
+        self._warnings: list[str] = []
         self._detection_lock = threading.Lock()
 
     @contextmanager
@@ -1035,7 +1035,7 @@ class DeadlockDetection:
                     self._warnings.append(warning)
                     logger.warning(warning)
 
-    def get_warnings(self) -> List[str]:
+    def get_warnings(self) -> list[str]:
         """Get deadlock warnings."""
         with self._detection_lock:
             return self._warnings.copy()
@@ -1045,7 +1045,7 @@ class DeadlockDetection:
         with self._detection_lock:
             self._warnings.clear()
 
-    def get_lock_graph(self) -> Dict[int, Set[str]]:
+    def get_lock_graph(self) -> dict[int, set[str]]:
         """Get current lock ownership graph."""
         with self._detection_lock:
             return {tid: locks.copy() for tid, locks in self._lock_graph.items()}
@@ -1057,7 +1057,7 @@ def create_theme_manager() -> ThreadSafeThemeManager:
     return ThreadSafeThemeManager.get_instance()
 
 
-def create_thread_safe_cache() -> Tuple[ThemeCache, StyleCache, PropertyCache]:
+def create_thread_safe_cache() -> tuple[ThemeCache, StyleCache, PropertyCache]:
     """Create thread-local cache instances."""
     return ThemeCache(), StyleCache(), PropertyCache()
 
@@ -1072,7 +1072,7 @@ def create_signal_manager() -> ThemeSignalManager:
     return ThemeSignalManager()
 
 
-def create_notification_system() -> Tuple[CrossThreadNotifier, WidgetNotificationProxy]:
+def create_notification_system() -> tuple[CrossThreadNotifier, WidgetNotificationProxy]:
     """Create notification system components."""
     return CrossThreadNotifier(), WidgetNotificationProxy()
 
@@ -1092,10 +1092,10 @@ def create_deadlock_detector() -> DeadlockDetection:
 class ThreadingPerformanceMetrics:
     """Performance metrics for threading infrastructure."""
 
-    lock_acquisition_times: List[float] = field(default_factory=list)
-    cache_access_times: List[float] = field(default_factory=list)
-    signal_emission_times: List[float] = field(default_factory=list)
-    async_load_times: List[float] = field(default_factory=list)
+    lock_acquisition_times: list[float] = field(default_factory=list)
+    cache_access_times: list[float] = field(default_factory=list)
+    signal_emission_times: list[float] = field(default_factory=list)
+    async_load_times: list[float] = field(default_factory=list)
     concurrent_thread_count: int = 0
     cache_hit_rate: float = 0.0
 

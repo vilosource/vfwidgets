@@ -33,7 +33,7 @@ import time
 import weakref
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 # Import Qt components with fallback for headless testing
 try:
@@ -115,7 +115,7 @@ class WidgetThemeApplicator:
         """
         self._registry = registry
         self._property_resolver: Optional[PropertyResolver] = None
-        self._style_cache: Dict[str, str] = {}
+        self._style_cache: dict[str, str] = {}
         self._lock = threading.RLock()
         logger.debug("WidgetThemeApplicator initialized")
 
@@ -178,7 +178,7 @@ class WidgetThemeApplicator:
             logger.error(f"Error applying theme to widget {widget_id}: {e}")
             return False
 
-    def apply_theme_batch(self, widget_ids: List[str], theme: Theme) -> Dict[str, bool]:
+    def apply_theme_batch(self, widget_ids: list[str], theme: Theme) -> dict[str, bool]:
         """Apply theme to batch of widgets efficiently.
 
         Args:
@@ -241,7 +241,7 @@ class WidgetThemeApplicator:
             self._style_cache[cache_key] = stylesheet
             return stylesheet
 
-    def _generate_base_styles(self, theme: Theme) -> Dict[str, Any]:
+    def _generate_base_styles(self, theme: Theme) -> dict[str, Any]:
         """Generate base style components from theme."""
         # Create property resolver for this theme if needed
         if self._property_resolver is None or self._property_resolver.theme != theme:
@@ -255,7 +255,7 @@ class WidgetThemeApplicator:
         return {"colors": resolved_colors, "resolved_styles": {}}
 
     def _generate_widget_specific_stylesheet(
-        self, widget: QWidget, theme: Theme, base_styles: Dict[str, Any]
+        self, widget: QWidget, theme: Theme, base_styles: dict[str, Any]
     ) -> str:
         """Generate stylesheet specific to widget type."""
         widget_class = type(widget).__name__
@@ -281,7 +281,7 @@ class WidgetThemeApplicator:
 
         return "\n".join(stylesheet_parts)
 
-    def _resolve_style_references(self, style: str, colors: Dict[str, str]) -> str:
+    def _resolve_style_references(self, style: str, colors: dict[str, str]) -> str:
         """Resolve color references in style string."""
         resolved_style = style
 
@@ -401,7 +401,7 @@ class ApplicationThemeApplicator:
 
         return "\n".join(stylesheet_parts)
 
-    def _resolve_style_references(self, style: str, colors: Dict[str, str]) -> str:
+    def _resolve_style_references(self, style: str, colors: dict[str, str]) -> str:
         """Resolve references in style string."""
         resolved_style = style
 
@@ -433,7 +433,7 @@ class BatchThemeUpdater:
         self._widget_applicator = WidgetThemeApplicator(registry)
         logger.debug("BatchThemeUpdater initialized")
 
-    def update_widgets(self, widget_ids: List[str], theme: Theme) -> Dict[str, bool]:
+    def update_widgets(self, widget_ids: list[str], theme: Theme) -> dict[str, bool]:
         """Update multiple widgets with theme efficiently.
 
         Args:
@@ -465,7 +465,7 @@ class BatchThemeUpdater:
 
         return results
 
-    def update_all_widgets(self, theme: Theme) -> Dict[str, bool]:
+    def update_all_widgets(self, theme: Theme) -> dict[str, bool]:
         """Update all registered widgets with theme.
 
         Args:
@@ -490,7 +490,7 @@ class StyleInvalidator:
 
     def __init__(self):
         """Initialize style invalidator."""
-        self._widget_theme_associations: Dict[weakref.ref, str] = {}
+        self._widget_theme_associations: dict[weakref.ref, str] = {}
         self._lock = threading.RLock()
         logger.debug("StyleInvalidator initialized")
 
@@ -619,10 +619,10 @@ class AsyncThemeApplicator:
 
     def apply_theme_batch_async(
         self,
-        widget_ids: List[str],
+        widget_ids: list[str],
         theme: Theme,
-        callback: Optional[Callable[[Dict[str, bool]], None]] = None,
-    ) -> Future[Dict[str, bool]]:
+        callback: Optional[Callable[[dict[str, bool]], None]] = None,
+    ) -> Future[dict[str, bool]]:
         """Apply theme to batch of widgets asynchronously.
 
         Args:
@@ -826,7 +826,7 @@ class ThemeApplicator:
                 self._stats.errors += 1
             return False
 
-    def apply_theme_globally(self, theme: Theme) -> Dict[str, bool]:
+    def apply_theme_globally(self, theme: Theme) -> dict[str, bool]:
         """Apply theme to all registered widgets and application.
 
         Args:
@@ -891,8 +891,8 @@ class ThemeApplicator:
             return False
 
     def batch_update_theme(
-        self, theme: Theme, widget_ids: Optional[List[str]] = None
-    ) -> Dict[str, bool]:
+        self, theme: Theme, widget_ids: Optional[list[str]] = None
+    ) -> dict[str, bool]:
         """Batch update theme for specified widgets.
 
         Args:
@@ -949,7 +949,7 @@ class ThemeApplicator:
         except Exception as e:
             logger.error(f"Error invalidating theme cache: {e}")
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get theme application statistics.
 
         Returns:

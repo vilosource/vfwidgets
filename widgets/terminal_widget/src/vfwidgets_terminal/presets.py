@@ -153,7 +153,9 @@ def get_config(preset_name: str) -> dict:
     """
     if preset_name not in TERMINAL_CONFIGS:
         available = ", ".join(TERMINAL_CONFIGS.keys())
-        raise KeyError(f"Unknown preset '{preset_name}'. Available presets: {available}")
+        raise KeyError(
+            f"Unknown preset '{preset_name}'. Available presets: {available}"
+        )
     return TERMINAL_CONFIGS[preset_name].copy()
 
 

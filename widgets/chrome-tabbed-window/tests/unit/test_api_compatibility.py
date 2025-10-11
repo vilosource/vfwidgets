@@ -19,6 +19,7 @@ try:
     from PySide6.QtGui import QIcon
     from PySide6.QtTest import QSignalSpy
     from PySide6.QtWidgets import QApplication, QLabel, QTabWidget, QWidget
+
     QT_AVAILABLE = True
 except ImportError:
     QT_AVAILABLE = False
@@ -68,8 +69,9 @@ class TestAPICompatibility:
 
         # Get all public methods from QTabWidget
         qt_methods = [
-            method for method in dir(qt_widget)
-            if not method.startswith('_') and callable(getattr(qt_widget, method))
+            method
+            for method in dir(qt_widget)
+            if not method.startswith("_") and callable(getattr(qt_widget, method))
         ]
 
         # Check each method exists in ChromeTabbedWindow
@@ -86,9 +88,16 @@ class TestAPICompatibility:
 
         # Key properties that must exist
         properties = [
-            'count', 'currentIndex', 'tabPosition', 'tabShape',
-            'tabsClosable', 'movable', 'documentMode',
-            'iconSize', 'elideMode', 'usesScrollButtons'
+            "count",
+            "currentIndex",
+            "tabPosition",
+            "tabShape",
+            "tabsClosable",
+            "movable",
+            "documentMode",
+            "iconSize",
+            "elideMode",
+            "usesScrollButtons",
         ]
 
         for prop in properties:
@@ -110,14 +119,17 @@ class TestAPICompatibility:
 
         # Required signals
         signals = [
-            'currentChanged', 'tabCloseRequested', 'tabBarClicked',
-            'tabBarDoubleClicked', 'tabMoved'
+            "currentChanged",
+            "tabCloseRequested",
+            "tabBarClicked",
+            "tabBarDoubleClicked",
+            "tabMoved",
         ]
 
         for signal_name in signals:
             assert hasattr(chrome_widget, signal_name), f"Missing signal: {signal_name}"
             signal = getattr(chrome_widget, signal_name)
-            assert hasattr(signal, 'connect'), f"Signal {signal_name} not connectable"
+            assert hasattr(signal, "connect"), f"Signal {signal_name} not connectable"
 
 
 @pytest.mark.skipif(not QT_AVAILABLE, reason="Qt not available")
@@ -266,13 +278,13 @@ class TestBehaviorCompatibility:
         qt_widget.setTabEnabled(0, False)
         chrome_widget.setTabEnabled(0, False)
 
-        assert qt_widget.isTabEnabled(0) == chrome_widget.isTabEnabled(0) == False
+        assert qt_widget.isTabEnabled(0) == chrome_widget.isTabEnabled(0) is False
 
         # Test visible state
         qt_widget.setTabVisible(0, False)
         chrome_widget.setTabVisible(0, False)
 
-        assert qt_widget.isTabVisible(0) == chrome_widget.isTabVisible(0) == False
+        assert qt_widget.isTabVisible(0) == chrome_widget.isTabVisible(0) is False
 
     def test_invalid_index_handling(self, widget_pair):
         """Test that invalid indices are handled identically."""
@@ -288,8 +300,8 @@ class TestBehaviorCompatibility:
         assert qt_widget.widget(0) is None
         assert chrome_widget.widget(0) is None
 
-        assert qt_widget.isTabEnabled(-1) == chrome_widget.isTabEnabled(-1) == False
-        assert qt_widget.isTabEnabled(100) == chrome_widget.isTabEnabled(100) == False
+        assert qt_widget.isTabEnabled(-1) == chrome_widget.isTabEnabled(-1) is False
+        assert qt_widget.isTabEnabled(100) == chrome_widget.isTabEnabled(100) is False
 
 
 @pytest.mark.skipif(not QT_AVAILABLE, reason="Qt not available")
@@ -353,7 +365,7 @@ class TestSignalCompatibility:
 
         # Signals should be connectable (we can't easily test emission without
         # complex mouse event simulation)
-        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() == True
+        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() is True
 
 
 @pytest.mark.skipif(not QT_AVAILABLE, reason="Qt not available")
@@ -365,45 +377,45 @@ class TestConfigurationCompatibility:
         qt_widget, chrome_widget = widget_pair
 
         # Default should be False
-        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() == False
+        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() is False
 
         # Set to True
         qt_widget.setTabsClosable(True)
         chrome_widget.setTabsClosable(True)
 
-        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() == True
+        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() is True
 
         # Set back to False
         qt_widget.setTabsClosable(False)
         chrome_widget.setTabsClosable(False)
 
-        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() == False
+        assert qt_widget.tabsClosable() == chrome_widget.tabsClosable() is False
 
     def test_movable_property(self, widget_pair):
         """Test movable property behaves identically."""
         qt_widget, chrome_widget = widget_pair
 
         # Default should be False
-        assert qt_widget.isMovable() == chrome_widget.isMovable() == False
+        assert qt_widget.isMovable() == chrome_widget.isMovable() is False
 
         # Set to True
         qt_widget.setMovable(True)
         chrome_widget.setMovable(True)
 
-        assert qt_widget.isMovable() == chrome_widget.isMovable() == True
+        assert qt_widget.isMovable() == chrome_widget.isMovable() is True
 
     def test_document_mode_property(self, widget_pair):
         """Test document mode property behaves identically."""
         qt_widget, chrome_widget = widget_pair
 
         # Default should be False
-        assert qt_widget.documentMode() == chrome_widget.documentMode() == False
+        assert qt_widget.documentMode() == chrome_widget.documentMode() is False
 
         # Set to True
         qt_widget.setDocumentMode(True)
         chrome_widget.setDocumentMode(True)
 
-        assert qt_widget.documentMode() == chrome_widget.documentMode() == True
+        assert qt_widget.documentMode() == chrome_widget.documentMode() is True
 
     def test_icon_size_property(self, widget_pair):
         """Test icon size property behaves identically."""

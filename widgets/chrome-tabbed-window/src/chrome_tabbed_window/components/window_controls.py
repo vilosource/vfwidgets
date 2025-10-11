@@ -51,23 +51,22 @@ class WindowControlButton(QPushButton):
 
                     # Icon color: try icon.foreground, colors.foreground, window.foreground
                     icon_color = (
-                        colors.get("icon.foreground") or
-                        colors.get("colors.foreground") or
-                        colors.get("window.foreground")
+                        colors.get("icon.foreground")
+                        or colors.get("colors.foreground")
+                        or colors.get("window.foreground")
                     )
 
                     # Toolbar hover background
                     hover_bg_color = (
-                        colors.get("toolbar.hoverBackground") or
-                        colors.get("colors.toolbar.hoverBackground") or
-                        "rgba(0, 0, 0, 0.1)"
+                        colors.get("toolbar.hoverBackground")
+                        or colors.get("colors.toolbar.hoverBackground")
+                        or "rgba(0, 0, 0, 0.1)"
                     )
                     hover_bg = QColor(hover_bg_color)
 
                     # Toolbar hover foreground
-                    hover_icon_color = (
-                        colors.get("toolbar.hoverForeground") or
-                        colors.get("colors.toolbar.hoverForeground")
+                    hover_icon_color = colors.get("toolbar.hoverForeground") or colors.get(
+                        "colors.toolbar.hoverForeground"
                     )
                     if not hover_icon_color:
                         # Auto-calculate contrasting color based on hover background lightness
@@ -75,9 +74,9 @@ class WindowControlButton(QPushButton):
 
                     # Toolbar active background
                     active_bg_color = (
-                        colors.get("toolbar.activeBackground") or
-                        colors.get("colors.toolbar.activeBackground") or
-                        "rgba(0, 0, 0, 0.2)"
+                        colors.get("toolbar.activeBackground")
+                        or colors.get("colors.toolbar.activeBackground")
+                        or "rgba(0, 0, 0, 0.2)"
                     )
 
                     # If we found an icon color, use it; otherwise use smart fallback

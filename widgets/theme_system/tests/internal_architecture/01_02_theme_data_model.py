@@ -137,7 +137,7 @@ def demonstrate_theme_builder():
 
     try:
         # This should fail validation
-        bad_theme = builder.build()
+        builder.build()
         print("ERROR: Invalid theme was created!")
     except InvalidThemeFormatError as e:
         print(f"✓ Validation caught invalid color: {e}")
@@ -315,14 +315,15 @@ def demonstrate_property_resolution():
         resolver.get_color("accent")  # Should be from cache
     cached_time = time.perf_counter() - start_time
 
-    print(f"1000 uncached accesses: {uncached_time:.6f}s ({uncached_time*1000:.3f}μs per access)")
-    print(f"1000 cached accesses: {cached_time:.6f}s ({cached_time*1000:.3f}μs per access)")
-    print(f"Cache speedup: {uncached_time/cached_time:.1f}x faster")
+    print(f"1000 uncached accesses: {uncached_time:.6f}s ({uncached_time * 1000:.3f}μs per access)")
+    print(f"1000 cached accesses: {cached_time:.6f}s ({cached_time * 1000:.3f}μs per access)")
+    print(f"Cache speedup: {uncached_time / cached_time:.1f}x faster")
 
     # Test circular reference detection
     print("\nCircular reference detection:")
     circular_theme = Theme(
-        name="Circular", colors={"a": "@b", "b": "@c", "c": "@a"}  # Creates circular reference
+        name="Circular",
+        colors={"a": "@b", "b": "@c", "c": "@a"},  # Creates circular reference
     )
 
     circular_resolver = PropertyResolver(circular_theme)
@@ -393,7 +394,7 @@ def demonstrate_performance_requirements():
     theme = create_theme_from_dict(large_theme_data)
     loading_time = time.perf_counter() - start_time
 
-    print(f"Theme loading time: {loading_time*1000:.1f}ms (requirement: < 50ms)")
+    print(f"Theme loading time: {loading_time * 1000:.1f}ms (requirement: < 50ms)")
     print("✓ PASS" if loading_time < 0.05 else "✗ FAIL")
 
     # Test property access performance (< 1μs cached requirement)
@@ -410,17 +411,17 @@ def demonstrate_performance_requirements():
     cached_time = time.perf_counter() - start_time
     average_time = cached_time / 10000
 
-    print(f"Average cached access time: {average_time*1000000:.3f}μs (requirement: < 1μs)")
+    print(f"Average cached access time: {average_time * 1000000:.3f}μs (requirement: < 1μs)")
     print("✓ PASS" if average_time < 0.000001 else "✗ FAIL")
 
     # Test validation performance (< 100ms requirement)
     print("\nTesting validation performance...")
     validator = ThemeValidator()
     start_time = time.perf_counter()
-    result = validator.validate(large_theme_data)
+    validator.validate(large_theme_data)
     validation_time = time.perf_counter() - start_time
 
-    print(f"Validation time: {validation_time*1000:.1f}ms (requirement: < 100ms)")
+    print(f"Validation time: {validation_time * 1000:.1f}ms (requirement: < 100ms)")
     print("✓ PASS" if validation_time < 0.1 else "✗ FAIL")
 
     # Test memory overhead (< 500KB requirement)
@@ -440,16 +441,16 @@ def demonstrate_performance_requirements():
     )
     override_theme = Theme(
         name="override",
-        colors={f"color_{i}": f"#{(i+1000):06x}" for i in range(125)},
+        colors={f"color_{i}": f"#{(i + 1000):06x}" for i in range(125)},
         styles={f"style_{i}": f"new_value_{i}" for i in range(125)},
     )
 
     composer = ThemeComposer()
     start_time = time.perf_counter()
-    composed = composer.compose(base_theme, override_theme)
+    composer.compose(base_theme, override_theme)
     composition_time = time.perf_counter() - start_time
 
-    print(f"Composition time: {composition_time*1000:.1f}ms (requirement: < 10ms)")
+    print(f"Composition time: {composition_time * 1000:.1f}ms (requirement: < 10ms)")
     print("✓ PASS" if composition_time < 0.01 else "✗ FAIL")
 
 

@@ -18,6 +18,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 SRC_ROOT = PROJECT_ROOT / "src" / "vfwidgets_multisplit"
 BACKUP_DIR = PROJECT_ROOT / "wip" / f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
+
 def analyze_existing():
     """Analyze what already exists."""
     print("=" * 70)
@@ -56,7 +57,9 @@ def analyze_existing():
         if "def validate_ratio" in content:
             print("    ⚠️  validate_ratio() (exists but in wrong file - should be in utils.py)")
         if "def normalize_ratios" in content:
-            print("    ⚠️  normalize_ratios() (exists but in wrong file - should be in tree_utils.py)")
+            print(
+                "    ⚠️  normalize_ratios() (exists but in wrong file - should be in tree_utils.py)"
+            )
 
         if "class Size" in content:
             print("    ✅ Size dataclass")
@@ -90,6 +93,7 @@ def analyze_existing():
         else:
             print(f"  ❌ {name} missing")
 
+
 def create_backup():
     """Create backup of existing code."""
     print("\n" + "=" * 70)
@@ -108,7 +112,7 @@ def create_backup():
 
         # Save analysis
         analysis_file = BACKUP_DIR / "analysis.txt"
-        with open(analysis_file, 'w') as f:
+        with open(analysis_file, "w") as f:
             f.write("BACKUP ANALYSIS\n")
             f.write("=" * 50 + "\n")
             f.write(f"Timestamp: {datetime.now()}\n\n")
@@ -132,6 +136,7 @@ def create_backup():
     else:
         print("  ℹ️  No existing files to backup")
 
+
 def prepare_structure():
     """Create necessary directories and __init__.py files."""
     print("\n" + "=" * 70)
@@ -153,6 +158,7 @@ def prepare_structure():
         if not init_file.exists():
             init_file.write_text('"""Package initialization."""\n')
             print(f"  ✅ Created {init_file.relative_to(PROJECT_ROOT)}")
+
 
 def create_migration_guide():
     """Create a guide for migrating existing code."""
@@ -246,6 +252,7 @@ Follow P0.2.1 onwards as documented in phase0-tasks-IMPLEMENTATION.md
     guide_path.write_text(content)
     print(f"\n✅ Migration guide created: {guide_path.relative_to(PROJECT_ROOT)}")
 
+
 def main():
     print("PHASE 0 PREPARATION SCRIPT")
     print("=" * 70)
@@ -277,6 +284,7 @@ def main():
     print("Ready to begin Phase 0 implementation!")
     print("\nNext command:")
     print("> Use the multisplit-developer agent to implement task P0.1.1")
+
 
 if __name__ == "__main__":
     main()

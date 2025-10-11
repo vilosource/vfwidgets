@@ -12,7 +12,6 @@ Tests change notification system including:
 
 import threading
 import time
-from typing import List
 
 import pytest
 
@@ -367,7 +366,7 @@ class TestWidgetNotificationManager(ThemedTestCase):
         self.assertTrue(self.manager.is_registered(widget))
 
         # Delete widget
-        widget_id = id(widget)
+        id(widget)
         del widget
 
         # Manager should detect and clean up dead references
@@ -565,7 +564,7 @@ class TestNotificationQueue(ThemedTestCase):
         """Test batch processing of notifications."""
         batch_sizes = []
 
-        def batch_processor(notifications: List[tuple]):
+        def batch_processor(notifications: list[tuple]):
             batch_sizes.append(len(notifications))
 
         self.queue.set_batch_processor(batch_processor, batch_size=3)
@@ -827,7 +826,7 @@ class TestNotificationBatcher(ThemedTestCase):
         """Test accumulation of notifications into batches."""
         processed_batches = []
 
-        def batch_processor(batch: List[tuple]):
+        def batch_processor(batch: list[tuple]):
             processed_batches.append(batch)
 
         self.batcher.set_batch_processor(batch_processor)
@@ -849,7 +848,7 @@ class TestNotificationBatcher(ThemedTestCase):
         """Test automatic flushing based on time interval."""
         processed_batches = []
 
-        def batch_processor(batch: List[tuple]):
+        def batch_processor(batch: list[tuple]):
             processed_batches.append(batch)
 
         self.batcher.set_batch_processor(batch_processor)
@@ -868,11 +867,11 @@ class TestNotificationBatcher(ThemedTestCase):
         small_batch_count = 0
         large_batch_count = 0
 
-        def small_batch_processor(batch: List[tuple]):
+        def small_batch_processor(batch: list[tuple]):
             nonlocal small_batch_count
             small_batch_count += len(batch)
 
-        def large_batch_processor(batch: List[tuple]):
+        def large_batch_processor(batch: list[tuple]):
             nonlocal large_batch_count
             large_batch_count += len(batch)
 
@@ -917,7 +916,7 @@ class TestNotifierIntegration(ThemedTestCase):
         for widget in widgets:
             notifier.register_widget(widget)
 
-        callback_id = notifier.register_callback(integration_callback)
+        notifier.register_callback(integration_callback)
 
         # Send notification
         notifier.notify_theme_changed("integration-theme")

@@ -28,7 +28,9 @@ def main():
     # Connect signals to see events
     terminal.terminal_ready.connect(lambda: print("✅ Terminal is ready!"))
     terminal.command_started.connect(lambda cmd: print(f"▶️  Command started: {cmd}"))
-    terminal.terminal_closed.connect(lambda code: print(f"🔚 Terminal closed with code: {code}"))
+    terminal.terminal_closed.connect(
+        lambda code: print(f"🔚 Terminal closed with code: {code}")
+    )
 
     # Set terminal as central widget
     window.setCentralWidget(terminal)

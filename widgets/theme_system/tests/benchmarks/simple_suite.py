@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from PySide6.QtWidgets import QApplication
 
@@ -26,7 +26,7 @@ class BenchmarkResult:
     mean_time: float  # seconds
     iterations: int
     timestamp: datetime
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -43,7 +43,7 @@ class SimpleBenchmarkSuite:
         self.results_dir = Path(results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
-        self.results: List[BenchmarkResult] = []
+        self.results: list[BenchmarkResult] = []
         self.requirements = {
             "property_access": 0.000010,  # 10μs
             "widget_creation": 0.010,  # 10ms
@@ -68,7 +68,7 @@ class SimpleBenchmarkSuite:
         )
 
         self.results.append(result)
-        print(f"  Mean time: {mean_time*1000:.3f}ms")
+        print(f"  Mean time: {mean_time * 1000:.3f}ms")
 
         return result
 
@@ -123,7 +123,7 @@ class SimpleBenchmarkSuite:
         def benchmark_func():
             # Simulate QSS generation
             qss_parts = []
-            for color_name, color_value in theme.colors.items():
+            for _color_name, color_value in theme.colors.items():
                 qss_parts.append(f"color: {color_value};")
 
             for style_name, style_value in theme.styles.items():
@@ -137,7 +137,7 @@ class SimpleBenchmarkSuite:
 
         return self.run_benchmark("qss_generation", benchmark_func, 200)
 
-    def run_all_benchmarks(self) -> List[BenchmarkResult]:
+    def run_all_benchmarks(self) -> list[BenchmarkResult]:
         """Run all benchmarks."""
         print("Running all benchmarks...")
         print("=" * 50)
@@ -167,7 +167,7 @@ class SimpleBenchmarkSuite:
         print("Benchmarks completed!")
         return results
 
-    def validate_performance(self) -> Dict[str, Any]:
+    def validate_performance(self) -> dict[str, Any]:
         """Validate performance against requirements."""
         validation = {"passed": [], "failed": [], "overall_pass": True}
 
@@ -197,7 +197,7 @@ class SimpleBenchmarkSuite:
 
         return validation
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate performance report."""
         if not self.results:
             return {"error": "No benchmark results available"}

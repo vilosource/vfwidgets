@@ -53,5 +53,5 @@ class TabData:
             enabled=self.enabled,
             visible=self.visible,
             index=self.index,
-            data=self.data.copy()
+            data=self.data.copy(),
         )

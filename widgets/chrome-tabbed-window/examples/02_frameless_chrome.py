@@ -86,9 +86,7 @@ def create_chrome_window():
         chrome_window.addTab(page, title)
 
     # Connect signals
-    chrome_window.tabCloseRequested.connect(
-        lambda index: handle_tab_close(chrome_window, index)
-    )
+    chrome_window.tabCloseRequested.connect(lambda index: handle_tab_close(chrome_window, index))
 
     # Add a new tab button (using corner widget)
     new_tab_button = QPushButton("+")
@@ -128,7 +126,7 @@ def add_new_tab(window: ChromeTabbedWindow):
     window.setCurrentIndex(index)
 
     # Print compression info
-    if hasattr(window, '_tab_bar'):
+    if hasattr(window, "_tab_bar"):
         tab_bar = window._tab_bar
         if tab_bar.count() > 0:
             size_hint = tab_bar.tabSizeHint(0)

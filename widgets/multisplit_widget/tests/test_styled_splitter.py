@@ -44,6 +44,7 @@ class TestStyledSplitter(unittest.TestCase):
 
         # Create handles by adding widgets
         from PySide6.QtWidgets import QWidget
+
         widget1 = QWidget()
         widget2 = QWidget()
 
@@ -54,5 +55,5 @@ class TestStyledSplitter(unittest.TestCase):
         self.assertEqual(splitter.count(), 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
