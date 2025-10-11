@@ -12,6 +12,7 @@ from .platform import (
     is_wsl,
     needs_software_rendering,
 )
+from .single_instance import SingleInstanceApplication
 from .utils import load_widget_icon, setup_widget_style
 from .webengine import (
     configure_all_for_webengine,
@@ -25,6 +26,8 @@ __all__ = [
     "VFBaseWidget",
     # Frameless window behavior
     "FramelessWindowBehavior",
+    # Single instance application
+    "SingleInstanceApplication",
     # Utilities
     "setup_widget_style",
     "load_widget_icon",

@@ -68,6 +68,57 @@ class MyObserver:
 document.add_observer(MyObserver())
 ```
 
+### MarkdownViewer - Display Only Widget
+
+For read-only markdown display (without editing), use `MarkdownViewer`:
+
+```python
+from PySide6.QtWidgets import QApplication
+from vfwidgets_markdown import MarkdownViewer
+
+app = QApplication([])
+
+# Simple usage - content in constructor
+viewer = MarkdownViewer(initial_content="# Hello World\\n\\nThis is **markdown**!")
+viewer.show()
+
+# Or load from file
+viewer = MarkdownViewer()
+viewer.load_file("README.md")  # Automatic base path handling
+viewer.show()
+
+app.exec()
+```
+
+**Important: Async Initialization**
+
+MarkdownViewer uses QWebEngineView which initializes asynchronously.
+**You don't need to worry about this** - the widget automatically queues
+content until ready.
+
+```python
+# ✅ This works - content is queued automatically
+viewer = MarkdownViewer()
+viewer.set_markdown("# Hello")  # Safe to call immediately!
+
+# ✅ This also works - content passed to constructor
+viewer = MarkdownViewer(initial_content="# Hello")
+
+# ✅ This works too - explicit signal handling (advanced)
+viewer = MarkdownViewer()
+viewer.viewer_ready.connect(lambda: viewer.set_markdown("# Hello"))
+```
+
+**When to use viewer_ready signal?**
+
+Most applications don't need to handle `viewer_ready` explicitly. However,
+you should connect to it if:
+- You need to perform actions exactly when rendering completes
+- You're doing complex initialization sequences
+- You want to show a loading indicator
+
+See `examples/00_quick_start.py` for the simplest usage.
+
 ## Architecture
 
 This widget implements a clean **MVC (Model-View-Controller)** architecture:

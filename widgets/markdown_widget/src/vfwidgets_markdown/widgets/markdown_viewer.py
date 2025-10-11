@@ -62,6 +62,28 @@ class MarkdownViewer(_BaseClass):
     - TOC extraction API
     - Signals for integration with editors
 
+    Async Initialization:
+        This widget uses QWebEngineView which initializes asynchronously.
+        **You don't need to worry about this** - the widget automatically queues
+        content until ready. All methods are safe to call immediately after construction.
+
+    Quick Start:
+        # Simple usage - content in constructor
+        viewer = MarkdownViewer(initial_content="# Hello World")
+
+        # Or set content after creation (automatically queued)
+        viewer = MarkdownViewer()
+        viewer.set_markdown("# Hello")  # Safe to call immediately
+
+        # Or load from file
+        viewer = MarkdownViewer()
+        viewer.load_file("README.md")  # Automatic base path handling
+
+    When to use viewer_ready signal:
+        Most applications don't need to handle viewer_ready explicitly.
+        Connect to it only if you need to perform actions exactly when
+        rendering completes or want to show a loading indicator.
+
     Signals:
         content_loaded: Emitted when markdown rendering completes
         toc_changed(list): Emitted when table of contents changes
@@ -97,7 +119,11 @@ class MarkdownViewer(_BaseClass):
     }
 
     def __init__(
-        self, document: Optional[MarkdownDocument] = None, parent: Optional[QWidget] = None
+        self,
+        document: Optional[MarkdownDocument] = None,
+        initial_content: str = "",
+        base_path: Optional[Path] = None,
+        parent: Optional[QWidget] = None,
     ) -> None:
         """Initialize the MarkdownViewer.
 
@@ -107,9 +133,24 @@ class MarkdownViewer(_BaseClass):
 
         In both cases, the viewer observes the document via observer pattern.
 
+        Content can be provided in the constructor and will be loaded automatically
+        when the viewer is ready (no need to manually handle viewer_ready signal).
+
         Args:
             document: Optional MarkdownDocument to observe. If None, creates internal document.
+            initial_content: Markdown content to load when viewer is ready
+            base_path: Base path for resolving relative image URLs
             parent: Parent widget
+
+        Example:
+            # Simple usage with initial content
+            viewer = MarkdownViewer(initial_content="# Hello World")
+
+            # With base path for images
+            viewer = MarkdownViewer(
+                initial_content="# Project\\n\\n![logo](logo.png)",
+                base_path=Path("/path/to/project")
+            )
         """
         super().__init__(parent)
 
@@ -140,6 +181,10 @@ class MarkdownViewer(_BaseClass):
         self._debounce_timer: Optional[QTimer] = None
         self._pending_content: Optional[str] = None
 
+        # Content queueing for async initialization
+        self._pending_render: Optional[str] = None
+        self._pending_base_path: Optional[Path] = None
+
         # Keyboard shortcuts state
         self._shortcuts_enabled = False
         self._custom_shortcuts: dict = {}
@@ -152,6 +197,13 @@ class MarkdownViewer(_BaseClass):
 
         # Load HTML template
         self._load_template()
+
+        # Set initial content and base path if provided
+        # These will be queued until viewer is ready
+        if base_path:
+            self.set_base_path(str(base_path))
+        if initial_content:
+            self.set_markdown(initial_content)
 
     def _setup_webengine(self) -> None:
         """Configure QWebEngineView and page settings."""
@@ -245,8 +297,24 @@ class MarkdownViewer(_BaseClass):
 
         if msg_type == "ready":
             self._is_ready = True
-            self.viewer_ready.emit()
             print("[MarkdownViewer] Viewer ready")
+
+            # Process any pending base path
+            if self._pending_base_path is not None:
+                print(f"[MarkdownViewer] Setting pending base path: {self._pending_base_path}")
+                self._base_path = self._pending_base_path
+                self._pending_base_path = None
+
+            # Process any pending content
+            if self._pending_render is not None:
+                print(
+                    f"[MarkdownViewer] Rendering pending content ({len(self._pending_render)} chars)"
+                )
+                content_to_render = self._pending_render
+                self._pending_render = None
+                self._render_markdown(content_to_render)
+
+            self.viewer_ready.emit()
 
         elif msg_type == "content_loaded":
             self.content_loaded.emit()
@@ -308,31 +376,59 @@ class MarkdownViewer(_BaseClass):
     def set_markdown(self, content: str) -> None:
         """Set markdown content to render.
 
+        This method is safe to call immediately after widget creation.
+        If the viewer is not yet ready, content will be queued and rendered
+        automatically when initialization completes.
+
         This method works in both simple and advanced modes:
         - Simple mode: Updates internal document, which triggers observer
         - Advanced mode: Updates external document, which triggers observer
 
         Args:
             content: Markdown content string
+
+        Example:
+            viewer = MarkdownViewer()
+            viewer.set_markdown("# Hello")  # Safe - content queued if not ready
         """
         # Update the document (triggers observer callback)
         self._document.set_text(content)
 
-    def load_file(self, path: str) -> None:
-        """Load markdown from file.
+    def load_file(self, path: str | Path) -> bool:
+        """Load markdown content from a file.
+
+        This is a convenience method that:
+        1. Reads the file
+        2. Sets the markdown content
+        3. Sets the base path for relative URLs
+
+        Safe to call immediately after widget creation - content will be
+        queued if viewer is not ready.
 
         Args:
-            path: Path to markdown file
+            path: Path to markdown file (string or Path object)
+
+        Returns:
+            True if file was loaded successfully, False otherwise
+
+        Example:
+            viewer = MarkdownViewer()
+            success = viewer.load_file("README.md")
+            if not success:
+                print("Failed to load file")
         """
         try:
-            with open(path, encoding="utf-8") as f:
-                content = f.read()
+            file_path = Path(path)
+            content = file_path.read_text(encoding="utf-8")
             self.set_markdown(content)
+            self.set_base_path(str(file_path.parent))
             print(f"[MarkdownViewer] Loaded file: {path}")
+            return True
         except Exception as e:
-            error_msg = f"Failed to load file: {e}"
+            error_msg = f"Failed to load file {path}: {e}"
             print(f"[MarkdownViewer] ERROR: {error_msg}")
             self.rendering_failed.emit(error_msg)
+            return False
 
     def get_toc(self) -> list:
         """Get table of contents from current markdown.
@@ -445,11 +541,19 @@ class MarkdownViewer(_BaseClass):
     def set_base_path(self, path: str) -> None:
         """Set base path for resolving relative image paths.
 
+        Safe to call before viewer is ready - will be applied when ready.
+
         Args:
             path: Directory path to use as base for relative images
         """
-        self._base_path = Path(path).resolve()
-        print(f"[MarkdownViewer] Base path set to: {self._base_path}")
+        resolved_path = Path(path).resolve()
+
+        if not self._is_ready:
+            print(f"[MarkdownViewer] Viewer not ready, queueing base path: {resolved_path}")
+            self._pending_base_path = resolved_path
+        else:
+            self._base_path = resolved_path
+            print(f"[MarkdownViewer] Base path set to: {self._base_path}")
 
     def set_image_resolver(self, resolver: callable) -> None:
         """Set custom image resolver callback.
@@ -579,9 +683,18 @@ class MarkdownViewer(_BaseClass):
     def _render_markdown(self, content: str) -> None:
         """Internal method to render markdown content.
 
+        If viewer is not ready, content is queued and will be rendered
+        automatically when initialization completes.
+
         Args:
             content: Markdown content to render
         """
+        # Queue content if viewer is not ready yet
+        if not self._is_ready:
+            print(f"[MarkdownViewer] Viewer not ready, queueing content ({len(content)} chars)")
+            self._pending_render = content
+            return
+
         # Save scroll position if sync mode is enabled
         if self._sync_mode:
             js_code = "window.MarkdownViewer.getScrollPosition();"
