@@ -27,7 +27,8 @@ def main():
             viewer.set_markdown(content)
             print(f"Loaded test file: {test_path}")
         else:
-            viewer.set_markdown("""
+            viewer.set_markdown(
+                """
 # Test
 
 ```python
@@ -44,7 +45,8 @@ graph TD
 classDiagram
     class Test
 ```
-            """)
+            """
+            )
 
     viewer.viewer_ready.connect(load_test)
     window.show()

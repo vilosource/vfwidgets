@@ -60,7 +60,8 @@ class ExampleWindow(QMainWindow):
 
     def show_mermaid(self):
         """Show markdown with mermaid diagram."""
-        self.viewer.set_markdown("""
+        self.viewer.set_markdown(
+            """
 # Mermaid Diagram
 
 ```mermaid
@@ -68,12 +69,14 @@ graph TD
     A[Start] --> B[Process]
     B --> C[End]
 ```
-        """)
+        """
+        )
         self.status_label.setText("Status: Showing Mermaid")
 
     def show_math(self):
         """Show markdown with math equations."""
-        self.viewer.set_markdown("""
+        self.viewer.set_markdown(
+            """
 # Math Equations
 
 Inline: $E = mc^2$
@@ -82,7 +85,8 @@ Block:
 $$
 \\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
 $$
-        """)
+        """
+        )
         self.status_label.setText("Status: Showing Math")
 
 

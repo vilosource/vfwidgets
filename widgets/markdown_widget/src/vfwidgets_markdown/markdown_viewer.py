@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QObject, QUrl, Signal, Slot
+from PySide6.QtCore import QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -64,6 +64,9 @@ class MarkdownViewer(_BaseClass):
         toc_changed(list): Emitted when table of contents changes
         rendering_failed(str): Emitted when rendering fails with error message
         viewer_ready: Emitted when viewer is initialized and ready
+        scroll_position_changed(float): Emitted when scroll position changes (0.0-1.0)
+        heading_clicked(str): Emitted when heading is clicked with heading ID
+        link_clicked(str): Emitted when link is clicked with URL
     """
 
     # Define custom signals
@@ -71,6 +74,9 @@ class MarkdownViewer(_BaseClass):
     toc_changed = Signal(list)
     rendering_failed = Signal(str)
     viewer_ready = Signal()
+    scroll_position_changed = Signal(float)
+    heading_clicked = Signal(str)
+    link_clicked = Signal(str)
 
     # Theme configuration - maps theme tokens to CSS variables
     theme_config = {
@@ -99,6 +105,13 @@ class MarkdownViewer(_BaseClass):
         self._is_ready = False
         self._base_path: Optional[Path] = None
         self._image_resolver: Optional[callable] = None
+
+        # Editor integration state
+        self._sync_mode = False
+        self._saved_scroll_position: Optional[float] = None
+        self._debounce_delay = 0
+        self._debounce_timer: Optional[QTimer] = None
+        self._pending_content: Optional[str] = None
 
         # Setup web engine
         self._setup_webengine()
@@ -218,6 +231,18 @@ class MarkdownViewer(_BaseClass):
             self.rendering_failed.emit(error)
             print(f"[MarkdownViewer] Rendering failed: {error}")
 
+        elif msg_type == "scroll_position_changed":
+            position = message.get("position", 0.0)
+            self.scroll_position_changed.emit(position)
+
+        elif msg_type == "heading_clicked":
+            heading_id = message.get("heading_id", "")
+            self.heading_clicked.emit(heading_id)
+
+        elif msg_type == "link_clicked":
+            url = message.get("url", "")
+            self.link_clicked.emit(url)
+
         else:
             print(f"[MarkdownViewer] Unknown message type: {msg_type}")
 
@@ -229,18 +254,12 @@ class MarkdownViewer(_BaseClass):
         """
         self._current_markdown = content
 
-        # Pre-process images if base_path or resolver is set
-        if self._base_path or self._image_resolver:
-            content = self._preprocess_images(content)
-
-        # Escape content for JavaScript
-        escaped_content = json.dumps(content)
-
-        # Call JavaScript render function
-        js_code = f"window.MarkdownViewer.render({escaped_content});"
-        self.page().runJavaScript(js_code)
-
-        print(f"[MarkdownViewer] Rendering {len(content)} bytes of markdown")
+        # Use debouncing if enabled
+        if self._debounce_delay > 0 and self._debounce_timer is not None:
+            self._pending_content = content
+            self._debounce_timer.start(self._debounce_delay)
+        else:
+            self._render_markdown(content)
 
     def load_file(self, path: str) -> None:
         """Load markdown from file.
@@ -462,3 +481,72 @@ class MarkdownViewer(_BaseClass):
 
         processed = re.sub(pattern, replace_image, content)
         return processed
+
+    def enable_sync_mode(self, enabled: bool = True) -> None:
+        """Enable sync mode to preserve scroll position during updates.
+
+        When enabled, the viewer will restore the scroll position after
+        rendering new content. Useful for live preview scenarios.
+
+        Args:
+            enabled: True to enable sync mode, False to disable
+        """
+        self._sync_mode = enabled
+        print(f"[MarkdownViewer] Sync mode: {'enabled' if enabled else 'disabled'}")
+
+    def set_debounce_delay(self, delay_ms: int) -> None:
+        """Set debounce delay for content updates.
+
+        When set, content updates are delayed by the specified amount.
+        Useful for live preview to avoid updating on every keystroke.
+
+        Args:
+            delay_ms: Delay in milliseconds (0 to disable debouncing)
+        """
+        self._debounce_delay = delay_ms
+
+        if delay_ms > 0 and self._debounce_timer is None:
+            self._debounce_timer = QTimer()
+            self._debounce_timer.setSingleShot(True)
+            self._debounce_timer.timeout.connect(self._apply_pending_content)
+
+        print(f"[MarkdownViewer] Debounce delay set to {delay_ms}ms")
+
+    def _apply_pending_content(self) -> None:
+        """Apply pending content after debounce delay."""
+        if self._pending_content is not None:
+            content = self._pending_content
+            self._pending_content = None
+            self._render_markdown(content)
+
+    def _render_markdown(self, content: str) -> None:
+        """Internal method to render markdown content.
+
+        Args:
+            content: Markdown content to render
+        """
+        # Save scroll position if sync mode is enabled
+        if self._sync_mode:
+            js_code = "window.MarkdownViewer.getScrollPosition();"
+            self.page().runJavaScript(
+                js_code, lambda pos: setattr(self, "_saved_scroll_position", pos)
+            )
+
+        # Pre-process images if base_path or resolver is set
+        if self._base_path or self._image_resolver:
+            content = self._preprocess_images(content)
+
+        # Escape content for JavaScript
+        escaped_content = json.dumps(content)
+
+        # Call JavaScript render function
+        js_code = f"window.MarkdownViewer.render({escaped_content});"
+        self.page().runJavaScript(js_code)
+
+        # Restore scroll position if sync mode is enabled
+        if self._sync_mode and self._saved_scroll_position is not None:
+            restore_js = f"window.MarkdownViewer.setScrollPosition({self._saved_scroll_position});"
+            # Use a small delay to ensure content is rendered first
+            QTimer.singleShot(50, lambda: self.page().runJavaScript(restore_js))
+
+        print(f"[MarkdownViewer] Rendering {len(content)} bytes of markdown")

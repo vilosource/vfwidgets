@@ -17,7 +17,8 @@ def main():
     window.setCentralWidget(viewer)
 
     def load_test():
-        viewer.set_markdown("""
+        viewer.set_markdown(
+            """
 # Links and Images Test
 
 ## Links
@@ -31,7 +32,8 @@ def main():
 ![Python Logo](https://www.python.org/static/community_logos/python-logo.png)
 
 Links should be clickable and images should display.
-        """)
+        """
+        )
         print("Test content loaded")
 
     viewer.viewer_ready.connect(load_test)

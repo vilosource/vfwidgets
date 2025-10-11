@@ -41,7 +41,8 @@ def main():
             print(f"Loaded {len(markdown_content)} bytes from {sample_path}")
         else:
             # Fallback to simple content if SAMPLE.md not found
-            viewer.set_markdown("""
+            viewer.set_markdown(
+                """
 # MarkdownViewer Demo
 
 **SAMPLE.md not found!**
@@ -55,7 +56,8 @@ This is a fallback example showing basic markdown rendering.
 ```python
 print("Hello from MarkdownViewer!")
 ```
-            """)
+            """
+            )
             print(f"Warning: {sample_path} not found, using fallback content")
 
     # Connect to viewer_ready signal

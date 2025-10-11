@@ -30,6 +30,9 @@ const MarkdownViewer = {
         // Setup QWebChannel bridge
         this.setupBridge();
 
+        // Setup editor integration
+        this.setupEditorIntegration();
+
         console.log('[MarkdownViewer] Initialization complete');
         document.getElementById('loading').style.display = 'none';
     },
@@ -359,6 +362,81 @@ const MarkdownViewer = {
         if (this.qtBridge && this.qtBridge.receiveMessage) {
             this.qtBridge.receiveMessage(JSON.stringify(message));
         }
+    },
+
+    /**
+     * Get current scroll position (0.0 to 1.0)
+     * @returns {number} Scroll position as percentage
+     */
+    getScrollPosition() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        return scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+    },
+
+    /**
+     * Set scroll position (0.0 to 1.0)
+     * @param {number} position - Target scroll position as percentage
+     */
+    setScrollPosition(position) {
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollTop = position * scrollHeight;
+        window.scrollTo(0, scrollTop);
+        console.log(`[MarkdownViewer] Scroll position set to ${(position * 100).toFixed(1)}%`);
+    },
+
+    /**
+     * Setup editor integration features
+     */
+    setupEditorIntegration() {
+        // Track scroll position changes
+        let scrollTimeout = null;
+        window.addEventListener('scroll', () => {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+
+            scrollTimeout = setTimeout(() => {
+                const position = this.getScrollPosition();
+                this.sendMessage({
+                    type: 'scroll_position_changed',
+                    position: position
+                });
+            }, 100);  // Throttle scroll events to every 100ms
+        });
+
+        // Track heading clicks
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+
+            // Check if clicked element is a heading
+            if (target.tagName && target.tagName.match(/^H[1-6]$/)) {
+                const headingId = target.id;
+                if (headingId) {
+                    this.sendMessage({
+                        type: 'heading_clicked',
+                        heading_id: headingId
+                    });
+                    console.log(`[MarkdownViewer] Heading clicked: ${headingId}`);
+                }
+            }
+
+            // Check if clicked element is a link
+            if (target.tagName === 'A' && target.href) {
+                const href = target.href;
+                // Only emit for non-heading anchor links
+                if (!href.startsWith('#')) {
+                    event.preventDefault();  // Prevent default navigation
+                    this.sendMessage({
+                        type: 'link_clicked',
+                        url: href
+                    });
+                    console.log(`[MarkdownViewer] Link clicked: ${href}`);
+                }
+            }
+        });
+
+        console.log('[MarkdownViewer] Editor integration features enabled');
     },
 
     /**
