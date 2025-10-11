@@ -246,13 +246,12 @@ class MarkdownViewer(_BaseClass):
         self.setPage(page)
 
         # Set background color to prevent white flash on load
+        # This sets the page background (visible while loading or if content has transparency)
+        # The actual theme colors are applied to HTML content via JavaScript in on_theme_changed()
         from PySide6.QtGui import QColor
 
         bg_color = self._get_initial_background_color()
         page.setBackgroundColor(QColor(bg_color))
-
-        # Also set stylesheet on the QWebEngineView widget itself
-        self.setStyleSheet(f"QWebEngineView {{ background-color: {bg_color}; }}")
 
         # Configure settings
         settings = page.settings()
@@ -566,30 +565,16 @@ class MarkdownViewer(_BaseClass):
         self.on_theme_changed()
 
     def _get_initial_background_color(self) -> str:
-        """Get theme-aware background color for WebView.
+        """Get initial background color for WebView.
 
-        Returns background color from theme system if available,
-        otherwise returns a dark fallback to prevent white flash.
+        Returns a static dark fallback that prevents white flash on startup.
+        The actual theme colors will be applied later via on_theme_changed().
 
         Returns:
             Hex color string for background
         """
-        if not THEME_AVAILABLE:
-            return "#1a1a1a"  # Dark fallback
-
-        # Try to get background from theme (if ThemedWidget has set it)
-        try:
-            if hasattr(self, "theme") and self.theme:
-                # Try md_bg from theme_config mapping
-                if hasattr(self.theme, "md_bg"):
-                    return self.theme.md_bg
-                # Fallback to editor.background
-                if hasattr(self.theme, "editor") and hasattr(self.theme.editor, "background"):
-                    return self.theme.editor.background
-        except Exception:
-            pass
-
-        # Fallback to dark background (prevents white flash)
+        # Static dark fallback (prevents white flash on startup)
+        # Actual theme colors applied later via deferred theme mechanism
         return "#1a1a1a"
 
     def is_ready(self) -> bool:
