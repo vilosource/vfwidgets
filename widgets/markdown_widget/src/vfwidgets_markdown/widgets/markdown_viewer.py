@@ -567,14 +567,30 @@ class MarkdownViewer(_BaseClass):
     def _get_initial_background_color(self) -> str:
         """Get initial background color for WebView.
 
-        Returns a static dark fallback that prevents white flash on startup.
-        The actual theme colors will be applied later via on_theme_changed().
+        Checks the application's current theme type to return an appropriate
+        static fallback color (dark or light) that prevents flash on startup.
 
         Returns:
-            Hex color string for background
+            Hex color string for background (#1a1a1a for dark, #ffffff for light)
         """
-        # Static dark fallback (prevents white flash on startup)
-        # Actual theme colors applied later via deferred theme mechanism
+        # Try to determine theme type from application
+        try:
+            from PySide6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app and hasattr(app, "get_current_theme"):
+                current_theme = app.get_current_theme()
+                if current_theme and hasattr(current_theme, "type"):
+                    # Return appropriate static color based on theme type
+                    if current_theme.type == "dark":
+                        return "#1a1a1a"  # Dark background
+                    else:
+                        return "#ffffff"  # Light background
+        except Exception:
+            pass  # Continue to fallback
+
+        # Default fallback to dark (most common for development/terminal apps)
+        # Actual theme colors will be applied later via deferred theme mechanism
         return "#1a1a1a"
 
     def is_ready(self) -> bool:
