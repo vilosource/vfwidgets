@@ -4,6 +4,10 @@ This module provides SingleInstanceApplication, a QApplication subclass that ens
 only one instance of an application runs at a time. When a second instance is launched,
 it communicates with the first instance via QLocalServer/QLocalSocket and exits.
 
+SingleInstanceApplication automatically supports theming when vfwidgets-theme is
+installed. It inherits from ThemedApplication if available, providing centralized
+theme management and propagation to all ThemedWidget instances.
+
 Example:
     >>> from vfwidgets_common import SingleInstanceApplication
     >>>
@@ -27,10 +31,22 @@ from typing import Optional
 
 from PySide6.QtCore import QTimer
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QWidget
+
+# Check if theme system is available
+try:
+    from vfwidgets_theme import ThemedApplication
+
+    THEME_AVAILABLE = True
+    _BaseApp = ThemedApplication
+except ImportError:
+    THEME_AVAILABLE = False
+    from PySide6.QtWidgets import QApplication
+
+    _BaseApp = QApplication
 
 
-class SingleInstanceApplication(QApplication):
+class SingleInstanceApplication(_BaseApp):
     """QApplication subclass with single-instance behavior via IPC.
 
     This class ensures only one instance of an application runs at a time.
@@ -40,6 +56,15 @@ class SingleInstanceApplication(QApplication):
     3. Exits immediately
 
     The primary instance receives messages through the handle_message() method.
+
+    Theme Support:
+        If vfwidgets-theme is installed, SingleInstanceApplication automatically
+        inherits from ThemedApplication, providing:
+        - Centralized theme management
+        - Automatic theme propagation to all ThemedWidget instances
+        - Theme persistence across sessions
+
+        If vfwidgets-theme is not installed, inherits from QApplication (basic Qt).
 
     Attributes:
         _app_id: Unique application identifier
@@ -68,14 +93,42 @@ class SingleInstanceApplication(QApplication):
         ...         return self.exec()
     """
 
-    def __init__(self, argv: list[str], app_id: str):
+    def __init__(
+        self,
+        argv: list[str],
+        app_id: str,
+        prefer_dark: bool = False,
+        theme_config: Optional[dict] = None,
+    ):
         """Initialize single-instance application.
 
         Args:
             argv: Command-line arguments (passed to QApplication)
             app_id: Unique application identifier for IPC server name
+            prefer_dark: If True, automatically select a dark theme on startup (default: False)
+            theme_config: Optional theme configuration dict (for ThemedApplication)
         """
-        super().__init__(argv)
+        # Build theme config if prefer_dark is set
+        if prefer_dark and theme_config is None:
+            theme_config = {
+                "default_theme": "dark",
+                "auto_detect_system": False,  # Don't override with system theme
+                "persist_theme": False,  # Don't override with saved preference
+            }
+        elif prefer_dark and theme_config is not None:
+            # User provided config, but also wants dark theme
+            if "default_theme" not in theme_config:
+                theme_config["default_theme"] = "dark"
+            if "auto_detect_system" not in theme_config:
+                theme_config["auto_detect_system"] = False
+            if "persist_theme" not in theme_config:
+                theme_config["persist_theme"] = False
+
+        # Pass theme_config to ThemedApplication if available
+        if THEME_AVAILABLE:
+            super().__init__(argv, theme_config=theme_config)
+        else:
+            super().__init__(argv)
 
         self._app_id = app_id
         self._is_primary = False
@@ -281,7 +334,7 @@ class SingleInstanceApplication(QApplication):
             # Wait for acknowledgment
             if not socket.waitForReadyRead(3000):
                 print(
-                    "[SingleInstanceApplication] Warning: No response from " "primary instance",
+                    "[SingleInstanceApplication] Warning: No response from primary instance",
                     file=sys.stderr,
                 )
                 return 1
@@ -289,8 +342,7 @@ class SingleInstanceApplication(QApplication):
             response = bytes(socket.readAll()).decode("utf-8")
             if response != "OK":
                 print(
-                    f"[SingleInstanceApplication] Warning: Primary instance "
-                    f"returned: {response}",
+                    f"[SingleInstanceApplication] Warning: Primary instance returned: {response}",
                     file=sys.stderr,
                 )
                 return 1

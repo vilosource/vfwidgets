@@ -38,7 +38,7 @@ Reamde requires the following VFWidgets packages:
 
 ## Usage
 
-### Basic Usage
+### Command Line
 
 ```bash
 # Open a markdown file
@@ -46,7 +46,24 @@ reamde README.md
 
 # If reamde is already running, the file opens in a new tab
 reamde DOCS.md
+
+# Open without file (empty window)
+reamde
 ```
+
+### GUI Features
+
+#### File Menu
+- **File > Open** (Ctrl+O) - Open markdown file via file dialog
+- **File > Close** (Ctrl+W) - Close current tab
+- **File > Theme Preferences** - Change application theme (requires vfwidgets-theme)
+- **File > Exit** (Ctrl+Q) - Exit application
+
+#### Tabbed Interface
+- Click **×** on tab to close
+- Drag tabs to reorder
+- Tab tooltip shows full file path
+- Built-in **+** button for new tabs (future)
 
 ### Single-Instance Behavior
 
@@ -100,17 +117,46 @@ Reamde uses IPC (Inter-Process Communication) to ensure only one instance runs a
 
 #### Keyboard Shortcuts
 
+- **Ctrl+O** - Open file
 - **Ctrl+W** - Close current tab
 - **Ctrl+Tab** - Next tab
 - **Ctrl+Shift+Tab** - Previous tab
 - **Ctrl+Q** - Quit application
 
-#### Tab Management
+## Theme Support
 
-- Click **×** on tab to close
-- Drag tabs to reorder
-- Right-click tab for context menu (future)
-- Tab tooltip shows full file path
+Reamde automatically integrates with the VFWidgets theme system when `vfwidgets-theme` is installed.
+
+### Features
+- **Automatic theme detection** - Uses system default or last saved theme
+- **Theme propagation** - All components (title bar, tabs, content) update simultaneously
+- **Theme preferences dialog** - Access via File > Theme Preferences
+- **VSCode-compatible themes** - Use any VSCode theme
+
+### How It Works
+
+Reamde uses `SingleInstanceApplication` which automatically inherits from `ThemedApplication` when `vfwidgets-theme` is installed:
+
+```python
+from vfwidgets_common import SingleInstanceApplication
+
+class ReamdeApp(SingleInstanceApplication):
+    # Automatically uses ThemedApplication if available
+    pass
+```
+
+This provides:
+- Centralized theme management via `ThemeManager`
+- Automatic theme change propagation to all `ThemedWidget` instances
+- Theme persistence across sessions
+
+### Without Theme Support
+
+If `vfwidgets-theme` is not installed:
+- Application still works normally
+- Uses default Qt styling
+- Theme Preferences menu item is hidden
+- No theme switching available
 
 ## Architecture
 

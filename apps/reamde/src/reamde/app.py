@@ -25,7 +25,8 @@ class ReamdeApp(SingleInstanceApplication):
         Args:
             argv: Command-line arguments
         """
-        super().__init__(argv, app_id="reamde")
+        # Use dark theme by default for markdown viewer
+        super().__init__(argv, app_id="reamde", prefer_dark=True)
 
         self.window: Optional[ReamdeWindow] = None
 
