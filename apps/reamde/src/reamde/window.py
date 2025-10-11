@@ -39,6 +39,10 @@ class MarkdownViewerTab(QWidget):
         layout.addWidget(self.viewer)
         print("[reamde] Layout complete, viewer added to layout")
 
+        # Set dark background on tab container to prevent white flash
+        # (matches approach in ViloxTerm)
+        self.setStyleSheet("QWidget { background-color: #1a1a1a; }")
+
         # Load file if provided - MarkdownViewer handles queueing automatically
         if file_path:
             print("[reamde] Loading file (will be queued if viewer not ready yet)...")
