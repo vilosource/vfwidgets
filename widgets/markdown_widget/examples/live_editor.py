@@ -113,6 +113,9 @@ class LiveEditorDemo(QWidget):
 
     def _on_viewer_ready(self):
         """Called when viewer is ready - load initial content."""
+        # Temporarily disconnect scroll signal to avoid overwriting status
+        self.viewer.scroll_position_changed.disconnect(self._on_scroll_changed)
+
         initial_content = """# Live Markdown Editor
 
 Welcome to the live markdown editor demo!
@@ -182,7 +185,14 @@ The preview updates automatically as you type, with smooth scrolling
 preserved thanks to sync mode.
 """
         self.editor.setPlainText(initial_content)
-        self.status_bar.showMessage("Editor ready - Start typing!")
+        self.status_bar.showMessage("Editor ready - Start typing!", 5000)  # Show for 5 seconds
+
+        # Reconnect scroll signal after a delay
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(
+            1000, lambda: self.viewer.scroll_position_changed.connect(self._on_scroll_changed)
+        )
 
     def _on_text_changed(self):
         """Handle text changes in editor."""
