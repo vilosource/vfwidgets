@@ -80,7 +80,7 @@ class LiveEditorDemo(QWidget):
         self.editor.textChanged.connect(self._on_text_changed)
 
         # Info label
-        info = QLabel("Live preview with 150ms debounce")
+        info = QLabel("Live preview with 25ms debounce")
         info.setStyleSheet("color: gray; font-size: 10px; padding: 5px;")
         layout.addWidget(info, stretch=0)  # Info label shrinks to content
 
@@ -102,7 +102,7 @@ class LiveEditorDemo(QWidget):
 
         # Enable editor integration features
         self.viewer.enable_sync_mode(True)
-        self.viewer.set_debounce_delay(150)  # 150ms debounce for snappier feel
+        self.viewer.set_debounce_delay(25)  # 25ms debounce for instant feel
 
         # Connect signals
         self.viewer.scroll_position_changed.connect(self._on_scroll_changed)
@@ -125,7 +125,7 @@ Welcome to the live markdown editor demo!
 This demo showcases:
 
 1. **Live Preview** - See changes as you type
-2. **Debouncing** - Updates are delayed by 150ms for snappy feel
+2. **Debouncing** - Updates are delayed by 25ms for instant feel
 3. **Sync Mode** - Scroll position is preserved during updates
 4. **Signal Handling** - Events are captured and displayed
 
@@ -153,7 +153,7 @@ from vfwidgets_markdown import MarkdownViewer
 
 viewer = MarkdownViewer()
 viewer.enable_sync_mode(True)
-viewer.set_debounce_delay(150)  # 150ms for snappy updates
+viewer.set_debounce_delay(25)  # 25ms for near-instant updates
 
 # Connect signals
 viewer.scroll_position_changed.connect(lambda pos: print(f"Scrolled: {pos:.2%}"))
