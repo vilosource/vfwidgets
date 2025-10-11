@@ -245,6 +245,12 @@ class MarkdownViewer(_BaseClass):
         page = MarkdownPage(self)
         self.setPage(page)
 
+        # Set background color to prevent white flash on load
+        from PySide6.QtGui import QColor
+
+        bg_color = self._get_initial_background_color()
+        page.setBackgroundColor(QColor(bg_color))
+
         # Configure settings
         settings = page.settings()
         settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
@@ -555,6 +561,33 @@ class MarkdownViewer(_BaseClass):
         """
         print("[MarkdownViewer] Applying initial theme (viewer is ready)")
         self.on_theme_changed()
+
+    def _get_initial_background_color(self) -> str:
+        """Get theme-aware background color for WebView.
+
+        Returns background color from theme system if available,
+        otherwise returns a dark fallback to prevent white flash.
+
+        Returns:
+            Hex color string for background
+        """
+        if not THEME_AVAILABLE:
+            return "#1a1a1a"  # Dark fallback
+
+        # Try to get background from theme (if ThemedWidget has set it)
+        try:
+            if hasattr(self, "theme") and self.theme:
+                # Try md_bg from theme_config mapping
+                if hasattr(self.theme, "md_bg"):
+                    return self.theme.md_bg
+                # Fallback to editor.background
+                if hasattr(self.theme, "editor") and hasattr(self.theme.editor, "background"):
+                    return self.theme.editor.background
+        except Exception:
+            pass
+
+        # Fallback to dark background (prevents white flash)
+        return "#1a1a1a"
 
     def is_ready(self) -> bool:
         """Check if viewer is ready to render.
