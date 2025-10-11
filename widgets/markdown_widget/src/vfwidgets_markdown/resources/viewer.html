@@ -18,8 +18,9 @@
             padding: 20px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
             line-height: 1.6;
-            color: var(--md-fg, #333);
-            background-color: var(--md-bg, #fff);
+            /* Default to dark theme colors to prevent white flash */
+            color: var(--md-fg, #c9d1d9);
+            background-color: var(--md-bg, #1a1a1a);
         }
 
         #content {
@@ -27,11 +28,11 @@
             margin: 0 auto;
         }
 
-        /* Loading indicator */
+        /* Loading indicator - dark theme by default */
         #loading {
             text-align: center;
             padding: 40px;
-            color: #888;
+            color: var(--md-fg, #888);
         }
 
         /* Error display */
@@ -45,7 +46,7 @@
         }
     </style>
 </head>
-<body data-theme="light">
+<body data-theme="dark">
     <div id="loading">Loading markdown viewer...</div>
     <div id="error"></div>
     <div id="content"></div>
