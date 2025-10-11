@@ -67,6 +67,7 @@ class MarkdownViewer(_BaseClass):
         scroll_position_changed(float): Emitted when scroll position changes (0.0-1.0)
         heading_clicked(str): Emitted when heading is clicked with heading ID
         link_clicked(str): Emitted when link is clicked with URL
+        shortcut_triggered(str, str): Emitted when custom shortcut is triggered (action, combo)
     """
 
     # Define custom signals
@@ -77,6 +78,7 @@ class MarkdownViewer(_BaseClass):
     scroll_position_changed = Signal(float)
     heading_clicked = Signal(str)
     link_clicked = Signal(str)
+    shortcut_triggered = Signal(str, str)  # (action, combo)
 
     # Theme configuration - maps theme tokens to CSS variables
     theme_config = {
@@ -112,6 +114,10 @@ class MarkdownViewer(_BaseClass):
         self._debounce_delay = 0
         self._debounce_timer: Optional[QTimer] = None
         self._pending_content: Optional[str] = None
+
+        # Keyboard shortcuts state
+        self._shortcuts_enabled = False
+        self._custom_shortcuts: dict = {}
 
         # Setup web engine
         self._setup_webengine()
@@ -242,6 +248,11 @@ class MarkdownViewer(_BaseClass):
         elif msg_type == "link_clicked":
             url = message.get("url", "")
             self.link_clicked.emit(url)
+
+        elif msg_type == "shortcut_triggered":
+            action = message.get("action", "")
+            combo = message.get("combo", "")
+            self.shortcut_triggered.emit(action, combo)
 
         else:
             print(f"[MarkdownViewer] Unknown message type: {msg_type}")
@@ -550,3 +561,42 @@ class MarkdownViewer(_BaseClass):
             QTimer.singleShot(50, lambda: self.page().runJavaScript(restore_js))
 
         print(f"[MarkdownViewer] Rendering {len(content)} bytes of markdown")
+
+    def enable_shortcuts(self, enabled: bool = True) -> None:
+        """Enable built-in keyboard shortcuts.
+
+        Built-in shortcuts:
+        - Ctrl/Cmd+F: Find in page
+        - Ctrl/Cmd+Plus: Zoom in
+        - Ctrl/Cmd+Minus: Zoom out
+        - Ctrl/Cmd+0: Reset zoom
+        - Home: Scroll to top
+        - End: Scroll to bottom
+        - PageUp/PageDown: Scroll by page
+        - Escape: Clear search/selection
+
+        Args:
+            enabled: True to enable shortcuts, False to disable
+        """
+        self._shortcuts_enabled = enabled
+        js_code = f"window.MarkdownViewer.enableShortcuts({json.dumps(enabled)});"
+        self.page().runJavaScript(js_code)
+        print(f"[MarkdownViewer] Shortcuts: {'enabled' if enabled else 'disabled'}")
+
+    def set_custom_shortcuts(self, shortcuts: dict) -> None:
+        """Set custom keyboard shortcuts.
+
+        Args:
+            shortcuts: Dictionary mapping key combinations to actions
+                      Format: {"Ctrl+K": "custom_action", ...}
+
+        Example:
+            viewer.set_custom_shortcuts({
+                "Ctrl+K": "toggle_theme",
+                "Ctrl+B": "toggle_sidebar"
+            })
+        """
+        self._custom_shortcuts = shortcuts
+        js_code = f"window.MarkdownViewer.setCustomShortcuts({json.dumps(shortcuts)});"
+        self.page().runJavaScript(js_code)
+        print(f"[MarkdownViewer] Custom shortcuts set: {len(shortcuts)} bindings")

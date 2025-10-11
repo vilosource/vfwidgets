@@ -11,6 +11,9 @@ const MarkdownViewer = {
     qtBridge: null,
     currentTheme: 'light',
     scrollPosition: 0,
+    shortcutsEnabled: false,
+    customShortcuts: {},
+    currentZoom: 1.0,
 
     /**
      * Initialize the markdown viewer
@@ -437,6 +440,162 @@ const MarkdownViewer = {
         });
 
         console.log('[MarkdownViewer] Editor integration features enabled');
+    },
+
+    /**
+     * Enable or disable keyboard shortcuts
+     * @param {boolean} enabled - Enable/disable shortcuts
+     */
+    enableShortcuts(enabled) {
+        this.shortcutsEnabled = enabled;
+
+        if (enabled) {
+            this.setupKeyboardShortcuts();
+        }
+
+        console.log(`[MarkdownViewer] Keyboard shortcuts ${enabled ? 'enabled' : 'disabled'}`);
+    },
+
+    /**
+     * Set custom keyboard shortcuts
+     * @param {Object} shortcuts - Custom shortcut mappings
+     */
+    setCustomShortcuts(shortcuts) {
+        this.customShortcuts = shortcuts;
+        console.log(`[MarkdownViewer] Set ${Object.keys(shortcuts).length} custom shortcuts`);
+    },
+
+    /**
+     * Setup keyboard shortcut event handlers
+     */
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (event) => {
+            if (!this.shortcutsEnabled) return;
+
+            const key = event.key;
+            const ctrl = event.ctrlKey || event.metaKey;  // Cmd on Mac, Ctrl on others
+            const shift = event.shiftKey;
+            const alt = event.altKey;
+
+            // Build key combination string
+            let combo = '';
+            if (ctrl) combo += 'Ctrl+';
+            if (shift) combo += 'Shift+';
+            if (alt) combo += 'Alt+';
+            combo += key;
+
+            // Check custom shortcuts first
+            if (this.customShortcuts[combo]) {
+                event.preventDefault();
+                this.sendMessage({
+                    type: 'shortcut_triggered',
+                    action: this.customShortcuts[combo],
+                    combo: combo
+                });
+                return;
+            }
+
+            // Built-in shortcuts
+            // Find: Ctrl/Cmd+F
+            if (ctrl && key === 'f') {
+                event.preventDefault();
+                this.showFind();
+                return;
+            }
+
+            // Zoom in: Ctrl/Cmd+Plus or Ctrl/Cmd+=
+            if (ctrl && (key === '+' || key === '=')) {
+                event.preventDefault();
+                this.zoomIn();
+                return;
+            }
+
+            // Zoom out: Ctrl/Cmd+Minus or Ctrl/Cmd+-
+            if (ctrl && (key === '-' || key === '_')) {
+                event.preventDefault();
+                this.zoomOut();
+                return;
+            }
+
+            // Reset zoom: Ctrl/Cmd+0
+            if (ctrl && key === '0') {
+                event.preventDefault();
+                this.resetZoom();
+                return;
+            }
+
+            // Scroll to top: Home
+            if (key === 'Home' && !ctrl) {
+                event.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            // Scroll to bottom: End
+            if (key === 'End' && !ctrl) {
+                event.preventDefault();
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                return;
+            }
+
+            // Page up
+            if (key === 'PageUp') {
+                event.preventDefault();
+                window.scrollBy({ top: -window.innerHeight * 0.9, behavior: 'smooth' });
+                return;
+            }
+
+            // Page down
+            if (key === 'PageDown') {
+                event.preventDefault();
+                window.scrollBy({ top: window.innerHeight * 0.9, behavior: 'smooth' });
+                return;
+            }
+
+            // Escape: Clear selection
+            if (key === 'Escape') {
+                window.getSelection().removeAllRanges();
+                return;
+            }
+        });
+
+        console.log('[MarkdownViewer] Keyboard shortcuts initialized');
+    },
+
+    /**
+     * Show find dialog (browser native)
+     */
+    showFind() {
+        // Trigger browser's native find
+        document.execCommand('find');
+        console.log('[MarkdownViewer] Find triggered');
+    },
+
+    /**
+     * Zoom in
+     */
+    zoomIn() {
+        this.currentZoom = Math.min(this.currentZoom + 0.1, 3.0);
+        document.body.style.zoom = this.currentZoom;
+        console.log(`[MarkdownViewer] Zoom: ${(this.currentZoom * 100).toFixed(0)}%`);
+    },
+
+    /**
+     * Zoom out
+     */
+    zoomOut() {
+        this.currentZoom = Math.max(this.currentZoom - 0.1, 0.5);
+        document.body.style.zoom = this.currentZoom;
+        console.log(`[MarkdownViewer] Zoom: ${(this.currentZoom * 100).toFixed(0)}%`);
+    },
+
+    /**
+     * Reset zoom
+     */
+    resetZoom() {
+        this.currentZoom = 1.0;
+        document.body.style.zoom = this.currentZoom;
+        console.log('[MarkdownViewer] Zoom reset to 100%');
     },
 
     /**
