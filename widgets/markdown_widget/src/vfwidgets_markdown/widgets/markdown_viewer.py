@@ -116,6 +116,9 @@ class MarkdownViewer(_BaseClass):
         "md_blockquote_bg": "editor.blockquote.background",
         "md_table_border": "widget.border",
         "md_table_header_bg": "list.headerBackground",
+        "md_scrollbar_bg": "editor.background",
+        "md_scrollbar_thumb": "scrollbar.activeBackground",
+        "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
     }
 
     def __init__(
