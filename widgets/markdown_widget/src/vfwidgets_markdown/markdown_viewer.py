@@ -600,3 +600,83 @@ class MarkdownViewer(_BaseClass):
         js_code = f"window.MarkdownViewer.setCustomShortcuts({json.dumps(shortcuts)});"
         self.page().runJavaScript(js_code)
         print(f"[MarkdownViewer] Custom shortcuts set: {len(shortcuts)} bindings")
+
+    def export_html(
+        self, file_path: str, include_styles: bool = True, callback: callable = None
+    ) -> None:
+        """Export rendered content to HTML file.
+
+        Args:
+            file_path: Path to save HTML file
+            include_styles: Include CSS styles in export (default: True)
+            callback: Optional callback when export completes
+
+        Example:
+            viewer.export_html("output.html")
+            viewer.export_html("output.html", include_styles=False)
+        """
+
+        def handle_html(html: str):
+            try:
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(html)
+                print(f"[MarkdownViewer] Exported HTML to: {file_path}")
+                if callback:
+                    callback(True, file_path)
+            except Exception as e:
+                print(f"[MarkdownViewer] Export failed: {e}")
+                if callback:
+                    callback(False, str(e))
+
+        if include_styles:
+            js_code = "window.MarkdownViewer.getFullHTML();"
+        else:
+            js_code = "window.MarkdownViewer.getRenderedHTML();"
+
+        self.page().runJavaScript(js_code, handle_html)
+
+    def export_pdf(self, file_path: str, callback: callable = None) -> None:
+        """Export rendered content to PDF file.
+
+        Uses Qt's PDF printing functionality.
+
+        Args:
+            file_path: Path to save PDF file
+            callback: Optional callback when export completes
+
+        Example:
+            viewer.export_pdf("output.pdf")
+        """
+        from PySide6.QtCore import QMarginsF
+        from PySide6.QtGui import QPageLayout, QPageSize
+        from PySide6.QtPrintSupport import QPrinter
+
+        def handle_pdf(success: bool):
+            if success:
+                print(f"[MarkdownViewer] Exported PDF to: {file_path}")
+                if callback:
+                    callback(True, file_path)
+            else:
+                print("[MarkdownViewer] PDF export failed")
+                if callback:
+                    callback(False, "PDF generation failed")
+
+        try:
+            # Create printer
+            printer = QPrinter(QPrinter.HighResolution)
+            printer.setOutputFormat(QPrinter.PdfFormat)
+            printer.setOutputFileName(file_path)
+
+            # Set page layout
+            page_layout = QPageLayout(
+                QPageSize(QPageSize.A4), QPageLayout.Portrait, QMarginsF(15, 15, 15, 15)
+            )
+            printer.setPageLayout(page_layout)
+
+            # Print to PDF
+            self.page().printToPdf(file_path)
+            handle_pdf(True)
+
+        except Exception as e:
+            print(f"[MarkdownViewer] PDF export error: {e}")
+            handle_pdf(False)

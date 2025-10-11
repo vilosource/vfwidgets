@@ -599,6 +599,71 @@ const MarkdownViewer = {
     },
 
     /**
+     * Get rendered HTML content
+     * @returns {string} Rendered HTML
+     */
+    getRenderedHTML() {
+        const contentDiv = document.getElementById('content');
+        return contentDiv.innerHTML;
+    },
+
+    /**
+     * Get full HTML document with styles
+     * @returns {string} Complete HTML document
+     */
+    getFullHTML() {
+        const contentDiv = document.getElementById('content');
+        const styles = this.collectStyles();
+
+        return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exported Markdown</title>
+    <style>
+${styles}
+    </style>
+</head>
+<body data-theme="${this.currentTheme}">
+    <div id="content">
+${contentDiv.innerHTML}
+    </div>
+</body>
+</html>`;
+    },
+
+    /**
+     * Collect all CSS styles for export
+     * @returns {string} Combined CSS
+     */
+    collectStyles() {
+        let styles = '';
+
+        // Get inline styles from style tags
+        const styleTags = document.querySelectorAll('style');
+        styleTags.forEach(tag => {
+            styles += tag.textContent + '\n';
+        });
+
+        // Get linked stylesheets content (from same origin)
+        const linkTags = document.querySelectorAll('link[rel="stylesheet"]');
+        linkTags.forEach(link => {
+            try {
+                if (link.sheet && link.sheet.cssRules) {
+                    for (let rule of link.sheet.cssRules) {
+                        styles += rule.cssText + '\n';
+                    }
+                }
+            } catch (e) {
+                console.warn('[MarkdownViewer] Could not access stylesheet:', link.href);
+            }
+        });
+
+        return styles;
+    },
+
+    /**
      * Show error message
      * @param {Error} error - Error object
      */
