@@ -251,6 +251,9 @@ class MarkdownViewer(_BaseClass):
         bg_color = self._get_initial_background_color()
         page.setBackgroundColor(QColor(bg_color))
 
+        # Also set stylesheet on the QWebEngineView widget itself
+        self.setStyleSheet(f"QWebEngineView {{ background-color: {bg_color}; }}")
+
         # Configure settings
         settings = page.settings()
         settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
