@@ -80,6 +80,18 @@ self.web_view.page().setBackgroundColor(QColor("#1e1e1e"))
 - For light themes, adjust the color accordingly
 - This is purely cosmetic but significantly improves perceived performance
 
+**Important:** Use a **static fallback color**, not theme-aware code during init:
+```python
+def _get_initial_background_color(self) -> str:
+    """Get initial background color for WebView."""
+    # Static fallback - theme not available during __init__ yet
+    return "#1e1e1e"
+```
+
+**Why static?** During `__init__`, ThemedWidget hasn't applied the theme yet. Trying to access `self.theme` returns nothing. The actual theme colors are applied later via the deferred theme mechanism and `on_theme_changed()`.
+
+**Lesson from markdown_widget:** Initially tried to access theme during init with fallbacks, resulting in 4 layers of protection (container stylesheet, widget stylesheet, page background, HTML defaults). This was over-engineered. Just use `page().setBackgroundColor()` with a static fallback - simple and proven.
+
 ---
 
 ### 3. Port Auto-Allocation Prevents Conflicts
