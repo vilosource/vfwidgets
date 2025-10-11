@@ -1,314 +1,180 @@
-# VFWidgets Markdown Widget
+# VFWidgets Markdown Editor
 
-A collection of PySide6 markdown widgets including a powerful viewer with support for diagrams (Mermaid), syntax highlighting (Prism.js), and math equations (KaTeX).
+A professional markdown editor widget for PySide6 with clean MVC architecture, optimized for AI streaming and live collaboration.
 
 ## Features
 
-- 📝 **Full Markdown Support** - CommonMark + GFM extensions
-- 📊 **Mermaid Diagrams** - Flowcharts, sequence diagrams, Gantt charts, and more
-- 🎨 **Syntax Highlighting** - 300+ languages via Prism.js
-- 🔢 **Math Equations** - LaTeX math rendering via KaTeX
-- 🖼️ **Image Support** - Base64, local files, and URLs
-- 🎭 **Theme Integration** - Optional vfwidgets-theme support
-- 📚 **TOC API** - Programmatic table of contents extraction
-- 🔗 **Editor Ready** - Hooks for live preview and synchronization
-- ⚡ **High Performance** - Debounced rendering, sync mode
-- 📦 **Fully Offline** - All JavaScript libraries bundled locally
-- 🎯 **Export** - HTML and PDF export functionality
-
-## Installation
-
-```bash
-# Install from local path
-pip install ./widgets/markdown_widget
-
-# Install in editable mode for development
-pip install -e ./widgets/markdown_widget
-
-# Install with development dependencies
-pip install -e "./widgets/markdown_widget[dev]"
-
-# Install with optional features
-pip install -e "./widgets/markdown_widget[theme,keybinding]"
-```
+- **Clean MVC Architecture** - Separation of concerns with pure Python model
+- **Dual Pattern Approach** - Python observer pattern + Qt signals/slots
+- **Performance Optimizations** - Pause/resume rendering, throttling for smooth typing
+- **Table of Contents** - Auto-generated, clickable TOC with navigation
+- **AI Streaming Ready** - Efficient append operations for streaming content
+- **Multiple Views** - Keep multiple editors synchronized via shared model
+- **Simple API** - Easy to use composite widget hides complexity
 
 ## Quick Start
 
-### Basic Viewer
+### Installation
+
+```bash
+pip install vfwidgets-markdown
+```
+
+### Basic Usage
 
 ```python
-from PySide6.QtWidgets import QApplication, QMainWindow
-from vfwidgets_markdown import MarkdownViewer
+from PySide6.QtWidgets import QApplication
+from vfwidgets_markdown import MarkdownEditorWidget
 
 app = QApplication([])
-window = QMainWindow()
 
-# Create viewer and set content
-viewer = MarkdownViewer()
-viewer.set_markdown("# Hello World\\n\\nThis is **markdown** with *formatting*!")
-
-window.setCentralWidget(viewer)
-window.resize(800, 600)
-window.show()
+# Create editor - that's it!
+editor = MarkdownEditorWidget()
+editor.set_text("# Hello World\n\nStart editing...")
+editor.show()
 
 app.exec()
 ```
 
-### Load from File
+### AI Streaming Example
 
 ```python
-viewer = MarkdownViewer()
-viewer.load_file("README.md")
+from vfwidgets_markdown import MarkdownEditorWidget
+
+editor = MarkdownEditorWidget()
+editor.show()
+
+# Efficient streaming - uses append events, not full replacement
+for chunk in ai_response_stream():
+    editor.append_text(chunk)  # ✅ Efficient!
+    # NOT: editor.set_text(editor.get_text() + chunk)  # ❌ Slow!
 ```
 
-### Mermaid Diagrams
-
-````python
-viewer.set_markdown(\"\"\"
-# System Architecture
-
-```mermaid
-graph TD
-    A[User] --> B[MarkdownViewer]
-    B --> C[QWebEngineView]
-    C --> D[markdown-it]
-    D --> E[Rendered HTML]
-```
-\"\"\")
-````
-
-### Math Equations
+### Advanced: Direct Model Access
 
 ```python
-viewer.set_markdown(\"\"\"
-# Physics
+from vfwidgets_markdown import MarkdownEditorWidget
 
-Inline equation: $E = mc^2$
+editor = MarkdownEditorWidget()
 
-Block equation:
-$$
-\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
-$$
-\"\"\")
+# Get the document model for advanced usage
+document = editor.get_document()
+
+# Add custom observer
+class MyObserver:
+    def on_document_changed(self, event):
+        print(f"Document changed! Version: {event.version}")
+
+document.add_observer(MyObserver())
 ```
 
-### Syntax Highlighting
+## Architecture
 
-````python
-viewer.set_markdown(\"\"\"
-# Code Example
+This widget implements a clean **MVC (Model-View-Controller)** architecture:
 
+```
+┌─────────────────────────────────────────┐
+│       MarkdownDocument (Model)          │
+│       Pure Python, No Qt                │
+└────────────┬────────────────────────────┘
+             │ Python Observer Pattern
+    ┌────────┴─────────┬──────────────────┐
+    ↓                  ↓                   ↓
+┌──────────┐   ┌──────────────┐   ┌──────────────┐
+│  Editor  │   │   TOC View   │   │   Viewer     │
+│  (View)  │   │    (View)    │   │   (View)     │
+└──────────┘   └──────────────┘   └──────────────┘
+    ↕                  ↕
+ Qt Signals      Qt Signals
+(View ↔ View coordination)
+```
+
+### Key Architectural Decisions
+
+1. **Python Observer Pattern** (Model → Views)
+   - Model stays pure Python (testable without Qt)
+   - Views react to model changes
+   - Clean separation of concerns
+
+2. **Qt Signals/Slots** (View ↔ View)
+   - Native Qt for UI coordination
+   - Type-safe, automatic cleanup
+   - TOC clicks → Editor scrolls
+
+3. **Performance Controller**
+   - Pause/resume for batch operations
+   - Throttling for smooth typing
+   - Optimized for large documents
+
+For detailed architecture documentation, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## API Reference
+
+### MarkdownEditorWidget
+
+The main composite widget that combines everything.
+
+**Constructor:**
 ```python
-def factorial(n):
-    if n <= 1:
-        return 1
-    return n * factorial(n - 1)
-```
-\"\"\")
-````
-
-## Advanced Usage
-
-### Live Preview Editor
-
-```python
-from PySide6.QtWidgets import QSplitter, QPlainTextEdit
-from vfwidgets_markdown import MarkdownViewer
-
-# Create split view
-splitter = QSplitter()
-
-# Editor on left
-editor = QPlainTextEdit()
-editor.setPlainText("# Start typing...")
-
-# Viewer on right
-viewer = MarkdownViewer()
-viewer.enable_sync_mode()  # Preserve scroll position
-viewer.set_debounce_delay(300)  # Wait 300ms before rendering
-
-# Connect editor to viewer
-editor.textChanged.connect(lambda: viewer.set_markdown(editor.toPlainText()))
-
-splitter.addWidget(editor)
-splitter.addWidget(viewer)
-splitter.show()
+MarkdownEditorWidget(initial_text="", parent=None)
 ```
 
-### Custom TOC Sidebar
+**Methods:**
+- `set_text(text: str)` - Set complete markdown content
+- `append_text(text: str)` - Append text (optimized for streaming)
+- `get_text() -> str` - Get current content
+- `clear()` - Clear all content
+- `set_read_only(read_only: bool)` - Make editor read-only
+- `is_read_only() -> bool` - Check if read-only
 
-```python
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+**Advanced Access:**
+- `get_document() -> MarkdownDocument` - Direct model access
+- `get_editor() -> MarkdownTextEditor` - Direct editor access
+- `get_toc_view() -> MarkdownTocView` - Direct TOC access
 
-# Create TOC tree
-toc_tree = QTreeWidget()
-viewer = MarkdownViewer()
-
-def update_toc(toc):
-    \"\"\"Update TOC sidebar when content changes.\"\"\"
-    toc_tree.clear()
-    for heading in toc:
-        item = QTreeWidgetItem([heading['text']])
-        item.setData(0, Qt.ItemDataRole.UserRole, heading['id'])
-        toc_tree.addTopLevelItem(item)
-
-def on_toc_click(item):
-    \"\"\"Scroll to heading when clicked.\"\"\"
-    heading_id = item.data(0, Qt.ItemDataRole.UserRole)
-    viewer.scroll_to_heading(heading_id)
-
-# Connect signals
-viewer.toc_changed.connect(update_toc)
-toc_tree.itemClicked.connect(on_toc_click)
-
-viewer.set_markdown("# Introduction\\n## Section 1\\n### Subsection")
-```
-
-### Image Handling
-
-```python
-# Set base path for relative images
-viewer.set_base_path("/home/user/docs")
-viewer.set_markdown("![Logo](./images/logo.png)")  # Resolved to /home/user/docs/images/logo.png
-
-# Custom image resolver
-def custom_resolver(path: str) -> str:
-    if path.startswith("http"):
-        return path  # Allow web URLs
-    return f"/custom/path/{path}"
-
-viewer.set_image_resolver(custom_resolver)
-
-# Base64 embedded images work automatically
-viewer.set_markdown("![](data:image/png;base64,...)")
-```
-
-### Theme Support
-
-```python
-# Manual theme
-viewer.set_theme("dark")
-viewer.set_syntax_theme("vscode-dark")
-
-# With vfwidgets-theme (optional)
-from vfwidgets_theme import ThemedApplication
-
-app = ThemedApplication(sys.argv)
-app.set_theme("dark")
-
-viewer = MarkdownViewer()  # Automatically uses dark theme
-```
-
-### Export Functionality
-
-```python
-# Export to HTML
-html = viewer.export_html()
-with open("output.html", "w") as f:
-    f.write(html)
-
-# Export to PDF
-viewer.export_pdf("output.pdf")
-
-# Auto-detect format
-viewer.export_to_file("document.html", "html")
-viewer.export_to_file("document.pdf", "pdf")
-```
-
-## Supported Markdown Features
-
-### Basic Syntax
-- Headings (`# H1` through `###### H6`)
-- Bold (`**bold**`), Italic (`*italic*`)
-- Links (`[text](url)`), Images (`![alt](url)`)
-- Lists (ordered and unordered)
-- Blockquotes (`> quote`)
-- Code blocks and inline code
-- Horizontal rules
-
-### Extended Syntax
-- ✅ Task lists: `- [x] Done` `- [ ] Todo`
-- 📊 Tables (GFM style)
-- ~~Strikethrough~~ (`~~deleted~~`)
-- Footnotes (`[^1]` and `[^1]: Note`)
-- Definition lists
-- Abbreviations
-- Subscript (`H~2~O`), Superscript (`X^2^`)
-- ++Inserted++ text (`++inserted++`)
-- ==Highlighted== text (`==marked==`)
-- :smile: Emoji (`:smile:`, `:rocket:`)
-
-### Advanced Features
-- 📊 **Mermaid Diagrams**: Flowcharts, sequence, Gantt, class, state, ER, mind maps
-- 🎨 **Syntax Highlighting**: 300+ languages with Prism.js
-- 🔢 **Math Equations**: Inline `$...$` and block `$$...$$` LaTeX
-
-## API Overview
-
-### Content Methods
-- `set_markdown(content: str)` - Set markdown content
-- `load_file(path: str)` - Load from file
-
-### Navigation
-- `get_toc() → list[dict]` - Extract table of contents
-- `scroll_to_heading(id: str)` - Scroll to heading
-- `scroll_to_line(line: int)` - Scroll to line
-- `scroll_to_percentage(pct: float)` - Scroll to position
-
-### Image Handling
-- `set_base_path(path: str)` - Set base directory for relative paths
-- `set_image_resolver(callback)` - Custom image resolution
-
-### Theme & Styling
-- `set_theme(theme: str)` - Set viewer theme
-- `set_syntax_theme(theme: str)` - Set syntax highlighting theme
-- `inject_css(css: str)` - Inject custom CSS
-
-### Editor Integration
-- `enable_sync_mode()` - Preserve scroll on updates
-- `set_debounce_delay(ms: int)` - Debounce rendering
-
-### Export
-- `export_html() → str` - Export as HTML
-- `export_pdf(path: str)` - Export as PDF
-
-### Signals
-- `content_loaded` - Emitted when rendering completes
-- `toc_changed(list)` - Emitted when TOC changes
-- `heading_clicked(str)` - Emitted on heading click
-- `link_clicked(str)` - Emitted on link click
-- `scroll_position_changed(float)` - Emitted on scroll
-- `rendering_failed(str)` - Emitted on error
-
-## Documentation
-
-- **[API Reference](docs/API.md)** - Complete API documentation
-- **[Architecture](docs/ARCHITECTURE.md)** - System architecture and design
-- **[Implementation Plan](wip/markdown-viewer-IMPLEMENTATION.md)** - Development roadmap
+**Signals:**
+- `content_changed` - Emitted when content changes
+- `cursor_moved(int, int)` - Emitted on cursor move (line, column)
 
 ## Examples
 
-Check the `examples/` directory for complete examples:
+See the `examples/` directory for comprehensive demos:
 
-- `01_basic_viewer.py` - Simple markdown viewer
-- `02_live_preview.py` - Split editor with live preview
-- `03_toc_sidebar.py` - Custom TOC sidebar
-- `04_themed_viewer.py` - Theme integration
-- `05_image_support.py` - Image handling
-- `06_export.py` - Export to HTML/PDF
+- `demo_multiple_views.py` - Multiple editors sharing one model
+- `demo_controller_features.py` - Performance optimizations
+- `demo_complete_editor.py` - Full editor with all features
 
 ## Development
 
-```bash
-# Install in development mode
-cd widgets/markdown_widget
-pip install -e ".[dev]"
+### Setup
 
-# Run tests
+```bash
+# Clone the repo
+git clone https://github.com/vfwidgets/vfwidgets.git
+cd vfwidgets/widgets/markdown_widget
+
+# Install in development mode
+pip install -e ".[dev]"
+```
+
+### Running Tests
+
+```bash
+# All tests
 pytest
 
+# With coverage
+pytest --cov=vfwidgets_markdown --cov-report=html
+
+# Specific test file
+pytest tests/models/test_document.py -v
+```
+
+### Code Quality
+
+```bash
 # Format code
-black src/
+black src/ tests/
 
 # Lint
 ruff check src/
@@ -317,44 +183,66 @@ ruff check src/
 mypy src/
 ```
 
-## JavaScript Libraries
+## Design Philosophy
 
-All bundled locally for offline use:
+This widget follows these principles:
 
-- **markdown-it** (~50KB) - Markdown parser
-- **Mermaid.js** (~200KB) - Diagram rendering
-- **Prism.js** (~15KB) - Syntax highlighting
-- **KaTeX** (~100KB) - Math rendering
-- **markdown-it plugins** (~20KB) - Extensions
+1. **Evidence-Based Development** - All features tested with real output
+2. **Clean Architecture** - Clear separation between Model/View/Controller
+3. **Performance First** - Optimized for AI streaming and large documents
+4. **Simple API** - Hide complexity, expose power when needed
+5. **Pure Python Model** - Testable without Qt framework
 
-**Total Bundle**: ~385KB
+## Use Cases
 
-## Performance
+### Perfect For:
 
-- **Initial render**: <200ms for 10KB document
-- **Live update**: <100ms (debounced)
-- **TOC extraction**: <50ms
-- **Large documents**: No size limits (may be slow for >10MB)
+- ✅ AI chat interfaces (streaming markdown responses)
+- ✅ Note-taking applications
+- ✅ Documentation editors
+- ✅ Live markdown preview tools
+- ✅ Collaborative editing (multiple views, one model)
 
-## Requirements
+### Not Designed For:
 
-- Python 3.9+
-- PySide6 6.9.0+
-
-**Optional:**
-- `vfwidgets-theme-system` - Theme integration
-- `vfwidgets-keybinding` - Keyboard shortcuts
+- ❌ WYSIWYG editing (use HTML editor instead)
+- ❌ Syntax highlighting for code (add separately)
+- ❌ Spell checking (add separately)
 
 ## License
 
-MIT License - See LICENSE file for details.
+MIT License - see LICENSE file for details.
 
 ## Contributing
 
-This widget is part of the VFWidgets collection. See the main repository for contribution guidelines.
+Contributions welcome! Please:
 
-## Related Widgets
+1. Read `docs/ARCHITECTURE.md` to understand the design
+2. Add tests for new features
+3. Follow the existing code style
+4. Update documentation
 
-- **[terminal_widget](../terminal_widget/)** - Terminal emulator (similar WebView architecture)
-- **[theme_system](../theme_system/)** - Theme management
-- **[keybinding_manager](../keybinding_manager/)** - Keyboard shortcuts
+## Changelog
+
+### Version 2.0.0 (Current)
+
+- Complete rewrite with MVC architecture
+- Dual pattern approach (Python observer + Qt signals)
+- Performance controller with pause/resume and throttling
+- Composite widget for simple API
+- Comprehensive test suite
+- Full documentation
+
+### Version 1.0.0 (Archived)
+
+- Basic markdown editor
+- WebEngine-based viewer
+- Simple observer pattern
+- (Archived to `markdown_widget_OLD_2025-01-11`)
+
+## Links
+
+- [Architecture Documentation](docs/ARCHITECTURE.md)
+- [API Documentation](docs/API.md)
+- [GitHub Repository](https://github.com/vfwidgets/vfwidgets)
+- [Issue Tracker](https://github.com/vfwidgets/vfwidgets/issues)

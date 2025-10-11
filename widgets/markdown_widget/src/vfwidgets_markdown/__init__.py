@@ -1,7 +1,34 @@
-"""VFWidgets Markdown - Collection of markdown widgets for PySide6."""
+"""VFWidgets Markdown Widget - MVC Architecture.
 
-__version__ = "0.1.0"
+A professional markdown editor widget with proper Model-View-Controller architecture.
+"""
 
-from .markdown_viewer import MarkdownViewer
+from vfwidgets_markdown.models import (
+    DocumentObserver,
+    MarkdownDocument,
+    SectionUpdateEvent,
+    TextAppendEvent,
+    TextReplaceEvent,
+)
+from vfwidgets_markdown.widgets import (
+    MarkdownEditorWidget,
+    MarkdownTextEditor,
+    MarkdownTocView,
+    MarkdownViewer,
+)
 
-__all__ = ["MarkdownViewer"]
+__version__ = "2.0.0"
+
+__all__ = [
+    # Model
+    "MarkdownDocument",
+    "DocumentObserver",
+    "TextReplaceEvent",
+    "TextAppendEvent",
+    "SectionUpdateEvent",
+    # Widgets
+    "MarkdownTextEditor",
+    "MarkdownTocView",
+    "MarkdownEditorWidget",
+    "MarkdownViewer",
+]

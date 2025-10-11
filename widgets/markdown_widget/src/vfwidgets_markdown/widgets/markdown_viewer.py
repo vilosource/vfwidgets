@@ -10,6 +10,9 @@ from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QWidget
 
+# Import model for architecture integration
+from vfwidgets_markdown.models import MarkdownDocument
+
 # Optional theme support
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
@@ -93,13 +96,35 @@ class MarkdownViewer(_BaseClass):
         "md_table_header_bg": "list.headerBackground",
     }
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self, document: Optional[MarkdownDocument] = None, parent: Optional[QWidget] = None
+    ) -> None:
         """Initialize the MarkdownViewer.
 
+        The viewer uses an auto-wrapping pattern:
+        - If no document is provided, creates an internal document (simple mode)
+        - If document is provided, uses external document (architecture mode)
+
+        In both cases, the viewer observes the document via observer pattern.
+
         Args:
+            document: Optional MarkdownDocument to observe. If None, creates internal document.
             parent: Parent widget
         """
         super().__init__(parent)
+
+        # Auto-wrapping: Always use a document (internal or external)
+        if document:
+            # Advanced mode - use external document
+            self._document = document
+            self._owns_document = False
+        else:
+            # Simple mode - create internal document
+            self._document = MarkdownDocument()
+            self._owns_document = True
+
+        # Always observe the document (Python observer pattern)
+        self._document.add_observer(self)
 
         # Internal state
         self._current_markdown = ""
@@ -188,8 +213,8 @@ class MarkdownViewer(_BaseClass):
 
     def _load_template(self) -> None:
         """Load the HTML template with resources."""
-        # Get path to resources
-        resources_dir = Path(__file__).parent / "resources"
+        # Get path to resources (they're at package root, not in widgets/)
+        resources_dir = Path(__file__).parent.parent / "resources"
         html_path = resources_dir / "viewer.html"
 
         if not html_path.exists():
@@ -257,12 +282,20 @@ class MarkdownViewer(_BaseClass):
         else:
             print(f"[MarkdownViewer] Unknown message type: {msg_type}")
 
-    def set_markdown(self, content: str) -> None:
-        """Set markdown content to render.
+    def on_document_changed(self, event) -> None:
+        """Observer callback - called when document changes.
+
+        This is a Python observer method, NOT a Qt slot.
+        It's called directly by the model's _notify_observers().
+
+        This method handles both TextReplaceEvent and TextAppendEvent,
+        and applies debouncing if enabled.
 
         Args:
-            content: Markdown content string
+            event: TextReplaceEvent, TextAppendEvent, or SectionUpdateEvent
         """
+        # Get the full text from the document
+        content = self._document.get_text()
         self._current_markdown = content
 
         # Use debouncing if enabled
@@ -271,6 +304,19 @@ class MarkdownViewer(_BaseClass):
             self._debounce_timer.start(self._debounce_delay)
         else:
             self._render_markdown(content)
+
+    def set_markdown(self, content: str) -> None:
+        """Set markdown content to render.
+
+        This method works in both simple and advanced modes:
+        - Simple mode: Updates internal document, which triggers observer
+        - Advanced mode: Updates external document, which triggers observer
+
+        Args:
+            content: Markdown content string
+        """
+        # Update the document (triggers observer callback)
+        self._document.set_text(content)
 
     def load_file(self, path: str) -> None:
         """Load markdown from file.
@@ -680,3 +726,8 @@ class MarkdownViewer(_BaseClass):
         except Exception as e:
             print(f"[MarkdownViewer] PDF export error: {e}")
             handle_pdf(False)
+
+    def closeEvent(self, event):
+        """Handle widget closing - remove observer to prevent memory leaks."""
+        self._document.remove_observer(self)
+        super().closeEvent(event)
