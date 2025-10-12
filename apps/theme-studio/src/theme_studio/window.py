@@ -78,7 +78,7 @@ class ThemeStudioWindow(QMainWindow):
                 pass
 
         # Clear preview canvas to properly clean up plugin widget
-        if hasattr(self, 'preview_canvas') and self.preview_canvas:
+        if hasattr(self, "preview_canvas") and self.preview_canvas:
             try:
                 self.preview_canvas.clear_content()
             except RuntimeError:
@@ -225,8 +225,8 @@ class ThemeStudioWindow(QMainWindow):
         if not self._current_document or not self._theme_controller:
             return
 
-        from PySide6.QtWidgets import QColorDialog
         from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QColorDialog
 
         # Get initial color
         initial_color = QColor(current_value) if current_value else QColor("#ffffff")
@@ -236,7 +236,7 @@ class ThemeStudioWindow(QMainWindow):
             initial_color,
             self,
             f"Edit Color: {token_name}",
-            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
         )
 
         # If user selected a color, apply it
@@ -268,12 +268,7 @@ class ThemeStudioWindow(QMainWindow):
         old_value = self._current_document.get_token(token_name)
 
         # Create and push undo command
-        command = SetTokenCommand(
-            self._current_document,
-            token_name,
-            new_value,
-            old_value
-        )
+        command = SetTokenCommand(self._current_document, token_name, new_value, old_value)
         self._current_document._undo_stack.push(command)
 
         # Show status
@@ -313,7 +308,7 @@ class ThemeStudioWindow(QMainWindow):
         document.file_path_changed.connect(self._on_file_path_changed)
 
         # Connect undo stack signals to menu items (Task 9.2)
-        if hasattr(self, 'undo_action') and hasattr(self, 'redo_action'):
+        if hasattr(self, "undo_action") and hasattr(self, "redo_action"):
             document._undo_stack.canUndoChanged.connect(self.undo_action.setEnabled)
             document._undo_stack.canRedoChanged.connect(self.redo_action.setEnabled)
             # Update initial state
@@ -347,7 +342,7 @@ class ThemeStudioWindow(QMainWindow):
             theme: Theme object to apply to preview widgets
         """
         logger.debug("_update_preview_theme: START")
-        if not hasattr(self, 'preview_canvas') or not self.preview_canvas:
+        if not hasattr(self, "preview_canvas") or not self.preview_canvas:
             logger.debug("_update_preview_theme: No preview canvas")
             return
 
@@ -357,7 +352,9 @@ class ThemeStudioWindow(QMainWindow):
             logger.debug("_update_preview_theme: No plugin widget")
             return
 
-        logger.debug(f"_update_preview_theme: Plugin widget class={plugin_widget.__class__.__name__}")
+        logger.debug(
+            f"_update_preview_theme: Plugin widget class={plugin_widget.__class__.__name__}"
+        )
 
         # Check if widget is being destroyed
         try:
@@ -384,6 +381,13 @@ class ThemeStudioWindow(QMainWindow):
             palette_gen = PaletteGenerator(theme)
             palette = palette_gen.generate_palette()
 
+            logger.debug(f"_update_preview_theme: Generated stylesheet ({len(stylesheet)} chars):")
+            logger.debug(f"_update_preview_theme: First 500 chars:\n{stylesheet[:500]}")
+            # Also log QGroupBox section to verify background-color fix
+            groupbox_start = stylesheet.find("/* QGroupBox */")
+            if groupbox_start != -1:
+                groupbox_section = stylesheet[groupbox_start : groupbox_start + 200]
+                logger.debug(f"_update_preview_theme: QGroupBox section:\n{groupbox_section}")
             logger.debug("_update_preview_theme: Stylesheet and palette generated, applying...")
 
             # Double-check widget is still valid before applying
@@ -409,10 +413,23 @@ class ThemeStudioWindow(QMainWindow):
                 logger.debug("_update_preview_theme: Setting palette...")
                 plugin_widget.setPalette(palette)
                 logger.debug("_update_preview_theme: Palette applied")
-                logger.debug("_update_preview_theme: END")
             except RuntimeError:
                 logger.debug("_update_preview_theme: RuntimeError setting palette")
                 return
+
+            # Also apply theme to the canvas background for better visual feedback
+            try:
+                bg_color = theme.colors.get("colors.background", "#1e1e1e")
+                fg_color = theme.colors.get("colors.foreground", "#d4d4d4")
+                logger.debug(
+                    f"_update_preview_theme: Applying canvas theme: bg={bg_color}, fg={fg_color}"
+                )
+                self.preview_canvas.apply_canvas_theme(bg_color, fg_color)
+                logger.debug("_update_preview_theme: Canvas theme applied")
+            except Exception as e:
+                logger.warning(f"_update_preview_theme: Failed to apply canvas theme: {e}")
+
+            logger.debug("_update_preview_theme: END")
 
         except RuntimeError:
             # Widget was deleted during theme application
@@ -420,6 +437,7 @@ class ThemeStudioWindow(QMainWindow):
         except Exception as e:
             print(f"Error applying preview theme: {e}")
             import traceback
+
             traceback.print_exc()
 
     def _on_document_modified(self, is_modified: bool):
@@ -448,7 +466,7 @@ class ThemeStudioWindow(QMainWindow):
         #
         # IMPORTANT: Defer theme update to next event loop iteration to avoid
         # conflicts with active widget operations.
-        if self._current_document and hasattr(self, 'preview_canvas'):
+        if self._current_document and hasattr(self, "preview_canvas"):
             logger.debug("_on_token_changed: Scheduling deferred preview theme update")
             # Use QTimer.singleShot with method reference (no lambda to avoid capture issues)
             QTimer.singleShot(0, self._deferred_update_preview_theme)
@@ -466,7 +484,7 @@ class ThemeStudioWindow(QMainWindow):
         active dialogs or widget operations.
         """
         logger.debug("_deferred_update_preview_theme: START")
-        if not self._current_document or not hasattr(self, 'preview_canvas'):
+        if not self._current_document or not hasattr(self, "preview_canvas"):
             logger.debug("_deferred_update_preview_theme: No document or preview canvas, skipping")
             return
 
@@ -531,7 +549,7 @@ class ThemeStudioWindow(QMainWindow):
                 "Unsaved Changes",
                 "The current theme has unsaved changes. Do you want to save them?",
                 QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
+                QMessageBox.Save,
             )
 
             if reply == QMessageBox.Save:
@@ -576,7 +594,7 @@ class ThemeStudioWindow(QMainWindow):
                 "Unsaved Changes",
                 "The current theme has unsaved changes. Do you want to save them?",
                 QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
+                QMessageBox.Save,
             )
 
             if reply == QMessageBox.Save:
@@ -589,11 +607,9 @@ class ThemeStudioWindow(QMainWindow):
 
         # Show open file dialog
         from PySide6.QtWidgets import QFileDialog
+
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open Theme",
-            "",  # Default directory
-            "Theme Files (*.json);;All Files (*)"
+            self, "Open Theme", "", "Theme Files (*.json);;All Files (*)"  # Default directory
         )
 
         if not file_path:
@@ -608,9 +624,7 @@ class ThemeStudioWindow(QMainWindow):
             self.status_bar.show_status(f"Opened: {document.file_name}", 3000)
         except Exception as e:
             QMessageBox.critical(
-                self,
-                "Error Opening Theme",
-                f"Failed to open theme file:\n\n{str(e)}"
+                self, "Error Opening Theme", f"Failed to open theme file:\n\n{str(e)}"
             )
             self.status_bar.show_status("Failed to open theme", 3000)
 
@@ -637,11 +651,9 @@ class ThemeStudioWindow(QMainWindow):
 
         # Show save file dialog
         from PySide6.QtWidgets import QFileDialog
+
         file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Theme As",
-            "",  # Default directory
-            "Theme Files (*.json);;All Files (*)"
+            self, "Save Theme As", "", "Theme Files (*.json);;All Files (*)"  # Default directory
         )
 
         if not file_path:
@@ -649,8 +661,8 @@ class ThemeStudioWindow(QMainWindow):
             return False
 
         # Ensure .json extension
-        if not file_path.endswith('.json'):
-            file_path += '.json'
+        if not file_path.endswith(".json"):
+            file_path += ".json"
 
         # Save to path
         return self._save_document_to_path(file_path)
@@ -673,9 +685,7 @@ class ThemeStudioWindow(QMainWindow):
             return True
         except Exception as e:
             QMessageBox.critical(
-                self,
-                "Error Saving Theme",
-                f"Failed to save theme file:\n\n{str(e)}"
+                self, "Error Saving Theme", f"Failed to save theme file:\n\n{str(e)}"
             )
             self.status_bar.show_status("Failed to save theme", 3000)
             return False
@@ -690,13 +700,14 @@ class ThemeStudioWindow(QMainWindow):
     def show_about(self):
         """Show about dialog."""
         from . import __version__
+
         QMessageBox.about(
             self,
             "About VFTheme Studio",
             f"<h3>VFTheme Studio v{__version__}</h3>"
             f"<p>Visual Theme Designer for VFWidgets Applications</p>"
             f"<p>Phase 1 Development - Foundation</p>"
-            f"<p><small>© 2025 Vilosource</small></p>"
+            f"<p><small>© 2025 Vilosource</small></p>",
         )
 
     # Undo/Redo Actions (Task 9.2)

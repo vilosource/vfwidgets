@@ -156,3 +156,29 @@ class PreviewCanvasPanel(QWidget):
             self.placeholder_label.setAlignment(Qt.AlignCenter)
             self.placeholder_label.setStyleSheet("color: gray; font-size: 12px;")
             self.content_layout.addWidget(self.placeholder_label)
+
+    def apply_canvas_theme(self, background_color: str, foreground_color: str):
+        """Apply theme colors to the canvas background.
+
+        This makes the entire preview pane visually reflect the theme,
+        not just the plugin widget.
+
+        Args:
+            background_color: Background color hex string (e.g., "#1e1e1e")
+            foreground_color: Foreground color hex string (e.g., "#d4d4d4")
+        """
+        # Apply to scroll area viewport (the visible area)
+        self.scroll_area.setStyleSheet(f"""
+            QScrollArea {{
+                background-color: {background_color};
+                border: none;
+            }}
+        """)
+
+        # Apply to content widget (the container)
+        self.content_widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {background_color};
+                color: {foreground_color};
+            }}
+        """)

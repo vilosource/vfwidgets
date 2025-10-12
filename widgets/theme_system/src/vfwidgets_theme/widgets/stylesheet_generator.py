@@ -497,8 +497,12 @@ QPlainTextEdit[role="editor"],
 {prefix} QComboBox QAbstractItemView {{
     background-color: {dropdown_bg};
     color: {combo_fg};
-    selection-background-color: {ColorTokenRegistry.get("list.activeSelectionBackground", self.theme)};
-    selection-color: {ColorTokenRegistry.get("list.activeSelectionForeground", self.theme)};
+    selection-background-color: {ColorTokenRegistry.get(
+        "list.activeSelectionBackground", self.theme
+    )};
+    selection-color: {ColorTokenRegistry.get(
+        "list.activeSelectionForeground", self.theme
+    )};
     border: 1px solid {combo_border};
 }}
 """
@@ -705,6 +709,7 @@ QPlainTextEdit[role="editor"],
         return f"""
 /* QGroupBox */
 {prefix} QGroupBox {{
+    background-color: {bg_color};
     color: {fg_color};
     border: 1px solid {border_color};
     border-radius: 4px;
@@ -720,6 +725,10 @@ QPlainTextEdit[role="editor"],
 }}
 
 /* QFrame */
+{prefix} QFrame {{
+    background-color: {bg_color};
+}}
+
 {prefix} QFrame[frameShape="4"],
 {prefix} QFrame[frameShape="5"] {{
     border: 1px solid {border_color};
