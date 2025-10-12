@@ -3,6 +3,13 @@
 import sys
 from pathlib import Path
 
+# IMPORTANT: Configure environment BEFORE importing Qt modules
+# This must happen before ReamdeApp import to ensure proper Qt WebEngine initialization in WSL
+from vfwidgets_common import configure_all_for_webengine
+
+# Configure WSL/Remote Desktop environment variables BEFORE Qt initialization
+configure_all_for_webengine()
+
 from .app import ReamdeApp
 
 
