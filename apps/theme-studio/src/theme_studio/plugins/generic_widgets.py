@@ -31,6 +31,8 @@ class GenericWidgetsPreview(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Enable auto-fill background so the widget uses the palette background color
+        self.setAutoFillBackground(True)
         self._setup_ui()
 
     def _setup_ui(self):
