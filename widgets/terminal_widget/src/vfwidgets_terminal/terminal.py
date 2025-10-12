@@ -184,10 +184,12 @@ class TerminalBridge(QObject):
     data_received = Signal(str)  # input data from user
     scroll_occurred = Signal(int)  # scroll position
     shortcut_pressed = Signal(str)  # shortcut action_id (e.g., "pane.navigate_left")
+    working_directory_changed = Signal(str)  # OSC 7: current working directory
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._last_selection = ""  # Track current selection for context menu
+        self._current_cwd: Optional[str] = None  # Track current working directory
         logger.debug("TerminalBridge initialized")
 
     @Slot(str)
@@ -252,6 +254,32 @@ class TerminalBridge(QObject):
         """
         logger.info(f"Shortcut pressed from JS: {action_id}")
         self.shortcut_pressed.emit(action_id)
+
+    @Slot(str)
+    def on_working_directory_changed(self, cwd: str) -> None:
+        """Handle working directory change from OSC 7.
+
+        Called from JavaScript when terminal emits OSC 7 escape sequence.
+
+        Args:
+            cwd: Current working directory path
+        """
+        # Basic validation - don't check existence (might be on remote host)
+        if not cwd or not cwd.startswith("/"):
+            logger.warning(f"Invalid CWD reported by OSC 7: {cwd}")
+            return
+
+        self._current_cwd = cwd
+        logger.info(f"OSC 7 - Working directory changed to: {cwd}")
+        self.working_directory_changed.emit(cwd)
+
+    def get_current_cwd(self) -> Optional[str]:
+        """Get current working directory.
+
+        Returns:
+            Current working directory path, or None if not yet reported
+        """
+        return self._current_cwd
 
     @Slot(int, int)
     def on_middle_click(self, x: int, y: int) -> None:
@@ -362,6 +390,9 @@ class TerminalWidget(_BaseTerminalClass):
     titleChanged = Signal(str)  # Terminal title changed
     bellActivated = Signal()  # Terminal bell/notification
     scrollOccurred = Signal(int)  # Terminal scrolled to position
+
+    # Working Directory Signals (OSC 7 tracking)
+    workingDirectoryChanged = Signal(str)  # Current working directory changed
 
     # ============================================================================
     # DEPRECATED Signals (Phase 7: Backwards Compatibility)
@@ -504,6 +535,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.output_buffer = [] if capture_output else None
         self.is_connected = False
         self.process_info = {}
+        self._current_working_directory: Optional[str] = (
+            cwd  # Track current CWD from OSC 7
+        )
 
         # Phase 2: QWebChannel bridge for JavaScript communication
         self.bridge = None
@@ -1171,6 +1205,11 @@ class TerminalWidget(_BaseTerminalClass):
             lambda action_id: self.shortcutPressed.emit(action_id)
         )
 
+        # OSC 7: Working directory tracking
+        self.bridge.working_directory_changed.connect(
+            lambda cwd: self._on_working_directory_changed(cwd)
+        )
+
         logger.debug("Bridge signals connected to widget signals")
 
     def _emit_key_event(
@@ -1180,6 +1219,24 @@ class TerminalWidget(_BaseTerminalClass):
         if EventCategory.INTERACTION in self.event_config.enabled_categories:
             key_event = KeyEvent(key=key, code=code, ctrl=ctrl, alt=alt, shift=shift)
             self.keyPressed.emit(key_event)
+
+    def _on_working_directory_changed(self, cwd: str) -> None:
+        """Handle CWD change from terminal.
+
+        Args:
+            cwd: New current working directory
+        """
+        self._current_working_directory = cwd
+        self.workingDirectoryChanged.emit(cwd)
+        logger.info(f"Terminal CWD changed: {cwd}")
+
+    def get_current_working_directory(self) -> Optional[str]:
+        """Get current working directory of the terminal.
+
+        Returns:
+            Current working directory path, or None if not yet reported via OSC 7
+        """
+        return self._current_working_directory
 
     def _start_terminal(self) -> None:
         """Start the terminal server and load the terminal."""
@@ -1543,10 +1600,7 @@ class TerminalWidget(_BaseTerminalClass):
             command: Command to execute
         """
         logger.debug(f"Sending command: {command}")
-        if self.server:
-            self.server.send_input(command + "\n")
-        if EventCategory.CONTENT in self.event_config.enabled_categories:
-            self.inputSent.emit(command)
+        self.send_input(command + "\n")
 
     def send_input(self, text: str) -> None:
         """Send raw input to the terminal.
@@ -1555,7 +1609,30 @@ class TerminalWidget(_BaseTerminalClass):
             text: Text to send
         """
         if self.server:
+            # Embedded server - send via server object
             self.server.send_input(text)
+        else:
+            # External server - send via JavaScript to xterm.js
+            # Escape text for JavaScript string literal
+            escaped = (
+                text.replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+            )
+            js_code = f"""
+                (function() {{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sessionId = urlParams.get('session_id');
+                    const payload = {{ input: '{escaped}' }};
+                    if (sessionId) {{
+                        payload.session_id = sessionId;
+                    }}
+                    window.terminalSocket.emit('pty-input', payload);
+                }})();
+            """
+            self.web_view.page().runJavaScript(js_code)
+
         if EventCategory.CONTENT in self.event_config.enabled_categories:
             self.inputSent.emit(text)
 

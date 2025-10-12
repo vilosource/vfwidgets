@@ -269,6 +269,42 @@
             console.log('Rich event handlers set up');
         }
 
+        // OSC 7: Working Directory Change Tracking
+        // Registers a handler for OSC 7 escape sequences emitted by shells
+        // Format: \033]7;file://hostname/path\033\\ or \033]7;file://hostname/path\007
+        term.parser.registerOscHandler(7, (data) => {
+            let cwd = data;
+
+            // Parse file:// URL format
+            if (cwd.startsWith('file://')) {
+                try {
+                    const url = new URL(cwd);
+                    cwd = decodeURIComponent(url.pathname);
+                } catch (e) {
+                    console.warn('OSC 7: Failed to parse URL:', data, e);
+                    return false;
+                }
+            }
+
+            // Validate path is absolute (Unix-style)
+            if (!cwd.startsWith('/')) {
+                console.warn('OSC 7: Path is not absolute:', cwd);
+                return false;
+            }
+
+            // Notify Python via bridge
+            if (terminalBridge && terminalBridge.on_working_directory_changed) {
+                terminalBridge.on_working_directory_changed(cwd);
+                console.log('OSC 7: CWD changed to:', cwd);
+            } else {
+                console.log('OSC 7: CWD changed to:', cwd, '(bridge not ready)');
+            }
+
+            return true; // Handled
+        });
+
+        console.log('OSC 7 handler registered');
+
         // Extract session_id from URL if present (for multi-session server)
         const urlParams = new URLSearchParams(window.location.search);
         const sessionId = urlParams.get('session_id');

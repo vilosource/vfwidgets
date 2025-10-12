@@ -9,6 +9,7 @@ import signal
 import struct
 import termios
 import time
+from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from .base import TerminalBackend
@@ -26,9 +27,144 @@ class UnixTerminalBackend(TerminalBackend):
     Uses traditional Unix PTY (pseudo-terminal) system for terminal emulation.
     """
 
+    # Version of shell integration scripts (update when changing)
+    SHELL_INTEGRATION_VERSION = "1.0.0"
+
+    def __init__(self):
+        super().__init__()
+        self._shell_integration_dir: Optional[Path] = None
+        self._ensure_shell_integration_dir()
+
+    def _ensure_shell_integration_dir(self) -> None:
+        """Ensure shell integration directory exists.
+
+        Creates ~/.config/viloxterm/shell_integration/ if it doesn't exist.
+        Falls back to temp directory if creation fails.
+        """
+        try:
+            # Use XDG_CONFIG_HOME if set, otherwise ~/.config
+            config_home = os.environ.get("XDG_CONFIG_HOME")
+            if config_home:
+                config_dir = Path(config_home) / "viloxterm"
+            else:
+                config_dir = Path.home() / ".config" / "viloxterm"
+
+            self._shell_integration_dir = config_dir / "shell_integration"
+            self._shell_integration_dir.mkdir(parents=True, exist_ok=True)
+
+            logger.info(f"Shell integration directory: {self._shell_integration_dir}")
+
+        except Exception as e:
+            logger.warning(f"Failed to create shell integration directory: {e}")
+            logger.warning("Will fall back to temporary files if needed")
+            self._shell_integration_dir = None
+
+    def _get_shell_type(self, command: str) -> str:
+        """Detect shell type from command.
+
+        Args:
+            command: Shell command path
+
+        Returns:
+            One of: 'bash', 'zsh', 'fish', 'unknown'
+        """
+        command_lower = os.path.basename(command).lower()
+
+        if "bash" in command_lower:
+            return "bash"
+        elif "zsh" in command_lower:
+            return "zsh"
+        elif "fish" in command_lower:
+            return "fish"
+        else:
+            return "unknown"
+
+    def _get_or_create_bash_integration(self) -> Path:
+        """Get or create bash integration file.
+
+        Returns:
+            Path to bash integration file
+        """
+        if not self._shell_integration_dir:
+            # Fallback: create temp file
+            import tempfile
+
+            fd, path = tempfile.mkstemp(prefix="vfterm_osc7_bash_", suffix=".bashrc")
+            os.close(fd)
+            logger.warning("Using temporary bash rcfile (config dir unavailable)")
+            bash_file = Path(path)
+        else:
+            bash_file = self._shell_integration_dir / "bashrc"
+
+        # Check if file exists and has correct version
+        needs_update = True
+        if bash_file.exists():
+            try:
+                content = bash_file.read_text()
+                if f"# Version: {self.SHELL_INTEGRATION_VERSION}" in content:
+                    needs_update = False
+                    logger.debug(f"Using existing bash integration: {bash_file}")
+            except Exception as e:
+                logger.warning(f"Failed to read bash integration file: {e}")
+
+        if needs_update:
+            rcfile_content = f"""# VFWidgets Terminal - OSC 7 Shell Integration (Bash)
+# Version: {self.SHELL_INTEGRATION_VERSION}
+# This file enables working directory tracking for ViloxTerm
+# Generated automatically - manual edits will be preserved unless version changes
+
+# OSC 7: Report working directory to terminal emulator
+__vfterm_osc7_cwd() {{
+    # Get hostname with fallback for minimal environments
+    local host="${{HOSTNAME:-localhost}}"
+    if command -v hostname >/dev/null 2>&1; then
+        host="$(hostname)"
+    fi
+    printf '\\033]7;file://%s%s\\033\\\\' "$host" "$(pwd)"
+}}
+
+# Set up PROMPT_COMMAND to report directory changes
+if [[ -z "$PROMPT_COMMAND" ]]; then
+    PROMPT_COMMAND="__vfterm_osc7_cwd"
+else
+    # Preserve existing PROMPT_COMMAND
+    PROMPT_COMMAND="__vfterm_osc7_cwd;$PROMPT_COMMAND"
+fi
+
+# Source user's bashrc if it exists (preserve user environment)
+if [ -f ~/.bashrc ]; then
+    source ~/.bashrc
+fi
+
+# Report initial directory immediately
+__vfterm_osc7_cwd
+"""
+            try:
+                bash_file.write_text(rcfile_content)
+                logger.info(f"Created/updated bash integration: {bash_file}")
+            except Exception as e:
+                logger.error(f"Failed to write bash integration file: {e}")
+
+        return bash_file
+
     def start_process(self, session: "TerminalSession") -> bool:
         """Start a terminal process using pty.fork()."""
         try:
+            # Detect shell type and inject OSC 7 integration if supported
+            shell_type = self._get_shell_type(session.command)
+            original_args = session.args.copy() if session.args else []
+
+            # Inject shell integration for bash
+            if shell_type == "bash":
+                rcfile = self._get_or_create_bash_integration()
+                session.args = ["--rcfile", str(rcfile)] + original_args
+                logger.info(f"Injected OSC 7 for bash: {rcfile}")
+            elif shell_type == "unknown":
+                logger.warning(
+                    f"OSC 7 not supported for shell: {session.command}. "
+                    f"CWD tracking will not work automatically."
+                )
+
             # Fork PTY
             child_pid, fd = pty.fork()
 
