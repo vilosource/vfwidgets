@@ -540,6 +540,7 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
         self._is_theme_registered = False
         self._is_theme_system_ready = False
         self._property_cache_enabled = True
+        self._theme_applied = False  # Track if theme has been applied (for Polish event)
 
         # Merge theme config from class hierarchy
         self._theme_config = getattr(
@@ -600,11 +601,10 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             # Mark as ready
             self._is_theme_system_ready = True
 
-            # Apply initial theme styling
-            self._apply_theme_update()
-
-            # Validate that stylesheet was actually applied (development safety check)
-            self._validate_styling_applied()
+            # Defer theme application slightly to allow async widgets to initialize
+            # QTimer.singleShot(0) defers to next event loop iteration
+            # This fixes race condition for async widgets like QWebEngineView
+            QTimer.singleShot(0, self._apply_deferred_theme)
 
             logger.debug(f"Theme system initialized for widget {self._widget_id}")
 
@@ -620,6 +620,29 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
                 operation="initialize_theme_system",
                 context={"widget_type": type(self).__name__, "widget_id": self._widget_id},
             )
+
+    def _apply_deferred_theme(self) -> None:
+        """Apply theme in deferred manner (called via QTimer.singleShot).
+
+        This method is called on the next event loop iteration after widget construction,
+        which gives async widgets (like QWebEngineView) time to initialize.
+
+        For synchronous widgets, this is nearly immediate.
+        For async widgets, this provides the necessary initialization window.
+        """
+        if not self._theme_applied:
+            logger.debug(f"Applying deferred theme for {type(self).__name__}")
+            self._apply_theme_update()
+            self._validate_styling_applied()
+
+            # Call user-defined theme change handler if it exists
+            if hasattr(self, "on_theme_changed") and callable(self.on_theme_changed):
+                try:
+                    self.on_theme_changed()
+                except Exception as e:
+                    logger.error(f"Error in initial theme handler call: {e}")
+
+            self._theme_applied = True
 
     def _get_theme_property(self, property_path: str, default_value: Any = None) -> Any:
         """Get theme property through the properties manager."""

@@ -33,6 +33,10 @@ class TerminalProvider(WidgetProvider):
         self._default_config: Optional[dict] = None  # Default terminal config for new terminals
         self._event_filter = event_filter  # Event filter to install on terminals
 
+        # OSC 7: Working directory tracking
+        self.pane_to_cwd: dict[str, Optional[str]] = {}  # Track CWD per pane
+        self._next_terminal_cwd: Optional[str] = None  # CWD for next terminal creation
+
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
         """Create a new terminal widget for a pane.
 
@@ -46,9 +50,16 @@ class TerminalProvider(WidgetProvider):
         Returns:
             TerminalWidget connected to shared server session
         """
-        # Create session on shared server (auto-detect platform shell)
-        session_id = self.server.create_session()
-        logger.info(f"Created terminal session: {session_id} for pane: {pane_id}")
+        # OSC 7: Get CWD for new terminal (if set by split operation)
+        cwd = self._next_terminal_cwd
+        self._next_terminal_cwd = None  # Clear for next use
+
+        # Create session on shared server with CWD
+        session_id = self.server.create_session(cwd=cwd)
+        logger.info(
+            f"Created terminal session: {session_id} for pane: {pane_id}"
+            f"{f' with CWD: {cwd}' if cwd else ''}"
+        )
 
         # Store bidirectional mapping for cleanup and auto-close
         self.pane_to_session[pane_id] = session_id
@@ -62,12 +73,21 @@ class TerminalProvider(WidgetProvider):
         terminal = TerminalWidget(
             server_url=session_url,
             terminal_config=self._default_config,
+            cwd=cwd,  # OSC 7: Pass initial CWD to widget
         )
 
         # Apply default theme if set (theme is applied after config in _configure_terminal)
         if self._default_theme:
             terminal.set_terminal_theme(self._default_theme)
             logger.debug(f"Applied default theme to terminal: {widget_id}")
+
+        # OSC 7: Connect CWD tracking signal
+        terminal.workingDirectoryChanged.connect(
+            lambda new_cwd: self._on_terminal_cwd_changed(pane_id, new_cwd)
+        )
+
+        # OSC 7: Initialize CWD tracking for this pane
+        self.pane_to_cwd[pane_id] = cwd
 
         # Install event filter if provided
         if self._event_filter:
@@ -119,6 +139,10 @@ class TerminalProvider(WidgetProvider):
                 if session_id in self.session_to_pane:
                     del self.session_to_pane[session_id]
 
+                # OSC 7: Remove CWD tracking
+                if pane_id in self.pane_to_cwd:
+                    del self.pane_to_cwd[pane_id]
+
             except Exception as e:
                 logger.error(f"Failed to terminate session {session_id}: {e}")
         else:
@@ -168,3 +192,35 @@ class TerminalProvider(WidgetProvider):
             Pane ID if found, None otherwise
         """
         return self.session_to_pane.get(session_id)
+
+    def _on_terminal_cwd_changed(self, pane_id: str, cwd: str) -> None:
+        """Track CWD changes for each pane (OSC 7 callback).
+
+        Args:
+            pane_id: Pane identifier
+            cwd: New current working directory
+        """
+        self.pane_to_cwd[pane_id] = cwd
+        logger.debug(f"Pane {pane_id[:8]} CWD updated: {cwd}")
+
+    def get_pane_cwd(self, pane_id: str) -> Optional[str]:
+        """Get current working directory for a pane (OSC 7).
+
+        Args:
+            pane_id: Pane identifier
+
+        Returns:
+            Current working directory path, or None if not known
+        """
+        return self.pane_to_cwd.get(pane_id)
+
+    def set_next_terminal_cwd(self, cwd: Optional[str]) -> None:
+        """Set CWD for the next terminal to be created (OSC 7).
+
+        This is used when splitting panes to inherit the CWD from the focused terminal.
+
+        Args:
+            cwd: Current working directory path for next terminal
+        """
+        self._next_terminal_cwd = cwd
+        logger.debug(f"Set next terminal CWD: {cwd}")

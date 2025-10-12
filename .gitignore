@@ -220,3 +220,13 @@ test_results/
 
 # Temporary/scratch directories
 tmp/
+
+# Work-in-progress directories (not for remote)
+wip/
+**/wip/
+
+# Test/debug scripts (not for remote)
+test_debug.py
+test_final.py
+test_simple.py
+test_theme_visual.py

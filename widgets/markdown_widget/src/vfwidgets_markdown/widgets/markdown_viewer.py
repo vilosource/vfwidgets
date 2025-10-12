@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QObject, QTimer, QUrl, Signal, Slot
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal, Slot
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -116,6 +116,9 @@ class MarkdownViewer(_BaseClass):
         "md_blockquote_bg": "editor.blockquote.background",
         "md_table_border": "widget.border",
         "md_table_header_bg": "list.headerBackground",
+        "md_scrollbar_bg": "editor.background",
+        "md_scrollbar_thumb": "scrollbar.activeBackground",
+        "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
     }
 
     def __init__(
@@ -198,6 +201,12 @@ class MarkdownViewer(_BaseClass):
         # Load HTML template
         self._load_template()
 
+        # Apply theme when viewer is ready (for QWebEngineView async initialization)
+        if THEME_AVAILABLE:
+            self.viewer_ready.connect(
+                self._apply_initial_theme, Qt.ConnectionType.SingleShotConnection
+            )
+
         # Set initial content and base path if provided
         # These will be queued until viewer is ready
         if base_path:
@@ -235,6 +244,14 @@ class MarkdownViewer(_BaseClass):
 
         page = MarkdownPage(self)
         self.setPage(page)
+
+        # Set background color to prevent white flash on load
+        # This sets the page background (visible while loading or if content has transparency)
+        # The actual theme colors are applied to HTML content via JavaScript in on_theme_changed()
+        from PySide6.QtGui import QColor
+
+        bg_color = self._get_initial_background_color()
+        page.setBackgroundColor(QColor(bg_color))
 
         # Configure settings
         settings = page.settings()
@@ -479,8 +496,15 @@ class MarkdownViewer(_BaseClass):
 
         This method is called by the theme system when a theme change occurs.
         It updates the viewer's CSS variables based on the current theme.
+
+        Note: This method may be called before the viewer is ready. If not ready,
+        the theme will be applied when viewer_ready signal is emitted.
         """
         if not THEME_AVAILABLE:
+            return
+
+        # Don't apply theme if viewer not ready yet - will be applied via viewer_ready signal
+        if not self._is_ready:
             return
 
         # Determine if we're using dark theme
@@ -529,6 +553,45 @@ class MarkdownViewer(_BaseClass):
             """
             self.page().runJavaScript(js_code)
             print(f"[MarkdownViewer] Theme updated to: {theme_name}")
+
+    def _apply_initial_theme(self) -> None:
+        """Apply initial theme when viewer is ready.
+
+        This is connected to viewer_ready signal with SingleShot to apply
+        theme once the QWebEngineView is fully initialized and ready to
+        receive JavaScript commands.
+        """
+        print("[MarkdownViewer] Applying initial theme (viewer is ready)")
+        self.on_theme_changed()
+
+    def _get_initial_background_color(self) -> str:
+        """Get initial background color for WebView.
+
+        Checks the application's current theme type to return an appropriate
+        static fallback color (dark or light) that prevents flash on startup.
+
+        Returns:
+            Hex color string for background (#1a1a1a for dark, #ffffff for light)
+        """
+        # Try to determine theme type from application
+        try:
+            from PySide6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app and hasattr(app, "get_current_theme"):
+                current_theme = app.get_current_theme()
+                if current_theme and hasattr(current_theme, "type"):
+                    # Return appropriate static color based on theme type
+                    if current_theme.type == "dark":
+                        return "#1a1a1a"  # Dark background
+                    else:
+                        return "#ffffff"  # Light background
+        except Exception:
+            pass  # Continue to fallback
+
+        # Default fallback to dark (most common for development/terminal apps)
+        # Actual theme colors will be applied later via deferred theme mechanism
+        return "#1a1a1a"
 
     def is_ready(self) -> bool:
         """Check if viewer is ready to render.

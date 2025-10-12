@@ -184,10 +184,12 @@ class TerminalBridge(QObject):
     data_received = Signal(str)  # input data from user
     scroll_occurred = Signal(int)  # scroll position
     shortcut_pressed = Signal(str)  # shortcut action_id (e.g., "pane.navigate_left")
+    working_directory_changed = Signal(str)  # OSC 7: current working directory
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._last_selection = ""  # Track current selection for context menu
+        self._current_cwd: Optional[str] = None  # Track current working directory
         logger.debug("TerminalBridge initialized")
 
     @Slot(str)
@@ -252,6 +254,32 @@ class TerminalBridge(QObject):
         """
         logger.info(f"Shortcut pressed from JS: {action_id}")
         self.shortcut_pressed.emit(action_id)
+
+    @Slot(str)
+    def on_working_directory_changed(self, cwd: str) -> None:
+        """Handle working directory change from OSC 7.
+
+        Called from JavaScript when terminal emits OSC 7 escape sequence.
+
+        Args:
+            cwd: Current working directory path
+        """
+        # Basic validation - don't check existence (might be on remote host)
+        if not cwd or not cwd.startswith("/"):
+            logger.warning(f"Invalid CWD reported by OSC 7: {cwd}")
+            return
+
+        self._current_cwd = cwd
+        logger.info(f"OSC 7 - Working directory changed to: {cwd}")
+        self.working_directory_changed.emit(cwd)
+
+    def get_current_cwd(self) -> Optional[str]:
+        """Get current working directory.
+
+        Returns:
+            Current working directory path, or None if not yet reported
+        """
+        return self._current_cwd
 
     @Slot(int, int)
     def on_middle_click(self, x: int, y: int) -> None:
@@ -362,6 +390,9 @@ class TerminalWidget(_BaseTerminalClass):
     titleChanged = Signal(str)  # Terminal title changed
     bellActivated = Signal()  # Terminal bell/notification
     scrollOccurred = Signal(int)  # Terminal scrolled to position
+
+    # Working Directory Signals (OSC 7 tracking)
+    workingDirectoryChanged = Signal(str)  # Current working directory changed
 
     # ============================================================================
     # DEPRECATED Signals (Phase 7: Backwards Compatibility)
@@ -478,6 +509,11 @@ class TerminalWidget(_BaseTerminalClass):
         self.args = args or []
         self.cwd = cwd
         self.env = env or {}
+
+        # Handle terminal_config early to extract termType for env
+        # We need to do this before other initialization that uses self.env
+        self._terminal_config_raw = terminal_config
+
         self.server_url = server_url
         self.port = port
         self.host = host
@@ -499,6 +535,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.output_buffer = [] if capture_output else None
         self.is_connected = False
         self.process_info = {}
+        self._current_working_directory: Optional[str] = (
+            cwd  # Track current CWD from OSC 7
+        )
 
         # Phase 2: QWebChannel bridge for JavaScript communication
         self.bridge = None
@@ -531,6 +570,16 @@ class TerminalWidget(_BaseTerminalClass):
                     "scrollback parameter is deprecated. Use terminal_config={'scrollback': ...} instead"
                 )
                 self._terminal_config["scrollback"] = scrollback
+
+            # Extract termType from terminal_config and set it in environment
+            # This allows users to configure TERM variable via terminal preferences
+            if "termType" in self._terminal_config:
+                term_type = self._terminal_config["termType"]
+                # Only set TERM if not already set by user via env parameter
+                if "TERM" not in self.env:
+                    self.env["TERM"] = term_type
+                    logger.debug(f"Setting TERM environment variable to: {term_type}")
+
         elif scrollback != DEFAULT_SCROLLBACK:
             # Only scrollback parameter provided (old API)
             logger.warning(
@@ -539,6 +588,11 @@ class TerminalWidget(_BaseTerminalClass):
             self._terminal_config = {"scrollback": scrollback}
         else:
             self._terminal_config = None
+
+        # If no terminal config and no TERM env set, use default
+        if "TERM" not in self.env:
+            self.env["TERM"] = "xterm-256color"
+            logger.debug("Setting TERM environment variable to default: xterm-256color")
 
         # Phase 7: Set up signal forwarding for backwards compatibility
         self._setup_signal_forwarding()
@@ -1151,6 +1205,11 @@ class TerminalWidget(_BaseTerminalClass):
             lambda action_id: self.shortcutPressed.emit(action_id)
         )
 
+        # OSC 7: Working directory tracking
+        self.bridge.working_directory_changed.connect(
+            lambda cwd: self._on_working_directory_changed(cwd)
+        )
+
         logger.debug("Bridge signals connected to widget signals")
 
     def _emit_key_event(
@@ -1160,6 +1219,24 @@ class TerminalWidget(_BaseTerminalClass):
         if EventCategory.INTERACTION in self.event_config.enabled_categories:
             key_event = KeyEvent(key=key, code=code, ctrl=ctrl, alt=alt, shift=shift)
             self.keyPressed.emit(key_event)
+
+    def _on_working_directory_changed(self, cwd: str) -> None:
+        """Handle CWD change from terminal.
+
+        Args:
+            cwd: New current working directory
+        """
+        self._current_working_directory = cwd
+        self.workingDirectoryChanged.emit(cwd)
+        logger.info(f"Terminal CWD changed: {cwd}")
+
+    def get_current_working_directory(self) -> Optional[str]:
+        """Get current working directory of the terminal.
+
+        Returns:
+            Current working directory path, or None if not yet reported via OSC 7
+        """
+        return self._current_working_directory
 
     def _start_terminal(self) -> None:
         """Start the terminal server and load the terminal."""
@@ -1455,7 +1532,10 @@ class TerminalWidget(_BaseTerminalClass):
             self.outputReceived.emit(data)
 
     def _get_initial_background_color(self) -> str:
-        """Get theme-aware background color for WebView.
+        """Get initial background color for WebView.
+
+        Checks terminal config, then application theme type to return
+        an appropriate static fallback that prevents flash on startup.
 
         Returns:
             Hex color string for background
@@ -1464,7 +1544,23 @@ class TerminalWidget(_BaseTerminalClass):
         if self._terminal_config and "background" in self._terminal_config:
             return self._terminal_config["background"]
 
-        # Default fallback (prevents white flash on startup)
+        # Check application theme type for appropriate fallback
+        try:
+            from PySide6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app and hasattr(app, "get_current_theme"):
+                current_theme = app.get_current_theme()
+                if current_theme and hasattr(current_theme, "type"):
+                    # Return appropriate static color based on theme type
+                    if current_theme.type == "dark":
+                        return "#1e1e1e"  # Dark background (xterm.js default)
+                    else:
+                        return "#ffffff"  # Light background
+        except Exception:
+            pass  # Continue to fallback
+
+        # Default fallback to dark (prevents white flash on startup)
         return "#1e1e1e"
 
     def _get_error_color(self) -> str:
@@ -1504,10 +1600,7 @@ class TerminalWidget(_BaseTerminalClass):
             command: Command to execute
         """
         logger.debug(f"Sending command: {command}")
-        if self.server:
-            self.server.send_input(command + "\n")
-        if EventCategory.CONTENT in self.event_config.enabled_categories:
-            self.inputSent.emit(command)
+        self.send_input(command + "\n")
 
     def send_input(self, text: str) -> None:
         """Send raw input to the terminal.
@@ -1516,7 +1609,30 @@ class TerminalWidget(_BaseTerminalClass):
             text: Text to send
         """
         if self.server:
+            # Embedded server - send via server object
             self.server.send_input(text)
+        else:
+            # External server - send via JavaScript to xterm.js
+            # Escape text for JavaScript string literal
+            escaped = (
+                text.replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+            )
+            js_code = f"""
+                (function() {{
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sessionId = urlParams.get('session_id');
+                    const payload = {{ input: '{escaped}' }};
+                    if (sessionId) {{
+                        payload.session_id = sessionId;
+                    }}
+                    window.terminalSocket.emit('pty-input', payload);
+                }})();
+            """
+            self.web_view.page().runJavaScript(js_code)
+
         if EventCategory.CONTENT in self.event_config.enabled_categories:
             self.inputSent.emit(text)
 

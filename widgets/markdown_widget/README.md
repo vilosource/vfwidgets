@@ -291,9 +291,13 @@ Contributions welcome! Please:
 - Simple observer pattern
 - (Archived to `markdown_widget_OLD_2025-01-11`)
 
+## Documentation
+
+- **[Architecture Documentation](docs/ARCHITECTURE.md)** - Complete MVC architecture, design patterns, and implementation details
+- **[API Documentation](docs/API.md)** - Full API reference for all public classes and methods
+- **[Theme Integration Guide](docs/theme-integration-GUIDE.md)** - How MarkdownViewer integrates with VFWidgets theme system
+
 ## Links
 
-- [Architecture Documentation](docs/ARCHITECTURE.md)
-- [API Documentation](docs/API.md)
 - [GitHub Repository](https://github.com/vfwidgets/vfwidgets)
 - [Issue Tracker](https://github.com/vfwidgets/vfwidgets/issues)

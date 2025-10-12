@@ -25,14 +25,13 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QColor, QFont, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
-    QMenuBar,
     QPushButton,
     QTabWidget,
     QTextEdit,
@@ -489,20 +488,17 @@ Start by double-clicking a .py file in the Explorer!
 
     window.sidebar_panel_changed.connect(on_panel_changed)
 
-    # ==================== Menu Bar ====================
-    menubar = QMenuBar()
-    file_menu = menubar.addMenu("File")
-
-    new_action = QAction("New File", window)
-    new_action.setShortcut("Ctrl+N")
-    file_menu.addAction(new_action)
-
-    close_tab_action = QAction("Close Tab", window)
-    close_tab_action.setShortcut("Ctrl+W")
-    close_tab_action.triggered.connect(lambda: tab_widget.removeTab(tab_widget.currentIndex()))
-    file_menu.addAction(close_tab_action)
-
-    window.set_menu_bar(menubar)
+    # ==================== Menu Bar (Fluent API) ====================
+    # New fluent API - clean, readable, automatic theme integration!
+    (
+        window.add_menu("&File")
+        .add_action("New File", shortcut="Ctrl+N")
+        .add_action(
+            "Close Tab",
+            lambda: tab_widget.removeTab(tab_widget.currentIndex()),
+            shortcut="Ctrl+W",
+        )
+    )
 
     # ==================== Initial Status ====================
     window.set_status_message(

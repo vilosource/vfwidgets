@@ -25,6 +25,7 @@ from vfwidgets_common import FramelessWindowBehavior
 
 from .core.constants import WindowMode
 from .core.shortcut_manager import ShortcutManager
+from .menu_builder import MenuBuilder
 
 # Check if theme system is available
 try:
@@ -58,7 +59,11 @@ class ViloCodeWindow(ViloCodeWindowBase):
 
     Args:
         parent: Optional parent widget
-        enable_default_shortcuts: Enable VS Code-compatible keyboard shortcuts
+        enable_default_shortcuts: Enable VS Code-compatible keyboard shortcuts (default: True)
+        show_activity_bar: Show activity bar on startup (default: True)
+        show_sidebar: Show sidebar on startup (default: True)
+        show_auxiliary_bar: Show auxiliary bar on startup (default: True)
+        show_status_bar: Show status bar on startup (default: True)
 
     Signals:
         activity_item_clicked: Emitted when an activity item is clicked (item_id)
@@ -68,7 +73,12 @@ class ViloCodeWindow(ViloCodeWindowBase):
 
     Example:
         >>> from vfwidgets_vilocode_window import ViloCodeWindow
+        >>> # Default: all components visible
         >>> window = ViloCodeWindow()
+        >>> window.show()
+        >>>
+        >>> # Hide sidebar and auxiliary bar for minimal layout
+        >>> window = ViloCodeWindow(show_sidebar=False, show_auxiliary_bar=False)
         >>> window.show()
     """
 
@@ -93,6 +103,10 @@ class ViloCodeWindow(ViloCodeWindowBase):
         self,
         parent: Optional[QWidget] = None,
         enable_default_shortcuts: bool = True,
+        show_activity_bar: bool = True,
+        show_sidebar: bool = True,
+        show_auxiliary_bar: bool = True,
+        show_status_bar: bool = True,
     ):
         super().__init__(parent)
 
@@ -110,6 +124,7 @@ class ViloCodeWindow(ViloCodeWindowBase):
         self._auxiliary_bar: Optional[AuxiliaryBar] = None
         self._status_bar: QStatusBar  # Will be initialized in _setup_ui
         self._menu_bar: Optional[QMenuBar] = None
+        self._menu_bar_needs_integration = False  # Track if menu bar needs integration before show
         self._title_bar: Optional[TitleBar] = None  # Will be initialized in _setup_ui if frameless
 
         # Main content management
@@ -123,7 +138,18 @@ class ViloCodeWindow(ViloCodeWindowBase):
         self._shortcut_manager = ShortcutManager(self)
         self._enable_default_shortcuts = enable_default_shortcuts
 
+        # Store initial visibility configuration
+        self._initial_visibility = {
+            "activity_bar": show_activity_bar,
+            "sidebar": show_sidebar,
+            "auxiliary_bar": show_auxiliary_bar,
+            "status_bar": show_status_bar,
+        }
+
         self._setup_ui()
+
+        # Apply initial visibility after UI setup but before show()
+        self._apply_initial_visibility()
 
         if enable_default_shortcuts:
             self._setup_default_shortcuts()
@@ -254,6 +280,33 @@ class ViloCodeWindow(ViloCodeWindowBase):
 
         # Initialize frameless behavior after title_bar is created
         self._initialize_frameless_behavior()
+
+    def _apply_initial_visibility(self) -> None:
+        """Apply initial visibility settings to components.
+
+        This method is called after _setup_ui() creates all components but before
+        the window is shown. It ensures components respect the visibility parameters
+        passed to __init__().
+        """
+        # Hide activity bar if requested
+        if not self._initial_visibility.get("activity_bar", True):
+            if self._activity_bar:
+                self._activity_bar.hide()
+
+        # Hide sidebar if requested
+        if not self._initial_visibility.get("sidebar", True):
+            if self._sidebar:
+                self._sidebar.hide()
+
+        # Hide auxiliary bar if requested
+        if not self._initial_visibility.get("auxiliary_bar", True):
+            if self._auxiliary_bar:
+                self._auxiliary_bar.hide()
+
+        # Hide status bar if requested
+        if not self._initial_visibility.get("status_bar", True):
+            if self._status_bar:
+                self._status_bar.hide()
 
     def _setup_default_shortcuts(self) -> None:
         """Set up default VS Code-compatible shortcuts.
@@ -710,18 +763,84 @@ class ViloCodeWindow(ViloCodeWindowBase):
                 self._title_bar.set_menu_bar(menubar)
         # In embedded mode, developer can access via get_menu_bar() and place it themselves
 
-    def get_menu_bar(self) -> Optional[QMenuBar]:
-        """Get the menu bar widget.
+    def get_menu_bar(self) -> QMenuBar:
+        """Get the menu bar widget (auto-created if needed).
 
         Returns:
-            The menu bar widget, or None if not set
+            The menu bar widget (never None - creates if needed)
 
         Example:
             >>> menubar = window.get_menu_bar()
-            >>> if menubar:
-            ...     menubar.addMenu("Edit")
+            >>> menubar.addMenu("Edit")
         """
+        return self._ensure_menu_bar()
+
+    def add_menu(self, title: str) -> MenuBuilder:
+        """Add a menu to the menu bar with fluent interface.
+
+        This is the recommended API for building menus. It automatically
+        creates the menu bar if needed and provides a clean, chainable
+        interface for adding actions.
+
+        Args:
+            title: Menu title (use & for mnemonic, e.g., "&File")
+
+        Returns:
+            MenuBuilder for method chaining
+
+        Example:
+            >>> window.add_menu("&File") \\
+            ...     .add_action("&Open", on_open, "Ctrl+O") \\
+            ...     .add_separator() \\
+            ...     .add_action("E&xit", window.close, "Ctrl+Q")
+            >>>
+            >>> window.add_menu("&Edit") \\
+            ...     .add_checkable("Show &Sidebar", on_toggle, checked=True)
+        """
+        menubar = self._ensure_menu_bar()
+        menu = menubar.addMenu(title)
+        return MenuBuilder(menu, self)
+
+    def _ensure_menu_bar(self) -> QMenuBar:
+        """Ensure menu bar exists, creating if needed.
+
+        Returns:
+            The menu bar widget
+        """
+        if self._menu_bar is None:
+            self._menu_bar = QMenuBar()
+            self._menu_bar_needs_integration = True
         return self._menu_bar
+
+    def _integrate_menu_bar(self) -> None:
+        """Integrate menu bar with title bar (called before show).
+
+        This is called automatically in showEvent() to ensure menu bar
+        is properly integrated with the title bar in frameless mode.
+        """
+        if not self._menu_bar or not self._menu_bar_needs_integration:
+            return
+
+        if self._window_mode == WindowMode.Frameless and self._title_bar:
+            if hasattr(self._title_bar, "integrate_menu_bar"):
+                self._title_bar.integrate_menu_bar(self._menu_bar)
+            elif hasattr(self._title_bar, "set_menu_bar"):
+                # Fallback to old method for compatibility
+                self._title_bar.set_menu_bar(self._menu_bar)
+
+        self._menu_bar_needs_integration = False
+
+    def showEvent(self, event):
+        """Handle show event - auto-integrate menu bar before showing.
+
+        Args:
+            event: QShowEvent
+        """
+        # Integrate menu bar if needed (lazy integration pattern)
+        if self._menu_bar_needs_integration:
+            self._integrate_menu_bar()
+
+        super().showEvent(event)
 
     # Keyboard Shortcut API
     def set_shortcut(self, action_name: str, key_sequence: str) -> None:

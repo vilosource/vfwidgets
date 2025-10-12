@@ -184,6 +184,26 @@ ruff check src/
 mypy src/
 ```
 
+## Documentation
+
+### For Widget Developers
+
+- **[Widget DX Principles](docs/widget-dx-principles-GUIDE.md)** - Developer experience best practices for creating VFWidgets
+- **[Widget Development Guide](docs/widget-development-GUIDE.md)** - Step-by-step guide for creating new widgets
+- **[New Widget Checklist](docs/new-widget-checklist.md)** - Ensure you don't miss critical steps
+
+### For Application Developers
+
+- **[Building Apps Checklist](docs/building-apps-CHECKLIST.md)** - Complete checklist for building VFWidgets applications
+- **[Theme Integration Guide](docs/theme-integration-GUIDE.md)** - How to properly integrate the theme system
+- **[Task-Driven Development](docs/task-driven-development-GUIDE.md)** - Development methodology guide
+
+### Architecture & Design Docs
+
+- **[Single Instance Design](docs/single-instance-DESIGN.md)** - Single-instance application pattern
+- **[Multi-Window Architecture](docs/multi-window-architecture-DESIGN.md)** - Multi-window application design
+- **[Context Menu Architecture](docs/context-menu-architecture-SPEC.md)** - Context menu system specification
+
 ## Widget Development Guidelines
 
 Each widget should:

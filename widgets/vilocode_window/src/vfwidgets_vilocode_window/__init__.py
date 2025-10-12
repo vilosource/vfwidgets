@@ -11,6 +11,7 @@ Example:
 
 __version__ = "0.1.0"
 
+from .menu_builder import MenuBuilder
 from .vilocode_window import ViloCodeWindow
 
-__all__ = ["ViloCodeWindow", "__version__"]
+__all__ = ["ViloCodeWindow", "MenuBuilder", "__version__"]

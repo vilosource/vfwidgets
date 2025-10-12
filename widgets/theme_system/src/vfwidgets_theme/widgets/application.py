@@ -101,6 +101,7 @@ from ..errors import ThemeError, ThemeNotFoundError, get_global_error_recovery_m
 from ..lifecycle import LifecycleManager
 from ..logging import get_debug_logger
 from ..threading import ThreadSafeThemeManager
+from .metadata import ThemeInfo
 
 logger = get_debug_logger(__name__)
 
@@ -446,6 +447,10 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             for theme_dir in self._config.theme_directories:
                 self.discover_themes_from_directory(theme_dir)
 
+            # Mark as initialized BEFORE theme setting so set_theme() can succeed
+            # (set_theme() checks _is_initialized and rejects calls if False)
+            self._is_initialized = True
+
             # Auto-detect system theme if enabled
             if self._config.auto_detect_system:
                 system_theme = self.auto_detect_system_theme()
@@ -470,9 +475,6 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
 
             # Task 18: Initialize hot reload if enabled
             self._initialize_hot_reload()
-
-            # Mark as initialized
-            self._is_initialized = True
 
             # Calculate initialization time
             init_time = time.perf_counter() - self._startup_time
@@ -568,9 +570,8 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
             # Emit signals
             self.theme_changed.emit(theme_name)
 
-            logger.debug(
-                f"Successfully changed theme from '{old_theme.name if old_theme else None}' to '{theme_name}'"
-            )
+            old_name = old_theme.name if old_theme else None
+            logger.debug(f"Successfully changed theme from '{old_name}' to '{theme_name}'")
             return True
 
         except Exception as e:

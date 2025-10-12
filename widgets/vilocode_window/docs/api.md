@@ -710,9 +710,55 @@ window.set_auxiliary_bar_width_constraints(200, 400)
 
 The menu bar displays in the title bar (frameless mode) or at the top (embedded mode).
 
-### `set_menu_bar(menubar)`
+**NEW!** Use the fluent `add_menu()` API for clean, readable menu creation. See [Menu Quick Start Guide](menu-quick-start-GUIDE.md) for complete documentation.
 
-Set or replace the menu bar.
+### `add_menu(title) -> MenuBuilder` ⭐ RECOMMENDED
+
+Add a menu using the fluent API. This is the recommended way to create menus.
+
+**Parameters**:
+- `title` (`str`): Menu title (use `&` for mnemonics, e.g., `"&File"`)
+
+**Returns**: `MenuBuilder` - Fluent interface for adding actions, separators, submenus
+
+**Features**:
+- ✅ Auto-creates menu bar if needed
+- ✅ Automatic theme integration
+- ✅ Clean method chaining syntax
+- ✅ 75% less code than old API
+
+**Example**:
+```python
+# Simple File menu
+window.add_menu("&File") \
+    .add_action("&New", on_new, "Ctrl+N") \
+    .add_action("&Open", on_open, "Ctrl+O") \
+    .add_separator() \
+    .add_action("E&xit", window.close, "Ctrl+Q")
+
+# Edit menu with toggles
+window.add_menu("&Edit") \
+    .add_action("&Undo", on_undo, "Ctrl+Z") \
+    .add_separator() \
+    .add_checkable("Auto &Save", on_autosave_toggle, checked=True)
+
+# View menu with submenu
+window.add_menu("&View") \
+    .add_submenu("Zoom") \
+        .add_action("Zoom &In", on_zoom_in, "Ctrl++") \
+        .add_action("Zoom &Out", on_zoom_out, "Ctrl+-") \
+    .end_submenu()
+```
+
+**See also**: [Menu Quick Start Guide](menu-quick-start-GUIDE.md) for complete MenuBuilder API reference.
+
+---
+
+### `set_menu_bar(menubar)` (Legacy API)
+
+Set or replace the menu bar using traditional Qt API.
+
+> **Note**: Consider using `add_menu()` instead for cleaner code and automatic theme integration.
 
 **Parameters**:
 - `menubar` (`QMenuBar`): Menu bar widget to use
@@ -726,35 +772,23 @@ Set or replace the menu bar.
 from PySide6.QtWidgets import QMenuBar
 
 menubar = QMenuBar()
-
-# Add File menu
 file_menu = menubar.addMenu("File")
 file_menu.addAction("New")
-file_menu.addAction("Open")
-file_menu.addAction("Save")
-
-# Add Edit menu
-edit_menu = menubar.addMenu("Edit")
-edit_menu.addAction("Undo")
-edit_menu.addAction("Redo")
-
 window.set_menu_bar(menubar)
 ```
 
 ---
 
-### `get_menu_bar() -> Optional[QMenuBar]`
+### `get_menu_bar() -> QMenuBar`
 
-Get the current menu bar widget.
+Get the current menu bar widget (auto-creates if needed).
 
-**Returns**: `QMenuBar` - The menu bar set via `set_menu_bar()`, or `None` if not set
+**Returns**: `QMenuBar` - The menu bar widget (never `None`)
 
 **Example**:
 ```python
 menubar = window.get_menu_bar()
-if menubar:
-    view_menu = menubar.addMenu("View")
-    view_menu.addAction("Toggle Sidebar")
+view_menu = menubar.addMenu("View")  # Works even if no menu set yet
 ```
 
 ---
