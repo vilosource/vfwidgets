@@ -1094,6 +1094,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         """Handle horizontal split request (top/bottom panes).
 
         Creates a horizontal divider, splitting the pane into top and bottom.
+        The new bottom pane inherits the current working directory from the focused pane.
         Triggered by Ctrl+Shift+H.
         """
         multisplit = self.currentWidget()
@@ -1105,6 +1106,14 @@ class ViloxTermApp(ChromeTabbedWindow):
         if not focused_pane:
             logger.warning("No focused pane to split")
             return
+
+        # OSC 7: Get current working directory from focused terminal
+        focused_cwd = self.terminal_provider.get_pane_cwd(focused_pane)
+        if focused_cwd:
+            logger.info(f"New split will inherit CWD: {focused_cwd}")
+            self.terminal_provider.set_next_terminal_cwd(focused_cwd)
+        else:
+            logger.debug("Focused pane has no CWD, new split will use default")
 
         # Create new terminal widget ID
         new_widget_id = f"terminal_{id(multisplit)}_{focused_pane}_bottom"
@@ -1127,6 +1136,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         """Handle vertical split request (left/right panes).
 
         Creates a vertical divider, splitting the pane into left and right.
+        The new right pane inherits the current working directory from the focused pane.
         Triggered by Ctrl+Shift+V.
         """
         multisplit = self.currentWidget()
@@ -1138,6 +1148,14 @@ class ViloxTermApp(ChromeTabbedWindow):
         if not focused_pane:
             logger.warning("No focused pane to split")
             return
+
+        # OSC 7: Get current working directory from focused terminal
+        focused_cwd = self.terminal_provider.get_pane_cwd(focused_pane)
+        if focused_cwd:
+            logger.info(f"New split will inherit CWD: {focused_cwd}")
+            self.terminal_provider.set_next_terminal_cwd(focused_cwd)
+        else:
+            logger.debug("Focused pane has no CWD, new split will use default")
 
         # Create new terminal widget ID
         new_widget_id = f"terminal_{id(multisplit)}_{focused_pane}_right"
