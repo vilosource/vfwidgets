@@ -10,10 +10,13 @@ from PySide6.QtWidgets import (
     QFrame,
     QGroupBox,
     QLabel,
+    QLineEdit,
     QVBoxLayout,
     QWidget,
 )
 from vfwidgets_theme.core.tokens import ColorTokenRegistry
+
+from ..validators.token_validator import TokenValidator
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +87,29 @@ class InspectorPanel(QWidget):
         self.hint_label.hide()
         layout.addWidget(self.hint_label)
 
+        # Text input for direct hex color entry
+        self.color_input_label = QLabel("Or enter hex color:")
+        self.color_input_label.setStyleSheet("font-size: 11px; margin-top: 8px;")
+        self.color_input_label.hide()
+        layout.addWidget(self.color_input_label)
+
+        self.color_input = QLineEdit()
+        self.color_input.setPlaceholderText("#RRGGBB or color name")
+        self.color_input.textChanged.connect(self._on_color_input_changed)
+        self.color_input.returnPressed.connect(self._on_color_input_submitted)
+        self.color_input.hide()
+        layout.addWidget(self.color_input)
+
+        # Validation error label
+        self.validation_error_label = QLabel()
+        self.validation_error_label.setStyleSheet(
+            "color: #d32f2f; font-size: 11px; padding: 4px; background: #ffebee; "
+            "border: 1px solid #ef9a9a; border-radius: 3px;"
+        )
+        self.validation_error_label.setWordWrap(True)
+        self.validation_error_label.hide()
+        layout.addWidget(self.validation_error_label)
+
         # Token info group
         self.info_group = QGroupBox("Token Information")
         info_layout = QFormLayout(self.info_group)
@@ -95,7 +121,9 @@ class InspectorPanel(QWidget):
         # Clickable value display (opens color dialog)
         self.token_value_label = QLabel("-")
         self.token_value_label.setWordWrap(True)
-        self.token_value_label.setStyleSheet("padding: 4px; border: 1px solid gray; background: white;")
+        self.token_value_label.setStyleSheet(
+            "padding: 4px; border: 1px solid gray; background: white;"
+        )
         self.token_value_label.setCursor(QCursor(Qt.PointingHandCursor))
         self.token_value_label.mousePressEvent = lambda e: self._on_value_clicked()
         info_layout.addRow("Value:", self.token_value_label)
@@ -152,7 +180,9 @@ class InspectorPanel(QWidget):
         display_value = token_value if token_value else "(click to set)"
         self.token_value_label.setText(display_value)
         self.token_category_label.setText(token_info.category.value if token_info else "unknown")
-        self.token_description_label.setText(token_info.description if token_info else "No description")
+        self.token_description_label.setText(
+            token_info.description if token_info else "No description"
+        )
 
         # If token has a value and it's a valid color, show color details
         if token_value:
@@ -166,6 +196,16 @@ class InspectorPanel(QWidget):
                     self.color_swatch.show()
                     self.hint_label.show()
 
+                    # Show text input for direct color entry
+                    self.color_input_label.show()
+                    self.color_input.show()
+                    # Populate with current value (suppress textChanged signal)
+                    self.color_input.blockSignals(True)
+                    self.color_input.setText(token_value)
+                    self.color_input.blockSignals(False)
+                    # Hide validation error on token change
+                    self.validation_error_label.hide()
+
                     # Show color group
                     self.color_group.show()
 
@@ -177,7 +217,7 @@ class InspectorPanel(QWidget):
                     self.hex_label.setText(color.name())
                 else:
                     self._hide_color_details()
-            except:
+            except Exception:
                 self._hide_color_details()
         else:
             self._hide_color_details()
@@ -186,6 +226,9 @@ class InspectorPanel(QWidget):
         """Hide color-specific details."""
         self.color_swatch.hide()
         self.hint_label.hide()
+        self.color_input_label.hide()
+        self.color_input.hide()
+        self.validation_error_label.hide()
         self.color_group.hide()
 
     def clear(self):
@@ -200,10 +243,14 @@ class InspectorPanel(QWidget):
         self.rgb_label.setText("-")
         self.hsl_label.setText("-")
         self.hex_label.setText("-")
+        self.color_input.clear()
+        self.validation_error_label.hide()
         self.info_group.hide()
         self.color_group.hide()
         self.color_swatch.hide()
         self.hint_label.hide()
+        self.color_input_label.hide()
+        self.color_input.hide()
 
     def _on_value_clicked(self):
         """Handle value label click - opens modal dialog with color picker.
@@ -234,7 +281,9 @@ class InspectorPanel(QWidget):
         current_value = self._current_value if self._current_value else "#ffffff"
         initial_color = QColor(current_value)
         token_name = self._current_token
-        logger.debug(f"_on_color_swatch_clicked: Opening color dialog for token={token_name}, color={current_value}")
+        logger.debug(
+            f"_on_color_swatch_clicked: Opening color dialog for token={token_name}, color={current_value}"
+        )
 
         # Use Qt's static method - Qt manages everything
         # This is the recommended way for simple color picking
@@ -242,7 +291,7 @@ class InspectorPanel(QWidget):
             initial_color,
             self,
             f"Pick Color: {token_name}",
-            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
         )
 
         logger.debug(f"_on_color_swatch_clicked: Dialog returned, valid={selected_color.isValid()}")
@@ -257,7 +306,9 @@ class InspectorPanel(QWidget):
             self._apply_color_change_immediate(selected_color)
 
             # Queue document update via controller
-            logger.debug(f"_on_color_swatch_clicked: Queuing controller update: {token_name}={hex_color}")
+            logger.debug(
+                f"_on_color_swatch_clicked: Queuing controller update: {token_name}={hex_color}"
+            )
             if self._controller:
                 self._controller.queue_token_change(token_name, hex_color)
                 logger.debug("_on_color_swatch_clicked: Update queued, END")
@@ -290,7 +341,9 @@ class InspectorPanel(QWidget):
                     logger.debug(f"_on_color_dialog_finished: Color selected: {selected_color}")
             except RuntimeError:
                 # Dialog already deleted
-                logger.warning("_on_color_dialog_finished: Dialog already deleted, cannot get color")
+                logger.warning(
+                    "_on_color_dialog_finished: Dialog already deleted, cannot get color"
+                )
 
         # IMPORTANT: Disconnect the signal first to prevent re-entrancy
         try:
@@ -317,7 +370,9 @@ class InspectorPanel(QWidget):
             self._apply_color_change_immediate(color)
 
             # Update document via controller
-            logger.debug(f"_on_color_dialog_finished: Queuing controller update: {token_name}={selected_color}")
+            logger.debug(
+                f"_on_color_dialog_finished: Queuing controller update: {token_name}={selected_color}"
+            )
             if self._controller:
                 self._controller.queue_token_change(token_name, selected_color)
                 logger.debug("_on_color_dialog_finished: Update queued, END")
@@ -356,9 +411,14 @@ class InspectorPanel(QWidget):
 
         # Update UI only (no signal emission)
         self.token_value_label.setText(hex_color)
-        self.color_swatch.setStyleSheet(
-            f"background-color: {hex_color}; border: 2px solid gray;"
-        )
+        self.color_swatch.setStyleSheet(f"background-color: {hex_color}; border: 2px solid gray;")
+
+        # Update text input (suppress textChanged signal to avoid validation feedback loop)
+        self.color_input.blockSignals(True)
+        self.color_input.setText(hex_color)
+        self.color_input.blockSignals(False)
+        # Hide validation error when color picker is used
+        self.validation_error_label.hide()
 
         # Update color details
         self.rgb_label.setText(f"rgb({color.red()}, {color.green()}, {color.blue()})")
@@ -369,3 +429,68 @@ class InspectorPanel(QWidget):
 
     # NOTE: _apply_color_change is no longer used with non-modal dialog approach
     # The _on_color_dialog_finished callback handles all updates directly
+
+    def _on_color_input_changed(self, text: str):
+        """Handle text input change - validate color format as user types.
+
+        Args:
+            text: Current text in input field
+        """
+        # Validate the color
+        is_valid, error_msg = TokenValidator.validate_color(text)
+
+        if is_valid:
+            # Valid color - hide error, update visual feedback
+            self.validation_error_label.hide()
+
+            # Update color swatch preview if it's a valid color
+            if text.strip():  # Don't preview empty string
+                try:
+                    color = QColor(text)
+                    if color.isValid():
+                        self.color_swatch.setStyleSheet(
+                            f"background-color: {text}; border: 2px solid gray;"
+                        )
+                except Exception:
+                    pass
+        else:
+            # Invalid color - show error
+            self.validation_error_label.setText(error_msg)
+            self.validation_error_label.show()
+
+    def _on_color_input_submitted(self):
+        """Handle Enter key press in text input - apply valid color."""
+        text = self.color_input.text().strip()
+
+        # Validate
+        is_valid, error_msg = TokenValidator.validate_color(text)
+
+        if not is_valid:
+            # Show error and don't apply
+            self.validation_error_label.setText(error_msg)
+            self.validation_error_label.show()
+            return
+
+        # Valid color - apply it
+        if not self._current_token:
+            return
+
+        try:
+            color = QColor(text)
+            if color.isValid():
+                hex_color = color.name()
+
+                # Update UI
+                self._apply_color_change_immediate(color)
+                self._current_value = hex_color
+
+                # Update document via controller
+                if self._controller:
+                    self._controller.queue_token_change(self._current_token, hex_color)
+                    logger.debug(
+                        f"_on_color_input_submitted: Applied color {hex_color} to {self._current_token}"
+                    )
+        except Exception as e:
+            logger.error(f"_on_color_input_submitted: Error applying color: {e}")
+            self.validation_error_label.setText(f"Error applying color: {e}")
+            self.validation_error_label.show()
