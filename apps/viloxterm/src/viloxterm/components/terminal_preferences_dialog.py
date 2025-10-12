@@ -187,6 +187,22 @@ class TerminalPreferencesDialog(ThemedDialog):
         self.tab_width_spin.setSuffix(" spaces")
         layout.addRow("Tab width:", self.tab_width_spin)
 
+        # TERM environment variable
+        self.term_type_combo = QComboBox()
+        self.term_type_combo.setEditable(True)
+        self.term_type_combo.addItems(
+            [
+                "xterm-256color",
+                "xterm",
+                "xterm-color",
+                "screen-256color",
+                "screen",
+                "tmux-256color",
+                "tmux",
+            ]
+        )
+        layout.addRow("Terminal type (TERM):", self.term_type_combo)
+
         return group
 
     def _create_cursor_group(self) -> QGroupBox:
@@ -311,6 +327,15 @@ class TerminalPreferencesDialog(ThemedDialog):
         self.scrollback_spin.setValue(self.current_config.get("scrollback", 1000))
         self.tab_width_spin.setValue(self.current_config.get("tabStopWidth", 4))
 
+        # Load TERM type
+        term_type = self.current_config.get("termType", "xterm-256color")
+        index = self.term_type_combo.findText(term_type)
+        if index >= 0:
+            self.term_type_combo.setCurrentIndex(index)
+        else:
+            # If custom value, set it
+            self.term_type_combo.setEditText(term_type)
+
         cursor_style = self.current_config.get("cursorStyle", "block")
         index = self.cursor_style_combo.findText(cursor_style)
         if index >= 0:
@@ -343,6 +368,7 @@ class TerminalPreferencesDialog(ThemedDialog):
         self.current_config = {
             "scrollback": self.scrollback_spin.value(),
             "tabStopWidth": self.tab_width_spin.value(),
+            "termType": self.term_type_combo.currentText(),
             "cursorStyle": self.cursor_style_combo.currentText(),
             "cursorBlink": self.cursor_blink_check.isChecked(),
             "scrollSensitivity": self.scroll_sensitivity_spin.value(),

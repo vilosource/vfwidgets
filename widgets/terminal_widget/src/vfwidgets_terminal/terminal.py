@@ -478,6 +478,11 @@ class TerminalWidget(_BaseTerminalClass):
         self.args = args or []
         self.cwd = cwd
         self.env = env or {}
+
+        # Handle terminal_config early to extract termType for env
+        # We need to do this before other initialization that uses self.env
+        self._terminal_config_raw = terminal_config
+
         self.server_url = server_url
         self.port = port
         self.host = host
@@ -531,6 +536,16 @@ class TerminalWidget(_BaseTerminalClass):
                     "scrollback parameter is deprecated. Use terminal_config={'scrollback': ...} instead"
                 )
                 self._terminal_config["scrollback"] = scrollback
+
+            # Extract termType from terminal_config and set it in environment
+            # This allows users to configure TERM variable via terminal preferences
+            if "termType" in self._terminal_config:
+                term_type = self._terminal_config["termType"]
+                # Only set TERM if not already set by user via env parameter
+                if "TERM" not in self.env:
+                    self.env["TERM"] = term_type
+                    logger.debug(f"Setting TERM environment variable to: {term_type}")
+
         elif scrollback != DEFAULT_SCROLLBACK:
             # Only scrollback parameter provided (old API)
             logger.warning(
@@ -539,6 +554,11 @@ class TerminalWidget(_BaseTerminalClass):
             self._terminal_config = {"scrollback": scrollback}
         else:
             self._terminal_config = None
+
+        # If no terminal config and no TERM env set, use default
+        if "TERM" not in self.env:
+            self.env["TERM"] = "xterm-256color"
+            logger.debug("Setting TERM environment variable to default: xterm-256color")
 
         # Phase 7: Set up signal forwarding for backwards compatibility
         self._setup_signal_forwarding()

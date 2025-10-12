@@ -335,12 +335,18 @@ class MultiSessionTerminalServer(QObject):
         else:
             args_list = args or []
 
+        # Prepare environment variables with default TERM if not provided
+        session_env = env or {}
+        if "TERM" not in session_env:
+            session_env["TERM"] = "xterm-256color"
+            logger.debug("Setting TERM environment variable to default: xterm-256color")
+
         # Build session parameters
         session_params = {
             "session_id": session_id,
             "args": args_list,
             "cwd": cwd,
-            "env": env or {},
+            "env": session_env,
             "rows": rows,
             "cols": cols,
         }
