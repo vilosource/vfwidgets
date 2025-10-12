@@ -748,6 +748,13 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
             if stylesheet:
                 self.setStyleSheet(stylesheet)
 
+            # Generate and apply palette (NEW: QPalette integration)
+            palette = self._generate_palette()
+            if palette:
+                self.setPalette(palette)
+                # Apply palette to all child widgets recursively
+                self._apply_palette_to_children(palette)
+
             # Force repaint
             if hasattr(self, "update"):
                 self.update()
@@ -832,6 +839,96 @@ class ThemedWidget(metaclass=ThemedWidgetMeta):
 
         """
         return ""
+
+    def _generate_palette(self) -> Optional[QPalette]:
+        """Generate Qt palette based on current theme.
+
+        Uses PaletteGenerator to create comprehensive QPalette that handles
+        color roles QSS cannot control (alternating rows, selections, etc.).
+        Subclasses can override _generate_custom_palette() to customize.
+
+        Returns:
+            Complete Qt QPalette or None if theme not ready
+
+        """
+        try:
+            if not self._is_theme_system_ready:
+                return None
+
+            # Check if this widget has opted out of theming
+            if self.property("vftheme_disable"):
+                return None
+
+            # Get current theme
+            if not self._theme_manager or not self._theme_manager.current_theme:
+                return None
+
+            theme = self._theme_manager.current_theme
+
+            # Use PaletteGenerator for automatic palette generation
+            from .palette_generator import PaletteGenerator
+
+            generator = PaletteGenerator(theme)
+            base_palette = generator.generate_palette()
+
+            # Allow subclasses to customize palette
+            custom_palette = self._generate_custom_palette()
+            if custom_palette:
+                # Merge custom palette into base palette
+                # Custom colors override base colors
+                return custom_palette
+            else:
+                return base_palette
+
+        except Exception as e:
+            logger.error(f"Error generating palette: {e}")
+            return None
+
+    def _generate_custom_palette(self) -> Optional[QPalette]:
+        """Generate custom palette for this widget.
+
+        Subclasses can override this method to customize palette colors beyond
+        the base theme. The custom palette replaces the base palette.
+
+        Example:
+            class MyListView(ThemedWidget, QListView):
+                def _generate_custom_palette(self) -> QPalette:
+                    palette = QPalette()
+                    # Custom alternating row colors
+                    palette.setColor(QPalette.Base, QColor('#1a1a1a'))
+                    palette.setColor(QPalette.AlternateBase, QColor('#2a2a2a'))
+                    return palette
+
+        Returns:
+            Custom QPalette or None to use automatic palette
+
+        """
+        return None
+
+    def _apply_palette_to_children(self, palette: QPalette) -> None:
+        """Apply palette recursively to all child widgets.
+
+        Qt doesn't automatically propagate palette to children, so we need to
+        explicitly set it on all child widgets for proper theming.
+
+        Args:
+            palette: QPalette to apply to children
+
+        """
+        try:
+            if not hasattr(self, 'children'):
+                return
+
+            for child in self.children():
+                if hasattr(child, 'setPalette'):
+                    child.setPalette(palette)
+                    # Recursively apply to grandchildren
+                    if hasattr(child, 'children'):
+                        for grandchild in child.children():
+                            if hasattr(grandchild, 'setPalette'):
+                                grandchild.setPalette(palette)
+        except Exception as e:
+            logger.debug(f"Error applying palette to children: {e}")
 
     @property
     def theme_name(self) -> Optional[str]:

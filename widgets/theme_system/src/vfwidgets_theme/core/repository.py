@@ -338,6 +338,35 @@ class BuiltinThemeManager:
                 "toolbar.hoverBackground": "rgba(255, 255, 255, 0.1)",
                 "toolbar.hoverForeground": "#ffffff",
                 "toolbar.activeBackground": "rgba(255, 255, 255, 0.15)",
+                # List/Tree view tokens (for QPalette integration)
+                "list.background": "#252526",
+                "list.foreground": "#cccccc",
+                "list.hoverBackground": "#2a2d2e",
+                "list.activeSelectionBackground": "#094771",
+                "list.activeSelectionForeground": "#ffffff",
+                "list.inactiveSelectionBackground": "#3a3d41",
+                "list.inactiveSelectionForeground": "#cccccc",
+                # Input tokens
+                "input.background": "#3c3c3c",
+                "input.foreground": "#cccccc",
+                "input.border": "#3c3c3c",
+                "input.placeholderForeground": "#666666",
+                # Button tokens
+                "button.background": "#2d2d2d",
+                "button.foreground": "#cccccc",
+                "button.border": "#555555",
+                "button.hoverBackground": "#404040",
+                # Widget tokens
+                "widget.background": "#2d2d2d",
+                "disabledForeground": "#666666",
+                # Link tokens
+                "textLink.foreground": "#4080d0",
+                "textLink.activeForeground": "#6060c0",
+                # Editor widget tokens
+                "editorWidget.background": "#252526",
+                "editorWidget.foreground": "#cccccc",
+                # Table tokens
+                "table.gridColor": "#3a3a3a",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
@@ -390,6 +419,35 @@ class BuiltinThemeManager:
                 "toolbar.hoverBackground": "rgba(0, 0, 0, 0.1)",
                 "toolbar.hoverForeground": "#000000",
                 "toolbar.activeBackground": "rgba(0, 0, 0, 0.15)",
+                # List/Tree view tokens (for QPalette integration)
+                "list.background": "#ffffff",
+                "list.foreground": "#000000",
+                "list.hoverBackground": "#f0f0f0",
+                "list.activeSelectionBackground": "#0078d4",
+                "list.activeSelectionForeground": "#ffffff",
+                "list.inactiveSelectionBackground": "#e0e0e0",
+                "list.inactiveSelectionForeground": "#000000",
+                # Input tokens
+                "input.background": "#ffffff",
+                "input.foreground": "#000000",
+                "input.border": "#cccccc",
+                "input.placeholderForeground": "#999999",
+                # Button tokens
+                "button.background": "#f0f0f0",
+                "button.foreground": "#000000",
+                "button.border": "#cccccc",
+                "button.hoverBackground": "#e0e7ff",
+                # Widget tokens
+                "widget.background": "#ffffff",
+                "disabledForeground": "#999999",
+                # Link tokens
+                "textLink.foreground": "#0078d4",
+                "textLink.activeForeground": "#004578",
+                # Editor widget tokens
+                "editorWidget.background": "#ffffff",
+                "editorWidget.foreground": "#000000",
+                # Table tokens
+                "table.gridColor": "#e0e0e0",
             },
             "styles": {
                 "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",

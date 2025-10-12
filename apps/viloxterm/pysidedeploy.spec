@@ -19,7 +19,7 @@ excluded_qml_plugins = QtCharts,QtDataVisualization,QtWebView,QtTest,Qt3D
 [qt]
 
 # qt modules required by viloxterm
-modules = Core,Gui,DBus,Widgets
+modules = Gui,DBus,Core,Widgets
 
 # qml is not used
 qml_files = 

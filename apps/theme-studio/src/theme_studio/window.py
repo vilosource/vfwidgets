@@ -1,0 +1,677 @@
+"""VFTheme Studio - Main Window.
+
+Main application window with three-panel layout.
+"""
+
+import logging
+
+from PySide6.QtCore import QSettings, Qt, QTimer
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QSplitter
+
+from .commands import SetTokenCommand
+from .components import StatusBarWidget, create_menu_bar, create_toolbar
+from .controllers import ThemeController
+from .models import ThemeDocument
+from .panels import InspectorPanel, PreviewCanvasPanel, TokenBrowserPanel
+from .plugins import GenericWidgetsPlugin
+from .widgets import TokenTreeModel
+
+logger = logging.getLogger(__name__)
+
+
+class ThemeStudioWindow(QMainWindow):
+    """Main application window.
+
+    Note: This window does NOT use ThemedWidget. Theme Studio maintains a fixed
+    appearance and only applies edited themes to preview widgets.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Current document (will be set in Task 2.2)
+        self._current_document = None
+
+        # Theme controller (MVC controller layer)
+        self._theme_controller = None
+
+        # Plugin registry (Task 4.3)
+        self._plugins = {}
+
+        # Window properties
+        self.setWindowTitle("VFTheme Studio")
+        self.setMinimumSize(1200, 800)
+        self.resize(1600, 1000)
+
+        # Setup UI components
+        self._create_menu_bar()
+        self._create_toolbar()
+        self._create_central_widget()
+        self._create_status_bar()
+
+        # Restore panel sizes from settings
+        self._restore_panel_sizes()
+
+        # Register plugins (Task 4.3)
+        self._register_plugins()
+
+        # Create initial document
+        self._create_new_document()
+
+        # Show status
+        self.status_bar.show_status("Ready")
+
+    def closeEvent(self, event):
+        """Handle window close event with proper cleanup.
+
+        Args:
+            event: QCloseEvent
+        """
+        # Disconnect document signals before cleanup to prevent signal firing during destruction
+        if self._current_document:
+            try:
+                self._current_document.modified.disconnect(self._on_document_modified)
+                self._current_document.token_changed.disconnect(self._on_token_changed)
+                self._current_document.file_path_changed.disconnect(self._on_file_path_changed)
+            except (RuntimeError, TypeError):
+                # Already disconnected or object deleted
+                pass
+
+        # Clear preview canvas to properly clean up plugin widget
+        if hasattr(self, 'preview_canvas') and self.preview_canvas:
+            try:
+                self.preview_canvas.clear_content()
+            except RuntimeError:
+                # Widget already deleted
+                pass
+
+        # Save panel sizes
+        self._save_panel_sizes()
+
+        # Accept the close event
+        event.accept()
+
+    def _create_menu_bar(self):
+        """Create menu bar."""
+        create_menu_bar(self)
+
+    def _create_toolbar(self):
+        """Create toolbar."""
+        self.toolbar = create_toolbar(self)
+        self.addToolBar(self.toolbar)
+
+    def _create_central_widget(self):
+        """Create three-panel layout."""
+        # Main horizontal splitter
+        self.main_splitter = QSplitter(Qt.Horizontal)
+
+        # Create three panels
+        self.token_browser = TokenBrowserPanel()
+        self.preview_canvas = PreviewCanvasPanel()
+        self.inspector_panel = InspectorPanel()
+
+        # Connect token browser to inspector (Task 5.2)
+        self.token_browser.token_selected.connect(self._on_token_selected_for_inspector)
+
+        # NOTE: Inspector no longer emits signals - uses controller pattern
+        # Controller will be injected when document is created
+
+        # Add panels to splitter
+        self.main_splitter.addWidget(self.token_browser)
+        self.main_splitter.addWidget(self.preview_canvas)
+        self.main_splitter.addWidget(self.inspector_panel)
+
+        # Set initial sizes (25% | 50% | 25% of 1600px = 400 | 800 | 400)
+        self.main_splitter.setSizes([400, 800, 400])
+
+        # Set stretch factors (preview canvas stretches more)
+        self.main_splitter.setStretchFactor(0, 1)  # Token browser
+        self.main_splitter.setStretchFactor(1, 2)  # Preview canvas (double)
+        self.main_splitter.setStretchFactor(2, 1)  # Inspector
+
+        # Save splitter state when changed
+        self.main_splitter.splitterMoved.connect(self._save_panel_sizes)
+
+        # Set as central widget
+        self.setCentralWidget(self.main_splitter)
+
+    def _create_status_bar(self):
+        """Create status bar."""
+        self.status_bar = StatusBarWidget(self)
+        self.setStatusBar(self.status_bar)
+
+    def _restore_panel_sizes(self):
+        """Restore panel sizes from settings."""
+        settings = QSettings("Vilosource", "VFTheme Studio")
+        splitter_state = settings.value("main_splitter/state")
+        if splitter_state:
+            self.main_splitter.restoreState(splitter_state)
+
+    def _save_panel_sizes(self):
+        """Save panel sizes to settings."""
+        settings = QSettings("Vilosource", "VFTheme Studio")
+        settings.setValue("main_splitter/state", self.main_splitter.saveState())
+
+    # Plugin Management Methods (Task 4.3)
+
+    def _register_plugins(self):
+        """Register available preview plugins."""
+        # Register Generic Widgets plugin
+        generic_plugin = GenericWidgetsPlugin()
+        self._plugins[generic_plugin.get_name()] = generic_plugin
+
+        # Add plugins to preview canvas selector
+        for plugin_name in self._plugins.keys():
+            self.preview_canvas.plugin_selector.addItem(plugin_name)
+
+        # Connect plugin selection change
+        self.preview_canvas.plugin_selector.currentTextChanged.connect(self._on_plugin_selected)
+
+        # Load first plugin by default
+        if self._plugins:
+            first_plugin = list(self._plugins.keys())[0]
+            self.preview_canvas.plugin_selector.setCurrentText(first_plugin)
+
+    def _on_plugin_selected(self, plugin_name: str):
+        """Handle plugin selection change.
+
+        Args:
+            plugin_name: Selected plugin name
+        """
+        if plugin_name == "(None)" or not plugin_name:
+            # Clear canvas
+            self.preview_canvas.clear_content()
+            return
+
+        # Get plugin
+        plugin = self._plugins.get(plugin_name)
+        if not plugin:
+            return
+
+        # Create and set preview widget
+        preview_widget = plugin.create_preview_widget()
+        self.preview_canvas.set_plugin_content(preview_widget)
+
+        # Show status
+        self.status_bar.show_status(f"Loaded plugin: {plugin_name}", 2000)
+
+    # Inspector Connection (Task 5.2 & 8.1)
+
+    def _on_token_selected_for_inspector(self, token_name: str):
+        """Handle token selection for inspector display.
+
+        Args:
+            token_name: Selected token name
+        """
+        if not self._current_document:
+            return
+
+        # Get token value from document
+        token_value = self._current_document.get_token(token_name)
+
+        # Update inspector
+        self.inspector_panel.set_token(token_name, token_value)
+
+    # DEPRECATED: InspectorPanel now uses ThemeController directly
+    # This method is kept for reference but is no longer called
+    def _on_token_value_changed_DEPRECATED(self, token_name: str, new_value: str):
+        """[DEPRECATED] Handle token value change from inspector.
+
+        NOTE: This method is no longer used. InspectorPanel now uses
+        ThemeController.queue_token_change() which directly updates the document.
+
+        Args:
+            token_name: Token name that was changed
+            new_value: New token value
+        """
+        if not self._current_document:
+            return
+
+        # Get old value for undo
+        old_value = self._current_document.get_token(token_name)
+
+        # Create and push undo command
+        command = SetTokenCommand(
+            self._current_document,
+            token_name,
+            new_value,
+            old_value
+        )
+        self._current_document._undo_stack.push(command)
+
+        # Show status
+        self.status_bar.show_status(f"Updated {token_name}", 2000)
+
+    # Document Management Methods
+
+    def _create_new_document(self):
+        """Create a new document."""
+        document = ThemeDocument()
+        self.set_document(document)
+
+    def set_document(self, document: ThemeDocument):
+        """Set current theme document.
+
+        Args:
+            document: ThemeDocument to set as current
+        """
+        # Disconnect old document signals
+        if self._current_document:
+            self._current_document.modified.disconnect(self._on_document_modified)
+            self._current_document.token_changed.disconnect(self._on_token_changed)
+            self._current_document.file_path_changed.disconnect(self._on_file_path_changed)
+
+        # Set new document
+        self._current_document = document
+
+        # Create controller for this document (MVC pattern)
+        self._theme_controller = ThemeController(document)
+
+        # Inject controller into inspector panel
+        self.inspector_panel.set_controller(self._theme_controller)
+
+        # Connect document signals to window
+        document.modified.connect(self._on_document_modified)
+        document.token_changed.connect(self._on_token_changed)
+        document.file_path_changed.connect(self._on_file_path_changed)
+
+        # Connect undo stack signals to menu items (Task 9.2)
+        if hasattr(self, 'undo_action') and hasattr(self, 'redo_action'):
+            document._undo_stack.canUndoChanged.connect(self.undo_action.setEnabled)
+            document._undo_stack.canRedoChanged.connect(self.redo_action.setEnabled)
+            # Update initial state
+            self.undo_action.setEnabled(document._undo_stack.canUndo())
+            self.redo_action.setEnabled(document._undo_stack.canRedo())
+
+        # Create token tree model and set it on the token browser (Task 3.2)
+        token_model = TokenTreeModel(document)
+        self.token_browser.set_model(token_model)
+
+        # Set initial theme for preview (Task 10.1)
+        # ARCHITECTURAL FIX: Only update preview, not entire app
+        try:
+            self._update_preview_theme(document.theme)
+        except Exception as e:
+            print(f"Warning: Failed to set initial theme: {e}")
+
+        # Update UI
+        self._update_window_title()
+        self._update_status_bar()
+
+    def _update_preview_theme(self, theme):
+        """Apply edited theme to preview widgets only.
+
+        This manually generates and applies stylesheets from the edited theme
+        directly to preview widgets, without using the global theme system.
+
+        Theme Studio UI maintains OS/system appearance.
+
+        Args:
+            theme: Theme object to apply to preview widgets
+        """
+        logger.debug("_update_preview_theme: START")
+        if not hasattr(self, 'preview_canvas') or not self.preview_canvas:
+            logger.debug("_update_preview_theme: No preview canvas")
+            return
+
+        # Get the actual plugin widget being displayed
+        plugin_widget = self.preview_canvas._current_plugin
+        if not plugin_widget:
+            logger.debug("_update_preview_theme: No plugin widget")
+            return
+
+        logger.debug(f"_update_preview_theme: Plugin widget class={plugin_widget.__class__.__name__}")
+
+        # Check if widget is being destroyed
+        try:
+            if not plugin_widget.isVisible() and plugin_widget.parent() is None:
+                # Widget is being deleted, don't apply theme
+                logger.debug("_update_preview_theme: Widget being deleted, skipping")
+                return
+        except RuntimeError:
+            # Widget already deleted
+            logger.debug("_update_preview_theme: Widget already deleted")
+            return
+
+        try:
+            # Import theme system generators
+            from vfwidgets_theme.widgets.palette_generator import PaletteGenerator
+            from vfwidgets_theme.widgets.stylesheet_generator import StylesheetGenerator
+
+            logger.debug("_update_preview_theme: Generating stylesheet and palette")
+            # Generate stylesheet for the plugin widget
+            generator = StylesheetGenerator(theme, plugin_widget.__class__.__name__)
+            stylesheet = generator.generate_comprehensive_stylesheet()
+
+            # Generate QPalette for proper Qt widget theming
+            palette_gen = PaletteGenerator(theme)
+            palette = palette_gen.generate_palette()
+
+            logger.debug("_update_preview_theme: Stylesheet and palette generated, applying...")
+
+            # Double-check widget is still valid before applying
+            try:
+                if not plugin_widget.isVisible() and plugin_widget.parent() is None:
+                    logger.debug("_update_preview_theme: Widget deleted before apply, skipping")
+                    return
+            except RuntimeError:
+                logger.debug("_update_preview_theme: Widget deleted (RuntimeError)")
+                return
+
+            # Apply ONLY to plugin widget (not to Theme Studio UI)
+            # Wrap in try/except in case widget gets deleted mid-application
+            try:
+                logger.debug("_update_preview_theme: Setting stylesheet...")
+                plugin_widget.setStyleSheet(stylesheet)
+                logger.debug("_update_preview_theme: Stylesheet applied")
+            except RuntimeError:
+                logger.debug("_update_preview_theme: RuntimeError setting stylesheet")
+                return
+
+            try:
+                logger.debug("_update_preview_theme: Setting palette...")
+                plugin_widget.setPalette(palette)
+                logger.debug("_update_preview_theme: Palette applied")
+                logger.debug("_update_preview_theme: END")
+            except RuntimeError:
+                logger.debug("_update_preview_theme: RuntimeError setting palette")
+                return
+
+        except RuntimeError:
+            # Widget was deleted during theme application
+            pass
+        except Exception as e:
+            print(f"Error applying preview theme: {e}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_document_modified(self, is_modified: bool):
+        """Handle document modified state change.
+
+        Args:
+            is_modified: Whether document is modified
+        """
+        self._update_window_title()
+
+    def _on_token_changed(self, token_name: str, token_value: str):
+        """Handle token value change.
+
+        Args:
+            token_name: Name of changed token
+            token_value: New token value
+        """
+        logger.debug(f"_on_token_changed: token={token_name}, value={token_value}")
+
+        # Update status bar with token count
+        self._update_status_bar()
+
+        # Update preview canvas with new theme (Task 10.1)
+        # ARCHITECTURAL FIX: Only update preview widgets, NOT the entire application!
+        # The Theme Studio UI should maintain its own stable theme.
+        #
+        # IMPORTANT: Defer theme update to next event loop iteration to avoid
+        # conflicts with active widget operations.
+        if self._current_document and hasattr(self, 'preview_canvas'):
+            logger.debug("_on_token_changed: Scheduling deferred preview theme update")
+            # Use QTimer.singleShot with method reference (no lambda to avoid capture issues)
+            QTimer.singleShot(0, self._deferred_update_preview_theme)
+
+        # NOTE: Do NOT update inspector here!
+        # The inspector already updated its own UI in _apply_color_change_immediate().
+        # Calling inspector.set_token() here causes a synchronous UI update during
+        # the signal chain, which can conflict with dialog cleanup and cause segfaults.
+
+    def _deferred_update_preview_theme(self):
+        """Deferred theme update for preview widgets.
+
+        This is called via QTimer.singleShot to ensure theme updates happen
+        after the current event handler completes, avoiding conflicts with
+        active dialogs or widget operations.
+        """
+        logger.debug("_deferred_update_preview_theme: START")
+        if not self._current_document or not hasattr(self, 'preview_canvas'):
+            logger.debug("_deferred_update_preview_theme: No document or preview canvas, skipping")
+            return
+
+        try:
+            # Apply theme ONLY to preview widgets, not the entire app
+            logger.debug("_deferred_update_preview_theme: Calling _update_preview_theme")
+            self._update_preview_theme(self._current_document.theme)
+            logger.debug("_deferred_update_preview_theme: Theme update complete, END")
+        except Exception as e:
+            logger.error(f"Failed to update preview theme: {e}", exc_info=True)
+
+    def _on_file_path_changed(self, file_path: str):
+        """Handle file path change.
+
+        Args:
+            file_path: New file path
+        """
+        self._update_window_title()
+        self.status_bar.show_status(f"Loaded: {file_path}", 3000)
+
+    def _update_window_title(self):
+        """Update window title with document name and modified state."""
+        if not self._current_document:
+            self.setWindowTitle("VFTheme Studio")
+            return
+
+        # Get file name or "Untitled"
+        name = self._current_document.file_name or "Untitled"
+
+        # Add modified indicator
+        modified = "*" if self._current_document.is_modified() else ""
+
+        # Set title
+        self.setWindowTitle(f"{name}{modified} - VFTheme Studio")
+
+    def _update_status_bar(self):
+        """Update status bar with current document info."""
+        if not self._current_document:
+            self.status_bar.update_theme_info("No theme loaded", False)
+            self.status_bar.update_token_count(0, 197)
+            return
+
+        # Update theme info
+        theme_name = self._current_document.file_name or self._current_document.theme.name
+        is_modified = self._current_document.is_modified()
+        self.status_bar.update_theme_info(theme_name, is_modified)
+
+        # Update token count
+        defined, total = self._current_document.get_token_count()
+        self.status_bar.update_token_count(defined, total)
+
+    # File actions (Task 6.1-6.3)
+    def new_theme(self):
+        """Create new theme.
+
+        Prompts to save if current document is modified, then creates a new empty theme.
+        """
+        # Check if we need to save current document
+        if self._current_document and self._current_document.is_modified():
+            reply = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                "The current theme has unsaved changes. Do you want to save them?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+
+            if reply == QMessageBox.Save:
+                # Try to save, cancel if save fails
+                if not self._save_current_document():
+                    return
+            elif reply == QMessageBox.Cancel:
+                return
+            # If Discard, continue with creating new theme
+
+        # Create new document
+        document = ThemeDocument()
+        self.set_document(document)
+
+        # Show status
+        self.status_bar.show_status("Created new theme", 2000)
+
+    def _save_current_document(self) -> bool:
+        """Save the current document.
+
+        Returns:
+            True if save successful, False if cancelled or failed
+        """
+        if not self._current_document:
+            return False
+
+        # If document has no file path, use Save As
+        if not self._current_document.file_path:
+            return self._save_document_as()
+        else:
+            return self._save_document_to_path(self._current_document.file_path)
+
+    def open_theme(self):
+        """Open theme from file.
+
+        Prompts to save if current document is modified, then shows open dialog.
+        """
+        # Check if we need to save current document
+        if self._current_document and self._current_document.is_modified():
+            reply = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                "The current theme has unsaved changes. Do you want to save them?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+                QMessageBox.Save
+            )
+
+            if reply == QMessageBox.Save:
+                # Try to save, cancel if save fails
+                if not self._save_current_document():
+                    return
+            elif reply == QMessageBox.Cancel:
+                return
+            # If Discard, continue with opening
+
+        # Show open file dialog
+        from PySide6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Theme",
+            "",  # Default directory
+            "Theme Files (*.json);;All Files (*)"
+        )
+
+        if not file_path:
+            # User cancelled
+            return
+
+        # Load theme
+        try:
+            document = ThemeDocument()
+            document.load(file_path)
+            self.set_document(document)
+            self.status_bar.show_status(f"Opened: {document.file_name}", 3000)
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Opening Theme",
+                f"Failed to open theme file:\n\n{str(e)}"
+            )
+            self.status_bar.show_status("Failed to open theme", 3000)
+
+    def save_theme(self):
+        """Save theme to current file."""
+        if not self._save_current_document():
+            self.status_bar.show_status("Save cancelled", 2000)
+
+    def save_theme_as(self):
+        """Save theme to a new file."""
+        if self._save_document_as():
+            self.status_bar.show_status("Theme saved", 2000)
+        else:
+            self.status_bar.show_status("Save cancelled", 2000)
+
+    def _save_document_as(self) -> bool:
+        """Show save dialog and save to selected path.
+
+        Returns:
+            True if save successful, False if cancelled or failed
+        """
+        if not self._current_document:
+            return False
+
+        # Show save file dialog
+        from PySide6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Theme As",
+            "",  # Default directory
+            "Theme Files (*.json);;All Files (*)"
+        )
+
+        if not file_path:
+            # User cancelled
+            return False
+
+        # Ensure .json extension
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        # Save to path
+        return self._save_document_to_path(file_path)
+
+    def _save_document_to_path(self, file_path: str) -> bool:
+        """Save document to specific path.
+
+        Args:
+            file_path: Path to save to
+
+        Returns:
+            True if save successful, False if failed
+        """
+        if not self._current_document:
+            return False
+
+        try:
+            self._current_document.save(file_path)
+            self.status_bar.show_status(f"Saved: {self._current_document.file_name}", 3000)
+            return True
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Saving Theme",
+                f"Failed to save theme file:\n\n{str(e)}"
+            )
+            self.status_bar.show_status("Failed to save theme", 3000)
+            return False
+
+    def toggle_fullscreen(self):
+        """Toggle fullscreen mode."""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+
+    def show_about(self):
+        """Show about dialog."""
+        from . import __version__
+        QMessageBox.about(
+            self,
+            "About VFTheme Studio",
+            f"<h3>VFTheme Studio v{__version__}</h3>"
+            f"<p>Visual Theme Designer for VFWidgets Applications</p>"
+            f"<p>Phase 1 Development - Foundation</p>"
+            f"<p><small>© 2025 Vilosource</small></p>"
+        )
+
+    # Undo/Redo Actions (Task 9.2)
+
+    def undo(self):
+        """Undo last action."""
+        if self._current_document and self._current_document._undo_stack.canUndo():
+            self._current_document._undo_stack.undo()
+            self.status_bar.show_status("Undo", 1000)
+
+    def redo(self):
+        """Redo last undone action."""
+        if self._current_document and self._current_document._undo_stack.canRedo():
+            self._current_document._undo_stack.redo()
+            self.status_bar.show_status("Redo", 1000)

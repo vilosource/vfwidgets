@@ -68,6 +68,9 @@ from .mixins import (
     remove_theming_from_widget,
     themeable,
 )
+from .palette_generator import (
+    PaletteGenerator,
+)
 from .preview_samples import (
     PreviewSampleGenerator,
     ThemePreviewWidget,
