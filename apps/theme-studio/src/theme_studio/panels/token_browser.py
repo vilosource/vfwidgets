@@ -16,10 +16,12 @@ class TokenBrowserPanel(QWidget):
 
     Signals:
         token_selected(str): Emitted when a token is selected (token name)
+        token_edit_requested(str, str): Emitted when user double-clicks token (token_name, current_value)
     """
 
-    # Signal emitted when a token is selected
+    # Signals
     token_selected = Signal(str)  # token_name
+    token_edit_requested = Signal(str, str)  # token_name, current_value
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -79,6 +81,9 @@ class TokenBrowserPanel(QWidget):
         if self.tree_view.selectionModel():
             self.tree_view.selectionModel().selectionChanged.connect(self._on_selection_changed)
 
+        # Connect double-click for quick editing
+        self.tree_view.doubleClicked.connect(self._on_item_double_clicked)
+
     def _on_search_text_changed(self, text: str):
         """Handle search text change.
 
@@ -118,3 +123,31 @@ class TokenBrowserPanel(QWidget):
         if token_name:
             # This is a token node, emit signal
             self.token_selected.emit(token_name)
+
+    def _on_item_double_clicked(self, proxy_index):
+        """Handle double-click on tree item - open color editor.
+
+        Args:
+            proxy_index: QModelIndex from proxy model
+        """
+        if not self._model or not self._proxy_model:
+            return
+
+        # Map proxy index to source index
+        source_index = self._proxy_model.mapToSource(proxy_index)
+
+        # Get token name and value
+        token_name = self._model.get_token_name(source_index)
+        if not token_name:
+            # Category node - expand/collapse instead
+            if self.tree_view.isExpanded(proxy_index):
+                self.tree_view.collapse(proxy_index)
+            else:
+                self.tree_view.expand(proxy_index)
+            return
+
+        # Get current token value
+        token_value = self._model.get_token_value(source_index)
+
+        # Emit edit request signal
+        self.token_edit_requested.emit(token_name, token_value if token_value else "")

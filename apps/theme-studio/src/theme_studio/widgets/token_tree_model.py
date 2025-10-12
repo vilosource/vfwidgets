@@ -372,3 +372,20 @@ class TokenTreeModel(QAbstractItemModel):
         if not node.is_category:
             return node.name
         return None
+
+    def get_token_value(self, index: QModelIndex) -> str | None:
+        """Get token value from index.
+
+        Args:
+            index: Model index
+
+        Returns:
+            Token value, or None if not a token node or value not set
+        """
+        if not index.isValid():
+            return None
+
+        node = index.internalPointer()
+        if not node.is_category:
+            return node.value
+        return None

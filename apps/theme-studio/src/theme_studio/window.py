@@ -113,6 +113,9 @@ class ThemeStudioWindow(QMainWindow):
         # Connect token browser to inspector (Task 5.2)
         self.token_browser.token_selected.connect(self._on_token_selected_for_inspector)
 
+        # Connect double-click for quick editing
+        self.token_browser.token_edit_requested.connect(self._on_token_edit_requested)
+
         # NOTE: Inspector no longer emits signals - uses controller pattern
         # Controller will be injected when document is created
 
@@ -211,6 +214,40 @@ class ThemeStudioWindow(QMainWindow):
 
         # Update inspector
         self.inspector_panel.set_token(token_name, token_value)
+
+    def _on_token_edit_requested(self, token_name: str, current_value: str):
+        """Handle double-click on token - open color editor directly.
+
+        Args:
+            token_name: Token name to edit
+            current_value: Current token value (may be empty)
+        """
+        if not self._current_document or not self._theme_controller:
+            return
+
+        from PySide6.QtWidgets import QColorDialog
+        from PySide6.QtGui import QColor
+
+        # Get initial color
+        initial_color = QColor(current_value) if current_value else QColor("#ffffff")
+
+        # Open color picker using Qt's static method
+        selected_color = QColorDialog.getColor(
+            initial_color,
+            self,
+            f"Edit Color: {token_name}",
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
+        )
+
+        # If user selected a color, apply it
+        if selected_color.isValid():
+            hex_color = selected_color.name()
+
+            # Update via controller (uses same pattern as inspector)
+            self._theme_controller.queue_token_change(token_name, hex_color)
+
+            # Also update inspector if it's showing this token
+            self.inspector_panel.set_token(token_name, hex_color)
 
     # DEPRECATED: InspectorPanel now uses ThemeController directly
     # This method is kept for reference but is no longer called
