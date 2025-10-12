@@ -1,7 +1,9 @@
 #!/bin/bash
 # Automated test script for reamde single-instance behavior
 
-cd /home/kuja/GitHub/vfwidgets/apps/reamde
+# Get the script directory (works regardless of username or location)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
 
 echo "========================================="
 echo "Reamde Single-Instance Test"
