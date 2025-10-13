@@ -1997,8 +1997,9 @@ class TerminalWidget(_BaseTerminalClass):
         # Build xterm.js theme dict from actual theme values with intelligent fallbacks
         # Use self.theme properties (which read from theme tokens via theme_config)
         # Fall back to theme-aware defaults only if theme token is not available
+        # NOTE: background is kept as 'transparent' so QWebEngineView page background shows through
         xterm_theme = {
-            "background": self.theme.background or main_fallbacks["background"],
+            "background": "transparent",  # Keep transparent - Qt background shows through
             "foreground": self.theme.foreground or main_fallbacks["foreground"],
             "cursor": self.theme.cursor or main_fallbacks["cursor"],
             "cursorAccent": self.theme.cursorAccent or main_fallbacks["cursorAccent"],
@@ -2045,12 +2046,13 @@ class TerminalWidget(_BaseTerminalClass):
             logger.debug("Terminal theme is complete - all tokens provided")
 
         # Update QWebEngineView page background color (critical for transparent canvas)
-        # The xterm.js canvas is now transparent, so the QWebEngineView page background
+        # The xterm.js canvas is transparent, so the QWebEngineView page background
         # shows through. This must be updated when theme changes.
         from PySide6.QtGui import QColor
 
-        bg_color = xterm_theme.get("background", main_fallbacks["background"])
-        if bg_color != "transparent" and self.web_view:
+        # Get the actual background color from theme (not from xterm_theme which is transparent)
+        bg_color = self.theme.background or main_fallbacks["background"]
+        if self.web_view:
             self.web_view.page().setBackgroundColor(QColor(bg_color))
             logger.debug(f"Updated QWebEngineView page background to {bg_color}")
 
