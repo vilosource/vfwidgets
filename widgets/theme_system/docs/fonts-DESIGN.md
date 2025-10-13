@@ -585,7 +585,413 @@ class FontPropertyEditor(QWidget):
 
 ---
 
-## Implementation Plan
+## Testing Strategy
+
+### 1. Unit Tests (pytest)
+
+**File**: `tests/unit/test_font_tokens.py`
+
+```python
+"""Unit tests for FontTokenRegistry."""
+
+def test_font_family_resolution():
+    """Test hierarchical font family resolution."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.mono": ["JetBrains Mono", "Consolas", "monospace"],
+            "terminal.fontFamily": ["Cascadia Code", "Fira Code", "monospace"],
+        }
+    )
+
+    # Terminal uses specific override
+    families = FontTokenRegistry.get_font_family("terminal.fontFamily", theme)
+    assert families == ["Cascadia Code", "Fira Code", "monospace"]
+
+    # Editor falls back to fonts.mono
+    families = FontTokenRegistry.get_font_family("editor.fontFamily", theme)
+    assert families == ["JetBrains Mono", "Consolas", "monospace"]
+
+def test_font_size_fallback():
+    """Test font size resolution with fallbacks."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.size": 13,
+            "terminal.fontSize": 14,
+        }
+    )
+
+    assert FontTokenRegistry.get_font_size("terminal.fontSize", theme) == 14
+    assert FontTokenRegistry.get_font_size("editor.fontSize", theme) == 13  # Fallback
+    assert FontTokenRegistry.get_font_size("tabs.fontSize", theme) == 13    # Fallback
+
+def test_font_category_guarantees():
+    """Test that categories provide correct font types."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.mono": ["Consolas", "monospace"],
+            "fonts.ui": ["Segoe UI", "sans-serif"],
+        }
+    )
+
+    # Terminal MUST get monospace
+    mono_fonts = FontTokenRegistry.get_font_family("terminal.fontFamily", theme)
+    assert "monospace" in mono_fonts
+
+    # Tabs MUST get sans-serif
+    ui_fonts = FontTokenRegistry.get_font_family("tabs.fontFamily", theme)
+    assert "sans-serif" in ui_fonts
+
+def test_font_weight_conversion():
+    """Test string to numeric weight conversion."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.weight": "semibold",
+            "terminal.fontWeight": 700,
+        }
+    )
+
+    assert FontTokenRegistry.get_font_weight("fonts.weight", theme) == 600
+    assert FontTokenRegistry.get_font_weight("terminal.fontWeight", theme) == 700
+
+def test_available_font_detection():
+    """Test platform font availability checking."""
+    # Platform-specific test
+    available = FontTokenRegistry.get_available_font(
+        ["NonexistentFont", "Consolas", "monospace"]
+    )
+    assert available in ["Consolas", "monospace"]  # One should exist
+```
+
+### 2. Integration Tests (pytest-qt)
+
+**File**: `tests/integration/test_themed_fonts.py`
+
+```python
+"""Integration tests for font application to widgets."""
+
+def test_terminal_receives_monospace(qtbot):
+    """Test that TerminalWidget receives monospace fonts."""
+    app = ThemedApplication()
+
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.mono": ["Consolas", "monospace"],
+            "fonts.ui": ["Segoe UI", "sans-serif"],
+        }
+    )
+    app.set_theme(theme)
+
+    terminal = TerminalWidget()
+    qtbot.addWidget(terminal)
+
+    # Verify terminal got monospace (via internal config)
+    # This would check the xterm.js config sent to JS
+    assert "monospace" in terminal._last_xterm_config["fontFamily"].lower()
+
+def test_tab_bar_receives_ui_fonts(qtbot):
+    """Test that tab bars receive UI fonts, not monospace."""
+    app = ThemedApplication()
+
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.mono": ["Consolas", "monospace"],
+            "fonts.ui": ["Segoe UI", "sans-serif"],
+            "tabs.fontSize": 12,
+        }
+    )
+    app.set_theme(theme)
+
+    multisplit = MultisplitWidget()
+    qtbot.addWidget(multisplit)
+
+    # Verify tab bar got UI fonts
+    tab_bar = multisplit.findChild(QTabBar)
+    font = tab_bar.font()
+    assert font.family() in ["Segoe UI", "Ubuntu", "Roboto"]  # Platform-specific
+    assert font.pointSize() == 12
+
+def test_theme_change_updates_fonts(qtbot):
+    """Test that changing theme updates widget fonts."""
+    app = ThemedApplication()
+    terminal = TerminalWidget()
+    qtbot.addWidget(terminal)
+
+    # Apply first theme
+    theme1 = Theme(name="Small", fonts={"terminal.fontSize": 12})
+    app.set_theme(theme1)
+    assert terminal._last_xterm_config["fontSize"] == 12
+
+    # Apply second theme
+    theme2 = Theme(name="Large", fonts={"terminal.fontSize": 16})
+    app.set_theme(theme2)
+    assert terminal._last_xterm_config["fontSize"] == 16
+```
+
+### 3. Visual Tests (Example Applications)
+
+**File**: `examples/font_showcase.py`
+
+```python
+"""Visual test application showing all font tokens."""
+
+class FontShowcaseWindow(QMainWindow, ThemedWidget):
+    """Window displaying all font categories and their rendering."""
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("VFWidgets Font Showcase")
+
+        central = QWidget()
+        layout = QVBoxLayout(central)
+
+        # Show each font category
+        self._add_font_sample(layout, "Monospace Fonts", "fonts.mono",
+                             "The quick brown fox jumps over the lazy dog 0123456789")
+        self._add_font_sample(layout, "UI Fonts", "fonts.ui",
+                             "The quick brown fox jumps over the lazy dog")
+        self._add_font_sample(layout, "Terminal Font", "terminal.fontFamily",
+                             "$ npm install @types/node\n> Success!")
+        self._add_font_sample(layout, "Tab Font", "tabs.fontFamily",
+                             "Terminal 1  Terminal 2  Terminal 3")
+
+        # Add theme selector
+        theme_selector = QComboBox()
+        theme_selector.addItems(["Dark Default", "Light Default", "High Contrast"])
+        theme_selector.currentTextChanged.connect(self._on_theme_selected)
+        layout.addWidget(theme_selector)
+
+        self.setCentralWidget(central)
+
+    def _add_font_sample(self, layout, title, token, sample_text):
+        """Add a font sample widget."""
+        group = QGroupBox(title)
+        group_layout = QVBoxLayout()
+
+        # Font info label
+        info = QLabel()
+        group_layout.addWidget(info)
+
+        # Sample text
+        sample = QTextEdit()
+        sample.setPlainText(sample_text)
+        sample.setReadOnly(True)
+        group_layout.addWidget(sample)
+
+        group.setLayout(group_layout)
+        layout.addWidget(group)
+
+        # Store for theme updates
+        sample.setProperty("font_token", token)
+        info.setProperty("font_info_for", token)
+
+    def on_theme_changed(self, theme):
+        """Update all font samples when theme changes."""
+        for widget in self.findChildren(QTextEdit):
+            token = widget.property("font_token")
+            if token:
+                font = FontTokenRegistry.get_qfont(token, theme)
+                widget.setFont(font)
+
+                # Update info label
+                info_label = self.findChild(QLabel, f"info_{token}")
+                families = FontTokenRegistry.get_font_family(token, theme)
+                size = FontTokenRegistry.get_font_size(f"{token.split('.')[0]}.fontSize", theme)
+                info_label.setText(f"Family: {families[0]}, Size: {size}pt")
+
+if __name__ == "__main__":
+    app = ThemedApplication()
+    window = FontShowcaseWindow()
+    window.show()
+    sys.exit(app.exec())
+```
+
+**File**: `examples/font_comparison.py`
+
+```python
+"""Side-by-side comparison of themes with different fonts."""
+
+class FontComparisonWindow(QMainWindow):
+    """Split window showing two themes side-by-side."""
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Font Theme Comparison")
+
+        splitter = QSplitter()
+
+        # Left: Small monospace terminal
+        left_terminal = TerminalWidget()
+        splitter.addWidget(left_terminal)
+
+        # Right: Large monospace terminal
+        right_terminal = TerminalWidget()
+        splitter.addWidget(right_terminal)
+
+        self.setCentralWidget(splitter)
+
+        # Apply different font sizes
+        theme_small = Theme(name="Small", fonts={"terminal.fontSize": 11})
+        theme_large = Theme(name="Large", fonts={"terminal.fontSize": 16})
+
+        left_terminal.on_theme_changed(theme_small)
+        right_terminal.on_theme_changed(theme_large)
+```
+
+### 4. Theme Studio Integration Tests
+
+**File**: `apps/theme-studio/tests/test_font_editor.py`
+
+```python
+"""Tests for font editing in Theme Studio."""
+
+def test_font_property_editor(qtbot):
+    """Test FontPropertyEditor widget."""
+    editor = FontPropertyEditor()
+    qtbot.addWidget(editor)
+
+    # Set initial font
+    editor.set_font_family(["JetBrains Mono", "Consolas"])
+    editor.set_font_size(14)
+    editor.set_font_weight("semibold")
+
+    # Verify values
+    assert editor.get_font_family() == ["JetBrains Mono", "Consolas"]
+    assert editor.get_font_size() == 14
+    assert editor.get_font_weight() == "semibold"
+
+def test_font_preview_updates(qtbot):
+    """Test that font preview updates when properties change."""
+    editor = FontPropertyEditor()
+    qtbot.addWidget(editor)
+
+    # Change font size
+    editor.set_font_size(18)
+
+    # Verify preview updated
+    preview = editor.findChild(QLabel, "preview")
+    assert preview.font().pointSize() == 18
+
+def test_theme_save_includes_fonts(qtbot, tmp_path):
+    """Test that saving theme includes font data."""
+    studio = ThemeStudioWindow()
+    qtbot.addWidget(studio)
+
+    # Edit fonts
+    studio.set_font_token("terminal.fontFamily", ["Cascadia Code", "monospace"])
+    studio.set_font_token("terminal.fontSize", 14)
+
+    # Save theme
+    theme_file = tmp_path / "test-theme.json"
+    studio.save_theme(str(theme_file))
+
+    # Verify saved data
+    with open(theme_file) as f:
+        data = json.load(f)
+
+    assert "fonts" in data
+    assert data["fonts"]["terminal.fontFamily"] == ["Cascadia Code", "monospace"]
+    assert data["fonts"]["terminal.fontSize"] == 14
+```
+
+### 5. Performance Tests
+
+**File**: `tests/performance/test_font_performance.py`
+
+```python
+"""Performance tests for font token resolution."""
+
+def test_font_resolution_performance():
+    """Test that font resolution is fast (<1ms per lookup)."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "fonts.mono": ["JetBrains Mono", "Consolas", "monospace"],
+            "terminal.fontFamily": ["Cascadia Code", "Fira Code", "monospace"],
+            "terminal.fontSize": 14,
+        }
+    )
+
+    import time
+
+    # Warm up cache
+    FontTokenRegistry.get_font_family("terminal.fontFamily", theme)
+
+    # Measure cached performance
+    start = time.perf_counter()
+    for _ in range(10000):
+        FontTokenRegistry.get_font_family("terminal.fontFamily", theme)
+    elapsed = time.perf_counter() - start
+
+    # Should be < 1ms per lookup (with caching)
+    assert elapsed / 10000 < 0.001
+
+def test_qfont_creation_performance():
+    """Test QFont creation performance."""
+    theme = Theme(
+        name="Test",
+        fonts={
+            "terminal.fontFamily": ["Consolas", "monospace"],
+            "terminal.fontSize": 14,
+        }
+    )
+
+    import time
+    start = time.perf_counter()
+
+    for _ in range(1000):
+        font = FontTokenRegistry.get_qfont("terminal.fontFamily", theme)
+
+    elapsed = time.perf_counter() - start
+
+    # Should be < 1ms per QFont creation
+    assert elapsed / 1000 < 0.001
+```
+
+### 6. Cross-Platform Tests
+
+**File**: `tests/platform/test_font_availability.py`
+
+```python
+"""Tests for font availability across platforms."""
+
+def test_monospace_fonts_available():
+    """Test that monospace fallbacks work on all platforms."""
+    # Every platform should have at least one of these
+    common_mono = ["Consolas", "Monaco", "Courier New", "monospace"]
+
+    available = FontTokenRegistry.get_available_font(tuple(common_mono))
+    assert available is not None
+
+def test_ui_fonts_available():
+    """Test that UI fonts work on all platforms."""
+    # Every platform should have at least one of these
+    common_ui = ["Segoe UI", "Ubuntu", "Roboto", "Arial", "sans-serif"]
+
+    available = FontTokenRegistry.get_available_font(tuple(common_ui))
+    assert available is not None
+
+@pytest.mark.parametrize("platform,expected_fonts", [
+    ("Windows", ["Consolas", "Segoe UI"]),
+    ("Linux", ["Ubuntu Mono", "Ubuntu"]),
+    ("Darwin", ["Monaco", "San Francisco"]),
+])
+def test_platform_specific_fonts(platform, expected_fonts):
+    """Test that platform-specific fonts are detected."""
+    if sys.platform.startswith(platform.lower()):
+        for font in expected_fonts:
+            families = QFontDatabase().families()
+            assert any(font.lower() in f.lower() for f in families)
+```
+
+---
+
+## Implementation Plan (Updated with Testing)
 
 ### Phase 1: Core Infrastructure (Week 1)
 1. Add `fonts` field to `Theme` dataclass
@@ -593,24 +999,29 @@ class FontPropertyEditor(QWidget):
 3. Create `FontTokenRegistry` class
 4. Update theme JSON schema
 5. Add font tokens to package themes (dark-default, light-default, high-contrast)
+6. **Write unit tests** (`test_font_tokens.py`)
 
 ### Phase 2: Widget Integration (Week 2)
 1. Add font support to `ThemedWidget.on_theme_changed()`
 2. Update `TerminalWidget` to use theme fonts
 3. Test font application and fallback chains
 4. Add font property introspection
+5. **Write integration tests** (`test_themed_fonts.py`)
+6. **Create example apps** (`font_showcase.py`, `font_comparison.py`)
 
 ### Phase 3: Theme Studio (Week 3)
 1. Create `FontPropertyEditor` widget
 2. Add font section to Theme Studio UI
 3. Add font preview functionality
 4. Test font editing and saving
+5. **Write Theme Studio tests** (`test_font_editor.py`)
 
 ### Phase 4: Documentation & Polish (Week 4)
 1. Update theme documentation with font examples
 2. Add migration guide for existing themes
-3. Performance testing and optimization
-4. Release as theme system v2.1.0
+3. **Performance testing** and optimization (`test_font_performance.py`)
+4. **Cross-platform testing** (`test_font_availability.py`)
+5. Release as theme system v2.1.0
 
 ---
 
