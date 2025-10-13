@@ -2044,6 +2044,16 @@ class TerminalWidget(_BaseTerminalClass):
         else:
             logger.debug("Terminal theme is complete - all tokens provided")
 
+        # Update QWebEngineView page background color (critical for transparent canvas)
+        # The xterm.js canvas is now transparent, so the QWebEngineView page background
+        # shows through. This must be updated when theme changes.
+        from PySide6.QtGui import QColor
+
+        bg_color = xterm_theme.get("background", main_fallbacks["background"])
+        if bg_color != "transparent" and self.web_view:
+            self.web_view.page().setBackgroundColor(QColor(bg_color))
+            logger.debug(f"Updated QWebEngineView page background to {bg_color}")
+
         # Apply theme to xterm.js
         self.set_theme(xterm_theme)
 
