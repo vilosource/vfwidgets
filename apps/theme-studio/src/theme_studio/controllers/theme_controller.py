@@ -13,7 +13,6 @@ updates, eliminating segmentation faults caused by Qt object lifetime conflicts.
 """
 
 import logging
-from typing import List, Tuple
 
 from PySide6.QtCore import QObject, QTimer
 
@@ -47,7 +46,7 @@ class ThemeController(QObject):
         """
         super().__init__()
         self._document = document
-        self._pending_commands: List[Tuple] = []
+        self._pending_commands: list[tuple] = []
 
         # Timer for deferred execution
         self._timer = QTimer()
@@ -65,7 +64,7 @@ class ThemeController(QObject):
             token_value: New value (e.g., "#FF0000")
         """
         logger.debug(f"queue_token_change: Queuing {token_name}={token_value}")
-        self._pending_commands.append(('set_token', token_name, token_value))
+        self._pending_commands.append(("set_token", token_name, token_value))
 
         # Start timer if not already running
         if not self._timer.isActive():
@@ -80,8 +79,12 @@ class ThemeController(QObject):
         This runs after the event loop has processed all pending UI events,
         ensuring safe execution when UI components (like dialogs) have
         completed their lifecycle.
+
+        Creates QUndoCommand objects and pushes them to the undo stack.
         """
-        logger.debug(f"_execute_pending_commands: START, {len(self._pending_commands)} commands queued")
+        logger.debug(
+            f"_execute_pending_commands: START, {len(self._pending_commands)} commands queued"
+        )
 
         # Make a copy and clear immediately to prevent re-entrancy issues
         commands = self._pending_commands.copy()
@@ -90,13 +93,25 @@ class ThemeController(QObject):
         # Execute each command
         for i, command in enumerate(commands):
             cmd_type = command[0]
-            logger.debug(f"_execute_pending_commands: Executing command {i+1}/{len(commands)}: {cmd_type}")
+            logger.debug(
+                f"_execute_pending_commands: Executing command {i + 1}/{len(commands)}: {cmd_type}"
+            )
 
-            if cmd_type == 'set_token':
+            if cmd_type == "set_token":
                 _, token_name, token_value = command
-                logger.debug(f"_execute_pending_commands: Setting token {token_name}={token_value}")
-                self._document.set_token(token_name, token_value)
-                logger.debug("_execute_pending_commands: Token set successfully")
+                logger.debug(
+                    f"_execute_pending_commands: Creating SetTokenCommand for {token_name}={token_value}"
+                )
+
+                # Get old value for undo
+                old_value = self._document.get_token(token_name)
+
+                # Create and push undo command
+                from ..commands.token_commands import SetTokenCommand
+
+                undo_command = SetTokenCommand(self._document, token_name, token_value, old_value)
+                self._document._undo_stack.push(undo_command)
+                logger.debug("_execute_pending_commands: Command pushed to undo stack")
             # Future commands can be added here (e.g., 'delete_token', 'rename_token')
 
         logger.debug("_execute_pending_commands: END")

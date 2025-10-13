@@ -48,7 +48,7 @@ class ThemeDocument(QObject):
                 version="1.0.0",
                 type="dark",
                 colors={},
-                metadata={"created_with": "VFTheme Studio"}
+                metadata={"created_with": "VFTheme Studio"},
             )
 
         # Document state
@@ -57,6 +57,13 @@ class ThemeDocument(QObject):
 
         # Undo/redo stack (prepared for Phase 2)
         self._undo_stack = QUndoStack(self)
+
+        # Mark initial state as clean (no unsaved changes)
+        self._undo_stack.setClean()
+
+        # Connect undo stack clean state to modified flag
+        # When we undo back to clean state, document should not be modified
+        self._undo_stack.cleanChanged.connect(self._on_undo_clean_changed)
 
     @property
     def theme(self) -> Theme:
@@ -76,8 +83,32 @@ class ThemeDocument(QObject):
         return None
 
     def is_modified(self) -> bool:
-        """Check if document has unsaved changes."""
+        """Check if document has unsaved changes.
+
+        Returns True if:
+        - Document has been modified via set_token() OR
+        - Undo stack is not clean (has unsaved undo/redo state)
+
+        When using the undo stack (via ThemeController), the stack's clean state
+        takes precedence. When bypassing the stack (direct set_token calls),
+        the _modified flag is used.
+        """
+        # Check both modified flag and undo stack state
+        # If undo stack has changes (not clean), document is modified
+        if not self._undo_stack.isClean():
+            return True
+        # Otherwise, use the modified flag (for direct set_token calls)
         return self._modified
+
+    def _on_undo_clean_changed(self, is_clean: bool):
+        """Handle undo stack clean state changes.
+
+        Args:
+            is_clean: True if undo stack is at clean (saved) state
+        """
+        # When undo stack becomes clean, clear modified flag
+        if is_clean:
+            self._set_modified(False)
 
     def get_token(self, name: str) -> str:
         """Get token value.
@@ -146,7 +177,7 @@ class ThemeDocument(QObject):
         theme_dict = self._theme.to_dict()
 
         # Write to file
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(theme_dict, f, indent=2, ensure_ascii=False)
 
         # Update document state
@@ -154,7 +185,9 @@ class ThemeDocument(QObject):
             self._file_path = file_path
             self.file_path_changed.emit(file_path)
 
+        # Mark as saved (not modified) and set undo stack clean state
         self._set_modified(False)
+        self._undo_stack.setClean()
 
     def load(self, file_path: str):
         """Load theme from file.
@@ -172,6 +205,10 @@ class ThemeDocument(QObject):
         # Update document state
         self._file_path = file_path
         self._set_modified(False)
+
+        # Clear undo stack and mark as clean (freshly loaded = no undo history)
+        self._undo_stack.clear()
+        self._undo_stack.setClean()
 
         # Emit signals
         self.file_path_changed.emit(file_path)
