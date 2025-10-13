@@ -1,5 +1,9 @@
 # VFWidgets Theme System - Font Support Design
 
+**Status: 🚧 Work In Progress - Design Phase**
+
+This document is a design specification for adding font support to the VFWidgets theme system. Implementation has not yet started.
+
 ## Overview
 
 Add comprehensive font configuration support to the VFWidgets theme system, allowing themes to define typography settings including font families, sizes, weights, and styles.
