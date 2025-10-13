@@ -34,9 +34,11 @@ dependencies = [
     # Note: During development, install these from local paths:
     # pip install -e ../../widgets/theme_system
     # pip install -e ../../widgets/vilocode_window
+    # pip install -e ../../widgets/keybinding_manager
     # When released, uncomment:
     # "vfwidgets-theme-system>=2.0.0",
     # "vfwidgets-vilocode-window",
+    # "vfwidgets-keybinding>=1.0.0",
 ]
 
 [project.optional-dependencies]

@@ -1,177 +1,98 @@
-"""Menu bar builder for VFTheme Studio."""
+"""Menu bar builder for VFTheme Studio.
 
-from PySide6.QtGui import QAction, QKeySequence
+Uses KeybindingManager for user-customizable keyboard shortcuts.
+"""
+
 from PySide6.QtWidgets import QMenuBar
 
 
 def create_menu_bar(parent) -> QMenuBar:
     """Create and configure the application menu bar.
 
+    Uses QActions from parent.actions_by_id (created by KeybindingManager).
+    This allows user-customizable keyboard shortcuts with persistent storage.
+
     Args:
-        parent: Parent window
+        parent: Parent window with actions_by_id dict
 
     Returns:
         Configured QMenuBar
     """
     menubar = parent.menuBar()
 
-    # File menu
+    # Get actions dict from parent (created by KeybindingManager)
+    actions = parent.actions_by_id
+
+    # ====================  FILE MENU ====================
     file_menu = menubar.addMenu("&File")
 
-    file_menu.addAction(_create_action(
-        parent, "New Theme", QKeySequence.New,
-        lambda: parent.new_theme()
-    ))
-    file_menu.addAction(_create_action(
-        parent, "New from Template...", QKeySequence("Ctrl+Shift+N"),
-        lambda: print("New from template (stub)")
-    ))
+    file_menu.addAction(actions.get("file.new"))
+    file_menu.addAction(actions.get("file.new_from_template"))
     file_menu.addSeparator()
 
-    file_menu.addAction(_create_action(
-        parent, "Open Theme...", QKeySequence.Open,
-        lambda: parent.open_theme()
-    ))
+    file_menu.addAction(actions.get("file.open"))
     file_menu.addSeparator()
 
-    file_menu.addAction(_create_action(
-        parent, "Save", QKeySequence.Save,
-        lambda: parent.save_theme()
-    ))
-    file_menu.addAction(_create_action(
-        parent, "Save As...", QKeySequence("Ctrl+Shift+S"),
-        lambda: parent.save_theme_as()
-    ))
+    file_menu.addAction(actions.get("file.save"))
+    file_menu.addAction(actions.get("file.save_as"))
     file_menu.addSeparator()
 
-    file_menu.addAction(_create_action(
-        parent, "Export...", QKeySequence("Ctrl+E"),
-        lambda: print("Export (stub)")
-    ))
+    file_menu.addAction(actions.get("file.export"))
     file_menu.addSeparator()
 
-    file_menu.addAction(_create_action(
-        parent, "Exit", QKeySequence.Quit,
-        lambda: parent.close()
-    ))
+    file_menu.addAction(actions.get("file.exit"))
 
-    # Edit menu
+    # ====================  EDIT MENU ====================
     edit_menu = menubar.addMenu("&Edit")
 
-    # Create undo/redo actions and store them on parent for state updates
-    parent.undo_action = _create_action(
-        parent, "Undo", QKeySequence.Undo,
-        lambda: parent.undo()
-    )
-    parent.undo_action.setEnabled(False)  # Initially disabled
-    edit_menu.addAction(parent.undo_action)
-
-    parent.redo_action = _create_action(
-        parent, "Redo", QKeySequence.Redo,
-        lambda: parent.redo()
-    )
-    parent.redo_action.setEnabled(False)  # Initially disabled
-    edit_menu.addAction(parent.redo_action)
+    # Undo/Redo actions (will be enabled/disabled by undo stack)
+    undo_action = actions.get("edit.undo")
+    redo_action = actions.get("edit.redo")
+    if undo_action:
+        undo_action.setEnabled(False)  # Initially disabled
+        edit_menu.addAction(undo_action)
+    if redo_action:
+        redo_action.setEnabled(False)  # Initially disabled
+        edit_menu.addAction(redo_action)
     edit_menu.addSeparator()
 
-    edit_menu.addAction(_create_action(
-        parent, "Find Token...", QKeySequence.Find,
-        lambda: print("Find token (stub)")
-    ))
+    edit_menu.addAction(actions.get("edit.find"))
     edit_menu.addSeparator()
 
-    edit_menu.addAction(_create_action(
-        parent, "Preferences...", QKeySequence.Preferences,
-        lambda: print("Preferences (stub)")
-    ))
+    edit_menu.addAction(actions.get("edit.preferences"))
 
-    # Theme menu
+    # ====================  THEME MENU ====================
     theme_menu = menubar.addMenu("&Theme")
 
-    theme_menu.addAction(_create_action(
-        parent, "Validate Accessibility", QKeySequence("F7"),
-        lambda: print("Validate accessibility (stub)")
-    ))
-    theme_menu.addAction(_create_action(
-        parent, "Compare Themes...", QKeySequence("Ctrl+D"),
-        lambda: print("Compare themes (stub)")
-    ))
+    theme_menu.addAction(actions.get("theme.validate_accessibility"))
+    theme_menu.addAction(actions.get("theme.compare"))
 
-    # View menu
+    # ====================  VIEW MENU ====================
     view_menu = menubar.addMenu("&View")
 
-    view_menu.addAction(_create_action(
-        parent, "Zoom In", QKeySequence.ZoomIn,
-        lambda: print("Zoom in (stub)")
-    ))
-    view_menu.addAction(_create_action(
-        parent, "Zoom Out", QKeySequence.ZoomOut,
-        lambda: print("Zoom out (stub)")
-    ))
-    view_menu.addAction(_create_action(
-        parent, "Reset Zoom", QKeySequence("Ctrl+0"),
-        lambda: print("Reset zoom (stub)")
-    ))
+    view_menu.addAction(actions.get("view.zoom_in"))
+    view_menu.addAction(actions.get("view.zoom_out"))
+    view_menu.addAction(actions.get("view.reset_zoom"))
     view_menu.addSeparator()
 
-    view_menu.addAction(_create_action(
-        parent, "Fullscreen", QKeySequence("F11"),
-        lambda: parent.toggle_fullscreen()
-    ))
+    view_menu.addAction(actions.get("view.fullscreen"))
 
-    # Tools menu
+    # ====================  TOOLS MENU ====================
     tools_menu = menubar.addMenu("T&ools")
 
-    tools_menu.addAction(_create_action(
-        parent, "Palette Extractor...", QKeySequence("Ctrl+Shift+P"),
-        lambda: print("Palette extractor (stub)")
-    ))
-    tools_menu.addAction(_create_action(
-        parent, "Color Harmonizer...", QKeySequence("Ctrl+H"),
-        lambda: print("Color harmonizer (stub)")
-    ))
-    tools_menu.addAction(_create_action(
-        parent, "Bulk Edit...", QKeySequence("Ctrl+B"),
-        lambda: print("Bulk edit (stub)")
-    ))
+    tools_menu.addAction(actions.get("tools.palette_extractor"))
+    tools_menu.addAction(actions.get("tools.color_harmonizer"))
+    tools_menu.addAction(actions.get("tools.bulk_edit"))
 
-    # Window menu
+    # ====================  WINDOW MENU ====================
     window_menu = menubar.addMenu("&Window")
 
-    window_menu.addAction(_create_action(
-        parent, "Reset Layout", QKeySequence("Ctrl+Shift+R"),
-        lambda: print("Reset layout (stub)")
-    ))
+    window_menu.addAction(actions.get("window.reset_layout"))
 
-    # Help menu
+    # ====================  HELP MENU ====================
     help_menu = menubar.addMenu("&Help")
 
-    help_menu.addAction(_create_action(
-        parent, "Documentation", QKeySequence.HelpContents,
-        lambda: print("Documentation (stub)")
-    ))
-    help_menu.addAction(_create_action(
-        parent, "About VFTheme Studio...", QKeySequence(""),
-        lambda: parent.show_about()
-    ))
+    help_menu.addAction(actions.get("help.documentation"))
+    help_menu.addAction(actions.get("help.about"))
 
     return menubar
-
-
-def _create_action(parent, text: str, shortcut, slot) -> QAction:
-    """Helper to create an action with shortcut.
-
-    Args:
-        parent: Parent widget
-        text: Action text
-        shortcut: Keyboard shortcut
-        slot: Slot to connect
-
-    Returns:
-        Configured QAction
-    """
-    action = QAction(text, parent)
-    if shortcut:
-        action.setShortcut(shortcut)
-    action.triggered.connect(slot)
-    return action

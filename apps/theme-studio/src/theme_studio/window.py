@@ -4,10 +4,13 @@ Main application window with three-panel layout.
 """
 
 import logging
+from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QSplitter
+from vfwidgets_keybinding import KeybindingManager
 
+from .actions import get_action_definitions
 from .commands import SetTokenCommand
 from .components import StatusBarWidget, create_menu_bar, create_toolbar
 from .controllers import ThemeController
@@ -38,10 +41,17 @@ class ThemeStudioWindow(QMainWindow):
         # Plugin registry (Task 4.3)
         self._plugins = {}
 
+        # Keyboard shortcut manager (Task 11)
+        self._setup_keybinding_manager()
+
         # Window properties
         self.setWindowTitle("VFTheme Studio")
         self.setMinimumSize(1200, 800)
         self.resize(1600, 1000)
+
+        # Apply keyboard shortcuts to window (before UI setup)
+        # This creates QActions that the menu bar will reference
+        self.actions_by_id = self.keybinding_manager.apply_shortcuts(self)
 
         # Setup UI components
         self._create_menu_bar()
@@ -90,6 +100,104 @@ class ThemeStudioWindow(QMainWindow):
 
         # Accept the close event
         event.accept()
+
+    def _setup_keybinding_manager(self):
+        """Setup keyboard shortcut manager with all action definitions."""
+        # Storage path for user-customized keybindings
+        config_dir = Path.home() / ".config" / "vftheme-studio"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        storage_path = config_dir / "keybindings.json"
+
+        # Create keybinding manager with persistent storage
+        self.keybinding_manager = KeybindingManager(storage_path=str(storage_path), auto_save=True)
+
+        # Get all action definitions and update with callbacks
+        from vfwidgets_keybinding import ActionDefinition
+
+        actions = []
+        for base_action in get_action_definitions():
+            # Get callback for this action
+            callback = self._get_action_callback(base_action.id)
+
+            # Create new ActionDefinition with callback
+            action_with_callback = ActionDefinition(
+                id=base_action.id,
+                description=base_action.description,
+                default_shortcut=base_action.default_shortcut,
+                category=base_action.category,
+                callback=callback,
+            )
+            actions.append(action_with_callback)
+
+        # Register all actions at once
+        self.keybinding_manager.register_actions(actions)
+
+        # Load saved keybindings from storage
+        self.keybinding_manager.load_bindings()
+
+    def _get_action_callback(self, action_id: str):
+        """Get the callback function for an action ID.
+
+        Args:
+            action_id: Action identifier (e.g., "file.save")
+
+        Returns:
+            Callback function or None
+        """
+        # File actions
+        if action_id == "file.new":
+            return self.new_theme
+        elif action_id == "file.new_from_template":
+            return lambda: print("New from template (stub)")
+        elif action_id == "file.open":
+            return self.open_theme
+        elif action_id == "file.save":
+            return self.save_theme
+        elif action_id == "file.save_as":
+            return self.save_theme_as
+        elif action_id == "file.export":
+            return lambda: print("Export (stub)")
+        elif action_id == "file.exit":
+            return self.close
+        # Edit actions
+        elif action_id == "edit.undo":
+            return self.undo
+        elif action_id == "edit.redo":
+            return self.redo
+        elif action_id == "edit.find":
+            return lambda: print("Find token (stub)")
+        elif action_id == "edit.preferences":
+            return lambda: print("Preferences (stub)")
+        # Theme actions
+        elif action_id == "theme.validate_accessibility":
+            return lambda: print("Validate accessibility (stub)")
+        elif action_id == "theme.compare":
+            return lambda: print("Compare themes (stub)")
+        # View actions
+        elif action_id == "view.zoom_in":
+            return lambda: print("Zoom in (stub)")
+        elif action_id == "view.zoom_out":
+            return lambda: print("Zoom out (stub)")
+        elif action_id == "view.reset_zoom":
+            return lambda: print("Reset zoom (stub)")
+        elif action_id == "view.fullscreen":
+            return self.toggle_fullscreen
+        # Tools actions
+        elif action_id == "tools.palette_extractor":
+            return lambda: print("Palette extractor (stub)")
+        elif action_id == "tools.color_harmonizer":
+            return lambda: print("Color harmonizer (stub)")
+        elif action_id == "tools.bulk_edit":
+            return lambda: print("Bulk edit (stub)")
+        # Window actions
+        elif action_id == "window.reset_layout":
+            return lambda: print("Reset layout (stub)")
+        # Help actions
+        elif action_id == "help.documentation":
+            return lambda: print("Documentation (stub)")
+        elif action_id == "help.about":
+            return self.show_about
+        return None
 
     def _create_menu_bar(self):
         """Create menu bar."""
@@ -308,12 +416,16 @@ class ThemeStudioWindow(QMainWindow):
         document.file_path_changed.connect(self._on_file_path_changed)
 
         # Connect undo stack signals to menu items (Task 9.2)
-        if hasattr(self, "undo_action") and hasattr(self, "redo_action"):
-            document._undo_stack.canUndoChanged.connect(self.undo_action.setEnabled)
-            document._undo_stack.canRedoChanged.connect(self.redo_action.setEnabled)
+        # Get undo/redo actions from keybinding manager
+        undo_action = self.actions_by_id.get("edit.undo")
+        redo_action = self.actions_by_id.get("edit.redo")
+
+        if undo_action and redo_action:
+            document._undo_stack.canUndoChanged.connect(undo_action.setEnabled)
+            document._undo_stack.canRedoChanged.connect(redo_action.setEnabled)
             # Update initial state
-            self.undo_action.setEnabled(document._undo_stack.canUndo())
-            self.redo_action.setEnabled(document._undo_stack.canRedo())
+            undo_action.setEnabled(document._undo_stack.canUndo())
+            redo_action.setEnabled(document._undo_stack.canRedo())
 
         # Create token tree model and set it on the token browser (Task 3.2)
         token_model = TokenTreeModel(document)
@@ -609,7 +721,10 @@ class ThemeStudioWindow(QMainWindow):
         from PySide6.QtWidgets import QFileDialog
 
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Open Theme", "", "Theme Files (*.json);;All Files (*)"  # Default directory
+            self,
+            "Open Theme",
+            "",
+            "Theme Files (*.json);;All Files (*)",  # Default directory
         )
 
         if not file_path:
@@ -653,7 +768,10 @@ class ThemeStudioWindow(QMainWindow):
         from PySide6.QtWidgets import QFileDialog
 
         file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save Theme As", "", "Theme Files (*.json);;All Files (*)"  # Default directory
+            self,
+            "Save Theme As",
+            "",
+            "Theme Files (*.json);;All Files (*)",  # Default directory
         )
 
         if not file_path:
