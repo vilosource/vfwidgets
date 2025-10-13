@@ -2222,34 +2222,15 @@ def get_preview_metadata():
         Returns:
             TerminalWidget configured for preview mode
         """
+        # Create an interactive terminal for theme testing
+        # Users can type commands to see how the theme looks with real output
         terminal = TerminalWidget(
             parent=parent,
-            read_only=True,  # Preview mode - read only
             cols=80,
             rows=24,
             command="bash",  # Default shell
             terminal_config={"scrollback": 1000},  # Enable scrollback
         )
-
-        # Set some demo content to show theming
-        def setup_demo_content():
-            """Add demo content after terminal is ready."""
-            demo_text = (
-                "\x1b[1;34m# VFWidgets Terminal Widget\x1b[0m\n"
-                "\x1b[32m$ \x1b[0mecho 'Themed terminal preview'\n"
-                "Themed terminal preview\n\n"
-                "\x1b[33mWarning:\x1b[0m This is a preview - read-only mode\n"
-                "\x1b[32m$ \x1b[0mls -la\n"
-                "total 42\n"
-                "\x1b[34mdrwxr-xr-x\x1b[0m  5 user  staff   160 Oct 13 12:00 .\n"
-                "\x1b[34mdrwxr-xr-x\x1b[0m 10 user  staff   320 Oct 13 11:00 ..\n"
-                "-rw-r--r--  1 user  staff  1024 Oct 13 12:00 \x1b[32mexample.py\x1b[0m\n"
-                "-rw-r--r--  1 user  staff  2048 Oct 13 12:00 README.md\n"
-                "\x1b[32m$ \x1b[0m\x1b[5m█\x1b[0m"
-            )
-            terminal.write(demo_text)
-
-        terminal.terminalReady.connect(setup_demo_content)
         return terminal
 
     # Extract theme tokens from the widget class
@@ -2284,7 +2265,7 @@ def get_preview_metadata():
             "terminal.ansiBrightCyan",
             "terminal.ansiBrightWhite",
         ],
-        preview_description="Full-featured terminal emulator with xterm.js (21 theme tokens)",
+        preview_description="Interactive terminal emulator - type commands to test theme (21 tokens)",
         preview_factory=create_preview_terminal,
         preview_config={},
         dependencies=["PySide6>=6.5.0", "vfwidgets-theme>=2.0.0"],
