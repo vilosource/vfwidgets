@@ -13,10 +13,10 @@ from vfwidgets_keybinding import KeybindingManager
 from .actions import get_action_definitions
 from .commands import SetTokenCommand
 from .components import StatusBarWidget, create_menu_bar, create_toolbar
-from .controllers import ThemeController
+from .controllers import PluginRegistry, ThemeController
 from .models import ThemeDocument
 from .panels import InspectorPanel, PreviewCanvasPanel, TokenBrowserPanel
-from .plugins import GenericWidgetsPlugin
+from .plugins import DiscoveredWidgetPlugin, GenericWidgetsPlugin
 from .widgets import TokenTreeModel
 
 logger = logging.getLogger(__name__)
@@ -38,8 +38,9 @@ class ThemeStudioWindow(QMainWindow):
         # Theme controller (MVC controller layer)
         self._theme_controller = None
 
-        # Plugin registry (Task 4.3)
-        self._plugins = {}
+        # Plugin registry (Task 4.3 + Introspection System)
+        self._plugins = {}  # Manual plugins (e.g., GenericWidgetsPlugin)
+        self._plugin_registry = PluginRegistry(self)  # Dynamic discovery via entry points
 
         # Keyboard shortcut manager (Task 11)
         self._setup_keybinding_manager()
@@ -265,15 +266,33 @@ class ThemeStudioWindow(QMainWindow):
         settings = QSettings("Vilosource", "VFTheme Studio")
         settings.setValue("main_splitter/state", self.main_splitter.saveState())
 
-    # Plugin Management Methods (Task 4.3)
+    # Plugin Management Methods (Task 4.3 + Introspection System)
 
     def _register_plugins(self):
-        """Register available preview plugins."""
-        # Register Generic Widgets plugin
+        """Register available preview plugins (manual + discovered)."""
+        # Connect plugin registry signals for observability
+        self._plugin_registry.discovery_started.connect(self._on_plugin_discovery_started)
+        self._plugin_registry.plugin_discovered.connect(self._on_plugin_discovered)
+        self._plugin_registry.plugin_failed.connect(self._on_plugin_failed)
+        self._plugin_registry.discovery_completed.connect(self._on_plugin_discovery_completed)
+        self._plugin_registry.error_occurred.connect(self._on_plugin_error)
+
+        # Register manual plugins first
         generic_plugin = GenericWidgetsPlugin()
         self._plugins[generic_plugin.get_name()] = generic_plugin
+        logger.info(f"Registered manual plugin: {generic_plugin.get_name()}")
 
-        # Add plugins to preview canvas selector
+        # Discover plugins via entry points
+        discovered_metadata = self._plugin_registry.discover_plugins()
+        logger.info(f"Plugin discovery completed: {len(discovered_metadata)} plugins found")
+
+        # Create adapters for discovered plugins
+        for name, metadata in discovered_metadata.items():
+            plugin = DiscoveredWidgetPlugin(metadata)
+            self._plugins[name] = plugin
+            logger.info(f"Registered discovered plugin: {name} (available={metadata.is_available})")
+
+        # Add all plugins to preview canvas selector
         for plugin_name in self._plugins.keys():
             self.preview_canvas.plugin_selector.addItem(plugin_name)
 
@@ -284,6 +303,49 @@ class ThemeStudioWindow(QMainWindow):
         if self._plugins:
             first_plugin = list(self._plugins.keys())[0]
             self.preview_canvas.plugin_selector.setCurrentText(first_plugin)
+
+    def _on_plugin_discovery_started(self):
+        """Handle plugin discovery started."""
+        logger.debug("Plugin discovery started")
+        self.status_bar.show_status("Discovering plugins...", 1000)
+
+    def _on_plugin_discovered(self, name: str, metadata):
+        """Handle plugin discovered.
+
+        Args:
+            name: Plugin name
+            metadata: WidgetMetadata object
+        """
+        logger.info(f"Discovered plugin: {name} v{metadata.version}")
+
+    def _on_plugin_failed(self, name: str, error_message: str):
+        """Handle plugin load failure.
+
+        Args:
+            name: Plugin name
+            error_message: Error message
+        """
+        logger.warning(f"Plugin '{name}' failed to load: {error_message}")
+
+    def _on_plugin_discovery_completed(self, count: int):
+        """Handle plugin discovery completed.
+
+        Args:
+            count: Number of successfully discovered plugins
+        """
+        logger.info(f"Plugin discovery completed: {count} plugins available")
+        if count > 0:
+            self.status_bar.show_status(f"Discovered {count} plugin(s)", 2000)
+
+    def _on_plugin_error(self, context: str, message: str, exception: Exception):
+        """Handle plugin system error.
+
+        Args:
+            context: Error context
+            message: Error message
+            exception: Exception that occurred
+        """
+        logger.error(f"Plugin error in {context}: {message}", exc_info=exception)
 
     def _on_plugin_selected(self, plugin_name: str):
         """Handle plugin selection change.

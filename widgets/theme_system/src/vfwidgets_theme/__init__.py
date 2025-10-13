@@ -39,6 +39,14 @@ protocols, and clean separation of concerns.
 """
 
 # Import core protocols for advanced usage
+# Import introspection API for plugin discovery
+from .core.introspection import (
+    PluginAvailability,
+    WidgetMetadata,
+    extract_theme_tokens,
+    validate_metadata,
+)
+
 # Import error handling and fallback system
 from .errors import (
     # Error recovery system
@@ -185,6 +193,11 @@ __all__ = [
     "ThemeableWidget",
     "ColorProvider",
     "StyleGenerator",
+    # Introspection API (for plugin systems)
+    "PluginAvailability",
+    "WidgetMetadata",
+    "extract_theme_tokens",
+    "validate_metadata",
     # Error recovery system
     "ErrorRecoveryManager",
     "create_error_recovery_manager",

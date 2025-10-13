@@ -5,12 +5,19 @@ This module contains the core business logic and data models for the theme syste
 - ThemeManager (simplified with Single Responsibility Principle)
 - ThemeProvider implementation
 - Widget registry with WeakRefs for automatic memory management
+- Widget introspection for plugin discovery
 
 The core module represents the heart of the theme system with all business logic
 separated from presentation (widgets) and infrastructure (engine).
 """
 
 # Core components (placeholders for Tasks 7-8)
+from .introspection import (
+    PluginAvailability,
+    WidgetMetadata,
+    extract_theme_tokens,
+    validate_metadata,
+)
 from .manager import (
     ThemeManager,
     create_theme_manager,
@@ -69,4 +76,9 @@ __all__ = [
     "RegistryEventType",
     "DefaultRegistryEventHandler",
     "create_widget_registry",
+    # Introspection API
+    "PluginAvailability",
+    "WidgetMetadata",
+    "extract_theme_tokens",
+    "validate_metadata",
 ]
