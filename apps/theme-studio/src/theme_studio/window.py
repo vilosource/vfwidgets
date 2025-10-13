@@ -356,6 +356,8 @@ class ThemeStudioWindow(QMainWindow):
         if plugin_name == "(None)" or not plugin_name:
             # Clear canvas
             self.preview_canvas.clear_content()
+            # Clear token filter
+            self.token_browser.set_current_widget_tokens(None)
             return
 
         # Get plugin
@@ -366,6 +368,17 @@ class ThemeStudioWindow(QMainWindow):
         # Create and set preview widget
         preview_widget = plugin.create_preview_widget()
         self.preview_canvas.set_plugin_content(preview_widget)
+
+        # Update token browser with widget's tokens (for filtering)
+        from .plugins.discovered_plugin import DiscoveredWidgetPlugin
+
+        if isinstance(plugin, DiscoveredWidgetPlugin):
+            # Get unique token paths from the plugin's metadata
+            token_paths = set(plugin.metadata.unique_token_paths)
+            self.token_browser.set_current_widget_tokens(token_paths)
+        else:
+            # Manual plugins don't have metadata, show all tokens
+            self.token_browser.set_current_widget_tokens(None)
 
         # Show status
         self.status_bar.show_status(f"Loaded plugin: {plugin_name}", 2000)
@@ -597,6 +610,42 @@ class ThemeStudioWindow(QMainWindow):
             except RuntimeError:
                 logger.debug("_update_preview_theme: RuntimeError setting palette")
                 return
+
+            # Call on_theme_changed() for widgets with custom theme handling
+            # This is essential for widgets like TerminalWidget that need to inject
+            # JavaScript or perform other custom theme updates beyond stylesheet/palette
+            if hasattr(plugin_widget, "on_theme_changed") and callable(
+                plugin_widget.on_theme_changed
+            ):
+                try:
+                    logger.debug(
+                        "_update_preview_theme: Calling widget's on_theme_changed() method"
+                    )
+
+                    # Temporarily update widget's theme manager to use the edited theme
+                    # This allows the widget to read correct theme values via self.theme
+                    old_theme = None
+                    if hasattr(plugin_widget, "_theme_manager") and plugin_widget._theme_manager:
+                        old_theme = plugin_widget._theme_manager.current_theme
+                        plugin_widget._theme_manager._current_theme = theme
+                        # Invalidate property cache so it reads from new theme
+                        if hasattr(plugin_widget, "_theme_properties"):
+                            plugin_widget._theme_properties.invalidate_cache()
+
+                    # Call the widget's custom theme handler
+                    plugin_widget.on_theme_changed()
+
+                    # Restore original theme
+                    if old_theme is not None and hasattr(plugin_widget, "_theme_manager"):
+                        plugin_widget._theme_manager._current_theme = old_theme
+                        if hasattr(plugin_widget, "_theme_properties"):
+                            plugin_widget._theme_properties.invalidate_cache()
+
+                    logger.debug("_update_preview_theme: on_theme_changed() completed")
+                except Exception as e:
+                    logger.warning(
+                        f"_update_preview_theme: Error in widget's on_theme_changed(): {e}"
+                    )
 
             # Also apply theme to the canvas background for better visual feedback
             try:
