@@ -1,9 +1,67 @@
 """Token Browser Panel - Left panel for browsing theme tokens."""
 
-from PySide6.QtCore import QSortFilterProxyModel, Qt, Signal
-from PySide6.QtWidgets import QLineEdit, QTreeView, QVBoxLayout, QWidget
+from PySide6.QtCore import QModelIndex, QSortFilterProxyModel, Qt, Signal
+from PySide6.QtWidgets import QCheckBox, QLineEdit, QTreeView, QVBoxLayout, QWidget
 
 from ..widgets import TokenTreeModel
+
+
+class TokenFilterProxyModel(QSortFilterProxyModel):
+    """Custom proxy model that supports filtering by token paths."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._allowed_token_paths = None  # None means show all tokens
+        self._source_model = None
+
+    def setSourceModel(self, model):
+        """Override to store source model reference."""
+        self._source_model = model
+        super().setSourceModel(model)
+
+    def set_allowed_token_paths(self, token_paths: set[str] | None):
+        """Set which token paths to show (None = show all).
+
+        Args:
+            token_paths: Set of token paths to show, or None to show all
+        """
+        self._allowed_token_paths = token_paths
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
+        """Override to filter by token paths and search text.
+
+        Args:
+            source_row: Row in source model
+            source_parent: Parent index in source model
+
+        Returns:
+            True if row should be shown
+        """
+        if not self._source_model:
+            return True
+
+        # Get the index for this row
+        index = self._source_model.index(source_row, 0, source_parent)
+        if not index.isValid():
+            return False
+
+        # Get token name for this index
+        token_name = self._source_model.get_token_name(index)
+
+        # If this is a category node (no token name), check if any children match
+        if not token_name:
+            # Category nodes are shown if they have any matching children
+            # Qt's recursive filtering handles this automatically
+            return super().filterAcceptsRow(source_row, source_parent)
+
+        # This is a token node - check if it's in the allowed paths
+        if self._allowed_token_paths is not None:
+            if token_name not in self._allowed_token_paths:
+                return False
+
+        # Also apply text filter
+        return super().filterAcceptsRow(source_row, source_parent)
 
 
 class TokenBrowserPanel(QWidget):
@@ -27,6 +85,7 @@ class TokenBrowserPanel(QWidget):
         super().__init__(parent)
         self._model = None
         self._proxy_model = None
+        self._current_widget_tokens = None  # Token paths for current preview widget
         self._setup_ui()
 
     def _setup_ui(self):
@@ -40,6 +99,13 @@ class TokenBrowserPanel(QWidget):
         self.search_input.setClearButtonEnabled(True)
         self.search_input.textChanged.connect(self._on_search_text_changed)
         layout.addWidget(self.search_input)
+
+        # Add checkbox to filter by current widget
+        self.widget_filter_checkbox = QCheckBox("Show only current widget tokens")
+        self.widget_filter_checkbox.setChecked(False)
+        self.widget_filter_checkbox.stateChanged.connect(self._on_widget_filter_changed)
+        self.widget_filter_checkbox.setEnabled(False)  # Disabled until widget is selected
+        layout.addWidget(self.widget_filter_checkbox)
 
         # Create tree view
         self.tree_view = QTreeView()
@@ -64,8 +130,8 @@ class TokenBrowserPanel(QWidget):
         """
         self._model = model
 
-        # Create proxy model for filtering (Task 3.3)
-        self._proxy_model = QSortFilterProxyModel()
+        # Create custom proxy model for filtering by token paths and text
+        self._proxy_model = TokenFilterProxyModel()
         self._proxy_model.setSourceModel(model)
         self._proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self._proxy_model.setRecursiveFilteringEnabled(True)  # Filter child items
@@ -151,3 +217,54 @@ class TokenBrowserPanel(QWidget):
 
         # Emit edit request signal
         self.token_edit_requested.emit(token_name, token_value if token_value else "")
+
+    def set_current_widget_tokens(self, token_paths: set[str] | None):
+        """Set the tokens used by the current preview widget.
+
+        This enables the "Show only current widget tokens" checkbox and
+        updates the filter if it's enabled.
+
+        Args:
+            token_paths: Set of token paths used by the widget, or None if no widget
+        """
+        self._current_widget_tokens = token_paths
+
+        # Enable/disable the checkbox based on whether we have widget tokens
+        self.widget_filter_checkbox.setEnabled(token_paths is not None)
+
+        # Update the checkbox text to show token count
+        if token_paths:
+            count = len(token_paths)
+            self.widget_filter_checkbox.setText(f"Show only current widget tokens ({count})")
+        else:
+            self.widget_filter_checkbox.setText("Show only current widget tokens")
+            # Uncheck if no widget selected
+            self.widget_filter_checkbox.setChecked(False)
+
+        # Update filter if checkbox is currently enabled
+        if self.widget_filter_checkbox.isChecked():
+            self._apply_widget_filter()
+
+    def _on_widget_filter_changed(self, state: int):
+        """Handle widget filter checkbox state change.
+
+        Args:
+            state: Qt.CheckState value
+        """
+        self._apply_widget_filter()
+
+    def _apply_widget_filter(self):
+        """Apply the widget token filter based on checkbox state."""
+        if not self._proxy_model:
+            return
+
+        if self.widget_filter_checkbox.isChecked() and self._current_widget_tokens:
+            # Filter to show only current widget's tokens
+            self._proxy_model.set_allowed_token_paths(self._current_widget_tokens)
+            # Expand all to show filtered tokens
+            self.tree_view.expandAll()
+        else:
+            # Show all tokens
+            self._proxy_model.set_allowed_token_paths(None)
+            # Expand all when removing filter
+            self.tree_view.expandAll()
