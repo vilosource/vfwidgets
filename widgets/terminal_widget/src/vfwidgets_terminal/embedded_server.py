@@ -27,7 +27,7 @@ try:
 except ImportError:
     UNIX_PLATFORM = False
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 from PySide6.QtCore import QObject, Signal
 
@@ -137,6 +137,24 @@ class EmbeddedTerminalServer(QObject):
         def index():
             """Serve the terminal HTML page."""
             return self._get_terminal_html()
+
+        # Serve static JavaScript files
+        @self.app.route("/static/js/<path:filename>")
+        def serve_js(filename):
+            """Serve JavaScript files from resources/js."""
+            resources_dir = Path(__file__).parent / "resources"
+            js_dir = resources_dir / "js"
+            logger.debug(f"Serving JS file: {filename} from {js_dir}")
+            return send_from_directory(js_dir, filename)
+
+        # Serve static CSS files
+        @self.app.route("/static/css/<path:filename>")
+        def serve_css(filename):
+            """Serve CSS files from resources/css."""
+            resources_dir = Path(__file__).parent / "resources"
+            css_dir = resources_dir / "css"
+            logger.debug(f"Serving CSS file: {filename} from {css_dir}")
+            return send_from_directory(css_dir, filename)
 
         # Setup SocketIO handlers
         @self.socketio.on("pty-input", namespace=WEBSOCKET_NAMESPACE)

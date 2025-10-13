@@ -48,6 +48,10 @@ full = [
     "pygments>=2.0",  # For syntax highlighting
 ]
 
+# Entry points for plugin discovery
+[project.entry-points."vfwidgets.preview"]
+terminal = "vfwidgets_terminal.terminal:get_preview_metadata"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
