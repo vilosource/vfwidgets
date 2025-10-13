@@ -88,6 +88,45 @@ python -m theme_studio
 
 ---
 
+## ⌨️ Keyboard Shortcuts
+
+VFTheme Studio includes comprehensive keyboard shortcuts with **user customization** support (powered by vfwidgets-keybinding).
+
+### File Operations
+- `Ctrl+N` - New Theme
+- `Ctrl+Shift+N` - New from Template
+- `Ctrl+O` - Open Theme
+- `Ctrl+S` - Save
+- `Ctrl+Shift+S` - Save As
+- `Ctrl+E` - Export
+- `Ctrl+Q` - Exit
+
+### Editing
+- `Ctrl+Z` - Undo
+- `Ctrl+Shift+Z` - Redo
+- `Ctrl+F` - Find Token
+- `Ctrl+,` - Preferences
+
+### View
+- `Ctrl++` - Zoom In
+- `Ctrl+-` - Zoom Out
+- `Ctrl+0` - Reset Zoom
+- `F11` - Fullscreen
+
+### Tools
+- `Ctrl+Shift+P` - Palette Extractor
+- `Ctrl+H` - Color Harmonizer
+- `Ctrl+B` - Bulk Edit
+
+### Other
+- `F7` - Validate Accessibility
+- `Ctrl+D` - Compare Themes
+- `F1` - Documentation
+
+**Customize Shortcuts:** All shortcuts can be customized via Edit → Preferences → Keyboard Shortcuts. Custom bindings are saved to `~/.config/vftheme-studio/keybindings.json`.
+
+---
+
 ## 📸 Screenshots
 
 *Coming soon - application in design phase*
