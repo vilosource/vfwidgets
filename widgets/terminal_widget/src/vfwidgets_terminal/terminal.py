@@ -1880,29 +1880,69 @@ class TerminalWidget(_BaseTerminalClass):
     def _get_current_theme_type(self) -> str:
         """Get current theme type (dark/light) for theme-aware fallbacks.
 
-        Uses self._current_theme_name which is updated BEFORE on_theme_changed()
-        is called, ensuring we always get the correct theme type.
+        Uses ThemedWidget's built-in get_current_theme() method which works
+        in both normal applications and Theme Studio contexts.
 
         Returns:
             Theme type string: 'dark', 'light', or 'dark' (default)
         """
         try:
-            # Use self._current_theme_name (already updated by ThemedWidget)
-            # and lookup the theme from the theme manager by name
-            if hasattr(self, "_current_theme_name") and self._current_theme_name:
-                from vfwidgets_theme import ThemedApplication
-
-                app = ThemedApplication.instance()
-                if app and hasattr(app, "_theme_manager") and app._theme_manager:
-                    # Get theme by name from theme manager (not from _current_theme which is stale)
-                    theme = app._theme_manager.get_theme(self._current_theme_name)
-                    if theme and hasattr(theme, "type"):
-                        return theme.type
+            # Use ThemedWidget's get_current_theme() - works in all contexts
+            theme = self.get_current_theme()
+            if theme and hasattr(theme, "type"):
+                return theme.type
         except Exception as e:
             logger.error(f"Error getting theme type: {e}")
 
         # Default to dark if we can't determine
+        logger.debug("Theme type unknown, defaulting to 'dark'")
         return "dark"
+
+    def _check_missing_tokens(self) -> list[str]:
+        """Check which theme tokens are missing and will use fallbacks.
+
+        Helps users understand which tokens to add to their theme for
+        complete terminal widget theming.
+
+        Returns:
+            List of missing token paths (e.g., ["terminal.ansiRed", ...])
+        """
+        missing = []
+
+        # Get current theme
+        theme = self.get_current_theme()
+        if not theme:
+            return []
+
+        # Required tokens for terminal widget (from theme_config)
+        required_tokens = [
+            "editor.background",
+            "editor.foreground",
+            "editor.selectionBackground",
+            "terminal.ansiBlack",
+            "terminal.ansiRed",
+            "terminal.ansiGreen",
+            "terminal.ansiYellow",
+            "terminal.ansiBlue",
+            "terminal.ansiMagenta",
+            "terminal.ansiCyan",
+            "terminal.ansiWhite",
+            "terminal.ansiBrightBlack",
+            "terminal.ansiBrightRed",
+            "terminal.ansiBrightGreen",
+            "terminal.ansiBrightYellow",
+            "terminal.ansiBrightBlue",
+            "terminal.ansiBrightMagenta",
+            "terminal.ansiBrightCyan",
+            "terminal.ansiBrightWhite",
+        ]
+
+        # Check which tokens are missing from theme
+        for token in required_tokens:
+            if token not in theme.colors:
+                missing.append(token)
+
+        return missing
 
     def on_theme_changed(self) -> None:
         """Called automatically when the application theme changes.
@@ -1954,15 +1994,16 @@ class TerminalWidget(_BaseTerminalClass):
             "brightWhite": "#eeeeec",
         }
 
-        # Build xterm.js theme dict using theme-aware fallbacks
-        # Note: Built-in themes don't populate editor.* tokens, so we use fallbacks
-        # directly instead of checking self.theme properties (which may have stale cached values)
+        # Build xterm.js theme dict from actual theme values with intelligent fallbacks
+        # Use self.theme properties (which read from theme tokens via theme_config)
+        # Fall back to theme-aware defaults only if theme token is not available
         xterm_theme = {
-            "background": main_fallbacks["background"],
-            "foreground": main_fallbacks["foreground"],
-            "cursor": main_fallbacks["cursor"],
-            "cursorAccent": main_fallbacks["cursorAccent"],
-            "selectionBackground": main_fallbacks["selectionBackground"],
+            "background": self.theme.background or main_fallbacks["background"],
+            "foreground": self.theme.foreground or main_fallbacks["foreground"],
+            "cursor": self.theme.cursor or main_fallbacks["cursor"],
+            "cursorAccent": self.theme.cursorAccent or main_fallbacks["cursorAccent"],
+            "selectionBackground": self.theme.selectionBackground
+            or main_fallbacks["selectionBackground"],
             # ANSI colors with standard fallbacks
             "black": self.theme.black or ansi_fallbacks["black"],
             "red": self.theme.red or ansi_fallbacks["red"],
@@ -1983,10 +2024,25 @@ class TerminalWidget(_BaseTerminalClass):
             "brightWhite": self.theme.brightWhite or ansi_fallbacks["brightWhite"],
         }
 
-        # Debug logging
-        print(f"🎨 Terminal theme switching: {theme_type}")
-        print(f"   Background: {xterm_theme['background']}")
-        print(f"   Foreground: {xterm_theme['foreground']}")
+        # Debug logging with professional output
+        logger.debug(f"Terminal theme switching to '{theme_type}' theme")
+        logger.debug(f"  Background: {xterm_theme['background']}")
+        logger.debug(f"  Foreground: {xterm_theme['foreground']}")
+
+        # Check for missing tokens and provide diagnostic info
+        missing_tokens = self._check_missing_tokens()
+        if missing_tokens:
+            # Show summary at info level for user visibility
+            logger.info(
+                f"Terminal widget using fallback colors for {len(missing_tokens)} tokens. "
+                f"Add these to your theme for complete customization: "
+                f"{', '.join(missing_tokens[:3])}"
+                f"{'...' if len(missing_tokens) > 3 else ''}"
+            )
+            # Full list at debug level
+            logger.debug(f"Missing tokens (full list): {', '.join(missing_tokens)}")
+        else:
+            logger.debug("Terminal theme is complete - all tokens provided")
 
         # Apply theme to xterm.js
         self.set_theme(xterm_theme)
