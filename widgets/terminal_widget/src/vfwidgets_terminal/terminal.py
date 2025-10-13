@@ -2222,6 +2222,8 @@ def get_preview_metadata():
         Returns:
             TerminalWidget configured for preview mode
         """
+        from PySide6.QtWidgets import QSizePolicy
+
         # Create an interactive terminal for theme testing
         # Users can type commands to see how the theme looks with real output
         terminal = TerminalWidget(
@@ -2231,6 +2233,11 @@ def get_preview_metadata():
             command="bash",  # Default shell
             terminal_config={"scrollback": 1000},  # Enable scrollback
         )
+
+        # Make terminal expand to fill available space in Theme Studio
+        # This ensures it's responsive and fills the preview pane
+        terminal.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         return terminal
 
     # Extract theme tokens from the widget class
