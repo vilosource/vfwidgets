@@ -29,7 +29,6 @@ class TerminalProvider(WidgetProvider):
         self.server = server
         self.pane_to_session: dict[str, str] = {}  # Map pane_id -> session_id for cleanup
         self.session_to_pane: dict[str, str] = {}  # Map session_id -> pane_id for auto-close
-        self._default_theme: Optional[dict] = None  # Default terminal theme for new terminals
         self._default_config: Optional[dict] = None  # Default terminal config for new terminals
         self._event_filter = event_filter  # Event filter to install on terminals
 
@@ -70,16 +69,12 @@ class TerminalProvider(WidgetProvider):
 
         # Create terminal widget connected to session
         # Pass configuration via constructor so it's applied during initialization
+        # Theme is automatically applied via ThemedWidget inheritance
         terminal = TerminalWidget(
             server_url=session_url,
             terminal_config=self._default_config,
             cwd=cwd,  # OSC 7: Pass initial CWD to widget
         )
-
-        # Apply default theme if set (theme is applied after config in _configure_terminal)
-        if self._default_theme:
-            terminal.set_terminal_theme(self._default_theme)
-            logger.debug(f"Applied default theme to terminal: {widget_id}")
 
         # OSC 7: Connect CWD tracking signal
         terminal.workingDirectoryChanged.connect(
@@ -93,22 +88,6 @@ class TerminalProvider(WidgetProvider):
         if self._event_filter:
             terminal.installEventFilter(self._event_filter)
             logger.debug(f"Installed event filter on terminal: {widget_id}")
-
-        # Initialize with reserved border space to prevent resize on focus changes
-        # Use terminal theme background so unfocused borders blend invisibly
-        bg_color = "#1e1e1e"  # Fallback
-        if self._default_theme and "background" in self._default_theme:
-            bg_color = self._default_theme["background"]
-
-        from PySide6.QtGui import QPalette, QColor
-
-        terminal.layout().setContentsMargins(3, 3, 3, 3)
-        palette = terminal.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(bg_color))
-        terminal.setPalette(palette)
-        terminal.setAutoFillBackground(True)
-
-        logger.debug(f"Initialized terminal with reserved 3px border: {bg_color}")
 
         logger.debug(f"Created terminal widget: {widget_id} (session: {session_id})")
 
@@ -147,23 +126,6 @@ class TerminalProvider(WidgetProvider):
                 logger.error(f"Failed to terminate session {session_id}: {e}")
         else:
             logger.warning(f"No session found for pane {pane_id}")
-
-    def set_default_theme(self, theme: dict) -> None:
-        """Set default theme for new terminal widgets.
-
-        Args:
-            theme: Terminal theme dictionary
-        """
-        self._default_theme = theme.copy()
-        logger.info(f"Set default terminal theme: {theme.get('name', 'custom')}")
-
-    def get_default_theme(self) -> Optional[dict]:
-        """Get current default theme.
-
-        Returns:
-            Default theme dictionary, or None if not set
-        """
-        return self._default_theme.copy() if self._default_theme else None
 
     def set_default_config(self, config: dict) -> None:
         """Set default configuration for new terminal widgets.

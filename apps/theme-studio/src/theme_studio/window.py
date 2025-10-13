@@ -380,6 +380,11 @@ class ThemeStudioWindow(QMainWindow):
             # Manual plugins don't have metadata, show all tokens
             self.token_browser.set_current_widget_tokens(None)
 
+        # Apply current theme to the newly loaded widget
+        # This ensures the widget gets the theme on initial load (not just on changes)
+        if self._current_document:
+            self._update_preview_theme(self._current_document.theme)
+
         # Show status
         self.status_bar.show_status(f"Loaded plugin: {plugin_name}", 2000)
 
@@ -632,8 +637,26 @@ class ThemeStudioWindow(QMainWindow):
                         if hasattr(plugin_widget, "_theme_properties"):
                             plugin_widget._theme_properties.invalidate_cache()
 
-                    # Call the widget's custom theme handler
-                    plugin_widget.on_theme_changed()
+                    # Call the widget's custom theme handler with the theme
+                    # Pass theme directly to support widgets that don't use ThemedWidget's
+                    # theme manager (like terminal widget with custom theme handling)
+                    logger.info("🔍 [Theme Studio] About to call plugin_widget.on_theme_changed()")
+                    logger.info(f"🔍 [Theme Studio] theme parameter: {theme}")
+                    logger.info(f"🔍 [Theme Studio] theme type: {type(theme)}")
+                    logger.info(f"🔍 [Theme Studio] theme.colors type: {type(theme.colors)}")
+                    logger.info(
+                        f"🔍 [Theme Studio] theme.colors keys (first 10): {list(theme.colors.keys())[:10]}"
+                    )
+                    if "colors.background" in theme.colors:
+                        logger.info(
+                            f"🔍 [Theme Studio] theme.colors['colors.background'] = {theme.colors['colors.background']}"
+                        )
+                    else:
+                        logger.warning(
+                            "🔥 [Theme Studio] 'colors.background' NOT FOUND in theme.colors!"
+                        )
+
+                    plugin_widget.on_theme_changed(theme)
 
                     # Restore original theme
                     if old_theme is not None and hasattr(plugin_widget, "_theme_manager"):
@@ -641,7 +664,7 @@ class ThemeStudioWindow(QMainWindow):
                         if hasattr(plugin_widget, "_theme_properties"):
                             plugin_widget._theme_properties.invalidate_cache()
 
-                    logger.debug("_update_preview_theme: on_theme_changed() completed")
+                    logger.info("🔍 [Theme Studio] on_theme_changed() completed")
                 except Exception as e:
                     logger.warning(
                         f"_update_preview_theme: Error in widget's on_theme_changed(): {e}"

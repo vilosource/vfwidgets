@@ -44,12 +44,17 @@ class ThemeDocument(QObject):
         if theme is not None:
             self._theme = theme
         else:
-            # Create default empty theme
+            # Create default empty theme with required base tokens
+            # All themes MUST have colors.background, colors.foreground, colors.border
             self._theme = Theme(
                 name="Untitled",
                 version="1.0.0",
                 type="dark",
-                colors={},
+                colors={
+                    "colors.background": "#1e1e1e",  # Default dark background
+                    "colors.foreground": "#d4d4d4",  # Default dark foreground
+                    "colors.border": "#333333",  # Default dark border
+                },
                 metadata={"created_with": "VFTheme Studio"},
             )
 

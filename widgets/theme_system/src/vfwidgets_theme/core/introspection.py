@@ -130,11 +130,16 @@ class WidgetMetadata:
     def unique_token_paths(self) -> list[str]:
         """Get unique token paths used by this widget.
 
+        Includes both theme_tokens (validated) and optional_tokens (unvalidated).
+        This allows widgets to declare tokens that aren't in ColorTokenRegistry yet.
+
         Returns:
-            Sorted list of unique token paths from theme_tokens dict.
+            Sorted list of unique token paths from theme_tokens dict and optional_tokens list.
 
         """
-        return sorted(set(self.theme_tokens.values()))
+        # Combine theme_tokens values and optional_tokens
+        all_tokens = set(self.theme_tokens.values()) | set(self.optional_tokens)
+        return sorted(all_tokens)
 
     @property
     def token_categories(self) -> list[str]:

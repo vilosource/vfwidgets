@@ -7,6 +7,8 @@ from typing import Optional
 from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtGui import QKeySequence
 
+from PySide6.QtWidgets import QFrame
+
 from chrome_tabbed_window import ChromeTabbedWindow
 from vfwidgets_terminal import TerminalWidget, MultiSessionTerminalServer
 from vfwidgets_multisplit import MultisplitWidget, SplitterStyle, WherePosition, Direction
@@ -15,12 +17,10 @@ from vfwidgets_keybinding import KeybindingManager, ActionDefinition
 from .components import (
     ThemeDialog,
     MenuButton,
-    TerminalThemeDialog,
     TerminalPreferencesDialog,
     AboutDialog,
 )
 from .providers import TerminalProvider
-from .terminal_theme_manager import TerminalThemeManager
 from .terminal_preferences_manager import TerminalPreferencesManager
 
 logger = logging.getLogger(__name__)
@@ -79,19 +79,13 @@ class ViloxTermApp(ChromeTabbedWindow):
             self._owns_server = True
             logger.info(f"Created terminal server on port {self.terminal_server.port}")
 
-        # Create terminal theme manager
-        self.terminal_theme_manager = TerminalThemeManager()
-
         # Create terminal preferences manager
         self.terminal_preferences_manager = TerminalPreferencesManager()
 
         # Create terminal provider for MultisplitWidget
+        # Terminals automatically inherit theme from ThemedApplication via ThemedWidget
         self.terminal_provider = TerminalProvider(self.terminal_server, event_filter=self)
-
-        # Apply default terminal theme to new terminals
-        default_theme = self.terminal_theme_manager.get_default_theme()
-        self.terminal_provider.set_default_theme(default_theme)
-        logger.info(f"Applied default terminal theme: {default_theme.get('name', 'unknown')}")
+        logger.info("Terminal provider created - terminals will use app theme automatically")
 
         # Apply default terminal preferences to new terminals
         default_preferences = self.terminal_preferences_manager.load_preferences()
@@ -343,13 +337,6 @@ class ViloxTermApp(ChromeTabbedWindow):
                 ),
                 # Appearance
                 ActionDefinition(
-                    id="appearance.terminal_theme",
-                    description="Terminal Colors & Fonts",
-                    default_shortcut="Ctrl+Shift+,",
-                    category="Appearance",
-                    callback=self._show_terminal_theme_dialog,
-                ),
-                ActionDefinition(
                     id="appearance.terminal_preferences",
                     description="Terminal Preferences",
                     default_shortcut="Ctrl+,",
@@ -378,11 +365,21 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.installEventFilter(self)
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
-        """Intercept keyboard events to handle application shortcuts.
+        """Intercept keyboard events and resize events.
 
-        This ensures shortcuts like Ctrl+PgDn work even when the terminal
-        (QWebEngineView) has focus, which would normally capture these keys.
+        Handles:
+        1. Keyboard shortcuts even when terminal (QWebEngineView) has focus
+        2. Resize events to update focus border frame geometry
         """
+        # Handle resize events for terminals with focus border
+        if event.type() == QEvent.Type.Resize and isinstance(obj, TerminalWidget):
+            border_frame = obj.property("focus_border_frame")
+            if border_frame:
+                # Update border frame geometry to match terminal size
+                border_frame.setGeometry(0, 0, obj.width(), obj.height())
+                border_frame.raise_()  # Keep on top
+            return False  # Don't consume resize events
+
         if event.type() == QEvent.Type.KeyPress:
             key_event = event
 
@@ -551,13 +548,6 @@ class ViloxTermApp(ChromeTabbedWindow):
         dialog = AboutDialog(self)
         dialog.exec()
         logger.info("About dialog closed")
-
-    def _show_terminal_theme_dialog(self) -> None:
-        """Show terminal theme customization dialog."""
-        dialog = TerminalThemeDialog(self.terminal_theme_manager, self)
-        dialog.themeApplied.connect(self._apply_terminal_theme_to_all)
-        dialog.exec()
-        logger.info("Terminal theme dialog closed")
 
     def _show_terminal_preferences_dialog(self) -> None:
         """Show terminal preferences dialog."""
@@ -777,35 +767,6 @@ class ViloxTermApp(ChromeTabbedWindow):
         target_window.setCurrentIndex(new_index)
 
         logger.info(f"Tab moved to {target_window.windowTitle()}, new index: {new_index}")
-
-    def _apply_terminal_theme_to_all(self, theme: dict) -> None:
-        """Apply terminal theme to all existing terminals.
-
-        Args:
-            theme: Terminal theme dictionary
-        """
-        applied_count = 0
-
-        # Iterate all tabs
-        for tab_index in range(self.count()):
-            multisplit = self.widget(tab_index)
-            if not isinstance(multisplit, MultisplitWidget):
-                continue
-
-            # Get all panes in this tab
-            pane_ids = multisplit.get_pane_ids()
-
-            # Apply theme to each terminal widget
-            for pane_id in pane_ids:
-                widget = multisplit.get_widget(pane_id)
-                if isinstance(widget, TerminalWidget):
-                    widget.set_terminal_theme(theme)
-                    applied_count += 1
-
-        logger.info(f"Applied terminal theme to {applied_count} terminals")
-
-        # Update terminal provider to use this theme for new terminals
-        self.terminal_provider.set_default_theme(theme)
 
     def _apply_terminal_preferences_to_all(self, config: dict) -> None:
         """Apply terminal preferences to all existing terminals.
@@ -1051,38 +1012,56 @@ class ViloxTermApp(ChromeTabbedWindow):
             # Fallback if theme system not available (assume dark theme)
             focus_color = "#007ACC"
 
-        # Get theme-aware unfocused color from terminal theme
-        unfocused_color = "#1e1e1e"  # Fallback
+        # Get theme-aware unfocused border color
+        # Use colors.border for subtle unfocused state
+        unfocused_color = "#333333"  # Fallback
         try:
-            terminal_theme = self.terminal_theme_manager.get_default_theme()
-            if "background" in terminal_theme:
-                unfocused_color = terminal_theme["background"]
+            from vfwidgets_theme import ColorTokenRegistry
+
+            # Use border color for unfocused terminals (subtle but visible)
+            unfocused_color = ColorTokenRegistry.get("colors.border", current_theme)
+            if unfocused_color is None:
+                unfocused_color = "#333333"  # Final fallback
         except Exception:
             pass
 
-        from PySide6.QtGui import QPalette, QColor
-
-        # Clear old focus (change to unfocused color - blends with terminal)
+        # Remove old focus border
         if old_pane_id:
             old_terminal = multisplit.get_widget(old_pane_id)
             if old_terminal and isinstance(old_terminal, TerminalWidget):
-                # DO NOT change margins - keep at 3px
-                # Only change background color to blend with terminal
-                palette = old_terminal.palette()
-                palette.setColor(QPalette.ColorRole.Window, QColor(unfocused_color))
-                old_terminal.setPalette(palette)
-                old_terminal.setAutoFillBackground(True)
+                # Remove border frame if it exists
+                border_frame = old_terminal.property("focus_border_frame")
+                if border_frame:
+                    border_frame.deleteLater()
+                    old_terminal.setProperty("focus_border_frame", None)
 
-        # Add new focus (change to focus color - visible border)
+        # Add new focus border
         if new_pane_id:
             new_terminal = multisplit.get_widget(new_pane_id)
             if new_terminal and isinstance(new_terminal, TerminalWidget):
-                # DO NOT change margins - keep at 3px
-                # Only change background color to focus color
-                palette = new_terminal.palette()
-                palette.setColor(QPalette.ColorRole.Window, QColor(focus_color))
-                new_terminal.setPalette(palette)
-                new_terminal.setAutoFillBackground(True)
+                # Create border frame overlay
+                border_frame = QFrame(new_terminal)
+                border_frame.setStyleSheet(
+                    f"""
+                    QFrame {{
+                        border: 3px solid {focus_color};
+                        background: transparent;
+                    }}
+                """
+                )
+                # Make frame fill parent and not intercept events
+                border_frame.setGeometry(0, 0, new_terminal.width(), new_terminal.height())
+                border_frame.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+                border_frame.raise_()  # Bring to front
+                border_frame.show()
+
+                # Store reference on terminal
+                new_terminal.setProperty("focus_border_frame", border_frame)
+
+                # Install event filter to handle parent resize
+                if not new_terminal.property("border_event_filter_installed"):
+                    new_terminal.installEventFilter(self)
+                    new_terminal.setProperty("border_event_filter_installed", True)
 
         logger.debug(
             f"Focus changed: "
