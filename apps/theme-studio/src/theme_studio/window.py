@@ -182,6 +182,8 @@ class ThemeStudioWindow(QMainWindow):
             return lambda: print("Reset zoom (stub)")
         elif action_id == "view.fullscreen":
             return self.toggle_fullscreen
+        elif action_id == "view.focus_metadata":
+            return self.focus_metadata
         # Tools actions
         elif action_id == "tools.palette_extractor":
             return lambda: print("Palette extractor (stub)")
@@ -399,6 +401,7 @@ class ThemeStudioWindow(QMainWindow):
         if self._current_document:
             self._current_document.modified.disconnect(self._on_document_modified)
             self._current_document.token_changed.disconnect(self._on_token_changed)
+            self._current_document.metadata_changed.disconnect(self._on_metadata_changed)
             self._current_document.file_path_changed.disconnect(self._on_file_path_changed)
 
         # Set new document
@@ -410,9 +413,13 @@ class ThemeStudioWindow(QMainWindow):
         # Inject controller into inspector panel
         self.inspector_panel.set_controller(self._theme_controller)
 
+        # Populate inspector metadata fields from document
+        self.inspector_panel.populate_metadata_fields(document)
+
         # Connect document signals to window
         document.modified.connect(self._on_document_modified)
         document.token_changed.connect(self._on_token_changed)
+        document.metadata_changed.connect(self._on_metadata_changed)
         document.file_path_changed.connect(self._on_file_path_changed)
 
         # Connect undo stack signals to menu items (Task 9.2)
@@ -588,6 +595,23 @@ class ThemeStudioWindow(QMainWindow):
         # Calling inspector.set_token() here causes a synchronous UI update during
         # the signal chain, which can conflict with dialog cleanup and cause segfaults.
 
+    def _on_metadata_changed(self, field: str, value: str):
+        """Handle metadata field change.
+
+        Args:
+            field: Metadata field name (name, version, type, author, description)
+            value: New field value
+        """
+        logger.debug(f"_on_metadata_changed: field={field}, value={value}")
+
+        # Update window title if name or version changed
+        if field in ("name", "version"):
+            self._update_window_title()
+
+        # Update inspector panel metadata fields (for undo/redo support)
+        if hasattr(self, "inspector_panel"):
+            self.inspector_panel.on_metadata_changed(field, value)
+
     def _deferred_update_preview_theme(self):
         """Deferred theme update for preview widgets.
 
@@ -618,19 +642,20 @@ class ThemeStudioWindow(QMainWindow):
         self.status_bar.show_status(f"Loaded: {file_path}", 3000)
 
     def _update_window_title(self):
-        """Update window title with document name and modified state."""
+        """Update window title with theme name, version, and modified state."""
         if not self._current_document:
             self.setWindowTitle("VFTheme Studio")
             return
 
-        # Get file name or "Untitled"
-        name = self._current_document.file_name or "Untitled"
+        # Get theme name and version
+        name = self._current_document.theme.name or "Untitled"
+        version = self._current_document.theme.version or "1.0.0"
 
         # Add modified indicator
         modified = "*" if self._current_document.is_modified() else ""
 
-        # Set title
-        self.setWindowTitle(f"{name}{modified} - VFTheme Studio")
+        # Set title: "Theme Name v1.0.0* - VFTheme Studio"
+        self.setWindowTitle(f"{name} v{version}{modified} - VFTheme Studio")
 
     def _update_status_bar(self):
         """Update status bar with current document info."""
@@ -841,3 +866,8 @@ class ThemeStudioWindow(QMainWindow):
         if self._current_document and self._current_document._undo_stack.canRedo():
             self._current_document._undo_stack.redo()
             self.status_bar.show_status("Redo", 1000)
+
+    def focus_metadata(self):
+        """Focus the theme properties metadata section in inspector (Ctrl+I)."""
+        if hasattr(self, "inspector_panel"):
+            self.inspector_panel.focus_metadata()

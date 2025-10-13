@@ -73,6 +73,26 @@ class ThemeController(QObject):
         else:
             logger.debug("queue_token_change: Timer already active, command added to queue")
 
+    def queue_metadata_change(self, field: str, value: str) -> None:
+        """Queue a metadata field change.
+
+        The change will be applied on the next event loop iteration,
+        ensuring proper event processing order.
+
+        Args:
+            field: Metadata field to change (name, version, type, author, description)
+            value: New field value
+        """
+        logger.debug(f"queue_metadata_change: Queuing {field}={value}")
+        self._pending_commands.append(("set_metadata", field, value))
+
+        # Start timer if not already running
+        if not self._timer.isActive():
+            logger.debug("queue_metadata_change: Starting deferred execution timer")
+            self._timer.start(0)  # Execute on next event loop iteration
+        else:
+            logger.debug("queue_metadata_change: Timer already active, command added to queue")
+
     def _execute_pending_commands(self) -> None:
         """Execute all queued commands.
 
@@ -112,6 +132,35 @@ class ThemeController(QObject):
                 undo_command = SetTokenCommand(self._document, token_name, token_value, old_value)
                 self._document._undo_stack.push(undo_command)
                 logger.debug("_execute_pending_commands: Command pushed to undo stack")
+
+            elif cmd_type == "set_metadata":
+                _, field_name, field_value = command
+                logger.debug(
+                    f"_execute_pending_commands: Creating SetMetadataCommand for {field_name}={field_value}"
+                )
+
+                # Get old value for undo
+                if field_name == "name":
+                    old_value = self._document.theme.name
+                elif field_name == "version":
+                    old_value = self._document.theme.version
+                elif field_name == "type":
+                    old_value = self._document.theme.type
+                elif field_name in ("author", "description"):
+                    old_value = self._document.get_metadata_field(field_name, "")
+                else:
+                    logger.error(f"Unknown metadata field: {field_name}")
+                    continue
+
+                # Create and push undo command
+                from ..commands.metadata_commands import SetMetadataCommand
+
+                undo_command = SetMetadataCommand(
+                    self._document, field_name, field_value, old_value
+                )
+                self._document._undo_stack.push(undo_command)
+                logger.debug("_execute_pending_commands: Command pushed to undo stack")
+
             # Future commands can be added here (e.g., 'delete_token', 'rename_token')
 
         logger.debug("_execute_pending_commands: END")

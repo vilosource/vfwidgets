@@ -420,10 +420,12 @@ class TestUndoRedo:
         inspector = window.inspector_panel
 
         # Initially no undo/redo available
-        assert hasattr(window, "undo_action")
-        assert hasattr(window, "redo_action")
-        assert not window.undo_action.isEnabled()
-        assert not window.redo_action.isEnabled()
+        undo_action = window.actions_by_id.get("edit.undo")
+        redo_action = window.actions_by_id.get("edit.redo")
+        assert undo_action is not None
+        assert redo_action is not None
+        assert not undo_action.isEnabled()
+        assert not redo_action.isEnabled()
 
         # Make a change via controller (creates undo command)
         token_name = "editor.background"
@@ -440,15 +442,15 @@ class TestUndoRedo:
         qtbot.wait(500)
 
         # Undo should be enabled
-        assert window.undo_action.isEnabled()
-        assert not window.redo_action.isEnabled()
+        assert undo_action.isEnabled()
+        assert not redo_action.isEnabled()
 
         # Undo the change
         window.undo()
         qtbot.wait(100)
 
         # Redo should be enabled
-        assert window.redo_action.isEnabled()
+        assert redo_action.isEnabled()
 
     def test_multiple_undo_redo(self, window, qtbot):
         """Test multiple undo/redo operations.

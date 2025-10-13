@@ -6,16 +6,19 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QCursor
 from PySide6.QtWidgets import (
     QColorDialog,
+    QComboBox,
     QFormLayout,
     QFrame,
     QGroupBox,
     QLabel,
     QLineEdit,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 from vfwidgets_theme.core.tokens import ColorTokenRegistry
 
+from ..validators.metadata_validator import MetadataValidator
 from ..validators.token_validator import TokenValidator
 
 logger = logging.getLogger(__name__)
@@ -59,11 +62,79 @@ class InspectorPanel(QWidget):
         """
         self._controller = controller
 
+    def _setup_metadata_section(self, layout: QVBoxLayout):
+        """Setup theme metadata section at top of inspector.
+
+        Args:
+            layout: Parent layout to add section to
+        """
+        # Create collapsible group box
+        self.metadata_group = QGroupBox("Theme Properties")
+        self.metadata_group.setCheckable(True)
+        self.metadata_group.setChecked(True)  # Expanded by default
+
+        form_layout = QFormLayout(self.metadata_group)
+        form_layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+
+        # Name field (required, validated)
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Theme Name")
+        self.name_input.textChanged.connect(self._on_name_changed)
+        form_layout.addRow("Name:", self.name_input)
+
+        self.name_error_label = QLabel()
+        self.name_error_label.setStyleSheet("color: #d32f2f; font-size: 11px; padding: 2px;")
+        self.name_error_label.setWordWrap(True)
+        self.name_error_label.hide()
+        form_layout.addRow("", self.name_error_label)
+
+        # Version field (required, validated)
+        self.version_input = QLineEdit()
+        self.version_input.setPlaceholderText("1.0.0")
+        self.version_input.textChanged.connect(self._on_version_changed)
+        form_layout.addRow("Version:", self.version_input)
+
+        self.version_error_label = QLabel()
+        self.version_error_label.setStyleSheet("color: #d32f2f; font-size: 11px; padding: 2px;")
+        self.version_error_label.setWordWrap(True)
+        self.version_error_label.hide()
+        form_layout.addRow("", self.version_error_label)
+
+        # Type field (dropdown, always valid)
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(["dark", "light", "high-contrast"])
+        self.type_combo.currentTextChanged.connect(self._on_type_changed)
+        form_layout.addRow("Type:", self.type_combo)
+
+        # Author field (optional)
+        self.author_input = QLineEdit()
+        self.author_input.setPlaceholderText("Optional")
+        self.author_input.textChanged.connect(self._on_author_changed)
+        form_layout.addRow("Author:", self.author_input)
+
+        # Description field (optional, multiline)
+        self.description_input = QTextEdit()
+        self.description_input.setPlaceholderText("Optional - Describe your theme...")
+        self.description_input.setMaximumHeight(100)
+        self.description_input.textChanged.connect(self._on_description_changed)
+        form_layout.addRow("Description:", self.description_input)
+
+        layout.addWidget(self.metadata_group)
+
     def _setup_ui(self):
         """Setup UI for token inspection."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(10)
+
+        # Theme Properties Section (metadata) - at the TOP
+        self._setup_metadata_section(layout)
+
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(separator)
 
         # Title
         self.title_label = QLabel("No Token Selected")
@@ -494,3 +565,147 @@ class InspectorPanel(QWidget):
             logger.error(f"_on_color_input_submitted: Error applying color: {e}")
             self.validation_error_label.setText(f"Error applying color: {e}")
             self.validation_error_label.show()
+
+    # ==================== METADATA EDITING METHODS ====================
+
+    def _on_name_changed(self, text: str):
+        """Handle theme name change.
+
+        Args:
+            text: New name text
+        """
+        # Validate
+        is_valid, error_msg = MetadataValidator.validate_name(text)
+
+        if is_valid:
+            self.name_error_label.hide()
+            # Queue change via controller
+            if self._controller:
+                self._controller.queue_metadata_change("name", text)
+        else:
+            # Show error (but don't block - validation is for user feedback only)
+            self.name_error_label.setText(error_msg)
+            self.name_error_label.show()
+
+    def _on_version_changed(self, text: str):
+        """Handle theme version change.
+
+        Args:
+            text: New version text
+        """
+        # Validate
+        is_valid, error_msg = MetadataValidator.validate_version(text)
+
+        if is_valid:
+            self.version_error_label.hide()
+            # Queue change via controller
+            if self._controller:
+                self._controller.queue_metadata_change("version", text)
+        else:
+            # Show error (but don't block - validation is for user feedback only)
+            self.version_error_label.setText(error_msg)
+            self.version_error_label.show()
+
+    def _on_type_changed(self, text: str):
+        """Handle theme type change.
+
+        Args:
+            text: New type value (dark, light, high-contrast)
+        """
+        # Type is always valid (dropdown enforces valid values)
+        if self._controller:
+            self._controller.queue_metadata_change("type", text)
+
+    def _on_author_changed(self):
+        """Handle author field change."""
+        text = self.author_input.text()
+        if self._controller:
+            self._controller.queue_metadata_change("author", text)
+
+    def _on_description_changed(self):
+        """Handle description field change."""
+        text = self.description_input.toPlainText()
+        if self._controller:
+            self._controller.queue_metadata_change("description", text)
+
+    def populate_metadata_fields(self, document):
+        """Populate metadata fields from document.
+
+        Args:
+            document: ThemeDocument to read metadata from
+        """
+        # Block signals to avoid triggering change handlers
+        self.name_input.blockSignals(True)
+        self.version_input.blockSignals(True)
+        self.type_combo.blockSignals(True)
+        self.author_input.blockSignals(True)
+        self.description_input.blockSignals(True)
+
+        # Populate fields
+        self.name_input.setText(document.theme.name)
+        self.version_input.setText(document.theme.version)
+
+        # Set type combo box
+        type_index = self.type_combo.findText(document.theme.type)
+        if type_index >= 0:
+            self.type_combo.setCurrentIndex(type_index)
+
+        # Populate metadata fields
+        author = document.get_metadata_field("author", "")
+        description = document.get_metadata_field("description", "")
+        self.author_input.setText(author)
+        self.description_input.setPlainText(description)
+
+        # Hide error labels
+        self.name_error_label.hide()
+        self.version_error_label.hide()
+
+        # Restore signals
+        self.name_input.blockSignals(False)
+        self.version_input.blockSignals(False)
+        self.type_combo.blockSignals(False)
+        self.author_input.blockSignals(False)
+        self.description_input.blockSignals(False)
+
+    def on_metadata_changed(self, field: str, value: str):
+        """Handle metadata change from document (e.g., undo/redo).
+
+        Args:
+            field: Metadata field name (name, version, type, author, description)
+            value: New field value
+        """
+        # Block signals to avoid triggering change handlers
+        if field == "name":
+            self.name_input.blockSignals(True)
+            self.name_input.setText(value)
+            self.name_input.blockSignals(False)
+            self.name_error_label.hide()
+        elif field == "version":
+            self.version_input.blockSignals(True)
+            self.version_input.setText(value)
+            self.version_input.blockSignals(False)
+            self.version_error_label.hide()
+        elif field == "type":
+            self.type_combo.blockSignals(True)
+            type_index = self.type_combo.findText(value)
+            if type_index >= 0:
+                self.type_combo.setCurrentIndex(type_index)
+            self.type_combo.blockSignals(False)
+        elif field == "author":
+            self.author_input.blockSignals(True)
+            self.author_input.setText(value)
+            self.author_input.blockSignals(False)
+        elif field == "description":
+            self.description_input.blockSignals(True)
+            self.description_input.setPlainText(value)
+            self.description_input.blockSignals(False)
+
+    def focus_metadata(self):
+        """Focus and expand the metadata section (for Ctrl+I shortcut)."""
+        # Expand section if collapsed
+        if not self.metadata_group.isChecked():
+            self.metadata_group.setChecked(True)
+
+        # Focus name field
+        self.name_input.setFocus()
+        self.name_input.selectAll()

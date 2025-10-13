@@ -120,6 +120,12 @@ def get_action_definitions() -> list[ActionDefinition]:
             default_shortcut="F11",
             category="View",
         ),
+        ActionDefinition(
+            id="view.focus_metadata",
+            description="Focus Theme Properties",
+            default_shortcut="Ctrl+I",
+            category="View",
+        ),
         # ==================== TOOLS ACTIONS ====================
         ActionDefinition(
             id="tools.palette_extractor",

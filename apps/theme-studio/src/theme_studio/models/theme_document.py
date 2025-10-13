@@ -13,20 +13,22 @@ class ThemeDocument(QObject):
     """Observable theme document with change tracking.
 
     Wraps a vfwidgets_theme.Theme object and provides:
-    - Signals for token changes
+    - Signals for token and metadata changes
     - Modified state tracking
     - File path management
     - Save/load operations
-    - Undo/redo stack (prepared for Phase 2)
+    - Undo/redo stack
 
     Signals:
         token_changed(str, str): Emitted when a token value changes (name, new_value)
+        metadata_changed(str, str): Emitted when metadata changes (field, new_value)
         modified(bool): Emitted when modified state changes
         file_path_changed(str): Emitted when file path changes
     """
 
     # Signals
     token_changed = Signal(str, str)  # token_name, new_value
+    metadata_changed = Signal(str, str)  # field_name, new_value
     modified = Signal(bool)  # is_modified
     file_path_changed = Signal(str)  # file_path
 
@@ -158,6 +160,70 @@ class ThemeDocument(QObject):
         total = 197  # Hardcoded for now, will get from registry later
         return (defined, total)
 
+    def set_name(self, name: str):
+        """Set theme name.
+
+        Args:
+            name: New theme name
+        """
+        old_value = self._theme.name
+        if old_value != name:
+            # Theme is frozen dataclass, use object.__setattr__ to bypass
+            object.__setattr__(self._theme, "name", name)
+            self._set_modified(True)
+            self.metadata_changed.emit("name", name)
+
+    def set_version(self, version: str):
+        """Set theme version.
+
+        Args:
+            version: New theme version (semantic version format)
+        """
+        old_value = self._theme.version
+        if old_value != version:
+            # Theme is frozen dataclass, use object.__setattr__ to bypass
+            object.__setattr__(self._theme, "version", version)
+            self._set_modified(True)
+            self.metadata_changed.emit("version", version)
+
+    def set_type(self, type: str):
+        """Set theme type.
+
+        Args:
+            type: New theme type (dark, light, high-contrast)
+        """
+        old_value = self._theme.type
+        if old_value != type:
+            # Theme is frozen dataclass, use object.__setattr__ to bypass
+            object.__setattr__(self._theme, "type", type)
+            self._set_modified(True)
+            self.metadata_changed.emit("type", type)
+
+    def set_metadata_field(self, key: str, value: str):
+        """Set a metadata field (author, description, etc.).
+
+        Args:
+            key: Metadata field name
+            value: New field value
+        """
+        old_value = self._theme.metadata.get(key, "")
+        if old_value != value:
+            self._theme.metadata[key] = value
+            self._set_modified(True)
+            self.metadata_changed.emit(key, value)
+
+    def get_metadata_field(self, key: str, default: str = "") -> str:
+        """Get a metadata field value.
+
+        Args:
+            key: Metadata field name
+            default: Default value if field not set
+
+        Returns:
+            Metadata field value or default
+        """
+        return self._theme.metadata.get(key, default)
+
     def save(self, file_path: str = None):
         """Save theme to file.
 
@@ -216,6 +282,14 @@ class ThemeDocument(QObject):
         # Emit token_changed for all tokens (to update UI)
         for token_name, token_value in self._theme.colors.items():
             self.token_changed.emit(token_name, token_value)
+
+        # Emit metadata_changed for all metadata fields (to update UI)
+        self.metadata_changed.emit("name", self._theme.name)
+        self.metadata_changed.emit("version", self._theme.version)
+        self.metadata_changed.emit("type", self._theme.type)
+        for key, value in self._theme.metadata.items():
+            if key in ("author", "description"):
+                self.metadata_changed.emit(key, value)
 
     def _set_modified(self, modified: bool):
         """Set modified state and emit signal if changed.
