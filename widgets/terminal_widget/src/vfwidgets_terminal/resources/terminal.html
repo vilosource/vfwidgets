@@ -17,7 +17,7 @@
 
         body {
             font-family: monospace;
-            background: #1e1e1e;
+            background: transparent;
             overflow: hidden;
         }
 
@@ -34,7 +34,7 @@
         }
 
         .xterm-viewport::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: transparent;
         }
 
         .xterm-viewport::-webkit-scrollbar-thumb {
@@ -49,7 +49,17 @@
         /* Firefox scrollbar */
         .xterm-viewport {
             scrollbar-width: thin;
-            scrollbar-color: #464647 #1e1e1e;
+            scrollbar-color: #464647 transparent;
+        }
+
+        /* Override xterm.css viewport background to allow Qt stylesheet background to show */
+        .xterm .xterm-viewport {
+            background-color: transparent !important;
+        }
+
+        /* Override xterm.css composition view background */
+        .xterm .composition-view {
+            background: transparent !important;
         }
 
         /* Loading indicator */
@@ -117,7 +127,7 @@
             // Copy-paste safety features
             allowProposedApi: true,  // Enable proposed APIs for advanced features
             theme: {
-                background: '#1e1e1e',
+                background: 'transparent',
                 foreground: '#d4d4d4',
                 cursor: '#ffcc00',
                 cursorAccent: '#1e1e1e',
