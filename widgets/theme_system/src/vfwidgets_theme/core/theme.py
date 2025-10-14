@@ -31,7 +31,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from ..errors import InvalidThemeFormatError, PropertyNotFoundError, ThemeLoadError
+from ..errors import (
+    FontPropertyError,
+    FontValidationError,
+    InvalidThemeFormatError,
+    PropertyNotFoundError,
+    ThemeLoadError,
+)
 from ..logging import get_debug_logger
 
 # Import foundation modules
@@ -42,6 +48,11 @@ ColorPalette = dict[str, ColorValue]
 StyleProperties = dict[str, Any]
 ThemeMetadata = dict[str, Any]
 TokenColors = list[dict[str, Any]]
+# Font types for type safety
+FontFamily = list[str] | str  # Can be list of families or single string
+FontSize = float | int  # Point size (DPI-aware)
+FontWeight = int | str  # 100-900 or "normal", "bold", etc.
+FontPalette = dict[str, FontFamily | FontSize | FontWeight | float]
 
 # Color validation patterns
 HEX_COLOR_PATTERN = re.compile(r"^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$")
@@ -102,6 +113,7 @@ class Theme:
     styles: StyleProperties = field(default_factory=dict)
     metadata: ThemeMetadata = field(default_factory=dict)
     token_colors: TokenColors = field(default_factory=list)
+    fonts: FontPalette = field(default_factory=dict)
     type: str = "light"  # light, dark, or high-contrast
 
     # Cached hash for performance
@@ -139,6 +151,9 @@ class Theme:
                     "Invalid token color format. Must have 'scope' and 'settings' keys"
                 )
 
+        # Validate fonts
+        self._validate_fonts()
+
         # Cache hash for performance
         object.__setattr__(self, "_hash", self._compute_hash())
 
@@ -160,6 +175,117 @@ class Theme:
             or color in NAMED_COLORS
             or color.startswith("@")  # Allow references
         )
+
+    def _validate_fonts(self) -> None:
+        """Validate font configuration.
+
+        Validates all font tokens in the theme according to design decisions:
+        - fontFamily: string or list of strings
+        - fontSize: positive number (1-144 pt)
+        - fontWeight: 100-900 or valid string
+        - lineHeight: >= 0.5
+        - letterSpacing: any number
+        - Required fallbacks: mono → "monospace", ui → "sans-serif"
+
+        Raises:
+            FontValidationError: If font configuration is invalid
+            FontPropertyError: If specific font property has invalid value
+        """
+        # Valid font weight strings
+        valid_weight_strings = {
+            "normal",
+            "bold",
+            "bolder",
+            "lighter",
+            "100",
+            "200",
+            "300",
+            "400",
+            "500",
+            "600",
+            "700",
+            "800",
+            "900",
+        }
+
+        for key, value in self.fonts.items():
+            # Validate fontFamily (string or list of strings)
+            if "fontFamily" in key or key in ["fonts.mono", "fonts.ui", "fonts.serif"]:
+                if isinstance(value, str):
+                    if not value.strip():
+                        raise FontPropertyError(
+                            key, "Font family string cannot be empty", value
+                        )
+                elif isinstance(value, list):
+                    if len(value) == 0:
+                        raise FontPropertyError(key, "Font family list cannot be empty", value)
+                    for font in value:
+                        if not isinstance(font, str) or not font.strip():
+                            raise FontPropertyError(
+                                key,
+                                "All font families in list must be non-empty strings",
+                                value,
+                            )
+                else:
+                    raise FontPropertyError(
+                        key, "Must be string or list of strings", type(value).__name__
+                    )
+
+                # Check required fallbacks for category fonts
+                if key == "fonts.mono":
+                    families = value if isinstance(value, list) else [value]
+                    if families[-1] != "monospace":
+                        raise FontValidationError(
+                            f"fonts.mono must end with 'monospace' fallback. Got: {families}",
+                            key,
+                        )
+                elif key == "fonts.ui":
+                    families = value if isinstance(value, list) else [value]
+                    if families[-1] != "sans-serif":
+                        raise FontValidationError(
+                            f"fonts.ui must end with 'sans-serif' fallback. Got: {families}",
+                            key,
+                        )
+
+            # Validate fontSize (positive number, max 144pt)
+            elif "fontSize" in key or key == "fonts.size":
+                if not isinstance(value, (int, float)):
+                    raise FontPropertyError(key, "Must be a number (int or float)", type(value).__name__)
+                if value <= 0:
+                    raise FontPropertyError(key, "Must be positive", value)
+                if value > 144:
+                    raise FontPropertyError(key, "Must be <= 144 pt", value)
+
+            # Validate fontWeight (100-900 or valid string)
+            elif "fontWeight" in key or key == "fonts.weight":
+                if isinstance(value, int):
+                    if value < 100 or value > 900 or value % 100 != 0:
+                        raise FontPropertyError(
+                            key, "Must be 100, 200, ..., 900 (multiples of 100)", value
+                        )
+                elif isinstance(value, str):
+                    if value not in valid_weight_strings:
+                        raise FontPropertyError(
+                            key,
+                            f"Must be one of {valid_weight_strings} or integer 100-900",
+                            value,
+                        )
+                else:
+                    raise FontPropertyError(
+                        key, "Must be int (100-900) or string", type(value).__name__
+                    )
+
+            # Validate lineHeight (>= 0.5)
+            elif "lineHeight" in key:
+                if not isinstance(value, (int, float)):
+                    raise FontPropertyError(key, "Must be a number (int or float)", type(value).__name__)
+                if value < 0.5:
+                    raise FontPropertyError(key, "Must be >= 0.5", value)
+
+            # Validate letterSpacing (any number)
+            elif "letterSpacing" in key:
+                if not isinstance(value, (int, float)):
+                    raise FontPropertyError(key, "Must be a number (int or float)", type(value).__name__)
 
     def _compute_hash(self) -> int:
         """Compute consistent hash for the theme."""

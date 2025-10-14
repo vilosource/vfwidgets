@@ -123,6 +123,18 @@
     "toolbar.hoverForeground": "#ffffff",
     "toolbar.activeBackground": "rgba(255, 255, 255, 0.15)"
   },
+  "fonts": {
+    "fonts.mono": ["JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "monospace"],
+    "fonts.ui": ["Segoe UI", "Inter", "Ubuntu", "sans-serif"],
+    "fonts.serif": ["Georgia", "Times New Roman", "serif"],
+    "fonts.size": 13,
+    "fonts.weight": "normal",
+    "terminal.fontFamily": ["Cascadia Code", "JetBrains Mono", "Consolas", "monospace"],
+    "terminal.fontSize": 14,
+    "terminal.lineHeight": 1.4,
+    "tabs.fontFamily": ["Segoe UI Semibold", "Inter", "Ubuntu", "sans-serif"],
+    "tabs.fontSize": 12
+  },
   "tokenColors": [
     {
       "name": "Comment",

@@ -12,6 +12,13 @@ separated from presentation (widgets) and infrastructure (engine).
 """
 
 # Core components (placeholders for Tasks 7-8)
+from .font_tokens import (
+    FontTokenRegistry,
+    create_qfont_from_token,
+    resolve_font_family,
+    resolve_font_size,
+    resolve_font_weight,
+)
 from .introspection import (
     PluginAvailability,
     WidgetMetadata,
@@ -81,4 +88,10 @@ __all__ = [
     "WidgetMetadata",
     "extract_theme_tokens",
     "validate_metadata",
+    # Font token resolution (Phase 2)
+    "FontTokenRegistry",
+    "create_qfont_from_token",
+    "resolve_font_family",
+    "resolve_font_size",
+    "resolve_font_weight",
 ]

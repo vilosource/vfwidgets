@@ -190,6 +190,102 @@ class ThemeNotificationError(ThemeError):
         super().__init__(message or f"Theme notification failed: {notification_type}")
 
 
+# Font-related exceptions
+class FontError(ThemeError):
+    """Base exception for font-related errors.
+
+    All font-specific exceptions inherit from this class for easy
+    error handling and recovery.
+
+    Recovery Strategy: Fall back to system default fonts.
+
+    Example:
+        try:
+            apply_font_to_widget(widget, font)
+        except FontError:
+            apply_system_default_font(widget)
+
+    """
+
+    pass
+
+
+class FontValidationError(FontError):
+    """Raised when font configuration validation fails.
+
+    Recovery Strategy: Use system default fonts for invalid entries.
+
+    Example:
+        if font_size < 0:
+            raise FontValidationError("Font size must be positive")
+
+    """
+
+    def __init__(self, message: str, property_key: Optional[str] = None):
+        self.property_key = property_key
+        super().__init__(message)
+
+
+class FontPropertyError(FontError):
+    """Raised when a font property has invalid value or type.
+
+    Recovery Strategy: Use default value for the specific property.
+
+    Example:
+        if not isinstance(font_weight, (int, str)):
+            raise FontPropertyError("fontWeight", "Must be int (100-900) or string")
+
+    """
+
+    def __init__(self, property_name: str, message: str, invalid_value: Optional[Any] = None):
+        self.property_name = property_name
+        self.invalid_value = invalid_value
+        full_message = f"Invalid font property '{property_name}': {message}"
+        super().__init__(full_message)
+
+
+class FontTokenNotFoundError(FontError):
+    """Raised when a font token cannot be resolved.
+
+    Recovery Strategy: Fall back to system default font for the category.
+
+    Example:
+        if token not in theme.fonts:
+            raise FontTokenNotFoundError(token, "terminal.fontFamily")
+
+    """
+
+    def __init__(self, token: str, full_path: Optional[str] = None):
+        self.token = token
+        self.full_path = full_path or token
+        message = f"Font token '{self.full_path}' not found in theme"
+        super().__init__(message)
+
+
+class FontNotAvailableError(FontError):
+    """Raised when requested font is not available on the system.
+
+    Recovery Strategy: Use next font in fallback chain or generic family.
+
+    Example:
+        if not is_font_available("JetBrains Mono"):
+            raise FontNotAvailableError("JetBrains Mono", ["Consolas", "monospace"])
+
+    """
+
+    def __init__(
+        self,
+        font_family: str,
+        fallback_chain: Optional[list[str]] = None,
+        message: Optional[str] = None,
+    ):
+        self.font_family = font_family
+        self.fallback_chain = fallback_chain or []
+        if message is None:
+            message = f"Font '{font_family}' not available on system"
+        super().__init__(message)
+
+
 # Error Recovery Manager
 class ErrorRecoveryManager:
     """Centralized error recovery and fallback management.
@@ -562,6 +658,15 @@ __all__ = [
     "PropertyNotFoundError",
     "InvalidThemeFormatError",
     "ThemeSystemNotInitializedError",
+    "ThemeApplicationError",
+    "ThemeValidationError",
+    "ThemeNotificationError",
+    # Font exceptions
+    "FontError",
+    "FontValidationError",
+    "FontPropertyError",
+    "FontTokenNotFoundError",
+    "FontNotAvailableError",
     # Error recovery
     "ErrorRecoveryManager",
     "create_error_recovery_manager",

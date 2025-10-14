@@ -23,7 +23,7 @@
     "widget.background": "#000000",
     "widget.foreground": "#ffffff",
     "widget.border": "#ffffff",
-    "widget.shadow": "none",
+    "widget.shadow": "transparent",
 
     "button.background": "#ffffff",
     "button.foreground": "#000000",
@@ -123,6 +123,18 @@
 
     "editorGroupHeader.tabsBackground": "#000000",
     "editorGroupHeader.tabsBorder": "#ffffff"
+  },
+  "fonts": {
+    "fonts.mono": ["JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "monospace"],
+    "fonts.ui": ["Segoe UI", "Inter", "Ubuntu", "sans-serif"],
+    "fonts.serif": ["Georgia", "Times New Roman", "serif"],
+    "fonts.size": 14,
+    "fonts.weight": "bold",
+    "terminal.fontFamily": ["Cascadia Code", "JetBrains Mono", "Consolas", "monospace"],
+    "terminal.fontSize": 15,
+    "terminal.lineHeight": 1.5,
+    "tabs.fontFamily": ["Segoe UI Semibold", "Inter", "Ubuntu", "sans-serif"],
+    "tabs.fontSize": 13
   },
   "tokenColors": [
     {
