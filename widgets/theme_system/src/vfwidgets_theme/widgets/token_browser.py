@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..core.theme import Theme
 from ..core.token_constants import Tokens
 from ..logging import get_debug_logger
 from .base import ThemedWidget
@@ -49,11 +50,12 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
     token_selected = Signal(str)  # Token path like "button.background"
     category_changed = Signal(str)  # Category name like "BUTTON COLORS"
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: Optional[QWidget] = None, theme: Optional[Theme] = None):
         """Initialize token browser.
 
         Args:
             parent: Parent widget
+            theme: Optional theme to display values from
 
         """
         super().__init__(parent)
@@ -62,6 +64,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
         self._categories: dict[str, list[tuple[str, str]]] = {}
         self._all_tokens: set[str] = set()
         self._current_filter: str = ""
+        self._current_theme: Optional[Theme] = theme
 
         # Build token database
         self._build_token_database()
@@ -95,6 +98,7 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
             "SCROLLBAR COLORS": [],
             "TERMINAL COLORS": [],
             "MISCELLANEOUS COLORS": [],
+            "FONT TOKENS": [],
         }
 
         # Extract all tokens from Tokens class
@@ -143,12 +147,49 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
                 self._categories[category].append((attr_name, token_value))
                 self._all_tokens.add(token_value)
 
+        # Add font tokens (Phase 2 integration)
+        # Font tokens are not in Tokens class constants, so add them manually
+        font_tokens = [
+            # Base Categories
+            ("MONO_FONTS", "fonts.mono"),
+            ("UI_FONTS", "fonts.ui"),
+            ("SERIF_FONTS", "fonts.serif"),
+            # Base Properties
+            ("DEFAULT_SIZE", "fonts.size"),
+            ("DEFAULT_WEIGHT", "fonts.weight"),
+            ("LINE_HEIGHT", "fonts.lineHeight"),
+            ("LETTER_SPACING", "fonts.letterSpacing"),
+            # Terminal Fonts
+            ("TERMINAL_FAMILY", "terminal.fontFamily"),
+            ("TERMINAL_SIZE", "terminal.fontSize"),
+            ("TERMINAL_WEIGHT", "terminal.fontWeight"),
+            ("TERMINAL_LINE_HEIGHT", "terminal.lineHeight"),
+            ("TERMINAL_LETTER_SPACING", "terminal.letterSpacing"),
+            # Tabs Fonts
+            ("TABS_FAMILY", "tabs.fontFamily"),
+            ("TABS_SIZE", "tabs.fontSize"),
+            ("TABS_WEIGHT", "tabs.fontWeight"),
+            # Editor Fonts
+            ("EDITOR_FAMILY", "editor.fontFamily"),
+            ("EDITOR_SIZE", "editor.fontSize"),
+            ("EDITOR_WEIGHT", "editor.fontWeight"),
+            ("EDITOR_LINE_HEIGHT", "editor.lineHeight"),
+            # UI Fonts
+            ("UI_FAMILY", "ui.fontFamily"),
+            ("UI_SIZE", "ui.fontSize"),
+            ("UI_WEIGHT", "ui.fontWeight"),
+        ]
+
+        for const_name, token_path in font_tokens:
+            self._categories["FONT TOKENS"].append((const_name, token_path))
+            self._all_tokens.add(token_path)
+
         # Sort tokens within each category
         for category in self._categories:
             self._categories[category].sort(key=lambda x: x[1])  # Sort by token path
 
     def _setup_ui(self) -> None:
-        """Setup user interface."""
+        """Set up user interface."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
@@ -160,8 +201,10 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         # Token tree
         self._tree = QTreeWidget()
-        self._tree.setHeaderLabels(["Token", "Path"])
+        self._tree.setHeaderLabels(["Token", "Path", "Value"])
         self._tree.setColumnWidth(0, 200)
+        self._tree.setColumnWidth(1, 200)
+        self._tree.setColumnWidth(2, 150)
         self._tree.itemSelectionChanged.connect(self._on_selection_changed)
         self._tree.itemExpanded.connect(self._on_category_expanded)
         layout.addWidget(self._tree)
@@ -202,7 +245,15 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
                 token_item = QTreeWidgetItem(category_item)
                 token_item.setText(0, const_name)
                 token_item.setText(1, token_path)
+                token_item.setText(2, self._get_token_display_value(token_path))
                 token_item.setData(0, Qt.ItemDataRole.UserRole, token_path)
+
+                # Set tooltip with resolution chain
+                if self._current_theme:
+                    tooltip = self._get_token_tooltip(token_path)
+                    token_item.setToolTip(0, tooltip)
+                    token_item.setToolTip(1, tooltip)
+                    token_item.setToolTip(2, tooltip)
 
     def _on_search_changed(self, text: str) -> None:
         """Handle search text changes.
@@ -312,3 +363,134 @@ class TokenBrowserWidget(ThemedWidget, QWidget):
 
         """
         return len([cat for cat, tokens in self._categories.items() if tokens])
+
+    def set_theme(self, theme: Optional[Theme]) -> None:
+        """Set theme for displaying token values.
+
+        Args:
+            theme: Theme to display values from
+
+        """
+        self._current_theme = theme
+        self._populate_tree(self._current_filter)
+        logger.debug(f"Theme updated in token browser: {theme.name if theme else 'None'}")
+
+    def _get_token_display_value(self, token_path: str) -> str:
+        """Get human-readable display value for token.
+
+        Args:
+            token_path: Token path (e.g., "terminal.fontSize")
+
+        Returns:
+            Formatted display value
+
+        """
+        if not self._current_theme:
+            return ""
+
+        # Check if it's a font token
+        if token_path in self._current_theme.fonts:
+            value = self._current_theme.fonts[token_path]
+
+            # Font family list
+            if "Family" in token_path or token_path in ["fonts.mono", "fonts.ui", "fonts.serif"]:
+                if isinstance(value, list):
+                    if len(value) <= 2:
+                        return ", ".join(value)
+                    else:
+                        return ", ".join(value[:2]) + "..."
+                return str(value)
+
+            # Font size
+            if "Size" in token_path or token_path == "fonts.size":
+                return f"{value}pt"
+
+            # Font weight
+            if "Weight" in token_path or token_path == "fonts.weight":
+                return str(value)
+
+            # Line height
+            if "lineHeight" in token_path:
+                return f"{value}×"
+
+            # Letter spacing
+            if "letterSpacing" in token_path:
+                return f"{value}px"
+
+            return str(value)
+
+        # Check if it's a color token
+        if token_path in self._current_theme.colors:
+            return self._current_theme.colors[token_path]
+
+        return "(not set)"
+
+    def _get_token_tooltip(self, token_path: str) -> str:
+        """Get detailed tooltip showing resolution chain.
+
+        Args:
+            token_path: Token path (e.g., "terminal.fontSize")
+
+        Returns:
+            HTML formatted tooltip text
+
+        """
+        if not self._current_theme:
+            return token_path
+
+        tooltip_parts = [f"<b>{token_path}</b><br/>"]
+
+        # Check if it's a font token and show resolution chain
+        if token_path not in self._current_theme.colors:
+            try:
+                from ..core.font_tokens import FontTokenRegistry
+
+                # Show resolution chain if token uses fallbacks
+                chain = FontTokenRegistry.HIERARCHY_MAP.get(token_path, [])
+                if chain and len(chain) > 1:
+                    tooltip_parts.append("<br/><b>Resolution Chain:</b><br/>")
+                    for token in chain:
+                        if token in self._current_theme.fonts:
+                            tooltip_parts.append(f"✓ {token} (defined)<br/>")
+                            break
+                        else:
+                            tooltip_parts.append(f"- {token} (not set)<br/>")
+
+                # Show actual resolved value
+                if token_path in self._current_theme.fonts or chain:
+                    tooltip_parts.append("<br/><b>Resolved Value:</b><br/>")
+
+                    if "Family" in token_path or token_path in [
+                        "fonts.mono",
+                        "fonts.ui",
+                        "fonts.serif",
+                    ]:
+                        families = FontTokenRegistry.get_font_family(
+                            token_path, self._current_theme
+                        )
+                        tooltip_parts.append(", ".join(families))
+                    elif "Size" in token_path or token_path == "fonts.size":
+                        size = FontTokenRegistry.get_font_size(token_path, self._current_theme)
+                        tooltip_parts.append(f"{size}pt")
+                    elif "Weight" in token_path or token_path == "fonts.weight":
+                        weight = FontTokenRegistry.get_font_weight(token_path, self._current_theme)
+                        tooltip_parts.append(str(weight))
+                    elif "lineHeight" in token_path:
+                        height = FontTokenRegistry.get_line_height(token_path, self._current_theme)
+                        tooltip_parts.append(f"{height}×")
+                    elif "letterSpacing" in token_path:
+                        spacing = FontTokenRegistry.get_letter_spacing(
+                            token_path, self._current_theme
+                        )
+                        tooltip_parts.append(f"{spacing}px")
+
+            except ImportError:
+                # FontTokenRegistry not available, just show path
+                pass
+
+        # For color tokens, just show the path and value
+        elif token_path in self._current_theme.colors:
+            value = self._current_theme.colors[token_path]
+            tooltip_parts.append(f"<br/><b>Color Value:</b> {value}")
+
+        return "".join(tooltip_parts)

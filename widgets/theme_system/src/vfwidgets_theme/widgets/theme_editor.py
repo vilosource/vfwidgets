@@ -217,6 +217,9 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
             self._theme_builder.add_color(token_path, color_value)
             self._current_theme = self._theme_builder.build()
 
+            # Update token browser with new theme
+            self._token_browser.set_theme(self._current_theme)
+
             # Emit modified signal
             self.theme_modified.emit()
 
@@ -318,6 +321,9 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
         # Update UI
         self._theme_name_label.setText(self._base_theme_name)
+
+        # Update token browser with theme
+        self._token_browser.set_theme(self._current_theme)
 
         # Initial validation
         self._update_validation()
