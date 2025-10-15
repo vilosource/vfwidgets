@@ -109,13 +109,13 @@ class MarkdownViewer(_BaseClass):
     theme_config = {
         "md_bg": "editor.background",
         "md_fg": "editor.foreground",
-        "md_link": "textLink.foreground",
-        "md_code_bg": "editor.code.background",
-        "md_code_fg": "editor.code.foreground",
-        "md_blockquote_border": "editor.blockquote.border",
-        "md_blockquote_bg": "editor.blockquote.background",
+        "md_link": "button.background",  # Use button color for links
+        "md_code_bg": "input.background",  # Use input background for code blocks
+        "md_code_fg": "input.foreground",
+        "md_blockquote_border": "widget.border",
+        "md_blockquote_bg": "widget.background",
         "md_table_border": "widget.border",
-        "md_table_header_bg": "list.headerBackground",
+        "md_table_header_bg": "editor.lineHighlightBackground",
         "md_scrollbar_bg": "editor.background",
         "md_scrollbar_thumb": "scrollbar.activeBackground",
         "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
@@ -244,6 +244,11 @@ class MarkdownViewer(_BaseClass):
 
         page = MarkdownPage(self)
         self.setPage(page)
+
+        # Make web view transparent so parent widget background shows through
+        # This prevents white flash on startup and lets Qt stylesheets control the background
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent")
 
         # Set background color to prevent white flash on load
         # This sets the page background (visible while loading or if content has transparency)
@@ -993,23 +998,13 @@ Try changing themes to see how the markdown content adapts!
         return viewer
 
     # Define theme tokens used by markdown viewer
+    # Note: We only declare BASE tokens here for Theme Studio validation
+    # The actual theme resolution happens in on_theme_changed() via theme_config
+    # Similar pattern to terminal widget which uses hierarchical resolution
     theme_tokens = {
-        # Content colors
-        "md_bg": "editor.background",
-        "md_fg": "editor.foreground",
-        "md_link": "textLink.foreground",
-        # Code styling
-        "md_code_bg": "editor.code.background",
-        "md_code_fg": "editor.code.foreground",
-        # UI elements
-        "md_blockquote_border": "editor.blockquote.border",
-        "md_blockquote_bg": "editor.blockquote.background",
-        "md_table_border": "widget.border",
-        "md_table_header_bg": "list.headerBackground",
-        # Scrollbar
-        "md_scrollbar_bg": "editor.background",
-        "md_scrollbar_thumb": "scrollbar.activeBackground",
-        "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
+        # Base tokens (REQUIRED - all widgets inherit these)
+        "background": "colors.background",
+        "foreground": "colors.foreground",
     }
 
     return WidgetMetadata(
@@ -1019,17 +1014,18 @@ Try changing themes to see how the markdown content adapts!
         version="2.0.0",
         theme_tokens=theme_tokens,
         required_tokens=[
-            "editor.background",
-            "editor.foreground",
+            "colors.background",
+            "colors.foreground",
         ],
         optional_tokens=[
-            "textLink.foreground",
-            "editor.code.background",
-            "editor.code.foreground",
-            "editor.blockquote.border",
-            "editor.blockquote.background",
+            "editor.background",
+            "editor.foreground",
+            "button.background",
+            "input.background",
+            "input.foreground",
             "widget.border",
-            "list.headerBackground",
+            "widget.background",
+            "editor.lineHighlightBackground",
             "scrollbar.activeBackground",
             "scrollbar.hoverBackground",
         ],
