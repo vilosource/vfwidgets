@@ -99,6 +99,7 @@ sys.exit(app.exec())
 | theme_system | VSCode-compatible theme management | 🟢 Ready | [Docs](widgets/theme_system/README.md) |
 | multisplit_widget | Dynamic split pane widget | 🟢 Ready | [Docs](widgets/multisplit_widget/README.md) |
 | terminal_widget | xterm.js-based terminal emulator | 🟢 Ready | [Docs](widgets/terminal_widget/README.md) |
+| markdown_widget | Professional markdown editor/viewer with theme support | 🟢 Ready | [Docs](widgets/markdown_widget/README.md) |
 | chrome-tabbed-window | Chrome-style tabbed window | 🟢 Ready | [Docs](widgets/chrome-tabbed-window/README.md) |
 | vilocode_window | VS Code-style frameless window | 🟢 Ready | [Docs](widgets/vilocode_window/README.md) |
 | keybinding_manager | User-customizable keyboard shortcuts | 🟢 Ready | [Docs](widgets/keybinding_manager/README.md) |
@@ -118,11 +119,37 @@ make local-release  # Builds and installs with GNOME/KDE integration
 **Features:**
 - Chrome-style tabs with split panes
 - Multi-session terminal server (xterm.js)
-- VSCode-compatible themes
+- VSCode-compatible themes with live switching
+- Comprehensive preferences system (58 settings across 4 tabs)
+  - Terminal font customization (family, size, line height, spacing)
+  - Window opacity and appearance controls
+  - Performance and behavior settings
 - User-customizable keyboard shortcuts
 - Cross-platform desktop integration
 
 **Documentation:** [apps/viloxterm/README.md](apps/viloxterm/README.md)
+
+### Theme Studio - Visual Theme Editor
+
+Interactive theme editor for creating and editing VSCode-compatible themes.
+
+**Installation:**
+```bash
+cd apps/theme-studio
+pip install -e .
+python -m theme_studio
+```
+
+**Features:**
+- Visual editing of all theme tokens
+- Font property editing with live preview
+- Color token browser with hierarchical organization
+- Font token browser with system font detection
+- Real-time preview of changes
+- Export to VSCode-compatible JSON themes
+- Undo/redo support
+
+**Documentation:** [apps/theme-studio/README.md](apps/theme-studio/README.md)
 
 ## Development
 
