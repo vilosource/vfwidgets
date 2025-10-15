@@ -19,9 +19,11 @@ from .components import (
     MenuButton,
     TerminalPreferencesDialog,
     AboutDialog,
+    PreferencesDialog,
 )
 from .providers import TerminalProvider
 from .terminal_preferences_manager import TerminalPreferencesManager
+from .app_preferences_manager import AppPreferencesManager
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +81,13 @@ class ViloxTermApp(ChromeTabbedWindow):
             self._owns_server = True
             logger.info(f"Created terminal server on port {self.terminal_server.port}")
 
-        # Create terminal preferences manager
+        # Create preferences managers
         self.terminal_preferences_manager = TerminalPreferencesManager()
+        self.app_preferences_manager = AppPreferencesManager()
+
+        # Load application preferences
+        self.app_preferences = self.app_preferences_manager.load_preferences()
+        logger.info("Loaded application preferences")
 
         # Create terminal provider for MultisplitWidget
         # Terminals automatically inherit theme from ThemedApplication via ThemedWidget
@@ -337,11 +344,11 @@ class ViloxTermApp(ChromeTabbedWindow):
                 ),
                 # Appearance
                 ActionDefinition(
-                    id="appearance.terminal_preferences",
-                    description="Terminal Preferences",
+                    id="appearance.preferences",
+                    description="Preferences",
                     default_shortcut="Ctrl+,",
                     category="Appearance",
-                    callback=self._show_terminal_preferences_dialog,
+                    callback=self._show_preferences_dialog,
                 ),
                 ActionDefinition(
                     id="appearance.reset_zoom",
@@ -550,12 +557,52 @@ class ViloxTermApp(ChromeTabbedWindow):
         logger.info("About dialog closed")
 
     def _show_terminal_preferences_dialog(self) -> None:
-        """Show terminal preferences dialog."""
+        """Show terminal preferences dialog (legacy, kept for compatibility)."""
         current_config = self.terminal_preferences_manager.load_preferences()
         dialog = TerminalPreferencesDialog(current_config, self)
         dialog.preferencesApplied.connect(self._apply_terminal_preferences_to_all)
         dialog.exec()
         logger.info("Terminal preferences dialog closed")
+
+    def _show_preferences_dialog(self) -> None:
+        """Show unified preferences dialog."""
+        dialog = PreferencesDialog(self)
+        dialog.set_keybinding_manager(self.keybinding_manager)
+
+        # Connect signals for live application of changes
+        dialog.preferences_applied.connect(self._apply_app_preferences)
+        dialog.terminal_preferences_applied.connect(self._apply_terminal_preferences_to_all)
+
+        dialog.exec()
+        logger.info("Preferences dialog closed")
+
+    def _apply_app_preferences(self, preferences) -> None:
+        """Apply application preferences to running app.
+
+        Args:
+            preferences: PreferencesModel with settings to apply
+        """
+        from PySide6.QtWidgets import QApplication
+
+        logger.info("Applying application preferences")
+
+        # Apply window opacity
+        opacity = preferences.appearance.window_opacity / 100.0
+        self.setWindowOpacity(opacity)
+        logger.debug(f"Set window opacity to {opacity}")
+
+        # Apply theme
+        theme_name = preferences.appearance.application_theme
+        app = QApplication.instance()
+        if hasattr(app, "set_theme"):
+            app.set_theme(theme_name)
+            logger.debug(f"Set application theme to {theme_name}")
+
+        # Store preferences for future use
+        self.app_preferences = preferences
+
+        # Save to disk
+        self.app_preferences_manager.save_preferences(preferences)
 
     def _on_reset_zoom(self) -> None:
         """Reset zoom to 100% on the currently focused terminal.

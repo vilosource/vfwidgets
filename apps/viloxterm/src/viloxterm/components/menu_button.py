@@ -88,8 +88,11 @@ class MenuButton(WindowControlButton):
 
         # Add keybinding-managed appearance actions
         if keybinding_actions:
-            # Terminal preferences (Ctrl+,)
-            if "appearance.terminal_preferences" in keybinding_actions:
+            # Preferences (Ctrl+,) - new unified dialog
+            if "appearance.preferences" in keybinding_actions:
+                self._menu.addAction(keybinding_actions["appearance.preferences"])
+            # Fallback to old terminal preferences if new one not available
+            elif "appearance.terminal_preferences" in keybinding_actions:
                 self._menu.addAction(keybinding_actions["appearance.terminal_preferences"])
 
             # Terminal theme customization (Ctrl+Shift+,)

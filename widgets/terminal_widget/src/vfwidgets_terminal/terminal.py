@@ -220,7 +220,9 @@ class TerminalBridge(QObject):
         self.title_changed.emit(title)
 
     @Slot(str, str, bool, bool, bool)
-    def on_key_pressed(self, key: str, code: str, ctrl: bool, alt: bool, shift: bool) -> None:
+    def on_key_pressed(
+        self, key: str, code: str, ctrl: bool, alt: bool, shift: bool
+    ) -> None:
         """Handle key press from xterm.js."""
         # Only log special keys to avoid spam
         if ctrl or alt or len(key) > 1:
@@ -293,7 +295,9 @@ class TerminalBridge(QObject):
         if parent_widget and hasattr(parent_widget, "_paste_from_clipboard"):
             parent_widget._paste_from_clipboard()
         else:
-            logger.warning("Cannot trigger middle-click paste - parent widget not available")
+            logger.warning(
+                "Cannot trigger middle-click paste - parent widget not available"
+            )
 
     @Slot(str, result=str)
     def execute_command(self, command: str) -> str:
@@ -493,7 +497,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.rows = rows
         self.cols = cols
         self.scrollback = scrollback
-        self._user_theme = theme  # Renamed from self.theme to avoid conflict with ThemedWidget
+        self._user_theme = (
+            theme  # Renamed from self.theme to avoid conflict with ThemedWidget
+        )
         self.capture_output = capture_output
         self.output_filter = output_filter
         self.output_parser = output_parser
@@ -506,7 +512,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.output_buffer = [] if capture_output else None
         self.is_connected = False
         self.process_info = {}
-        self._current_working_directory: Optional[str] = cwd  # Track current CWD from OSC 7
+        self._current_working_directory: Optional[str] = (
+            cwd  # Track current CWD from OSC 7
+        )
 
         # Phase 2: QWebChannel bridge for JavaScript communication
         self.bridge = None
@@ -534,7 +542,10 @@ class TerminalWidget(_BaseTerminalClass):
         if terminal_config is not None:
             self._terminal_config = terminal_config.copy()
             # If scrollback is explicitly set in both places, terminal_config wins
-            if scrollback != DEFAULT_SCROLLBACK and "scrollback" not in self._terminal_config:
+            if (
+                scrollback != DEFAULT_SCROLLBACK
+                and "scrollback" not in self._terminal_config
+            ):
                 logger.warning(
                     "scrollback parameter is deprecated. Use terminal_config={'scrollback': ...} instead"
                 )
@@ -593,12 +604,16 @@ class TerminalWidget(_BaseTerminalClass):
         # Connect new signals to old signals for backwards compatibility
         self.terminalReady.connect(lambda: self.terminal_ready.emit())
         self.terminalClosed.connect(lambda code: self.terminal_closed.emit(code))
-        self.processStarted.connect(lambda event: self.command_started.emit(event.command))
+        self.processStarted.connect(
+            lambda event: self.command_started.emit(event.command)
+        )
         self.processFinished.connect(lambda code: self.command_finished.emit(code))
         self.outputReceived.connect(lambda data: self.output_received.emit(data))
         self.errorReceived.connect(lambda data: self.error_received.emit(data))
         self.inputSent.connect(lambda text: self.input_sent.emit(text))
-        self.sizeChanged.connect(lambda rows, cols: self.resize_occurred.emit(rows, cols))
+        self.sizeChanged.connect(
+            lambda rows, cols: self.resize_occurred.emit(rows, cols)
+        )
         self.connectionLost.connect(lambda: self.connection_lost.emit())
         self.connectionRestored.connect(lambda: self.connection_restored.emit())
         self.serverStarted.connect(lambda url: self.server_started.emit(url))
@@ -617,7 +632,9 @@ class TerminalWidget(_BaseTerminalClass):
         )  # terminal_data was duplicate of input_sent
         self.scrollOccurred.connect(lambda pos: self.scroll_occurred.emit(pos))
         self.contextMenuRequested.connect(
-            lambda event: self.context_menu_requested.emit(event.position, event.selected_text)
+            lambda event: self.context_menu_requested.emit(
+                event.position, event.selected_text
+            )
         )
 
         # Connect auto-copy handler
@@ -654,7 +671,9 @@ class TerminalWidget(_BaseTerminalClass):
         self.event_config.enabled_categories.discard(category)
         logger.debug(f"Disabled event category: {category.value}")
 
-    def monitor_command_execution(self, callback: Callable[[ProcessEvent], None]) -> None:
+    def monitor_command_execution(
+        self, callback: Callable[[ProcessEvent], None]
+    ) -> None:
         """Set up monitoring for command execution (helper method for common use case).
 
         Args:
@@ -755,18 +774,26 @@ class TerminalWidget(_BaseTerminalClass):
                 logger.info(
                     "✅ FOCUS SETUP: Installed focus event filter on QWebEngineView focus proxy"
                 )
-                logger.info(f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}")
+                logger.info(
+                    f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}"
+                )
             else:
-                logger.warning("❌ FOCUS SETUP: QWebEngineView focus proxy not available")
+                logger.warning(
+                    "❌ FOCUS SETUP: QWebEngineView focus proxy not available"
+                )
 
         # Try immediate setup first
         focus_proxy = self.web_view.focusProxy()
         if focus_proxy:
             focus_proxy.installEventFilter(self)
             logger.info("✅ FOCUS SETUP: Installed focus event filter immediately")
-            logger.info(f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}")
+            logger.info(
+                f"🔍 FOCUS SETUP: Focus proxy type: {type(focus_proxy).__name__}"
+            )
         else:
-            logger.info("⏳ FOCUS SETUP: Focus proxy not ready, will try after page loads")
+            logger.info(
+                "⏳ FOCUS SETUP: Focus proxy not ready, will try after page loads"
+            )
 
         # Also set up after page loads as backup
         def delayed_setup():
@@ -774,11 +801,15 @@ class TerminalWidget(_BaseTerminalClass):
             if focus_proxy and not hasattr(focus_proxy, "_vf_filter_installed"):
                 focus_proxy.installEventFilter(self)
                 focus_proxy._vf_filter_installed = True  # Mark as installed
-                logger.info("✅ FOCUS SETUP: Installed focus event filter after page load")
+                logger.info(
+                    "✅ FOCUS SETUP: Installed focus event filter after page load"
+                )
             elif focus_proxy:
                 logger.debug("🔍 FOCUS SETUP: Focus proxy already has filter installed")
             else:
-                logger.warning("❌ FOCUS SETUP: Still no focus proxy available after page load")
+                logger.warning(
+                    "❌ FOCUS SETUP: Still no focus proxy available after page load"
+                )
 
         # Set up focus detection after page loads
         self.web_view.loadFinished.connect(
@@ -813,7 +844,11 @@ class TerminalWidget(_BaseTerminalClass):
         """
         # Log all events when debugging to see what's happening
         if self.debug and obj == self.web_view.focusProxy():
-            event_name = event.type().name if hasattr(event.type(), "name") else str(event.type())
+            event_name = (
+                event.type().name
+                if hasattr(event.type(), "name")
+                else str(event.type())
+            )
             logger.debug(f"🔍 EVENT FILTER: Received {event_name} on focus proxy")
 
         if obj == self.web_view.focusProxy():
@@ -838,7 +873,9 @@ class TerminalWidget(_BaseTerminalClass):
         and allows developers to add their own custom actions.
         """
         # Log the right-click event for testing
-        logger.info(f"🖱️  RIGHT-CLICK detected at position ({event.pos().x()}, {event.pos().y()})")
+        logger.info(
+            f"🖱️  RIGHT-CLICK detected at position ({event.pos().x()}, {event.pos().y()})"
+        )
 
         # Get current selection from the bridge if available
         selected_text = ""
@@ -872,7 +909,9 @@ class TerminalWidget(_BaseTerminalClass):
                     menu.exec_(event.globalPos())
                     return
                 else:
-                    logger.info("❌ Custom handler returned None, falling back to default menu")
+                    logger.info(
+                        "❌ Custom handler returned None, falling back to default menu"
+                    )
             except Exception as e:
                 logger.warning(f"Custom context menu handler failed: {e}")
 
@@ -880,7 +919,9 @@ class TerminalWidget(_BaseTerminalClass):
         logger.info("📋 Showing default context menu")
         self._show_default_context_menu(event.globalPos(), selected_text)
 
-    def _show_default_context_menu(self, global_pos: QPoint, selected_text: str) -> None:
+    def _show_default_context_menu(
+        self, global_pos: QPoint, selected_text: str
+    ) -> None:
         """Show the default terminal context menu."""
         logger.debug(
             f"Creating default context menu at global position ({global_pos.x()}, {global_pos.y()})"
@@ -892,7 +933,9 @@ class TerminalWidget(_BaseTerminalClass):
         # Copy action (only if text is selected)
         if selected_text:
             copy_action = QAction("Copy", self)
-            copy_action.triggered.connect(lambda: self._copy_to_clipboard(selected_text))
+            copy_action.triggered.connect(
+                lambda: self._copy_to_clipboard(selected_text)
+            )
             menu.addAction(copy_action)
             action_count += 1
             logger.debug(f"➕ Added 'Copy' action (text length: {len(selected_text)})")
@@ -997,7 +1040,9 @@ class TerminalWidget(_BaseTerminalClass):
 
     # Phase 4: Context menu customization API for developers
 
-    def set_context_menu_handler(self, handler: Callable[[QPoint, str], Optional[QMenu]]) -> None:
+    def set_context_menu_handler(
+        self, handler: Callable[[QPoint, str], Optional[QMenu]]
+    ) -> None:
         """Set a custom context menu handler.
 
         Args:
@@ -1118,7 +1163,9 @@ class TerminalWidget(_BaseTerminalClass):
             )
         )
         self.bridge.key_pressed.connect(
-            lambda key, code, ctrl, alt, shift: self._emit_key_event(key, code, ctrl, alt, shift)
+            lambda key, code, ctrl, alt, shift: self._emit_key_event(
+                key, code, ctrl, alt, shift
+            )
         )
         self.bridge.data_received.connect(
             lambda data: (
@@ -1134,7 +1181,9 @@ class TerminalWidget(_BaseTerminalClass):
                 else None
             )
         )
-        self.bridge.shortcut_pressed.connect(lambda action_id: self.shortcutPressed.emit(action_id))
+        self.bridge.shortcut_pressed.connect(
+            lambda action_id: self.shortcutPressed.emit(action_id)
+        )
 
         # OSC 7: Working directory tracking
         self.bridge.working_directory_changed.connect(
@@ -1143,7 +1192,9 @@ class TerminalWidget(_BaseTerminalClass):
 
         logger.debug("Bridge signals connected to widget signals")
 
-    def _emit_key_event(self, key: str, code: str, ctrl: bool, alt: bool, shift: bool) -> None:
+    def _emit_key_event(
+        self, key: str, code: str, ctrl: bool, alt: bool, shift: bool
+    ) -> None:
         """Emit structured key event with category checking."""
         if EventCategory.INTERACTION in self.event_config.enabled_categories:
             key_event = KeyEvent(key=key, code=code, ctrl=ctrl, alt=alt, shift=shift)
@@ -1285,8 +1336,12 @@ class TerminalWidget(_BaseTerminalClass):
         # This handles the case where Theme Studio calls on_theme_changed() before
         # the terminal page finishes loading
         if self._pending_themed_app_theme:
-            logger.info("🔍 ========== _configure_terminal: Applying pending theme ==========")
-            logger.info(f"🔍 _pending_themed_app_theme: {self._pending_themed_app_theme}")
+            logger.info(
+                "🔍 ========== _configure_terminal: Applying pending theme =========="
+            )
+            logger.info(
+                f"🔍 _pending_themed_app_theme: {self._pending_themed_app_theme}"
+            )
             logger.info(
                 f"🔍 _pending_themed_app_theme type: {type(self._pending_themed_app_theme)}"
             )
@@ -1299,11 +1354,15 @@ class TerminalWidget(_BaseTerminalClass):
             theme_config = {}
 
             # Get base colors
-            logger.info("🔍 About to call _get_color_with_fallback('background', theme)")
+            logger.info(
+                "🔍 About to call _get_color_with_fallback('background', theme)"
+            )
             background = self._get_color_with_fallback("background", theme)
             logger.info(f"🔍 Got background: {background}")
 
-            logger.info("🔍 About to call _get_color_with_fallback('foreground', theme)")
+            logger.info(
+                "🔍 About to call _get_color_with_fallback('foreground', theme)"
+            )
             foreground = self._get_color_with_fallback("foreground", theme)
             logger.info(f"🔍 Got foreground: {foreground}")
 
@@ -1313,8 +1372,12 @@ class TerminalWidget(_BaseTerminalClass):
                 "foreground": foreground,
                 "cursor": self._get_color_with_fallback("cursor", theme),
                 "cursorAccent": self._get_color_with_fallback("cursorAccent", theme),
-                "selectionBackground": self._get_color_with_fallback("selectionBackground", theme),
-                "selectionForeground": self._get_color_with_fallback("selectionForeground", theme),
+                "selectionBackground": self._get_color_with_fallback(
+                    "selectionBackground", theme
+                ),
+                "selectionForeground": self._get_color_with_fallback(
+                    "selectionForeground", theme
+                ),
                 "selectionInactiveBackground": self._get_color_with_fallback(
                     "selectionInactiveBackground", theme
                 ),
@@ -1371,7 +1434,9 @@ class TerminalWidget(_BaseTerminalClass):
         logger.info(f"🔍 terminal config type: {type(terminal)}")
 
         # Build JavaScript to update xterm.js configuration
-        font_family = terminal.get("fontFamily", "Consolas, Monaco, 'Courier New', monospace")
+        font_family = terminal.get(
+            "fontFamily", "Consolas, Monaco, 'Courier New', monospace"
+        )
         font_size = terminal.get("fontSize", 14)
         line_height = terminal.get("lineHeight", 1.2)
         letter_spacing = terminal.get("letterSpacing", 0)
@@ -1477,6 +1542,10 @@ class TerminalWidget(_BaseTerminalClass):
             "fastScrollModifier": "fastScrollModifier",
             "rightClickSelectsWord": "rightClickSelectsWord",
             "convertEol": "convertEol",
+            "fontFamily": "fontFamily",
+            "fontSize": "fontSize",
+            "lineHeight": "lineHeight",
+            "letterSpacing": "letterSpacing",
         }
 
         for config_key, js_prop in config_mapping.items():
@@ -1498,7 +1567,8 @@ class TerminalWidget(_BaseTerminalClass):
         js_code = f"""
         if (typeof term !== 'undefined') {{
             {chr(10).join("            " + update for update in js_updates)}
-            console.log('Terminal configuration updated');
+            term.refresh(0, term.rows - 1);
+            console.log('Terminal configuration updated and refreshed');
         }} else {{
             console.error('Terminal not initialized - cannot apply configuration');
         }}
@@ -1662,13 +1732,15 @@ class TerminalWidget(_BaseTerminalClass):
         Returns:
             Dictionary with current terminal theme settings, or empty dict if none set
         """
-        return self._current_terminal_theme.copy() if self._current_terminal_theme else {}
+        return (
+            self._current_terminal_theme.copy() if self._current_terminal_theme else {}
+        )
 
     def set_terminal_config(self, config: dict) -> None:
         """Set terminal configuration options.
 
         This configures xterm.js behavior options like scrollback, cursor style,
-        bell behavior, etc. These are independent of visual theme settings.
+        bell behavior, font settings, etc. These are independent of visual theme settings.
 
         The configuration is stored and will be applied:
         - Immediately if the terminal is already loaded
@@ -1686,13 +1758,19 @@ class TerminalWidget(_BaseTerminalClass):
                    - fastScrollModifier: 'alt', 'ctrl', or 'shift' (default: 'shift')
                    - rightClickSelectsWord: Select word on right click (default: false)
                    - convertEol: Convert \\n to \\r\\n (default: false)
+                   - fontFamily: CSS font-family string (default: 'monospace')
+                   - fontSize: Font size in pixels (default: 14)
+                   - lineHeight: Line height multiplier (default: 1.2)
+                   - letterSpacing: Letter spacing in pixels (default: 0)
 
         Example:
             config = {
                 "scrollback": 10000,
                 "cursorBlink": true,
                 "cursorStyle": "block",
-                "bellStyle": "visual"
+                "bellStyle": "visual",
+                "fontSize": 16,
+                "lineHeight": 1.4
             }
             terminal.set_terminal_config(config)
         """
@@ -1822,20 +1900,48 @@ class TerminalWidget(_BaseTerminalClass):
         return ""
 
     def set_theme(self, theme_dict: dict[str, str]) -> None:
-        """Set terminal color theme.
+        """Set terminal color theme and font properties.
 
         Args:
-            theme_dict: Dictionary with color definitions (background, foreground, etc.)
+            theme_dict: Dictionary with color definitions and font properties
+                       (background, foreground, fontSize, fontFamily, etc.)
         """
         self._user_theme = theme_dict
         # Inject JavaScript to update xterm.js theme
         if self.web_view and self.is_connected:
-            js_theme = json.dumps(theme_dict)
-            # Use setOption('theme', ...) - the proper xterm.js v4 API method
-            # This creates a new theme object and triggers proper update/repaint
-            js_code = f"if (window.terminal) {{ window.terminal.setOption('theme', {js_theme}); }}"
-            self.inject_javascript(js_code)
-        logger.debug(f"Theme updated: {len(theme_dict)} colors")
+            # Separate font properties from color properties
+            font_properties = ["fontFamily", "fontSize", "lineHeight", "letterSpacing"]
+            color_dict = {
+                k: v for k, v in theme_dict.items() if k not in font_properties
+            }
+
+            # Build JavaScript commands
+            js_commands = []
+
+            # Set color theme
+            if color_dict:
+                js_theme = json.dumps(color_dict)
+                js_commands.append(f"window.terminal.setOption('theme', {js_theme});")
+
+            # Set font properties individually
+            for prop in font_properties:
+                if prop in theme_dict:
+                    value = theme_dict[prop]
+                    # JSON encode the value (handles strings, numbers, etc.)
+                    js_value = json.dumps(value)
+                    js_commands.append(
+                        f"window.terminal.setOption('{prop}', {js_value});"
+                    )
+                    logger.debug(f"🔍 Setting terminal {prop} = {value}")
+
+            # Execute all commands
+            if js_commands:
+                js_code = f"if (window.terminal) {{ {' '.join(js_commands)} }}"
+                self.inject_javascript(js_code)
+
+        logger.debug(
+            f"Theme updated: {len(theme_dict)} properties ({len([k for k in theme_dict if k in ['fontFamily', 'fontSize', 'lineHeight', 'letterSpacing']])} font, {len(theme_dict) - len([k for k in theme_dict if k in ['fontFamily', 'fontSize', 'lineHeight', 'letterSpacing']])} color)"
+        )
 
     def _get_color_with_fallback(self, token_name: str, theme=None) -> str:
         """Get color with fallback from terminal.colors.* to colors.*
@@ -1858,7 +1964,9 @@ class TerminalWidget(_BaseTerminalClass):
         import sys
 
         # TRACE: Entry point
-        logger.debug(f"🔍 _get_color_with_fallback(token_name={token_name}, theme={theme})")
+        logger.debug(
+            f"🔍 _get_color_with_fallback(token_name={token_name}, theme={theme})"
+        )
 
         # Use provided theme or get from widget's theme manager
         if theme is None:
@@ -1885,7 +1993,9 @@ class TerminalWidget(_BaseTerminalClass):
         color = theme.colors.get(specific_path)
         logger.debug(f"🔍 Specific path result: {color}")
         if color:
-            logger.debug(f"✅ Terminal color '{token_name}': using {specific_path} = {color}")
+            logger.debug(
+                f"✅ Terminal color '{token_name}': using {specific_path} = {color}"
+            )
             return color
 
         # Fall back to base color
@@ -1906,9 +2016,77 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Optional tokens can return None
         if color:
-            logger.debug(f"Terminal color '{token_name}': inherited from {base_path} = {color}")
+            logger.debug(
+                f"Terminal color '{token_name}': inherited from {base_path} = {color}"
+            )
 
         return color
+
+    def _get_font_with_fallback(self, token_name: str, theme=None, default=None):
+        """Get font with fallback from terminal.* to fonts.* to default.
+
+        Token resolution hierarchy:
+        1. Try terminal.{token_name} (widget-specific override)
+        2. Try fonts.{token_name} or fonts.mono (base)
+        3. Return default value
+
+        Args:
+            token_name: Token name (e.g., "fontSize", "fontFamily")
+            theme: Optional theme object (for Theme Studio context)
+            default: Default value if token not found
+
+        Returns:
+            Font value or default
+        """
+        logger.debug(
+            f"🔍 _get_font_with_fallback(token_name={token_name}, default={default})"
+        )
+
+        # Use provided theme or get from widget's theme manager
+        if theme is None:
+            theme = self.get_current_theme()
+
+        if not theme or not hasattr(theme, "fonts"):
+            logger.debug("🔍 No theme or no fonts attribute, returning default")
+            return default
+
+        logger.debug(f"🔍 Theme.fonts: {theme.fonts}")
+
+        # Try widget-specific override first
+        specific_path = f"terminal.{token_name}"
+        logger.debug(f"🔍 Trying specific path: {specific_path}")
+        value = theme.fonts.get(specific_path)
+        if value is not None:
+            logger.debug(
+                f"✅ Terminal font '{token_name}': using {specific_path} = {value}"
+            )
+            return value
+
+        # Fall back to base font token
+        # Special mapping: fontFamily -> fonts.mono, others use fonts.{token_name}
+        if token_name == "fontFamily":
+            base_path = "fonts.mono"
+        else:
+            base_path = (
+                f"fonts.{token_name.replace('font', '')}"  # fontSize -> fonts.size
+            )
+            if base_path == "fonts.Size":  # Handle camelCase
+                base_path = "fonts.size"
+
+        logger.debug(f"🔍 Trying base path: {base_path}")
+        value = theme.fonts.get(base_path)
+        if value is not None:
+            logger.debug(
+                f"✅ Terminal font '{token_name}': inherited from {base_path} = {value}"
+            )
+            # Convert list to CSS string for fontFamily
+            if token_name == "fontFamily" and isinstance(value, list):
+                value = ", ".join(value)
+                logger.debug(f"✅ Converted font list to CSS: {value}")
+            return value
+
+        logger.debug(f"✅ Terminal font '{token_name}': using default = {default}")
+        return default
 
     def _check_missing_tokens(self) -> list[str]:
         """Check which terminal.colors.* widget-specific tokens are missing.
@@ -1980,7 +2158,9 @@ class TerminalWidget(_BaseTerminalClass):
             logger.info(f"🔍 Theme has 'colors' attr: {hasattr(theme, 'colors')}")
             if hasattr(theme, "colors"):
                 logger.info(f"🔍 Theme.colors type: {type(theme.colors)}")
-                logger.info(f"🔍 Theme.colors is dict: {isinstance(theme.colors, dict)}")
+                logger.info(
+                    f"🔍 Theme.colors is dict: {isinstance(theme.colors, dict)}"
+                )
                 if isinstance(theme.colors, dict):
                     logger.info(
                         f"🔍 Theme.colors keys (first 10): {list(theme.colors.keys())[:10]}"
@@ -1991,7 +2171,9 @@ class TerminalWidget(_BaseTerminalClass):
                             f"🔍 theme.colors['colors.background'] = {theme.colors['colors.background']}"
                         )
                     else:
-                        logger.warning("🔥 'colors.background' NOT FOUND in theme.colors!")
+                        logger.warning(
+                            "🔥 'colors.background' NOT FOUND in theme.colors!"
+                        )
         logger.info(f"🔍 Terminal is_connected: {self.is_connected}")
         logger.info(f"🔍 THEME_AVAILABLE: {THEME_AVAILABLE}")
 
@@ -2016,7 +2198,9 @@ class TerminalWidget(_BaseTerminalClass):
 
         # If terminal isn't loaded yet, theme will be applied in _configure_terminal()
         if not self.is_connected:
-            logger.info("🔍 Terminal not loaded yet, theme will be applied after page load")
+            logger.info(
+                "🔍 Terminal not loaded yet, theme will be applied after page load"
+            )
             logger.info("🔍 ========== on_theme_changed() END (deferred) ==========")
             return
 
@@ -2024,13 +2208,16 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Build xterm.js theme with hierarchical token resolution
         xterm_theme = {
-            "background": self._get_color_with_fallback("background", theme) or "#1e1e1e",
+            "background": self._get_color_with_fallback("background", theme)
+            or "#1e1e1e",
             "foreground": self._get_color_with_fallback("foreground", theme),
             "cursor": self._get_color_with_fallback("cursor", theme)
             or self._get_color_with_fallback("foreground", theme),
             "cursorAccent": self._get_color_with_fallback("cursorAccent", theme)
             or self._get_color_with_fallback("background", theme),
-            "selectionBackground": self._get_color_with_fallback("selectionBackground", theme),
+            "selectionBackground": self._get_color_with_fallback(
+                "selectionBackground", theme
+            ),
             # ANSI colors
             "black": self._get_color_with_fallback("ansiBlack", theme),
             "red": self._get_color_with_fallback("ansiRed", theme),
@@ -2048,6 +2235,13 @@ class TerminalWidget(_BaseTerminalClass):
             "brightMagenta": self._get_color_with_fallback("ansiBrightMagenta", theme),
             "brightCyan": self._get_color_with_fallback("ansiBrightCyan", theme),
             "brightWhite": self._get_color_with_fallback("ansiBrightWhite", theme),
+            # Font properties (NEW!)
+            "fontFamily": self._get_font_with_fallback(
+                "fontFamily", theme, "Consolas, Monaco, 'Courier New', monospace"
+            ),
+            "fontSize": self._get_font_with_fallback("fontSize", theme, 14),
+            "lineHeight": self._get_font_with_fallback("lineHeight", theme, 1.2),
+            "letterSpacing": self._get_font_with_fallback("letterSpacing", theme, 0),
         }
 
         # Check for missing terminal-specific tokens
@@ -2107,7 +2301,9 @@ class TerminalWidget(_BaseTerminalClass):
         else:
             logger.warning("Cannot inject JavaScript: web view not ready")
 
-    def add_keyboard_shortcut(self, key_combination: str, callback: Callable[[], None]) -> None:
+    def add_keyboard_shortcut(
+        self, key_combination: str, callback: Callable[[], None]
+    ) -> None:
         """Add custom keyboard shortcut.
 
         Args:
@@ -2243,7 +2439,9 @@ class TerminalWidget(_BaseTerminalClass):
 
     def resizeEvent(self, event) -> None:
         """Handle resize event."""
-        logger.debug(f"Terminal widget resized to {event.size().width()}x{event.size().height()}")
+        logger.debug(
+            f"Terminal widget resized to {event.size().width()}x{event.size().height()}"
+        )
         super().resizeEvent(event)
         # Terminal will handle resize through xterm.js fit addon
 
