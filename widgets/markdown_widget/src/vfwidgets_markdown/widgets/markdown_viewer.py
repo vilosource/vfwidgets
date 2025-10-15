@@ -907,3 +907,132 @@ class MarkdownViewer(_BaseClass):
         """Handle widget closing - remove observer to prevent memory leaks."""
         self._document.remove_observer(self)
         super().closeEvent(event)
+
+
+# ============================================================================
+# Theme Studio Integration - Plugin Discovery
+# ============================================================================
+
+
+def get_preview_metadata():
+    """Get preview metadata for Theme Studio plugin discovery.
+
+    This function is called by Theme Studio's plugin discovery system via
+    entry points to automatically register the markdown viewer widget as a
+    preview plugin.
+
+    Returns:
+        WidgetMetadata: Metadata describing the markdown viewer for preview
+    """
+    from vfwidgets_theme import PluginAvailability, WidgetMetadata
+
+    def create_preview_markdown_viewer(parent=None):
+        """Create a markdown viewer configured for preview.
+
+        Args:
+            parent: Parent widget
+
+        Returns:
+            MarkdownViewer configured for preview mode with sample content
+        """
+        from PySide6.QtWidgets import QSizePolicy
+
+        # Create sample markdown content to showcase theme colors
+        sample_content = """# Markdown Preview
+
+This is a **live preview** of how markdown content looks with the current theme.
+
+## Features Demonstrated
+
+- **Bold text** and *italic text*
+- [Links](https://example.com) with theme colors
+- `inline code` with background
+
+### Code Blocks
+
+```python
+def hello_world():
+    print("Hello from themed markdown!")
+    return True
+```
+
+### Lists
+
+1. First item
+2. Second item
+3. Third item
+
+- Bullet point
+- Another point
+  - Nested item
+
+### Blockquote
+
+> This is a blockquote demonstrating the theme's blockquote styling.
+> Multiple lines show how the theme handles quote borders and backgrounds.
+
+### Table
+
+| Feature | Status |
+|---------|--------|
+| Headers | ✓ |
+| Rows    | ✓ |
+| Styling | ✓ |
+
+---
+
+Try changing themes to see how the markdown content adapts!
+"""
+
+        # Create viewer with sample content
+        viewer = MarkdownViewer(initial_content=sample_content, parent=parent)
+
+        # Make viewer expand to fill available space
+        viewer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        return viewer
+
+    # Define theme tokens used by markdown viewer
+    theme_tokens = {
+        # Content colors
+        "md_bg": "editor.background",
+        "md_fg": "editor.foreground",
+        "md_link": "textLink.foreground",
+        # Code styling
+        "md_code_bg": "editor.code.background",
+        "md_code_fg": "editor.code.foreground",
+        # UI elements
+        "md_blockquote_border": "editor.blockquote.border",
+        "md_blockquote_bg": "editor.blockquote.background",
+        "md_table_border": "widget.border",
+        "md_table_header_bg": "list.headerBackground",
+        # Scrollbar
+        "md_scrollbar_bg": "editor.background",
+        "md_scrollbar_thumb": "scrollbar.activeBackground",
+        "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
+    }
+
+    return WidgetMetadata(
+        name="Markdown Viewer",
+        widget_class_name="MarkdownViewer",
+        package_name="vfwidgets_markdown",
+        version="2.0.0",
+        theme_tokens=theme_tokens,
+        required_tokens=[
+            "editor.background",
+            "editor.foreground",
+        ],
+        optional_tokens=[
+            "textLink.foreground",
+            "editor.code.background",
+            "editor.code.foreground",
+            "editor.blockquote.border",
+            "editor.blockquote.background",
+            "widget.border",
+            "list.headerBackground",
+            "scrollbar.activeBackground",
+            "scrollbar.hoverBackground",
+        ],
+        preview_factory=create_preview_markdown_viewer,
+        availability=PluginAvailability.AVAILABLE,
+    )

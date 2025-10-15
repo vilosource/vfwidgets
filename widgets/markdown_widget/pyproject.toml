@@ -41,6 +41,10 @@ dev = [
     "types-PySide6>=6.0",
 ]
 
+# Entry points for plugin discovery
+[project.entry-points."vfwidgets.preview"]
+markdown = "vfwidgets_markdown.widgets.markdown_viewer:get_preview_metadata"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
