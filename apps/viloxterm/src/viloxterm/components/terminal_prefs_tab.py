@@ -11,11 +11,11 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
-    QLineEdit,
     QScrollArea,
     QSpinBox,
     QVBoxLayout,
 )
+from PySide6.QtGui import QFontDatabase
 
 from vfwidgets_theme import ThemedQWidget
 from vfwidgets_terminal import presets
@@ -134,10 +134,18 @@ class TerminalPreferencesTab(ThemedQWidget):
         group = QGroupBox("Font")
         layout = QFormLayout(group)
 
-        # Font family
-        self.font_family_edit = QLineEdit()
-        self.font_family_edit.setPlaceholderText("e.g., JetBrains Mono, Consolas, monospace")
-        layout.addRow("Font family:", self.font_family_edit)
+        # Font family - editable combo box with system monospace fonts
+        self.font_family_combo = QComboBox()
+        self.font_family_combo.setEditable(True)
+        self.font_family_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.font_family_combo.lineEdit().setPlaceholderText(
+            "e.g., JetBrains Mono, Consolas, monospace"
+        )
+
+        # Populate with system monospace fonts
+        self._populate_monospace_fonts()
+
+        layout.addRow("Font family:", self.font_family_combo)
 
         # Font size
         self.font_size_spin = QSpinBox()
@@ -159,6 +167,63 @@ class TerminalPreferencesTab(ThemedQWidget):
         layout.addRow("Letter spacing:", self.letter_spacing_spin)
 
         return group
+
+    def _populate_monospace_fonts(self) -> None:
+        """Populate font family combo box with available monospace fonts."""
+        font_db = QFontDatabase()
+
+        # Get all font families
+        families = font_db.families()
+
+        # Filter for monospace/fixed-pitch fonts
+        monospace_fonts = []
+        for family in families:
+            if font_db.isFixedPitch(family):
+                monospace_fonts.append(family)
+
+        # Sort alphabetically
+        monospace_fonts.sort()
+
+        # Add common terminal fonts first (if available)
+        preferred_fonts = [
+            "JetBrains Mono",
+            "Fira Code",
+            "Source Code Pro",
+            "DejaVu Sans Mono",
+            "Consolas",
+            "Monaco",
+            "Courier New",
+            "Liberation Mono",
+            "Ubuntu Mono",
+            "Noto Sans Mono",
+            "Hack",
+            "Inconsolata",
+        ]
+
+        # Build final list with preferred fonts at top
+        final_fonts = []
+        for font in preferred_fonts:
+            if font in monospace_fonts:
+                final_fonts.append(font)
+                monospace_fonts.remove(font)
+
+        # Add separator if we have preferred fonts
+        if final_fonts:
+            final_fonts.append("─" * 30)  # Visual separator
+
+        # Add remaining monospace fonts
+        final_fonts.extend(monospace_fonts)
+
+        # Add "monospace" as fallback option
+        final_fonts.append("monospace")
+
+        # Populate combo box
+        self.font_family_combo.addItems(final_fonts)
+
+        # Set default empty (uses system default)
+        self.font_family_combo.setCurrentIndex(-1)
+
+        logger.debug(f"Found {len(monospace_fonts)} monospace fonts on system")
 
     def _create_cursor_group(self) -> QGroupBox:
         """Create the cursor settings group.
@@ -252,7 +317,19 @@ class TerminalPreferencesTab(ThemedQWidget):
             self.term_type_combo.setEditText(term_type)
 
         # Load font settings
-        self.font_family_edit.setText(config.get("fontFamily", ""))
+        font_family = config.get("fontFamily", "")
+        if font_family:
+            # Try to find the font in the combo box
+            index = self.font_family_combo.findText(font_family)
+            if index >= 0:
+                self.font_family_combo.setCurrentIndex(index)
+            else:
+                # Custom font not in list, set it as text
+                self.font_family_combo.setEditText(font_family)
+        else:
+            # Empty means system default
+            self.font_family_combo.setCurrentIndex(-1)
+
         self.font_size_spin.setValue(config.get("fontSize", 14))
         self.line_height_spin.setValue(config.get("lineHeight", 1.2))
         self.letter_spacing_spin.setValue(config.get("letterSpacing", 0))
@@ -286,11 +363,16 @@ class TerminalPreferencesTab(ThemedQWidget):
         Returns:
             Dictionary with terminal configuration
         """
+        # Get font family, filtering out separator
+        font_family = self.font_family_combo.currentText()
+        if font_family.startswith("─"):
+            font_family = ""  # Treat separator as empty
+
         self._config = {
             "scrollback": self.scrollback_spin.value(),
             "tabStopWidth": self.tab_width_spin.value(),
             "termType": self.term_type_combo.currentText(),
-            "fontFamily": self.font_family_edit.text(),
+            "fontFamily": font_family,
             "fontSize": self.font_size_spin.value(),
             "lineHeight": self.line_height_spin.value(),
             "letterSpacing": self.letter_spacing_spin.value(),
