@@ -27,6 +27,8 @@ from .base import ThemedWidget
 from .color_editor import ColorEditorWidget
 from .convenience import ThemedDialog
 from .font_editor import FontEditorWidget
+from .font_family_editor import FontFamilyListEditor
+from .font_property_editor import FontPropertyEditorWidget
 from .import_export import ThemeExportDialog, ThemeImportDialog
 from .preview_samples import ThemePreviewWidget
 from .token_browser import TokenBrowserWidget
@@ -144,13 +146,25 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
         self._color_editor.color_changed.connect(self._on_color_changed)
         editor_layout.addWidget(self._color_editor)
 
-        # Font editor
+        # Font editor (legacy CSS-based)
         self._font_editor = FontEditorWidget()
         self._font_editor.font_changed.connect(self._on_font_changed)
         editor_layout.addWidget(self._font_editor)
 
-        # Initially hide font editor (show based on token type)
+        # Font property editor (Phase 4 - token-based)
+        self._font_property_editor = FontPropertyEditorWidget()
+        self._font_property_editor.property_changed.connect(self._on_font_property_changed)
+        editor_layout.addWidget(self._font_property_editor)
+
+        # Font family list editor (Phase 5 - family lists with drag-drop)
+        self._font_family_editor = FontFamilyListEditor()
+        self._font_family_editor.families_changed.connect(self._on_font_families_changed)
+        editor_layout.addWidget(self._font_family_editor)
+
+        # Initially hide font editors (show based on token type)
         self._font_editor.hide()
+        self._font_property_editor.hide()
+        self._font_family_editor.hide()
 
         editor_layout.addStretch()
         self._splitter.addWidget(self._editor_panel)
@@ -191,14 +205,38 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
         token_value = self._get_token_value(token_path)
 
         # Determine token type and show appropriate editor
-        if self._is_font_token(token_path):
-            # Show font editor
+        if self._is_font_family_token(token_path):
+            # Show font family list editor (Phase 5 - family lists with drag-drop)
+            from ..core.font_tokens import FontTokenRegistry
+
+            # Get current family list with fallback resolution
+            families = FontTokenRegistry.get_font_family(token_path, self._current_theme)
+
             self._color_editor.hide()
+            self._font_editor.hide()
+            self._font_property_editor.hide()
+            self._font_family_editor.show()
+            self._font_family_editor.set_token(token_path, families, self._current_theme)
+        elif self._is_font_property_token(token_path):
+            # Show font property editor (Phase 4 - size, weight, line height, letter spacing)
+            self._color_editor.hide()
+            self._font_editor.hide()
+            self._font_property_editor.hide()
+            self._font_family_editor.hide()
+            self._font_property_editor.show()
+            self._font_property_editor.set_token(token_path, token_value, self._current_theme)
+        elif self._is_font_token(token_path):
+            # Show legacy font editor (CSS-based)
+            self._color_editor.hide()
+            self._font_property_editor.hide()
+            self._font_family_editor.hide()
             self._font_editor.show()
             self._font_editor.set_token(token_path, token_value)
         else:
             # Show color editor (default)
             self._font_editor.hide()
+            self._font_property_editor.hide()
+            self._font_family_editor.hide()
             self._color_editor.show()
             self._color_editor.set_token(token_path, token_value)
 
@@ -255,14 +293,80 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
 
             logger.debug(f"Token updated: {token_path} = {font_value}")
 
-    def _get_token_value(self, token_path: str) -> str:
+    def _on_font_property_changed(self, token_path: str, new_value) -> None:
+        """Handle font property editor changes (Phase 4).
+
+        Args:
+            token_path: Token path (e.g., "terminal.fontSize")
+            new_value: New property value
+
+        """
+        if token_path and self._current_theme:
+            # Update theme.fonts directly
+            self._current_theme.fonts[token_path] = new_value
+
+            # Rebuild theme with updated fonts
+            if self._theme_builder:
+                # Update builder with new fonts
+                for font_token, font_value in self._current_theme.fonts.items():
+                    self._theme_builder.add_font(font_token, font_value)
+                self._current_theme = self._theme_builder.build()
+
+            # Update token browser with new theme
+            self._token_browser.set_theme(self._current_theme)
+
+            # Emit modified signal
+            self.theme_modified.emit()
+
+            # Schedule preview update (debounced)
+            self._schedule_preview_update()
+
+            # Update validation
+            self._update_validation()
+
+            logger.debug(f"Font property updated: {token_path} = {new_value}")
+
+    def _on_font_families_changed(self, token_path: str, new_families: list[str]) -> None:
+        """Handle font family list editor changes (Phase 5).
+
+        Args:
+            token_path: Token path (e.g., "terminal.fontFamily")
+            new_families: New font family list
+
+        """
+        if token_path and self._current_theme:
+            # Update theme.fonts directly
+            self._current_theme.fonts[token_path] = new_families
+
+            # Rebuild theme with updated fonts
+            if self._theme_builder:
+                # Update builder with new fonts
+                for font_token, font_value in self._current_theme.fonts.items():
+                    self._theme_builder.add_font(font_token, font_value)
+                self._current_theme = self._theme_builder.build()
+
+            # Update token browser with new theme
+            self._token_browser.set_theme(self._current_theme)
+
+            # Emit modified signal
+            self.theme_modified.emit()
+
+            # Schedule preview update (debounced)
+            self._schedule_preview_update()
+
+            # Update validation
+            self._update_validation()
+
+            logger.debug(f"Font families updated: {token_path} = {new_families}")
+
+    def _get_token_value(self, token_path: str):
         """Get current value of a token.
 
         Args:
             token_path: Token path
 
         Returns:
-            Token value as string
+            Token value (type depends on token)
 
         """
         if not self._current_theme:
@@ -272,6 +376,10 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
         if token_path in self._current_theme.colors:
             return self._current_theme.colors[token_path]
 
+        # Try fonts (Phase 4)
+        if token_path in self._current_theme.fonts:
+            return self._current_theme.fonts[token_path]
+
         # Try styles
         if token_path in self._current_theme.styles:
             style = self._current_theme.styles[token_path]
@@ -279,6 +387,46 @@ class ThemeEditorWidget(ThemedWidget, QWidget):
                 return style["font"]
 
         return ""
+
+    def _is_font_family_token(self, token_path: str) -> bool:
+        """Check if token is a font family token (Phase 5).
+
+        Font family tokens are lists of font families like terminal.fontFamily,
+        fonts.mono, fonts.ui, fonts.serif that can be edited with FontFamilyListEditor.
+
+        Args:
+            token_path: Token path
+
+        Returns:
+            True if font family token
+
+        """
+        # Check if token is a font family token
+        return (
+            "Family" in token_path
+            or token_path in ["fonts.mono", "fonts.ui", "fonts.serif"]
+        )
+
+    def _is_font_property_token(self, token_path: str) -> bool:
+        """Check if token is a font property token (Phase 4).
+
+        Font property tokens are individual properties like size, weight, line height,
+        letter spacing that can be edited with FontPropertyEditorWidget.
+
+        Args:
+            token_path: Token path
+
+        Returns:
+            True if font property token
+
+        """
+        # Check if token is in theme.fonts (not in styles)
+        if self._current_theme and token_path in self._current_theme.fonts:
+            # Exclude font family tokens (those are handled differently in Phase 5)
+            if self._is_font_family_token(token_path):
+                return False
+            return True
+        return False
 
     def _is_font_token(self, token_path: str) -> bool:
         """Check if token is a font token.

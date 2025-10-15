@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, QTimer
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QSplitter
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QSplitter, QTabWidget
 from vfwidgets_keybinding import KeybindingManager
 
 from .actions import get_action_definitions
@@ -15,7 +15,7 @@ from .commands import SetTokenCommand
 from .components import StatusBarWidget, create_menu_bar, create_toolbar
 from .controllers import PluginRegistry, ThemeController
 from .models import ThemeDocument
-from .panels import InspectorPanel, PreviewCanvasPanel, TokenBrowserPanel
+from .panels import FontBrowserPanel, InspectorPanel, PreviewCanvasPanel, TokenBrowserPanel
 from .plugins import DiscoveredWidgetPlugin, GenericWidgetsPlugin
 from .widgets import TokenTreeModel
 
@@ -212,26 +212,40 @@ class ThemeStudioWindow(QMainWindow):
         self.addToolBar(self.toolbar)
 
     def _create_central_widget(self):
-        """Create three-panel layout."""
+        """Create three-panel layout with tabbed token browser."""
         # Main horizontal splitter
         self.main_splitter = QSplitter(Qt.Horizontal)
 
-        # Create three panels
-        self.token_browser = TokenBrowserPanel()
+        # LEFT PANEL: Tabbed token browser
+        self.token_tabs = QTabWidget()
+
+        # Colors tab (existing token browser)
+        self.color_browser = TokenBrowserPanel()
+        self.token_tabs.addTab(self.color_browser, "Colors")
+
+        # Fonts tab (new font browser)
+        self.font_browser = FontBrowserPanel()
+        self.token_tabs.addTab(self.font_browser, "Fonts")
+
+        # MIDDLE PANEL: Preview canvas
         self.preview_canvas = PreviewCanvasPanel()
+
+        # RIGHT PANEL: Inspector
         self.inspector_panel = InspectorPanel()
 
-        # Connect token browser to inspector (Task 5.2)
-        self.token_browser.token_selected.connect(self._on_token_selected_for_inspector)
+        # Connect color browser to inspector
+        self.color_browser.token_selected.connect(self._on_token_selected_for_inspector)
+        self.color_browser.token_edit_requested.connect(self._on_token_edit_requested)
 
-        # Connect double-click for quick editing
-        self.token_browser.token_edit_requested.connect(self._on_token_edit_requested)
+        # Connect font browser to inspector
+        self.font_browser.font_token_selected.connect(self._on_font_token_selected_for_inspector)
+        self.font_browser.font_token_edit_requested.connect(self._on_font_token_edit_requested)
 
         # NOTE: Inspector no longer emits signals - uses controller pattern
         # Controller will be injected when document is created
 
         # Add panels to splitter
-        self.main_splitter.addWidget(self.token_browser)
+        self.main_splitter.addWidget(self.token_tabs)  # Tabs instead of single browser
         self.main_splitter.addWidget(self.preview_canvas)
         self.main_splitter.addWidget(self.inspector_panel)
 
@@ -357,7 +371,7 @@ class ThemeStudioWindow(QMainWindow):
             # Clear canvas
             self.preview_canvas.clear_content()
             # Clear token filter
-            self.token_browser.set_current_widget_tokens(None)
+            self.color_browser.set_current_widget_tokens(None)
             return
 
         # Get plugin
@@ -375,10 +389,10 @@ class ThemeStudioWindow(QMainWindow):
         if isinstance(plugin, DiscoveredWidgetPlugin):
             # Get unique token paths from the plugin's metadata
             token_paths = set(plugin.metadata.unique_token_paths)
-            self.token_browser.set_current_widget_tokens(token_paths)
+            self.color_browser.set_current_widget_tokens(token_paths)
         else:
             # Manual plugins don't have metadata, show all tokens
-            self.token_browser.set_current_widget_tokens(None)
+            self.color_browser.set_current_widget_tokens(None)
 
         # Apply current theme to the newly loaded widget
         # This ensures the widget gets the theme on initial load (not just on changes)
@@ -404,6 +418,34 @@ class ThemeStudioWindow(QMainWindow):
 
         # Update inspector
         self.inspector_panel.set_token(token_name, token_value)
+
+    def _on_font_token_selected_for_inspector(self, token_path: str):
+        """Handle font token selection for inspector display.
+
+        Args:
+            token_path: Selected font token path (e.g., "terminal.fontSize")
+        """
+        if not self._current_document:
+            return
+
+        # Get font token value from document
+        token_value = self._current_document.get_font(token_path)
+
+        # Update inspector with font token
+        self.inspector_panel.set_font_token(token_path, token_value, self._current_document.theme)
+
+    def _on_font_token_edit_requested(self, token_path: str, current_value):
+        """Handle double-click on font token - show editor in inspector.
+
+        Args:
+            token_path: Font token path to edit
+            current_value: Current token value (may be None)
+        """
+        if not self._current_document:
+            return
+
+        # Same as single-click - show the font editor in inspector
+        self.inspector_panel.set_font_token(token_path, current_value, self._current_document.theme)
 
     def _on_token_edit_requested(self, token_name: str, current_value: str):
         """Handle double-click on token - open color editor directly.
@@ -481,6 +523,7 @@ class ThemeStudioWindow(QMainWindow):
         if self._current_document:
             self._current_document.modified.disconnect(self._on_document_modified)
             self._current_document.token_changed.disconnect(self._on_token_changed)
+            self._current_document.font_changed.disconnect(self._on_font_changed)
             self._current_document.metadata_changed.disconnect(self._on_metadata_changed)
             self._current_document.file_path_changed.disconnect(self._on_file_path_changed)
 
@@ -499,6 +542,7 @@ class ThemeStudioWindow(QMainWindow):
         # Connect document signals to window
         document.modified.connect(self._on_document_modified)
         document.token_changed.connect(self._on_token_changed)
+        document.font_changed.connect(self._on_font_changed)
         document.metadata_changed.connect(self._on_metadata_changed)
         document.file_path_changed.connect(self._on_file_path_changed)
 
@@ -514,9 +558,12 @@ class ThemeStudioWindow(QMainWindow):
             undo_action.setEnabled(document._undo_stack.canUndo())
             redo_action.setEnabled(document._undo_stack.canRedo())
 
-        # Create token tree model and set it on the token browser (Task 3.2)
+        # Create token tree model and set it on the color browser (Task 3.2)
         token_model = TokenTreeModel(document)
-        self.token_browser.set_model(token_model)
+        self.color_browser.set_model(token_model)
+
+        # Set document on font browser (uses FontTreeModel internally)
+        self.font_browser.set_document(document)
 
         # Set initial theme for preview (Task 10.1)
         # ARCHITECTURAL FIX: Only update preview, not entire app
@@ -656,6 +703,16 @@ class ThemeStudioWindow(QMainWindow):
                             "🔥 [Theme Studio] 'colors.background' NOT FOUND in theme.colors!"
                         )
 
+                    # Log font information
+                    logger.info(f"🔍 [Theme Studio] theme has fonts: {hasattr(theme, 'fonts')}")
+                    if hasattr(theme, "fonts"):
+                        logger.info(f"🔍 [Theme Studio] theme.fonts type: {type(theme.fonts)}")
+                        logger.info(f"🔍 [Theme Studio] theme.fonts keys: {list(theme.fonts.keys())[:10] if theme.fonts else 'None'}")
+                        if theme.fonts and "terminal.fontSize" in theme.fonts:
+                            logger.info(f"🔍 [Theme Studio] theme.fonts['terminal.fontSize'] = {theme.fonts['terminal.fontSize']}")
+                        if theme.fonts and "fonts.mono" in theme.fonts:
+                            logger.info(f"🔍 [Theme Studio] theme.fonts['fonts.mono'] = {theme.fonts['fonts.mono']}")
+
                     plugin_widget.on_theme_changed(theme)
 
                     # Restore original theme
@@ -729,6 +786,26 @@ class ThemeStudioWindow(QMainWindow):
         # Calling inspector.set_token() here causes a synchronous UI update during
         # the signal chain, which can conflict with dialog cleanup and cause segfaults.
 
+    def _on_font_changed(self, token_path: str, new_value):
+        """Handle font token value change.
+
+        Args:
+            token_path: Path of changed font token
+            new_value: New font value (list, int, float, or str)
+        """
+        logger.debug(f"_on_font_changed: token={token_path}, value={new_value}")
+
+        # Font browser updates automatically via FontTreeModel's font_changed connection
+        # No manual update needed
+
+        # Update status bar
+        self._update_status_bar()
+
+        # Update preview canvas (fonts affect rendering)
+        if self._current_document and hasattr(self, "preview_canvas"):
+            logger.debug("_on_font_changed: Scheduling deferred preview theme update")
+            QTimer.singleShot(0, self._deferred_update_preview_theme)
+
     def _on_metadata_changed(self, field: str, value: str):
         """Handle metadata field change.
 
@@ -796,6 +873,7 @@ class ThemeStudioWindow(QMainWindow):
         if not self._current_document:
             self.status_bar.update_theme_info("No theme loaded", False)
             self.status_bar.update_token_count(0, 197)
+            self.status_bar.update_font_count(0, 22)
             return
 
         # Update theme info
@@ -803,9 +881,13 @@ class ThemeStudioWindow(QMainWindow):
         is_modified = self._current_document.is_modified()
         self.status_bar.update_theme_info(theme_name, is_modified)
 
-        # Update token count
-        defined, total = self._current_document.get_token_count()
-        self.status_bar.update_token_count(defined, total)
+        # Update color token count
+        color_defined, color_total = self._current_document.get_token_count()
+        self.status_bar.update_token_count(color_defined, color_total)
+
+        # Update font token count
+        font_defined, font_total = self._current_document.get_font_count()
+        self.status_bar.update_font_count(font_defined, font_total)
 
     # File actions (Task 6.1-6.3)
     def new_theme(self):

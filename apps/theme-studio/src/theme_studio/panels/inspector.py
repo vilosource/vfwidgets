@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from vfwidgets_theme.core.theme import Theme
 from vfwidgets_theme.core.tokens import ColorTokenRegistry
 
 from ..validators.metadata_validator import MetadataValidator
@@ -51,8 +52,10 @@ class InspectorPanel(QWidget):
         self._controller = controller
         self._current_token = None
         self._current_value = None
+        self._current_theme = None  # Current theme for font editors
         self._color_dialog = None  # Keep reference to prevent premature deletion
         self._setup_ui()
+        self._setup_font_editors()
 
     def set_controller(self, controller) -> None:
         """Set the theme controller.
@@ -61,6 +64,31 @@ class InspectorPanel(QWidget):
             controller: ThemeController instance
         """
         self._controller = controller
+
+    def _setup_font_editors(self):
+        """Setup font editing widgets from vfwidgets_theme."""
+        try:
+            from vfwidgets_theme.widgets import (
+                FontFamilyListEditor,
+                FontPropertyEditorWidget,
+            )
+
+            # Create font editors with self as parent (CRITICAL!)
+            self._font_property_editor = FontPropertyEditorWidget(self)
+            self._font_family_editor = FontFamilyListEditor(self)
+
+            # Connect signals
+            self._font_property_editor.property_changed.connect(self._on_font_property_changed)
+            self._font_family_editor.families_changed.connect(self._on_font_families_changed)
+
+            # Hide initially (will be added to layout when needed)
+            self._font_property_editor.hide()
+            self._font_family_editor.hide()
+
+        except ImportError:
+            logger.warning("Font editing widgets not available")
+            self._font_property_editor = None
+            self._font_family_editor = None
 
     def _setup_metadata_section(self, layout: QVBoxLayout):
         """Setup theme metadata section at top of inspector.
@@ -206,8 +234,26 @@ class InspectorPanel(QWidget):
         self.token_description_label.setWordWrap(True)
         info_layout.addRow("Description:", self.token_description_label)
 
+        # Default value display (NEW)
+        self.token_default_label = QLabel("-")
+        self.token_default_label.setWordWrap(True)
+        self.token_default_label.setStyleSheet("color: #666; font-style: italic;")
+        info_layout.addRow("Default:", self.token_default_label)
+
         self.info_group.hide()  # Hidden until token selected
         layout.addWidget(self.info_group)
+
+        # Reset to Default button (NEW)
+        from PySide6.QtWidgets import QHBoxLayout, QPushButton
+        reset_button_layout = QHBoxLayout()
+        self.reset_button = QPushButton("Reset to Default")
+        self.reset_button.setToolTip("Reset this token to its default value")
+        self.reset_button.clicked.connect(self._on_reset_to_default)
+        self.reset_button.hide()  # Hidden until token selected
+        reset_button_layout.addStretch()
+        reset_button_layout.addWidget(self.reset_button)
+        reset_button_layout.addStretch()
+        layout.addLayout(reset_button_layout)
 
         # Color details group (only shown for color tokens with values)
         self.color_group = QGroupBox("Color Details")
@@ -225,6 +271,9 @@ class InspectorPanel(QWidget):
         self.color_group.hide()  # Hidden until color token selected
         layout.addWidget(self.color_group)
 
+        # Font editing widgets (added after setup_font_editors creates them)
+        # These will be added dynamically when needed
+
         layout.addStretch()
 
     def set_token(self, token_name: str, token_value: str):
@@ -236,6 +285,7 @@ class InspectorPanel(QWidget):
         """
         self._current_token = token_name
         self._current_value = token_value
+        self._current_theme = None  # Clear theme (this is a color token, not font)
 
         # Update title
         self.title_label.setText(token_name)
@@ -246,14 +296,58 @@ class InspectorPanel(QWidget):
         # Show info group
         self.info_group.show()
 
-        # Update token info
-        self.token_name_label.setText(token_name)
+        # Update token info with badge if modified from default
+        token_display_name = token_name
+        if token_info and token_value:
+            theme_type = "dark"
+            if self._controller and hasattr(self._controller, '_document'):
+                theme_type = self._controller._document.theme.type
+            default_value = token_info.default_dark if theme_type == "dark" else token_info.default_light
+            if token_value != default_value:
+                token_display_name = f"{token_name} ✓"  # Checkmark indicates customized
+
+        self.token_name_label.setText(token_display_name)
         display_value = token_value if token_value else "(click to set)"
         self.token_value_label.setText(display_value)
         self.token_category_label.setText(token_info.category.value if token_info else "unknown")
         self.token_description_label.setText(
             token_info.description if token_info else "No description"
         )
+
+        # Show default value for color tokens (theme-specific)
+        if token_info:
+            # Get theme type from document (default to "dark" if not available)
+            theme_type = "dark"  # Will be improved when we have document reference
+            if self._controller and hasattr(self._controller, '_document'):
+                theme_type = self._controller._document.theme.type
+
+            default_value = token_info.default_dark if theme_type == "dark" else token_info.default_light
+            self.token_default_label.setText(default_value)
+
+            # Enable reset button only if current value differs from default
+            if token_value and token_value != default_value:
+                self.reset_button.show()
+                self.reset_button.setEnabled(True)
+            else:
+                self.reset_button.show()
+                self.reset_button.setEnabled(False)
+        else:
+            self.token_default_label.setText("(no default)")
+            self.reset_button.hide()
+
+        # Show the Value row for color tokens (hidden for font tokens)
+        self.token_value_label.show()
+        # Also show the "Value:" label in the form layout
+        info_layout = self.info_group.layout()
+        value_label_item = info_layout.labelForField(self.token_value_label)
+        if value_label_item:
+            value_label_item.show()
+
+        # Restore clickable styling for color tokens
+        self.token_value_label.setStyleSheet(
+            "padding: 4px; border: 1px solid gray; background: white;"
+        )
+        self.token_value_label.setCursor(QCursor(Qt.PointingHandCursor))
 
         # If token has a value and it's a valid color, show color details
         if token_value:
@@ -311,6 +405,7 @@ class InspectorPanel(QWidget):
         self.token_value_label.setText("-")
         self.token_category_label.setText("-")
         self.token_description_label.setText("-")
+        self.token_default_label.setText("-")  # NEW
         self.rgb_label.setText("-")
         self.hsl_label.setText("-")
         self.hex_label.setText("-")
@@ -322,9 +417,180 @@ class InspectorPanel(QWidget):
         self.hint_label.hide()
         self.color_input_label.hide()
         self.color_input.hide()
+        self.reset_button.hide()  # NEW
+        self._hide_font_editors()
+
+    def set_font_token(self, token_path: str, token_value, theme: Theme):
+        """Set a font token to inspect and edit.
+
+        Args:
+            token_path: Font token path (e.g., "terminal.fontSize")
+            token_value: Current token value (list, int, float, or str)
+            theme: Current theme for font editors
+        """
+        self._current_token = token_path
+        self._current_value = token_value
+        self._current_theme = theme
+
+        # Update title
+        self.title_label.setText(token_path)
+
+        # Hide color editing UI
+        self._hide_color_details()
+
+        # Show info group
+        self.info_group.show()
+
+        # Update token info with badge if modified from default
+        try:
+            from ..metadata import FontTokenMetadataRegistry
+            font_token_info = FontTokenMetadataRegistry.get_token(token_path)
+            token_display_name = token_path
+            if font_token_info and token_value is not None:
+                if token_value != font_token_info.default_value:
+                    token_display_name = f"{token_path} ✓"  # Checkmark indicates customized
+        except (ImportError, AttributeError):
+            token_display_name = token_path
+
+        self.token_name_label.setText(token_display_name)
+        if token_value is not None:
+            if isinstance(token_value, list):
+                display_value = ", ".join(token_value[:2])
+                if len(token_value) > 2:
+                    display_value += ", ..."
+            else:
+                display_value = str(token_value)
+        else:
+            display_value = "(not set)"
+
+        # Hide the Value row for font tokens (it's redundant - editor shows the value)
+        self.token_value_label.hide()
+        # Also hide the "Value:" label in the form layout
+        info_layout = self.info_group.layout()
+        value_label_item = info_layout.labelForField(self.token_value_label)
+        if value_label_item:
+            value_label_item.hide()
+
+        # Get font token metadata for category, description, and default value
+        try:
+            from ..metadata import FontTokenMetadataRegistry
+            font_token_info = FontTokenMetadataRegistry.get_token(token_path)
+            if font_token_info:
+                self.token_category_label.setText(font_token_info.category.value.upper())
+                self.token_description_label.setText(font_token_info.description)
+
+                # Show default value
+                if font_token_info.default_value is not None:
+                    if isinstance(font_token_info.default_value, list):
+                        default_display = ", ".join(font_token_info.default_value[:2])
+                        if len(font_token_info.default_value) > 2:
+                            default_display += ", ..."
+                    else:
+                        default_display = str(font_token_info.default_value)
+                    self.token_default_label.setText(default_display)
+                else:
+                    # None means hierarchical fallback - show that info
+                    self.token_default_label.setText("(uses hierarchical fallback)")
+
+                # Enable reset button only if current value differs from default
+                if token_value is not None and token_value != font_token_info.default_value:
+                    self.reset_button.show()
+                    self.reset_button.setEnabled(True)
+                else:
+                    self.reset_button.show()
+                    self.reset_button.setEnabled(False)
+            else:
+                self.token_category_label.setText("FONT")
+                self.token_description_label.setText("Font token")
+                self.token_default_label.setText("(no default)")
+                self.reset_button.hide()
+        except (ImportError, AttributeError):
+            self.token_category_label.setText("FONT")
+            self.token_description_label.setText("Font token")
+            self.token_default_label.setText("(no default)")
+            self.reset_button.hide()
+
+        # Determine which font editor to show
+        if self._is_font_family_token(token_path):
+            # Show font family editor
+            self._show_font_family_editor(token_path, token_value, theme)
+        else:
+            # Show font property editor (size, weight, lineHeight, letterSpacing)
+            self._show_font_property_editor(token_path, token_value, theme)
+
+    def _is_font_family_token(self, token_path: str) -> bool:
+        """Check if token is a font family token."""
+        return (
+            "Family" in token_path
+            or token_path in ("fonts.mono", "fonts.ui", "fonts.serif")
+        )
+
+    def _show_font_property_editor(self, token_path: str, value, theme: Theme):
+        """Show font property editor."""
+        if not self._font_property_editor:
+            return
+
+        # Hide family editor
+        if self._font_family_editor:
+            self._font_family_editor.hide()
+
+        # Add to layout if not already added
+        layout = self.layout()
+        if layout.indexOf(self._font_property_editor) == -1:
+            # Insert before stretch (last item)
+            index = layout.count() - 1
+            layout.insertWidget(index, self._font_property_editor)
+
+        self._font_property_editor.set_token(token_path, value, theme)
+        self._font_property_editor.show()
+
+    def _show_font_family_editor(self, token_path: str, value, theme: Theme):
+        """Show font family list editor."""
+        if not self._font_family_editor:
+            return
+
+        # Hide property editor
+        if self._font_property_editor:
+            self._font_property_editor.hide()
+
+        # Add to layout if not already added
+        layout = self.layout()
+        if layout.indexOf(self._font_family_editor) == -1:
+            # Insert before stretch (last item)
+            index = layout.count() - 1
+            layout.insertWidget(index, self._font_family_editor)
+
+        # Ensure value is a list
+        if isinstance(value, str):
+            value = [value]
+        elif value is None:
+            value = []
+
+        self._font_family_editor.set_token(token_path, value, theme)
+        self._font_family_editor.show()
+
+    def _hide_font_editors(self):
+        """Hide all font editing widgets."""
+        if self._font_property_editor:
+            self._font_property_editor.hide()
+        if self._font_family_editor:
+            self._font_family_editor.hide()
+
+    def _on_font_property_changed(self, token_path: str, new_value):
+        """Handle font property change from editor."""
+        if self._controller:
+            self._controller.queue_font_change(token_path, new_value)
+
+    def _on_font_families_changed(self, token_path: str, new_families: list[str]):
+        """Handle font family list change from editor."""
+        if self._controller:
+            self._controller.queue_font_change(token_path, new_families)
 
     def _on_value_clicked(self):
-        """Handle value label click - opens modal dialog with color picker.
+        """Handle value label click - opens color picker for color tokens only.
+
+        For font tokens, the dedicated font editors are already shown below,
+        so clicking the value label does nothing.
 
         Dialog closes automatically when:
         - User clicks a color in the picker
@@ -332,6 +598,12 @@ class InspectorPanel(QWidget):
         - User clicks OK/Apply
         """
         if not self._current_token:
+            return
+
+        # Only open color picker if this is a color token (not a font token)
+        # Font tokens have dedicated editors already visible
+        if self._current_theme is not None:
+            # If _current_theme is set, this is a font token, so don't open color picker
             return
 
         # Both color swatch and value label open the same color picker dialog
@@ -709,3 +981,82 @@ class InspectorPanel(QWidget):
         # Focus name field
         self.name_input.setFocus()
         self.name_input.selectAll()
+
+    # ==================== RESET TO DEFAULT METHOD ====================
+
+    def _on_reset_to_default(self):
+        """Handle Reset to Default button click."""
+        if not self._current_token:
+            return
+
+        # Determine if this is a color token or font token
+        if self._current_theme is not None:
+            # Font token - get default from FontTokenMetadataRegistry
+            self._reset_font_token_to_default()
+        else:
+            # Color token - get default from ColorTokenRegistry
+            self._reset_color_token_to_default()
+
+    def _reset_color_token_to_default(self):
+        """Reset color token to its default value."""
+        from vfwidgets_theme.core.tokens import ColorTokenRegistry
+
+        token_info = ColorTokenRegistry.get_token(self._current_token)
+        if not token_info:
+            return
+
+        # Get theme type to determine which default to use
+        theme_type = "dark"
+        if self._controller and hasattr(self._controller, '_document'):
+            theme_type = self._controller._document.theme.type
+
+        default_value = token_info.default_dark if theme_type == "dark" else token_info.default_light
+
+        # Apply the default value via controller
+        if self._controller:
+            self._controller.queue_token_change(self._current_token, default_value)
+            logger.debug(
+                f"Reset color token {self._current_token} to default: {default_value}"
+            )
+
+            # Update UI immediately
+            color = QColor(default_value)
+            if color.isValid():
+                self._apply_color_change_immediate(color)
+                self._current_value = default_value
+
+                # Disable reset button (now at default)
+                self.reset_button.setEnabled(False)
+
+    def _reset_font_token_to_default(self):
+        """Reset font token to its default value."""
+        from ..metadata import FontTokenMetadataRegistry
+
+        font_token_info = FontTokenMetadataRegistry.get_token(self._current_token)
+        if not font_token_info:
+            return
+
+        default_value = font_token_info.default_value
+
+        # Apply the default value via controller
+        if self._controller:
+            self._controller.queue_font_change(self._current_token, default_value)
+            logger.debug(
+                f"Reset font token {self._current_token} to default: {default_value}"
+            )
+
+            # Update the font editor widget with the new default value
+            self._current_value = default_value
+            if self._is_font_family_token(self._current_token):
+                if self._font_family_editor and self._current_theme:
+                    self._font_family_editor.set_token(
+                        self._current_token, default_value or [], self._current_theme
+                    )
+            else:
+                if self._font_property_editor and self._current_theme:
+                    self._font_property_editor.set_token(
+                        self._current_token, default_value, self._current_theme
+                    )
+
+            # Disable reset button (now at default)
+            self.reset_button.setEnabled(False)

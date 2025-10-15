@@ -93,6 +93,26 @@ class ThemeController(QObject):
         else:
             logger.debug("queue_metadata_change: Timer already active, command added to queue")
 
+    def queue_font_change(self, token_path: str, value) -> None:
+        """Queue a font token value change.
+
+        The change will be applied on the next event loop iteration,
+        ensuring proper event processing order.
+
+        Args:
+            token_path: Font token path (e.g., "terminal.fontSize")
+            value: New font value (list[str], int, float, or str)
+        """
+        logger.debug(f"queue_font_change: Queuing {token_path}={value}")
+        self._pending_commands.append(("set_font", token_path, value))
+
+        # Start timer if not already running
+        if not self._timer.isActive():
+            logger.debug("queue_font_change: Starting deferred execution timer")
+            self._timer.start(0)  # Execute on next event loop iteration
+        else:
+            logger.debug("queue_font_change: Timer already active, command added to queue")
+
     def _execute_pending_commands(self) -> None:
         """Execute all queued commands.
 
@@ -158,6 +178,22 @@ class ThemeController(QObject):
                 undo_command = SetMetadataCommand(
                     self._document, field_name, field_value, old_value
                 )
+                self._document._undo_stack.push(undo_command)
+                logger.debug("_execute_pending_commands: Command pushed to undo stack")
+
+            elif cmd_type == "set_font":
+                _, token_path, font_value = command
+                logger.debug(
+                    f"_execute_pending_commands: Creating SetFontCommand for {token_path}={font_value}"
+                )
+
+                # Get old value for undo
+                old_value = self._document.get_font(token_path)
+
+                # Create and push undo command
+                from ..commands.font_commands import SetFontCommand
+
+                undo_command = SetFontCommand(self._document, token_path, font_value, old_value)
                 self._document._undo_stack.push(undo_command)
                 logger.debug("_execute_pending_commands: Command pushed to undo stack")
 

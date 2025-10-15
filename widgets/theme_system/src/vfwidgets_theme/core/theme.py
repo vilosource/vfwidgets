@@ -190,6 +190,7 @@ class Theme:
         Raises:
             FontValidationError: If font configuration is invalid
             FontPropertyError: If specific font property has invalid value
+
         """
         # Valid font weight strings
         valid_weight_strings = {

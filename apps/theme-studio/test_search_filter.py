@@ -26,7 +26,6 @@ def test_search_filter():
     # Get references
     token_browser = window.token_browser
     proxy_model = token_browser._proxy_model
-    source_model = token_browser._model
 
     assert proxy_model is not None
     print("   ✓ Proxy model created")

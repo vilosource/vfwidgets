@@ -42,6 +42,12 @@ from .dialogs import (
 from .font_editor import (
     FontEditorWidget,
 )
+from .font_family_editor import (
+    FontFamilyListEditor,
+)
+from .font_property_editor import (
+    FontPropertyEditorWidget,
+)
 from .helpers import (
     ThemePreview,
     ThemeSettings,
@@ -140,6 +146,8 @@ __all__ = [
     "TokenBrowserWidget",
     "ColorEditorWidget",
     "FontEditorWidget",
+    "FontFamilyListEditor",
+    "FontPropertyEditorWidget",
     "ThemePreviewWidget",
     "PreviewSampleGenerator",
     "ValidationPanel",

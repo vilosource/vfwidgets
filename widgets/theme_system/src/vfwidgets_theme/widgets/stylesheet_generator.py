@@ -51,6 +51,59 @@ class StylesheetGenerator:
         self.theme = theme
         self.widget_class_name = widget_class_name
 
+    def _get_font_value(self, token_path: str, default):
+        """Get font token value from theme with fallback.
+
+        Args:
+            token_path: Font token path (e.g., "fonts.size", "tabs.fontSize")
+            default: Default value if token not found
+
+        Returns:
+            Font value from theme or default
+
+        """
+        if hasattr(self.theme, 'fonts') and self.theme.fonts:
+            return self.theme.fonts.get(token_path, default)
+        return default
+
+    def _get_font_family(self, token_path: str, default: str) -> str:
+        """Get font family as CSS string.
+
+        Args:
+            token_path: Font token path (e.g., "fonts.mono")
+            default: Default CSS font-family string
+
+        Returns:
+            CSS font-family value
+
+        """
+        value = self._get_font_value(token_path, None)
+        if value is None:
+            return default
+        if isinstance(value, list):
+            # Convert list to CSS string: ['Font1', 'Font2'] -> "'Font1', 'Font2'"
+            return ", ".join(value)
+        return str(value)
+
+    def _get_font_size(self, token_path: str, default: str) -> str:
+        """Get font size as CSS string.
+
+        Args:
+            token_path: Font token path (e.g., "fonts.size")
+            default: Default size string with unit (e.g., "14px")
+
+        Returns:
+            CSS font-size value with unit
+
+        """
+        value = self._get_font_value(token_path, None)
+        if value is None:
+            return default
+        # Add px unit if numeric
+        if isinstance(value, (int, float)):
+            return f"{value}px"
+        return str(value)
+
     def generate_comprehensive_stylesheet(self) -> str:
         """Generate complete stylesheet targeting all child widgets.
 
@@ -82,9 +135,9 @@ class StylesheetGenerator:
         """Generate styles for the widget itself."""
         bg = ColorTokenRegistry.get("colors.background", self.theme)
         fg = ColorTokenRegistry.get("colors.foreground", self.theme)
-        # Use sensible defaults for fonts - no font tokens exist yet
-        font_family = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
-        font_size = "14px"
+        # Use font tokens with sensible defaults
+        font_family = self._get_font_family("fonts.ui", "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif")
+        font_size = self._get_font_size("fonts.size", "14px")
 
         return f"""
 /* Widget itself */
@@ -519,9 +572,9 @@ QPlainTextEdit[role="editor"],
         tab_hover_bg = ColorTokenRegistry.get("tab.hoverBackground", self.theme)
         tab_border = ColorTokenRegistry.get("tab.border", self.theme)
 
-        # Font - use sensible defaults
-        tab_font = "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif"
-        tab_font_size = "14px"
+        # Font - use tokens with sensible defaults
+        tab_font = self._get_font_family("tabs.fontFamily", "'Segoe UI', 'San Francisco', 'Helvetica Neue', sans-serif")
+        tab_font_size = self._get_font_size("tabs.fontSize", "14px")
 
         return f"""
 /* QTabWidget */

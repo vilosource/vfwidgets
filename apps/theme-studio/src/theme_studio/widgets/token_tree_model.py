@@ -203,7 +203,7 @@ class TokenTreeModel(QAbstractItemModel):
         if found and path_to_node:
             # Build the QModelIndex for the changed node
             parent_index = QModelIndex()
-            for parent_node, row in path_to_node:
+            for _parent_node, row in path_to_node:
                 parent_index = self.index(row, 0, parent_index)
 
             # Emit dataChanged for ONLY the changed row (both columns)

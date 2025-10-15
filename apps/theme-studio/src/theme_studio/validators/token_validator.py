@@ -1,7 +1,7 @@
 """Token value validator."""
 
 import re
-from typing import Optional, Tuple
+from typing import Optional
 
 from PySide6.QtGui import QColor
 
@@ -22,7 +22,7 @@ class TokenValidator:
     HEX_8 = re.compile(r'^#[0-9A-Fa-f]{8}$')  # #RRGGBBAA
 
     @classmethod
-    def validate_color(cls, value: str) -> Tuple[bool, Optional[str]]:
+    def validate_color(cls, value: str) -> tuple[bool, Optional[str]]:
         """Validate a color token value.
 
         Args:
@@ -56,7 +56,7 @@ class TokenValidator:
         return (False, f"Invalid color: '{value}'. Use hex (#RRGGBB), rgb(r,g,b), or color name.")
 
     @classmethod
-    def validate_token(cls, token_name: str, value: str) -> Tuple[bool, Optional[str]]:
+    def validate_token(cls, token_name: str, value: str) -> tuple[bool, Optional[str]]:
         """Validate any token value based on token type.
 
         Args:

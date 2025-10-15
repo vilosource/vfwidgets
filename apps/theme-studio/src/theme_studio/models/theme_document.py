@@ -28,6 +28,7 @@ class ThemeDocument(QObject):
 
     # Signals
     token_changed = Signal(str, str)  # token_name, new_value
+    font_changed = Signal(str, object)  # token_path, new_value (list/int/float/str)
     metadata_changed = Signal(str, str)  # field_name, new_value
     modified = Signal(bool)  # is_modified
     file_path_changed = Signal(str)  # file_path
@@ -154,8 +155,53 @@ class ThemeDocument(QObject):
         """
         return dict(self._theme.colors)
 
+    def get_font(self, token_path: str):
+        """Get font token value.
+
+        Args:
+            token_path: Font token path (e.g., "terminal.fontSize")
+
+        Returns:
+            Font token value (list[str], int, float, or str), or None if not defined
+        """
+        return self._theme.fonts.get(token_path)
+
+    def set_font(self, token_path: str, value):
+        """Set font token value.
+
+        Args:
+            token_path: Font token path (e.g., "terminal.fontSize")
+            value: Font value (list[str] for families, int/float for size/weight/etc.)
+        """
+        old_value = self._theme.fonts.get(token_path)
+
+        # Only emit if value actually changed
+        if old_value != value:
+            self._theme.fonts[token_path] = value
+            self._set_modified(True)
+            self.font_changed.emit(token_path, value)
+
+    def remove_font(self, token_path: str):
+        """Remove a font token.
+
+        Args:
+            token_path: Font token path to remove
+        """
+        if token_path in self._theme.fonts:
+            del self._theme.fonts[token_path]
+            self._set_modified(True)
+            self.font_changed.emit(token_path, None)
+
+    def get_all_fonts(self) -> dict:
+        """Get all defined font tokens.
+
+        Returns:
+            Dictionary of font token path -> value
+        """
+        return dict(self._theme.fonts)
+
     def get_token_count(self) -> tuple[int, int]:
-        """Get count of defined vs total tokens.
+        """Get count of defined color tokens vs total.
 
         Returns:
             Tuple of (defined_count, total_count)
@@ -163,6 +209,16 @@ class ThemeDocument(QObject):
         defined = len(self._theme.colors)
         # Total tokens from ColorTokenRegistry (will import in Phase 1)
         total = 197  # Hardcoded for now, will get from registry later
+        return (defined, total)
+
+    def get_font_count(self) -> tuple[int, int]:
+        """Get count of defined font tokens vs total.
+
+        Returns:
+            Tuple of (defined_count, total_count)
+        """
+        defined = len(self._theme.fonts)
+        total = 22  # Total font tokens available
         return (defined, total)
 
     def set_name(self, name: str):

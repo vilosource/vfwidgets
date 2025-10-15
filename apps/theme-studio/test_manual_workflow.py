@@ -26,7 +26,7 @@ def test_manual_workflow():
     print()
 
     # Create application
-    app = ThemeStudioApp([])
+    ThemeStudioApp([])
     window = ThemeStudioWindow()
 
     print("✓ Step 1: Application launched successfully")

@@ -219,7 +219,7 @@ class TestE2EIntegration:
         qtbot.wait(100)
 
         # Should have filtered results
-        filtered_count = proxy_model.rowCount()
+        proxy_model.rowCount()
         # Note: With recursive filtering, category nodes remain
         # but only show matching children
 
@@ -233,7 +233,6 @@ class TestE2EIntegration:
 
     def test_status_bar_updates(self, window, qtbot):
         """Test status bar updates with document changes."""
-        status_bar = window.status_bar
         doc = window._current_document
 
         # Initial state (new document starts unmodified)
