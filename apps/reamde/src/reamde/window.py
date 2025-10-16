@@ -31,19 +31,30 @@ class ReamdeTabbedWindow(ChromeTabbedWindow):
 
 
 class MarkdownViewerTab(QWidget):
-    """Wrapper for MarkdownViewer with file path tracking."""
+    """Wrapper for MarkdownViewer with file path tracking.
 
-    def __init__(self, file_path: Optional[Path] = None, parent: Optional[QWidget] = None):
+    Supports lazy loading - content is only loaded when ensure_loaded() is called,
+    allowing tabs to be created without immediately rendering content.
+    """
+
+    def __init__(
+        self,
+        file_path: Optional[Path] = None,
+        parent: Optional[QWidget] = None,
+        load_content: bool = True,
+    ):
         """Initialize the markdown viewer tab.
 
         Args:
             file_path: Path to markdown file to load
             parent: Parent widget
+            load_content: If False, defer loading until ensure_loaded() is called
         """
         print(f"[reamde] MarkdownViewerTab.__init__() called, file_path={file_path}")
         super().__init__(parent)
 
         self.file_path = file_path
+        self._content_loaded = False  # Track if content has been loaded
 
         print("[reamde] Creating MarkdownViewer widget...")
         self.viewer = MarkdownViewer(parent=self)
@@ -63,10 +74,13 @@ class MarkdownViewerTab(QWidget):
         # (matches approach in ViloxTerm)
         self.setStyleSheet("QWidget { background-color: #1a1a1a; }")
 
-        # Load file if provided - MarkdownViewer handles queueing automatically
-        if file_path:
-            print("[reamde] Loading file (will be queued if viewer not ready yet)...")
+        # Load file if provided and load_content=True
+        # Otherwise content is loaded lazily when tab becomes visible
+        if file_path and load_content:
+            print("[reamde] Loading file immediately...")
             self.load_file(file_path)
+        elif file_path:
+            print("[reamde] Deferring file load (lazy loading enabled)")
 
     def load_file(self, file_path: Path) -> bool:
         """Load markdown file into viewer.
@@ -89,10 +103,31 @@ class MarkdownViewerTab(QWidget):
 
         if success:
             print("[reamde] File loaded successfully")
+            self._content_loaded = True
         else:
             print("[reamde] Failed to load file")
 
         return success
+
+    def ensure_loaded(self) -> bool:
+        """Ensure content is loaded (lazy loading support).
+
+        If content hasn't been loaded yet and file_path is set, load it now.
+        This is called when tab becomes visible for the first time.
+
+        Returns:
+            True if content is now loaded, False if no file or load failed
+        """
+        if self._content_loaded:
+            # Already loaded
+            return True
+
+        if not self.file_path:
+            # No file to load
+            return False
+
+        print(f"[reamde] Lazy loading content for: {self.file_path.name}")
+        return self.load_file(self.file_path)
 
     def reload(self) -> bool:
         """Reload file from disk.
@@ -171,6 +206,7 @@ class ReamdeWindow(ViloCodeWindow):
         # Connect controller signals to UI updates
         self.controller.file_opened.connect(self._on_controller_file_opened)
         self.controller.file_closed.connect(self._on_controller_file_closed)
+        self.controller.session_restored.connect(self._on_session_restored)
 
         # Set as main content
         self.set_main_content(self._tabs)
@@ -204,8 +240,9 @@ class ReamdeWindow(ViloCodeWindow):
             return False
 
         print("[reamde] Creating new MarkdownViewerTab...")
-        # Create new tab
-        tab = MarkdownViewerTab(file_path)
+        # Create new tab - only load content immediately if this tab will be focused
+        # This prevents multiple tabs from loading simultaneously during session restore
+        tab = MarkdownViewerTab(file_path, load_content=focus)
         tab_title = file_path.name
         print(f"[reamde] Adding tab '{tab_title}'...")
         tab_index = self._tabs.addTab(tab, tab_title)
@@ -217,10 +254,17 @@ class ReamdeWindow(ViloCodeWindow):
         # Track open file
         self._open_files[file_str] = tab_index
 
+        # Register file with controller (without triggering UI update to avoid recursion)
+        # Controller needs to know about the file for session persistence
+        logger.info(f"Registering file with controller: {file_str}")
+        self.controller.open_file(file_str, set_active=False)
+
         # Focus new tab
         if focus:
             print(f"[reamde] Setting current tab to {tab_index}")
             self._tabs.setCurrentIndex(tab_index)
+            # Update controller's active document
+            self.controller.set_active_file(file_str)
 
         # Update window title
         self._update_window_title()
@@ -241,6 +285,10 @@ class ReamdeWindow(ViloCodeWindow):
         widget = self._tabs.widget(index)
         if isinstance(widget, MarkdownViewerTab) and widget.file_path:
             file_str = str(widget.file_path)
+
+            # Notify controller to unregister file (don't check for modifications - user already closed)
+            logger.info(f"Unregistering file from controller: {file_str}")
+            self.controller.close_file(file_str, check_modified=False)
 
             # Remove from tracking
             if file_str in self._open_files:
@@ -274,6 +322,12 @@ class ReamdeWindow(ViloCodeWindow):
         Args:
             index: New current tab index
         """
+        # Trigger lazy loading for this tab if not already loaded
+        if index >= 0:
+            widget = self._tabs.widget(index)
+            if isinstance(widget, MarkdownViewerTab):
+                widget.ensure_loaded()
+
         self._update_window_title()
 
     def _update_window_title(self) -> None:
@@ -409,6 +463,19 @@ class ReamdeWindow(ViloCodeWindow):
         logger.info(f"Controller closed file, removing tab: {file_path}")
         # Close the tab (without asking for confirmation as controller already handled it)
         self.close_file(file_path)
+
+    def _on_session_restored(self) -> None:
+        """Handle session_restored signal - ensure active tab loads content.
+
+        After session restoration, all tabs are created but content is not loaded
+        (lazy loading). This triggers content load for the currently active tab.
+        """
+        logger.info("Session restored, loading active tab content")
+        current_index = self._tabs.currentIndex()
+        if current_index >= 0:
+            widget = self._tabs.widget(current_index)
+            if isinstance(widget, MarkdownViewerTab):
+                widget.ensure_loaded()
 
     def closeEvent(self, event) -> None:
         """Handle window close event - save session before closing.
