@@ -176,6 +176,13 @@ class ReamdeWindow(ViloCodeWindow):
         self.controller = WindowController(parent=self)
         logger.info("WindowController initialized")
 
+        # Load and apply preferences
+        from .preferences_manager import PreferencesManager
+
+        self.prefs_manager = PreferencesManager()
+        self.preferences = self.prefs_manager.load_preferences()
+        self._apply_startup_preferences()
+
         # Setup tabbed content area
         self._setup_tabbed_content()
 
@@ -403,17 +410,13 @@ class ReamdeWindow(ViloCodeWindow):
 
         file_menu.add_separator()
 
-        # Theme Preferences (if available)
-        try:
-            from vfwidgets_theme.widgets.dialogs import ThemePickerDialog
-
-            file_menu.add_action(
-                "Theme &Preferences...",
-                lambda: ThemePickerDialog(self).exec(),
-                tooltip="Configure application theme",
-            )
-        except ImportError:
-            pass
+        # Preferences
+        file_menu.add_action(
+            "&Preferences...",
+            self._show_preferences_dialog,
+            "Ctrl+,",
+            tooltip="Configure application preferences",
+        )
 
         file_menu.add_separator()
 
@@ -442,6 +445,40 @@ class ReamdeWindow(ViloCodeWindow):
         current_index = self._tabs.currentIndex()
         if current_index >= 0:
             self._on_tab_close_requested(current_index)
+
+    def _show_preferences_dialog(self) -> None:
+        """Show preferences dialog."""
+        from .components.preferences_dialog import PreferencesDialog
+
+        dialog = PreferencesDialog(self)
+        dialog.preferences_applied.connect(self._apply_preferences)
+        dialog.exec()
+
+    def _apply_preferences(self, preferences) -> None:
+        """Apply preferences to running application.
+
+        Args:
+            preferences: PreferencesModel with new settings
+        """
+
+        logger.info("Applying preferences to application")
+
+        # Apply window opacity
+        opacity = preferences.appearance.window_opacity / 100.0
+        self.setWindowOpacity(opacity)
+
+        # TODO: Apply theme (if changed from current)
+        # This would require theme system integration
+
+        # TODO: Apply markdown preferences to all open tabs
+        # This would require MarkdownViewer.apply_preferences() method
+        for i in range(self._tabs.count()):
+            widget = self._tabs.widget(i)
+            if isinstance(widget, MarkdownViewerTab):
+                # Future: widget.viewer.apply_preferences(preferences.markdown)
+                pass
+
+        logger.info("Preferences applied successfully")
 
     def _on_controller_file_opened(self, file_path: str) -> None:
         """Handle controller file_opened signal - open file in UI.
@@ -476,6 +513,19 @@ class ReamdeWindow(ViloCodeWindow):
             widget = self._tabs.widget(current_index)
             if isinstance(widget, MarkdownViewerTab):
                 widget.ensure_loaded()
+
+    def _apply_startup_preferences(self) -> None:
+        """Apply preferences on application startup."""
+        logger.info("Applying startup preferences")
+
+        # Apply window opacity
+        opacity = self.preferences.appearance.window_opacity / 100.0
+        self.setWindowOpacity(opacity)
+
+        # Session restoration is already handled by controller
+        # (uses its own SessionManager)
+
+        logger.info("Startup preferences applied")
 
     def closeEvent(self, event) -> None:
         """Handle window close event - save session before closing.
