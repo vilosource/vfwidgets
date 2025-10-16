@@ -123,9 +123,15 @@ class PreviewCanvasPanel(QWidget):
             finally:
                 self._current_plugin = None
 
-        # Add new plugin widget
+        # Clear the layout completely (removes stretch items too)
+        while self.content_layout.count():
+            item = self.content_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # Add new plugin widget - it will expand to fill available space
         self._current_plugin = content_widget
-        self.content_layout.insertWidget(0, content_widget)
+        self.content_layout.addWidget(content_widget)
 
     def clear_content(self):
         """Clear canvas content."""
