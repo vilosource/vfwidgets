@@ -5,6 +5,7 @@ from typing import Optional
 
 from vfwidgets_common import SingleInstanceApplication
 
+from .utils.logging_setup import get_logger, setup_logging
 from .window import ReamdeWindow
 
 
@@ -25,6 +26,11 @@ class ReamdeApp(SingleInstanceApplication):
         Args:
             argv: Command-line arguments
         """
+        # Set up logging FIRST
+        setup_logging()
+        self.logger = get_logger(__name__)
+        self.logger.info("Reamde application starting")
+
         # Use dark theme by default for markdown viewer
         super().__init__(argv, app_id="reamde", prefer_dark=True)
 
@@ -43,10 +49,12 @@ class ReamdeApp(SingleInstanceApplication):
             }
         """
         action = message.get("action")
+        self.logger.info(f"Received IPC message: action={action}")
 
         if action == "open":
             file_path = message.get("file")
             if file_path and self.window:
+                self.logger.info(f"Opening file from IPC: {file_path}")
                 # Open file in new tab
                 self.window.open_file(file_path, focus=True)
                 # Bring window to front
@@ -54,6 +62,7 @@ class ReamdeApp(SingleInstanceApplication):
 
         elif action == "focus":
             # Just bring window to front
+            self.logger.info("Focusing window from IPC")
             if self.window:
                 self.window.bring_to_front()
 
@@ -68,6 +77,7 @@ class ReamdeApp(SingleInstanceApplication):
         """
         # If not primary instance, send message and exit
         if not self.is_primary_instance:
+            self.logger.info("Not primary instance, sending message to running instance")
             if file_path:
                 # Send "open" message with file path
                 message = {"action": "open", "file": str(Path(file_path).resolve())}
@@ -78,15 +88,18 @@ class ReamdeApp(SingleInstanceApplication):
             return self.send_to_running_instance(message, timeout=5000)
 
         # Primary instance - create window and run
+        self.logger.info("Primary instance, creating window")
         self.window = ReamdeWindow()
         self.main_window = self.window  # For bring_to_front()
 
         # Open initial file if provided
         if file_path:
+            self.logger.info(f"Opening initial file: {file_path}")
             self.window.open_file(file_path)
 
         # Show window
         self.window.show()
+        self.logger.info("Window shown, entering event loop")
 
         # Run event loop
         return self.exec()
