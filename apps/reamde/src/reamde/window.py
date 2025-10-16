@@ -5,9 +5,29 @@ from typing import Optional
 
 from chrome_tabbed_window import ChromeTabbedWindow
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QFileDialog, QWidget
 from vfwidgets_markdown import MarkdownViewer
 from vfwidgets_vilocode_window import ViloCodeWindow
+
+from .controllers import WindowController
+from .utils.logging_setup import get_logger
+
+logger = get_logger(__name__)
+
+
+class ReamdeTabbedWindow(ChromeTabbedWindow):
+    """Custom ChromeTabbedWindow that opens file dialog when '+' button is clicked."""
+
+    # Signal emitted when user requests to open a file via '+' button
+    open_file_requested = Signal()
+
+    def _on_new_tab_requested(self) -> None:
+        """Handle new tab button ('+') click - emit signal to open file dialog.
+
+        This overrides ChromeTabbedWindow's default behavior to provide
+        a file picker instead of creating a blank "New Tab" widget.
+        """
+        self.open_file_requested.emit()
 
 
 class MarkdownViewerTab(QWidget):
@@ -117,25 +137,40 @@ class ReamdeWindow(ViloCodeWindow):
         # Track open files to prevent duplicates
         self._open_files: dict[str, int] = {}  # file_path -> tab_index
 
+        # Initialize controller for session management and file operations
+        self.controller = WindowController(parent=self)
+        logger.info("WindowController initialized")
+
         # Setup tabbed content area
         self._setup_tabbed_content()
 
         # Setup file menu
         self._setup_file_menu()
 
+        # Restore previous session (open files from last run)
+        logger.info("Restoring session...")
+        self.controller.restore_session()
+
     # showEvent workaround removed - no longer needed with fluent API's automatic theme integration!
 
     def _setup_tabbed_content(self) -> None:
         """Setup ChromeTabbedWindow in main content area."""
         # Create tabbed window as embedded widget (pass self as parent)
-        self._tabs = ChromeTabbedWindow(parent=self)
+        self._tabs = ReamdeTabbedWindow(parent=self)
         self._tabs.setTabsClosable(True)
         self._tabs.setMovable(True)
         self._tabs.setDocumentMode(True)
 
-        # Connect signals
+        # Connect tab signals
         self._tabs.tabCloseRequested.connect(self._on_tab_close_requested)
         self._tabs.currentChanged.connect(self._on_current_tab_changed)
+        self._tabs.open_file_requested.connect(
+            self._on_open_file
+        )  # Connect '+' button to file dialog
+
+        # Connect controller signals to UI updates
+        self.controller.file_opened.connect(self._on_controller_file_opened)
+        self.controller.file_closed.connect(self._on_controller_file_closed)
 
         # Set as main content
         self.set_main_content(self._tabs)
@@ -337,7 +372,6 @@ class ReamdeWindow(ViloCodeWindow):
 
     def _on_open_file(self) -> None:
         """Handle File > Open action."""
-        from PySide6.QtWidgets import QFileDialog
 
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -355,4 +389,35 @@ class ReamdeWindow(ViloCodeWindow):
         if current_index >= 0:
             self._on_tab_close_requested(current_index)
 
-    # _on_theme_preferences removed - simplified to lambda in menu setup
+    def _on_controller_file_opened(self, file_path: str) -> None:
+        """Handle controller file_opened signal - open file in UI.
+
+        Args:
+            file_path: Path to file that was opened by controller
+        """
+        logger.info(f"Controller opened file, creating tab: {file_path}")
+        # Use existing open_file method to create tab
+        # This is called when controller.restore_session() opens files
+        self.open_file(file_path, focus=False)
+
+    def _on_controller_file_closed(self, file_path: str) -> None:
+        """Handle controller file_closed signal - close file in UI.
+
+        Args:
+            file_path: Path to file that was closed by controller
+        """
+        logger.info(f"Controller closed file, removing tab: {file_path}")
+        # Close the tab (without asking for confirmation as controller already handled it)
+        self.close_file(file_path)
+
+    def closeEvent(self, event) -> None:
+        """Handle window close event - save session before closing.
+
+        Args:
+            event: QCloseEvent
+        """
+        logger.info("Window closing, saving session...")
+        # Save current session (open files, active tab)
+        self.controller.save_session()
+        # Accept close event
+        super().closeEvent(event)
