@@ -1,18 +1,52 @@
-"""ViloWeb - Modern web browser application.
+"""ViloWeb - Educational web browser built with VFWidgets.
 
-ViloWeb is a full-featured web browser built with ViloCodeWindow and Qt WebEngine:
-- VS Code-style window layout (activity bar, sidebar, main pane)
-- Multiple tabs with Chrome-style tab widget (optional)
-- Bookmark management with folders and persistence
-- Browsing history with search
+This package provides a complete, working web browser that demonstrates:
+- Modern browser architecture (tabs, bookmarks, navigation)
+- Chrome-style frameless window design
+- Qt WebEngine integration
+- QWebChannel Python↔JavaScript bridges
 - Theme system integration
-- Full keyboard shortcut support
+- Clean code organization
+
+Educational Focus:
+    ViloWeb is designed as a learning resource for:
+    - Building Qt-based applications
+    - Understanding browser architecture
+    - Implementing Chrome-style UI with frameless windows
+    - Managing complex widget hierarchies
+    - Integrating theme systems
+
+Quick Start:
+    >>> import sys
+    >>> from viloweb import main
+    >>> sys.exit(main())
+
+Components:
+    - ChromeMainWindow: Chrome-style frameless browser window (v0.2.0)
+    - MainWindow: Top-level browser window with tab bar (v0.1.0 - legacy)
+    - BrowserTab: Individual tab wrapping vfwidgets-webview
+    - ViloWebBridge: QWebChannel bridge for Python↔JavaScript
+    - BookmarkManager: JSON-based bookmark storage
+    - ViloWebApplication: Application class with theme integration
+
+Example:
+    >>> from viloweb import ViloWebApplication
+    >>> app = ViloWebApplication()
+    >>> app.run()
 """
 
-__version__ = "0.1.0"
-__author__ = "Vilosource"
-__email__ = "vilosource@viloforge.com"
+from .application import ViloWebApplication, main
+from .browser import BrowserTab, ViloWebBridge
+from .managers import BookmarkManager
+from .ui import ChromeMainWindow, MainWindow
 
-from .app import ViloWebApp
-
-__all__ = ["ViloWebApp"]
+__version__ = "0.2.0"
+__all__ = [
+    "ViloWebApplication",
+    "ChromeMainWindow",
+    "MainWindow",
+    "BrowserTab",
+    "ViloWebBridge",
+    "BookmarkManager",
+    "main",
+]

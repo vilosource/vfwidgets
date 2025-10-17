@@ -1,11 +1,12 @@
-"""Browser components module.
+"""Browser components for ViloWeb.
 
-This module contains the core browser components:
-- BrowserTab: Single browser tab with QWebEngineView
-- NavigationBar: URL bar and navigation controls
+This package contains the core browser functionality:
+- BrowserTab: Wraps vfwidgets_webview.BrowserWidget
+- ViloWebBridge: QWebChannel bridge for Python↔JavaScript
+- Future: Extension system, download manager, etc.
 """
 
-from .tab import BrowserTab
-from .navigation import NavigationBar
+from .browser_tab import BrowserTab
+from .viloweb_bridge import ViloWebBridge
 
-__all__ = ["BrowserTab", "NavigationBar"]
+__all__ = ["BrowserTab", "ViloWebBridge"]

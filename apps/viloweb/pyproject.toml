@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "viloweb"
-version = "0.1.0"
-description = "Modern web browser built with VFWidgets and ViloCodeWindow"
+version = "0.2.0"
+description = "Educational web browser with Chrome-style frameless window - demonstrates modern browser architecture, tabs, bookmarks, and Qt WebEngine"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -15,7 +15,8 @@ authors = [
 
 dependencies = [
     "PySide6>=6.9.0",
-    "vfwidgets-vilocode-window",
+    "vfwidgets-webview>=0.2.0",
+    "chrome-tabbed-window>=0.1.0",
     "vfwidgets-theme-system",
     "vfwidgets-common",
 ]
@@ -26,10 +27,6 @@ dev = [
     "black>=22.0.0",
     "ruff>=0.0.250",
     "mypy>=0.990",
-]
-
-chrome-tabs = [
-    "chrome-tabbed-window",
 ]
 
 [project.scripts]

@@ -1,10 +1,9 @@
-"""Data managers module.
+"""Managers for ViloWeb.
 
-This module contains data persistence managers:
-- BookmarkManager: Bookmark storage and management (JSON)
-- HistoryManager: Browsing history (SQLite) - future
+This package contains manager classes for various browser features:
+- BookmarkManager: JSON-based bookmark storage
 """
 
-from .bookmarks import BookmarkManager
+from .bookmark_manager import BookmarkManager
 
 __all__ = ["BookmarkManager"]
