@@ -161,22 +161,61 @@ class ExtensionManager:
         """Inject QWebChannel JavaScript library into page.
 
         Educational Note:
-            This is needed once per page load to enable JavaScript
-            access to the QWebChannel API.
-        """
-        # Load qwebchannel.js from Qt resources
-        qwebchannel_js = """
-        // QWebChannel initialization
-        new QWebChannel(qt.webChannelTransport, function(channel) {
-            window.extension = channel.objects.extension;
-            console.log('Extension bridge ready!');
-        });
+            QWebChannel requires two steps:
+            1. Load qwebchannel.js library from Qt resources
+            2. Initialize the channel to connect to Python bridge
+
+            This must be done on every page load.
         """
 
-        # Inject on page load (Phase 1 API: browser.run_javascript())
-        self.browser.load_finished.connect(
-            lambda success: self.browser.run_javascript(qwebchannel_js) if success else None
-        )
+        def inject_channel():
+            """Inject QWebChannel library and initialize bridge."""
+            # Step 1: Create script element to load qwebchannel.js from Qt resources
+            load_script = """
+            (function() {
+                // Check if already loaded
+                if (window.QWebChannel) {
+                    console.log('QWebChannel already loaded, initializing...');
+                    initChannel();
+                    return;
+                }
+
+                // Load qwebchannel.js from Qt resources
+                var script = document.createElement('script');
+                script.src = 'qrc:///qtwebchannel/qwebchannel.js';
+                script.onload = function() {
+                    console.log('QWebChannel library loaded');
+                    initChannel();
+                };
+                script.onerror = function() {
+                    console.error('Failed to load QWebChannel library');
+                };
+                document.head.appendChild(script);
+
+                // Initialize channel once library is loaded
+                function initChannel() {
+                    if (typeof QWebChannel === 'undefined') {
+                        console.error('QWebChannel not available');
+                        return;
+                    }
+
+                    new QWebChannel(qt.webChannelTransport, function(channel) {
+                        window.extension = channel.objects.extension;
+                        console.log('✓ Extension bridge ready!');
+
+                        // Test the bridge
+                        if (window.extension && window.extension.log_from_js) {
+                            window.extension.log_from_js('info',
+                                'QWebChannel bridge connected successfully');
+                        }
+                    });
+                }
+            })();
+            """
+            self.browser.run_javascript(load_script)
+
+        # Inject on every successful page load
+        self.browser.load_finished.connect(lambda success: inject_channel() if success else None)
 
     def enable_ad_blocker(self):
         """Enable ad blocker extension.
