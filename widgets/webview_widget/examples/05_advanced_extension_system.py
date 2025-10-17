@@ -29,7 +29,6 @@ from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
-    QGroupBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -377,55 +376,51 @@ class ExtensionDemo(QWidget):
         print("  Cache: Memory")
 
     def _create_control_panel(self) -> QWidget:
-        """Create control panel with extension toggles."""
+        """Create control panel with extension toggles (browser-style toolbar)."""
         panel = QWidget()
-        panel.setMaximumHeight(150)
-        layout = QVBoxLayout(panel)
-
-        # Title
-        title = QLabel("<b>Extension System Demo</b>")
-        layout.addWidget(title)
-
-        # Extension controls
-        extensions_group = QGroupBox("Extensions")
-        ext_layout = QHBoxLayout(extensions_group)
+        panel.setFixedHeight(45)  # Fixed height toolbar
+        layout = QHBoxLayout(panel)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
 
         # Ad blocker toggle
-        self.ad_blocker_checkbox = QCheckBox("Ad Blocker")
+        self.ad_blocker_checkbox = QCheckBox("🛡️ Ad Blocker")
+        self.ad_blocker_checkbox.setMinimumHeight(32)
         self.ad_blocker_checkbox.stateChanged.connect(self.toggle_ad_blocker)
 
         # Page modifier toggle
-        self.page_modifier_checkbox = QCheckBox("Page Modifier")
+        self.page_modifier_checkbox = QCheckBox("🎨 Page Modifier")
+        self.page_modifier_checkbox.setMinimumHeight(32)
         self.page_modifier_checkbox.stateChanged.connect(self.toggle_page_modifier)
 
-        ext_layout.addWidget(self.ad_blocker_checkbox)
-        ext_layout.addWidget(self.page_modifier_checkbox)
-        ext_layout.addStretch()
-
-        layout.addWidget(extensions_group)
-
-        # Actions
-        actions_group = QGroupBox("Actions")
-        actions_layout = QHBoxLayout(actions_group)
-
-        # Reload page
-        btn_reload = QPushButton("Reload Page")
+        # Reload page button
+        btn_reload = QPushButton("🔄 Reload")
+        btn_reload.setMinimumHeight(32)
+        btn_reload.setMinimumWidth(100)
         btn_reload.clicked.connect(self.reload_page)
 
-        # Extract metadata
-        btn_metadata = QPushButton("Extract Metadata")
+        # Extract metadata button
+        btn_metadata = QPushButton("📊 Metadata")
+        btn_metadata.setMinimumHeight(32)
+        btn_metadata.setMinimumWidth(100)
         btn_metadata.clicked.connect(self.extract_metadata)
 
-        # Test bridge
-        btn_test_bridge = QPushButton("Test Bridge")
+        # Test bridge button
+        btn_test_bridge = QPushButton("🔌 Test Bridge")
+        btn_test_bridge.setMinimumHeight(32)
+        btn_test_bridge.setMinimumWidth(120)
         btn_test_bridge.clicked.connect(self.test_bridge)
 
-        actions_layout.addWidget(btn_reload)
-        actions_layout.addWidget(btn_metadata)
-        actions_layout.addWidget(btn_test_bridge)
-        actions_layout.addStretch()
-
-        layout.addWidget(actions_group)
+        # Add all controls to horizontal layout
+        layout.addWidget(QLabel("<b>Extensions:</b>"))
+        layout.addWidget(self.ad_blocker_checkbox)
+        layout.addWidget(self.page_modifier_checkbox)
+        layout.addSpacing(20)  # Separator
+        layout.addWidget(QLabel("<b>Actions:</b>"))
+        layout.addWidget(btn_reload)
+        layout.addWidget(btn_metadata)
+        layout.addWidget(btn_test_bridge)
+        layout.addStretch()  # Push everything to the left
 
         return panel
 
