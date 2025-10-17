@@ -487,7 +487,7 @@ class ThemeDocument(QObject):
 1. Preview dropdown → Select "Terminal Widget"
 2. Live terminal instance appears in canvas
 3. Shows sample terminal output with ANSI colors
-4. Click "terminal.ansiRed" in token browser
+4. Click "terminal.colors.ansiRed" in token browser
 5. Change color from #cd3131 to #ff0000
 6. Terminal updates instantly (red text changes)
 7. Type in terminal to test interactively
@@ -725,18 +725,18 @@ class TerminalWidgetPlugin(PreviewPlugin):
     def _get_sample_content(self) -> str:
         """Generate sample terminal output with all colors."""
         return """
-\033[0;30mBlack text\033[0m   (terminal.ansiBlack)
-\033[0;31mRed text\033[0m     (terminal.ansiRed)
-\033[0;32mGreen text\033[0m   (terminal.ansiGreen)
-\033[0;33mYellow text\033[0m  (terminal.ansiYellow)
-\033[0;34mBlue text\033[0m    (terminal.ansiBlue)
-\033[0;35mMagenta text\033[0m (terminal.ansiMagenta)
-\033[0;36mCyan text\033[0m    (terminal.ansiCyan)
-\033[0;37mWhite text\033[0m   (terminal.ansiWhite)
+\033[0;30mBlack text\033[0m   (terminal.colors.ansiBlack)
+\033[0;31mRed text\033[0m     (terminal.colors.ansiRed)
+\033[0;32mGreen text\033[0m   (terminal.colors.ansiGreen)
+\033[0;33mYellow text\033[0m  (terminal.colors.ansiYellow)
+\033[0;34mBlue text\033[0m    (terminal.colors.ansiBlue)
+\033[0;35mMagenta text\033[0m (terminal.colors.ansiMagenta)
+\033[0;36mCyan text\033[0m    (terminal.colors.ansiCyan)
+\033[0;37mWhite text\033[0m   (terminal.colors.ansiWhite)
 
-\033[1;31mBright Red\033[0m   (terminal.ansiBrightRed)
-\033[1;32mBright Green\033[0m (terminal.ansiBrightGreen)
-\033[1;34mBright Blue\033[0m  (terminal.ansiBrightBlue)
+\033[1;31mBright Red\033[0m   (terminal.colors.ansiBrightRed)
+\033[1;32mBright Green\033[0m (terminal.colors.ansiBrightGreen)
+\033[1;34mBright Blue\033[0m  (terminal.colors.ansiBrightBlue)
 
 \033[7mSelection background\033[0m (terminal.selectionBackground)
 \033[4mCursor\033[0m (terminal.cursor)
@@ -747,27 +747,27 @@ $ echo "Interactive terminal - try typing!"
 
     def get_relevant_tokens(self) -> list[str]:
         return [
-            "terminal.background",
-            "terminal.foreground",
+            "terminal.colors.background",
+            "terminal.colors.foreground",
             "terminal.cursor",
             "terminal.cursorAccent",
             "terminal.selectionBackground",
-            "terminal.ansiBlack",
-            "terminal.ansiRed",
-            "terminal.ansiGreen",
-            "terminal.ansiYellow",
-            "terminal.ansiBlue",
-            "terminal.ansiMagenta",
-            "terminal.ansiCyan",
-            "terminal.ansiWhite",
-            "terminal.ansiBrightBlack",
-            "terminal.ansiBrightRed",
-            "terminal.ansiBrightGreen",
-            "terminal.ansiBrightYellow",
-            "terminal.ansiBrightBlue",
-            "terminal.ansiBrightMagenta",
-            "terminal.ansiBrightCyan",
-            "terminal.ansiBrightWhite",
+            "terminal.colors.ansiBlack",
+            "terminal.colors.ansiRed",
+            "terminal.colors.ansiGreen",
+            "terminal.colors.ansiYellow",
+            "terminal.colors.ansiBlue",
+            "terminal.colors.ansiMagenta",
+            "terminal.colors.ansiCyan",
+            "terminal.colors.ansiWhite",
+            "terminal.colors.ansiBrightBlack",
+            "terminal.colors.ansiBrightRed",
+            "terminal.colors.ansiBrightGreen",
+            "terminal.colors.ansiBrightYellow",
+            "terminal.colors.ansiBrightBlue",
+            "terminal.colors.ansiBrightMagenta",
+            "terminal.colors.ansiBrightCyan",
+            "terminal.colors.ansiBrightWhite",
         ]
 
     def update_theme(self, widget: QWidget, theme: Theme):

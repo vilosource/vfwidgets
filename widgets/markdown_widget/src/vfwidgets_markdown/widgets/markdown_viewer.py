@@ -1,17 +1,26 @@
 """Implementation of MarkdownViewer widget."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal, Slot
-from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QWidget
 
+# Import Phase 1 components
+from vfwidgets_common.webview import WebViewHost  # Now from vfwidgets_common!
+
+from vfwidgets_markdown.bridges.theme_bridge import (
+    ThemeBridge,
+    ThemeTokenMapping,
+)
+
 # Import model for architecture integration
 from vfwidgets_markdown.models import MarkdownDocument
+
+logger = logging.getLogger(__name__)
 
 # Optional theme support
 try:
@@ -40,7 +49,7 @@ class JavaScriptBridge(QObject):
             message = json.loads(message_json)
             self.message_received.emit(message)
         except json.JSONDecodeError as e:
-            print(f"[MarkdownViewer] Invalid JSON from JavaScript: {e}")
+            logger.error(f"Invalid JSON from JavaScript: {e}")
 
 
 # Create base class dynamically based on theme availability
@@ -106,19 +115,22 @@ class MarkdownViewer(_BaseClass):
     shortcut_triggered = Signal(str, str)  # (action, combo)
 
     # Theme configuration - maps theme tokens to CSS variables
+    # Theme configuration with widget-specific tokens and fallbacks
+    # Uses hierarchical resolution: markdown.colors.* → generic tokens
+    # Similar to terminal widget's pattern for better theme customization
     theme_config = {
-        "md_bg": "editor.background",
-        "md_fg": "editor.foreground",
-        "md_link": "button.background",  # Use button color for links
-        "md_code_bg": "input.background",  # Use input background for code blocks
-        "md_code_fg": "input.foreground",
-        "md_blockquote_border": "widget.border",
-        "md_blockquote_bg": "widget.background",
-        "md_table_border": "widget.border",
-        "md_table_header_bg": "editor.lineHighlightBackground",
-        "md_scrollbar_bg": "editor.background",
-        "md_scrollbar_thumb": "scrollbar.activeBackground",
-        "md_scrollbar_thumb_hover": "scrollbar.hoverBackground",
+        "md_bg": "markdown.colors.background",
+        "md_fg": "markdown.colors.foreground",
+        "md_link": "markdown.colors.link",
+        "md_code_bg": "markdown.colors.code.background",
+        "md_code_fg": "markdown.colors.code.foreground",
+        "md_blockquote_border": "markdown.colors.blockquote.border",
+        "md_blockquote_bg": "markdown.colors.blockquote.background",
+        "md_table_border": "markdown.colors.table.border",
+        "md_table_header_bg": "markdown.colors.table.headerBackground",
+        "md_scrollbar_bg": "markdown.colors.scrollbar.background",
+        "md_scrollbar_thumb": "markdown.colors.scrollbar.thumb",
+        "md_scrollbar_thumb_hover": "markdown.colors.scrollbar.thumbHover",
     }
 
     def __init__(
@@ -188,15 +200,40 @@ class MarkdownViewer(_BaseClass):
         self._pending_render: Optional[str] = None
         self._pending_base_path: Optional[Path] = None
 
+        # Theme queueing for async initialization
+        # Store theme when on_theme_changed() is called before viewer is ready
+        self._pending_theme = None
+
         # Keyboard shortcuts state
         self._shortcuts_enabled = False
         self._custom_shortcuts: dict = {}
 
-        # Setup web engine
-        self._setup_webengine()
+        # Setup WebViewHost (Phase 1 component)
+        # Enable remote access for markdown-it CDN resources
+        self._host = WebViewHost(self)
+        page = self._host.initialize(allow_remote_access=True)
+        self.setPage(page)
 
-        # Setup QWebChannel bridge
-        self._setup_bridge()
+        # Configure transparency (3-layer pattern)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent")
+        self._host.set_transparent(True)
+
+        # Setup custom page for link navigation
+        self._setup_custom_page()
+
+        # Setup QWebChannel bridge for JavaScript communication
+        self._bridge = JavaScriptBridge(self)
+        self._bridge.message_received.connect(self._on_javascript_message)
+        self._host.register_bridge_object("qtBridge", self._bridge)
+
+        # Setup ThemeBridge (Phase 1 component) if theme support available
+        if THEME_AVAILABLE:
+            self._theme_bridge = ThemeBridge(
+                page=self._host.get_page(),
+                token_mappings=self._build_theme_token_mappings(),
+                css_injection_callback=self._build_prism_override_css,
+            )
 
         # Load HTML template
         self._load_template()
@@ -214,11 +251,127 @@ class MarkdownViewer(_BaseClass):
         if initial_content:
             self.set_markdown(initial_content)
 
-    def _setup_webengine(self) -> None:
-        """Configure QWebEngineView and page settings."""
-        # Create custom page with navigation handling
+    def _build_theme_token_mappings(self) -> list[ThemeTokenMapping]:
+        """Build ThemeTokenMapping list from theme_config.
+
+        Returns:
+            List of ThemeTokenMapping objects with fallback chains
+        """
+        # Define fallback mappings (copied from old _get_color_with_fallback)
+        fallback_map = {
+            "markdown.colors.background": ["editor.background", "colors.background"],
+            "markdown.colors.foreground": ["editor.foreground", "colors.foreground"],
+            "markdown.colors.link": ["button.background", "colors.foreground"],
+            "markdown.colors.code.background": ["input.background", "widget.background"],
+            "markdown.colors.code.foreground": ["input.foreground", "colors.foreground"],
+            "markdown.colors.blockquote.border": ["widget.border", "colors.border"],
+            "markdown.colors.blockquote.background": [
+                "widget.background",
+                "editor.background",
+            ],
+            "markdown.colors.table.border": ["widget.border", "colors.border"],
+            "markdown.colors.table.headerBackground": [
+                "editor.lineHighlightBackground",
+                "widget.background",
+            ],
+            "markdown.colors.scrollbar.background": ["editor.background", "colors.background"],
+            "markdown.colors.scrollbar.thumb": [
+                "scrollbar.activeBackground",
+                "widget.border",
+            ],
+            "markdown.colors.scrollbar.thumbHover": [
+                "scrollbar.hoverBackground",
+                "scrollbar.activeBackground",
+            ],
+        }
+
+        mappings = []
+        for css_var_name, token_path in self.theme_config.items():
+            # Convert underscore to kebab-case for CSS variables
+            css_var = css_var_name.replace("_", "-")
+
+            # Get fallback paths for this token
+            fallback_paths = fallback_map.get(token_path, [])
+
+            mappings.append(
+                ThemeTokenMapping(
+                    css_var=css_var,
+                    token_path=token_path,
+                    fallback_paths=fallback_paths,
+                    default_value=None,  # No hard defaults
+                )
+            )
+
+        return mappings
+
+    def _build_prism_override_css(self, css_vars: dict) -> str:
+        """Build Prism.js override CSS to apply theme colors to code blocks.
+
+        This is passed to ThemeBridge as the css_injection_callback.
+
+        Args:
+            css_vars: CSS variables that were set (dict of --var-name: value)
+
+        Returns:
+            CSS string to override Prism.js hardcoded backgrounds
+        """
+        # Maximum specificity override for Prism.js
+        return """
+            /* Override Prism.js hardcoded backgrounds with maximum specificity */
+            body #content pre[class*="language-"],
+            body #content pre.language-,
+            body pre[class*="language-"],
+            pre[class*="language-"] {
+                background-color: var(--md-code-bg) !important;
+                background: var(--md-code-bg) !important;
+            }
+
+            body #content code[class*="language-"],
+            body code[class*="language-"],
+            code[class*="language-"] {
+                background-color: transparent !important;
+                background: transparent !important;
+                color: var(--md-code-fg) !important;
+            }
+
+            body #content :not(pre) > code[class*="language-"],
+            :not(pre) > code[class*="language-"] {
+                background-color: var(--md-code-bg) !important;
+                background: var(--md-code-bg) !important;
+            }
+
+            /* Override regular code blocks (non-Prism) with maximum specificity */
+            body #content pre,
+            #content pre {
+                background-color: var(--md-code-bg) !important;
+                background: var(--md-code-bg) !important;
+            }
+
+            body #content code,
+            #content code {
+                background-color: var(--md-code-bg) !important;
+                background: var(--md-code-bg) !important;
+                color: var(--md-code-fg) !important;
+            }
+
+            body #content pre code,
+            #content pre code {
+                background-color: transparent !important;
+                background: transparent !important;
+            }
+        """
+
+    def _setup_custom_page(self) -> None:
+        """Setup custom QWebEnginePage for link navigation handling.
+
+        This replaces the default page with a custom one that opens external
+        links in the system browser instead of navigating in the view.
+        """
         from PySide6.QtGui import QDesktopServices
-        from PySide6.QtWebEngineCore import QWebEngineProfile
+        from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
+
+        # Get the current page created by WebViewHost
+        original_page = self.page()
 
         class MarkdownPage(QWebEnginePage):
             """Custom page that handles link navigation."""
@@ -231,7 +384,7 @@ class MarkdownViewer(_BaseClass):
 
                 # Open external links (http/https) in system browser
                 if url.scheme() in ("http", "https"):
-                    print(f"[MarkdownViewer] Opening external link: {url.toString()}")
+                    logger.debug(f"Opening external link: {url.toString()}")
                     QDesktopServices.openUrl(url)
                     return False  # Don't navigate in the view
 
@@ -240,73 +393,54 @@ class MarkdownViewer(_BaseClass):
 
             def javaScriptConsoleMessage(self, level, message, line_number, source_id):
                 """Forward JavaScript console messages to Python console."""
-                print(f"[JS Console] {message} (line {line_number})")
+                logger.debug(f"[JS Console] {message} (line {line_number})")
 
-        page = MarkdownPage(self)
-        self.setPage(page)
+        # Create custom page with same parent
+        custom_page = MarkdownPage(self)
 
-        # Make web view transparent so parent widget background shows through
-        # This prevents white flash on startup and lets Qt stylesheets control the background
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setStyleSheet("background: transparent")
+        # Copy settings from original page
+        from PySide6.QtWebEngineCore import QWebEngineSettings
 
-        # Set background color to prevent white flash on load
-        # This sets the page background (visible while loading or if content has transparency)
-        # The actual theme colors are applied to HTML content via JavaScript in on_theme_changed()
-        from PySide6.QtGui import QColor
+        custom_settings = custom_page.settings()
 
-        bg_color = self._get_initial_background_color()
-        page.setBackgroundColor(QColor(bg_color))
+        custom_settings.setAttribute(
+            QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True
+        )
+        custom_settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+        custom_settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
 
-        # Configure settings
-        settings = page.settings()
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, False)
-
-        # Disable caching for development (allows resource updates without restart)
-        profile = page.profile()
+        # Disable caching for development
+        profile = custom_page.profile()
         profile.setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
 
-        print("[MarkdownViewer] WebEngine configured")
+        # Set transparency
+        custom_page.setBackgroundColor(Qt.GlobalColor.transparent)
 
-    def _setup_bridge(self) -> None:
-        """Setup QWebChannel for Qt ↔ JavaScript communication."""
-        self._channel = QWebChannel(self.page())
-        self._bridge = JavaScriptBridge(self)
+        # Copy web channel from original page
+        custom_page.setWebChannel(original_page.webChannel())
 
-        # Connect bridge signals
-        self._bridge.message_received.connect(self._on_javascript_message)
+        # Replace the page
+        self.setPage(custom_page)
 
-        # Register bridge object
-        self._channel.registerObject("qtBridge", self._bridge)
-        self.page().setWebChannel(self._channel)
+        # Update host's internal reference
+        self._host._page = custom_page
 
-        print("[MarkdownViewer] QWebChannel bridge setup complete")
+        logger.debug("Custom page setup complete")
 
     def _load_template(self) -> None:
-        """Load the HTML template with resources."""
-        # Get path to resources (they're at package root, not in widgets/)
-        resources_dir = Path(__file__).parent.parent / "resources"
-        html_path = resources_dir / "viewer.html"
+        """Load the HTML template via renderer."""
+        from vfwidgets_markdown.renderers.markdown_it import MarkdownItRenderer
 
-        if not html_path.exists():
-            error_msg = f"Template not found: {html_path}"
-            print(f"[MarkdownViewer] ERROR: {error_msg}")
+        # Create renderer
+        self._renderer = MarkdownItRenderer(self._host.get_page())
+
+        try:
+            self._renderer.initialize()
+            logger.debug("Renderer initialized successfully")
+        except Exception as e:
+            error_msg = f"Failed to initialize renderer: {e}"
+            logger.error(error_msg)
             self.rendering_failed.emit(error_msg)
-            return
-
-        # Read template
-        with open(html_path, encoding="utf-8") as f:
-            html_content = f.read()
-
-        # Set base URL for relative resource loading
-        base_url = QUrl.fromLocalFile(str(resources_dir) + "/")
-
-        # Load HTML
-        self.setHtml(html_content, base_url)
-        print("[MarkdownViewer] Template loaded")
 
     @Slot(dict)
     def _on_javascript_message(self, message: dict) -> None:
@@ -319,19 +453,17 @@ class MarkdownViewer(_BaseClass):
 
         if msg_type == "ready":
             self._is_ready = True
-            print("[MarkdownViewer] Viewer ready")
+            logger.info("Viewer ready")
 
             # Process any pending base path
             if self._pending_base_path is not None:
-                print(f"[MarkdownViewer] Setting pending base path: {self._pending_base_path}")
+                logger.debug(f"Setting pending base path: {self._pending_base_path}")
                 self._base_path = self._pending_base_path
                 self._pending_base_path = None
 
             # Process any pending content
             if self._pending_render is not None:
-                print(
-                    f"[MarkdownViewer] Rendering pending content ({len(self._pending_render)} chars)"
-                )
+                logger.debug(f"Rendering pending content ({len(self._pending_render)} chars)")
                 content_to_render = self._pending_render
                 self._pending_render = None
                 self._render_markdown(content_to_render)
@@ -340,17 +472,17 @@ class MarkdownViewer(_BaseClass):
 
         elif msg_type == "content_loaded":
             self.content_loaded.emit()
-            print("[MarkdownViewer] Content loaded")
+            logger.debug("Content loaded")
 
         elif msg_type == "toc_changed":
             self._current_toc = message.get("data", [])
             self.toc_changed.emit(self._current_toc)
-            print(f"[MarkdownViewer] TOC updated: {len(self._current_toc)} headings")
+            logger.debug(f"TOC updated: {len(self._current_toc)} headings")
 
         elif msg_type == "rendering_failed":
             error = message.get("error", "Unknown error")
             self.rendering_failed.emit(error)
-            print(f"[MarkdownViewer] Rendering failed: {error}")
+            logger.error(f"Rendering failed: {error}")
 
         elif msg_type == "scroll_position_changed":
             position = message.get("position", 0.0)
@@ -448,7 +580,7 @@ class MarkdownViewer(_BaseClass):
             return True
         except Exception as e:
             error_msg = f"Failed to load file {path}: {e}"
-            print(f"[MarkdownViewer] ERROR: {error_msg}")
+            logger.error(error_msg)
             self.rendering_failed.emit(error_msg)
             return False
 
@@ -483,7 +615,7 @@ class MarkdownViewer(_BaseClass):
         escaped_theme = json.dumps(theme)
         js_code = f"window.MarkdownViewer.setTheme({escaped_theme});"
         self.page().runJavaScript(js_code)
-        print(f"[MarkdownViewer] Theme set to: {theme}")
+        logger.debug(f"Theme set to: {theme}")
 
     def set_syntax_theme(self, theme: str) -> None:
         """Set syntax highlighting theme independently of main theme.
@@ -496,11 +628,14 @@ class MarkdownViewer(_BaseClass):
         self.page().runJavaScript(js_code)
         print(f"[MarkdownViewer] Syntax theme set to: {theme}")
 
-    def on_theme_changed(self) -> None:
+    def on_theme_changed(self, theme=None) -> None:
         """Called automatically when the theme changes (ThemedWidget callback).
 
         This method is called by the theme system when a theme change occurs.
         It updates the viewer's CSS variables based on the current theme.
+
+        Args:
+            theme: Optional Theme object. If not provided, uses get_current_theme() from ThemedWidget.
 
         Note: This method may be called before the viewer is ready. If not ready,
         the theme will be applied when viewer_ready signal is emitted.
@@ -508,56 +643,59 @@ class MarkdownViewer(_BaseClass):
         if not THEME_AVAILABLE:
             return
 
+        # Store theme for deferred application if viewer isn't ready yet
+        # This handles the case where Theme Studio calls on_theme_changed() before
+        # the viewer finishes loading
+        #
+        # IMPORTANT: Don't overwrite existing pending theme with None!
+        # ThemedWidget base class may call on_theme_changed(None) after Theme Studio
+        # has already set a valid theme. We must preserve the valid theme.
+        if theme is not None:
+            self._pending_theme = theme
+            logger.debug(f"Stored pending theme: {theme.name}")
+        elif self._pending_theme is not None:
+            logger.debug(f"Keeping existing pending theme: {self._pending_theme.name}")
+        else:
+            logger.debug("No theme parameter and no pending theme")
+
         # Don't apply theme if viewer not ready yet - will be applied via viewer_ready signal
         if not self._is_ready:
+            logger.debug("Viewer not ready, deferring theme application")
+            return
+
+        # Use provided theme, pending theme, or get from widget's theme manager
+        if theme is None:
+            if self._pending_theme is not None:
+                theme = self._pending_theme
+                logger.debug(f"Using pending theme: {theme.name}")
+            else:
+                theme = self.get_current_theme()
+                logger.debug(f"Got theme from widget: {theme.name}")
+
+        if not theme or not hasattr(theme, "colors"):
+            logger.warning("No theme available for markdown viewer")
             return
 
         # Determine if we're using dark theme
-        # Get theme from application
         is_dark = False
-        try:
-            from PySide6.QtWidgets import QApplication
+        if theme and hasattr(theme, "type"):
+            is_dark = theme.type == "dark"
 
-            app = QApplication.instance()
-            if app and hasattr(app, "get_current_theme"):
-                current_theme = app.get_current_theme()
-                if current_theme and hasattr(current_theme, "type"):
-                    is_dark = current_theme.type == "dark"
-        except Exception:
-            pass  # Fallback to light theme
-
-        # Update JavaScript viewer theme
+        # Update JavaScript viewer theme (light/dark mode)
         theme_name = "dark" if is_dark else "light"
         self.set_theme(theme_name)
 
-        # Inject CSS variables from theme
-        if hasattr(self, "theme"):
-            css_vars = "\n".join(
-                [
-                    f"--{key.replace('_', '-')}: {getattr(self.theme, key)};"
-                    for key in self.theme_config.keys()
-                    if hasattr(self.theme, key) and getattr(self.theme, key) is not None
-                ]
-            )
+        # Delegate CSS variable injection to ThemeBridge
+        result = self._theme_bridge.apply_theme(theme)
 
-            # Escape CSS vars for safe JavaScript embedding
-            escaped_css_vars = (
-                css_vars.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+        if not result.success:
+            logger.error(f"Theme application failed: {result.errors}")
+        elif result.missing_tokens:
+            logger.warning(f"Missing theme tokens: {result.missing_tokens}")
+        else:
+            logger.info(
+                f"Theme updated to: {theme_name} with {len(result.css_variables_set)} CSS variables"
             )
-
-            js_code = f"""
-            (function() {{
-                var style = document.getElementById('theme-vars');
-                if (!style) {{
-                    style = document.createElement('style');
-                    style.id = 'theme-vars';
-                    document.head.appendChild(style);
-                }}
-                style.textContent = ':root {{ {escaped_css_vars} }}';
-            }})();
-            """
-            self.page().runJavaScript(js_code)
-            print(f"[MarkdownViewer] Theme updated to: {theme_name}")
 
     def _apply_initial_theme(self) -> None:
         """Apply initial theme when viewer is ready.
@@ -566,37 +704,8 @@ class MarkdownViewer(_BaseClass):
         theme once the QWebEngineView is fully initialized and ready to
         receive JavaScript commands.
         """
-        print("[MarkdownViewer] Applying initial theme (viewer is ready)")
+        logger.debug("Applying initial theme (viewer is ready)")
         self.on_theme_changed()
-
-    def _get_initial_background_color(self) -> str:
-        """Get initial background color for WebView.
-
-        Checks the application's current theme type to return an appropriate
-        static fallback color (dark or light) that prevents flash on startup.
-
-        Returns:
-            Hex color string for background (#1a1a1a for dark, #ffffff for light)
-        """
-        # Try to determine theme type from application
-        try:
-            from PySide6.QtWidgets import QApplication
-
-            app = QApplication.instance()
-            if app and hasattr(app, "get_current_theme"):
-                current_theme = app.get_current_theme()
-                if current_theme and hasattr(current_theme, "type"):
-                    # Return appropriate static color based on theme type
-                    if current_theme.type == "dark":
-                        return "#1a1a1a"  # Dark background
-                    else:
-                        return "#ffffff"  # Light background
-        except Exception:
-            pass  # Continue to fallback
-
-        # Default fallback to dark (most common for development/terminal apps)
-        # Actual theme colors will be applied later via deferred theme mechanism
-        return "#1a1a1a"
 
     def is_ready(self) -> bool:
         """Check if viewer is ready to render.
@@ -759,7 +868,7 @@ class MarkdownViewer(_BaseClass):
         """
         # Queue content if viewer is not ready yet
         if not self._is_ready:
-            print(f"[MarkdownViewer] Viewer not ready, queueing content ({len(content)} chars)")
+            logger.debug(f"Viewer not ready, queueing content ({len(content)} chars)")
             self._pending_render = content
             return
 
@@ -787,7 +896,7 @@ class MarkdownViewer(_BaseClass):
             # Use a small delay to ensure content is rendered first
             QTimer.singleShot(50, lambda: self.page().runJavaScript(restore_js))
 
-        print(f"[MarkdownViewer] Rendering {len(content)} bytes of markdown")
+        logger.debug(f"Rendering {len(content)} bytes of markdown")
 
     def enable_shortcuts(self, enabled: bool = True) -> None:
         """Enable built-in keyboard shortcuts.
@@ -998,8 +1107,8 @@ Try changing themes to see how the markdown content adapts!
         return viewer
 
     # Define theme tokens used by markdown viewer
-    # Note: We only declare BASE tokens here for Theme Studio validation
-    # The actual theme resolution happens in on_theme_changed() via theme_config
+    # Declares BASE tokens for validation and widget-specific tokens for Theme Studio
+    # The actual theme resolution happens in on_theme_changed() via theme_config with fallbacks
     # Similar pattern to terminal widget which uses hierarchical resolution
     theme_tokens = {
         # Base tokens (REQUIRED - all widgets inherit these)
@@ -1018,6 +1127,20 @@ Try changing themes to see how the markdown content adapts!
             "colors.foreground",
         ],
         optional_tokens=[
+            # Widget-specific markdown tokens (primary)
+            "markdown.colors.background",
+            "markdown.colors.foreground",
+            "markdown.colors.link",
+            "markdown.colors.code.background",
+            "markdown.colors.code.foreground",
+            "markdown.colors.blockquote.border",
+            "markdown.colors.blockquote.background",
+            "markdown.colors.table.border",
+            "markdown.colors.table.headerBackground",
+            "markdown.colors.scrollbar.background",
+            "markdown.colors.scrollbar.thumb",
+            "markdown.colors.scrollbar.thumbHover",
+            # Fallback tokens (used if markdown.* not defined)
             "editor.background",
             "editor.foreground",
             "button.background",

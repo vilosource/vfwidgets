@@ -137,8 +137,8 @@ class TestWidgetMetadata:
             theme_tokens={
                 "bg": "editor.background",
                 "fg": "editor.foreground",
-                "black": "terminal.ansiBlack",
-                "red": "terminal.ansiRed",
+                "black": "terminal.colors.ansiBlack",
+                "red": "terminal.colors.ansiRed",
             },
         )
 

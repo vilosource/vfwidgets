@@ -51,6 +51,7 @@ class TokenCategory(Enum):
     MENU = "menu"
     SCROLLBAR = "scrollbar"
     TERMINAL = "terminal"
+    MARKDOWN = "markdown"
     MISC = "misc"
 
 
@@ -1341,14 +1342,14 @@ class ColorTokenRegistry:
     TERMINAL_COLORS: list[ColorToken] = [
         # Core terminal colors
         ColorToken(
-            "terminal.background",
+            "terminal.colors.background",
             TokenCategory.TERMINAL,
             "Terminal background color",
             "#ffffff",
             "#1e1e1e",
         ),
         ColorToken(
-            "terminal.foreground",
+            "terminal.colors.foreground",
             TokenCategory.TERMINAL,
             "Terminal foreground color",
             "#333333",
@@ -1378,79 +1379,198 @@ class ColorTokenRegistry:
         ),
         # ANSI Colors (normal)
         ColorToken(
-            "terminal.ansiBlack", TokenCategory.TERMINAL, "ANSI Black", "#000000", "#000000"
-        ),
-        ColorToken("terminal.ansiRed", TokenCategory.TERMINAL, "ANSI Red", "#cd3131", "#cd3131"),
-        ColorToken(
-            "terminal.ansiGreen", TokenCategory.TERMINAL, "ANSI Green", "#00bc00", "#0dbc79"
+            "terminal.colors.ansiBlack", TokenCategory.TERMINAL, "ANSI Black", "#000000", "#000000"
         ),
         ColorToken(
-            "terminal.ansiYellow", TokenCategory.TERMINAL, "ANSI Yellow", "#949800", "#e5e510"
+            "terminal.colors.ansiRed", TokenCategory.TERMINAL, "ANSI Red", "#cd3131", "#cd3131"
         ),
-        ColorToken("terminal.ansiBlue", TokenCategory.TERMINAL, "ANSI Blue", "#0451a5", "#2472c8"),
         ColorToken(
-            "terminal.ansiMagenta", TokenCategory.TERMINAL, "ANSI Magenta", "#bc05bc", "#bc3fbc"
+            "terminal.colors.ansiGreen", TokenCategory.TERMINAL, "ANSI Green", "#00bc00", "#0dbc79"
         ),
-        ColorToken("terminal.ansiCyan", TokenCategory.TERMINAL, "ANSI Cyan", "#0598bc", "#11a8cd"),
         ColorToken(
-            "terminal.ansiWhite", TokenCategory.TERMINAL, "ANSI White", "#555555", "#e5e5e5"
+            "terminal.colors.ansiYellow",
+            TokenCategory.TERMINAL,
+            "ANSI Yellow",
+            "#949800",
+            "#e5e510",
+        ),
+        ColorToken(
+            "terminal.colors.ansiBlue", TokenCategory.TERMINAL, "ANSI Blue", "#0451a5", "#2472c8"
+        ),
+        ColorToken(
+            "terminal.colors.ansiMagenta",
+            TokenCategory.TERMINAL,
+            "ANSI Magenta",
+            "#bc05bc",
+            "#bc3fbc",
+        ),
+        ColorToken(
+            "terminal.colors.ansiCyan", TokenCategory.TERMINAL, "ANSI Cyan", "#0598bc", "#11a8cd"
+        ),
+        ColorToken(
+            "terminal.colors.ansiWhite", TokenCategory.TERMINAL, "ANSI White", "#555555", "#e5e5e5"
         ),
         # ANSI Colors (bright)
         ColorToken(
-            "terminal.ansiBrightBlack",
+            "terminal.colors.ansiBrightBlack",
             TokenCategory.TERMINAL,
             "ANSI Bright Black",
             "#666666",
             "#666666",
         ),
         ColorToken(
-            "terminal.ansiBrightRed",
+            "terminal.colors.ansiBrightRed",
             TokenCategory.TERMINAL,
             "ANSI Bright Red",
             "#cd3131",
             "#f14c4c",
         ),
         ColorToken(
-            "terminal.ansiBrightGreen",
+            "terminal.colors.ansiBrightGreen",
             TokenCategory.TERMINAL,
             "ANSI Bright Green",
             "#14ce14",
             "#23d18b",
         ),
         ColorToken(
-            "terminal.ansiBrightYellow",
+            "terminal.colors.ansiBrightYellow",
             TokenCategory.TERMINAL,
             "ANSI Bright Yellow",
             "#b5ba00",
             "#f5f543",
         ),
         ColorToken(
-            "terminal.ansiBrightBlue",
+            "terminal.colors.ansiBrightBlue",
             TokenCategory.TERMINAL,
             "ANSI Bright Blue",
             "#0451a5",
             "#3b8eea",
         ),
         ColorToken(
-            "terminal.ansiBrightMagenta",
+            "terminal.colors.ansiBrightMagenta",
             TokenCategory.TERMINAL,
             "ANSI Bright Magenta",
             "#bc05bc",
             "#d670d6",
         ),
         ColorToken(
-            "terminal.ansiBrightCyan",
+            "terminal.colors.ansiBrightCyan",
             TokenCategory.TERMINAL,
             "ANSI Bright Cyan",
             "#0598bc",
             "#29b8db",
         ),
         ColorToken(
-            "terminal.ansiBrightWhite",
+            "terminal.colors.ansiBrightWhite",
             TokenCategory.TERMINAL,
             "ANSI Bright White",
             "#a5a5a5",
             "#e5e5e5",
+        ),
+    ]
+
+    # Markdown Colors Category
+    MARKDOWN_COLORS: list[ColorToken] = [
+        # Content colors
+        ColorToken(
+            "markdown.colors.background",
+            TokenCategory.MARKDOWN,
+            "Markdown background color",
+            "#ffffff",
+            "#0d1117",
+            False,  # Optional - falls back to editor.background
+        ),
+        ColorToken(
+            "markdown.colors.foreground",
+            TokenCategory.MARKDOWN,
+            "Markdown foreground/text color",
+            "#24292f",
+            "#c9d1d9",
+            False,  # Optional - falls back to editor.foreground
+        ),
+        ColorToken(
+            "markdown.colors.link",
+            TokenCategory.MARKDOWN,
+            "Markdown link color",
+            "#0969da",
+            "#58a6ff",
+            False,  # Optional - falls back to button.background
+        ),
+        # Code block colors
+        ColorToken(
+            "markdown.colors.code.background",
+            TokenCategory.MARKDOWN,
+            "Markdown code block background",
+            "#f6f8fa",
+            "#161b22",
+            False,  # Optional - falls back to input.background
+        ),
+        ColorToken(
+            "markdown.colors.code.foreground",
+            TokenCategory.MARKDOWN,
+            "Markdown code block foreground",
+            "#24292f",
+            "#e6edf3",
+            False,  # Optional - falls back to input.foreground
+        ),
+        # Blockquote colors
+        ColorToken(
+            "markdown.colors.blockquote.border",
+            TokenCategory.MARKDOWN,
+            "Markdown blockquote border color",
+            "#d0d7de",
+            "#3b434b",
+            False,  # Optional - falls back to widget.border
+        ),
+        ColorToken(
+            "markdown.colors.blockquote.background",
+            TokenCategory.MARKDOWN,
+            "Markdown blockquote background",
+            "#f6f8fa",
+            "rgba(110, 118, 129, 0.1)",
+            False,  # Optional - falls back to widget.background
+        ),
+        # Table colors
+        ColorToken(
+            "markdown.colors.table.border",
+            TokenCategory.MARKDOWN,
+            "Markdown table border color",
+            "#d0d7de",
+            "#30363d",
+            False,  # Optional - falls back to widget.border
+        ),
+        ColorToken(
+            "markdown.colors.table.headerBackground",
+            TokenCategory.MARKDOWN,
+            "Markdown table header background",
+            "#f6f8fa",
+            "#161b22",
+            False,  # Optional - falls back to editor.lineHighlightBackground
+        ),
+        # Scrollbar colors
+        ColorToken(
+            "markdown.colors.scrollbar.background",
+            TokenCategory.MARKDOWN,
+            "Markdown scrollbar background",
+            "#ffffff",
+            "#0d1117",
+            False,  # Optional - falls back to editor.background
+        ),
+        ColorToken(
+            "markdown.colors.scrollbar.thumb",
+            TokenCategory.MARKDOWN,
+            "Markdown scrollbar thumb",
+            "#d0d7de",
+            "#484f58",
+            False,  # Optional - falls back to scrollbar.activeBackground
+        ),
+        ColorToken(
+            "markdown.colors.scrollbar.thumbHover",
+            TokenCategory.MARKDOWN,
+            "Markdown scrollbar thumb on hover",
+            "#b1bac4",
+            "#6e7681",
+            False,  # Optional - falls back to scrollbar.hoverBackground
         ),
     ]
 
@@ -1470,6 +1590,7 @@ class ColorTokenRegistry:
         + MENU_COLORS
         + SCROLLBAR_COLORS
         + TERMINAL_COLORS
+        + MARKDOWN_COLORS
         + MISC_COLORS
     )
 

@@ -1,0 +1,16 @@
+{
+  "name": "Untitled",
+  "version": "1.0.0",
+  "type": "dark",
+  "colors": {
+    "colors.background": "#1e1e1e",
+    "colors.foreground": "#d4d4d4",
+    "colors.border": "#333333",
+    "markdown.colors.code.background": "#ff0000"
+  },
+  "styles": {},
+  "metadata": {
+    "created_with": "VFTheme Studio"
+  },
+  "tokenColors": []
+}

@@ -71,7 +71,7 @@ graph TD
     Root --> Tab["tab.*<br/>(20 tokens)"]
     Root --> Menu["menu.*<br/>(15 tokens)"]
     Root --> Scrollbar["scrollbar.*<br/>(8 tokens)"]
-    Root --> Terminal["terminal.*<br/>(16 ANSI colors)"]
+    Root --> Terminal["terminal.colors.*<br/>(18 tokens)"]
 
     Colors --> C1["colors.foreground"]
     Colors --> C2["colors.background"]
@@ -296,18 +296,22 @@ Scrollbar styling.
 }
 ```
 
-### 9. Terminal Colors (16+ tokens)
-Terminal emulator ANSI colors.
+### 9. Terminal Colors (18 tokens)
+Terminal emulator ANSI colors using `terminal.colors.*` namespace.
 
 ```json
 {
-  "terminal.background": "#1e1e1e",
-  "terminal.foreground": "#cccccc",
-  "terminal.ansiBlack": "#000000",
-  "terminal.ansiRed": "#cd3131",
-  "terminal.ansiGreen": "#0dbc79",
-  "terminal.ansiBlue": "#2472c8",
-  // ... 16 total ANSI colors
+  "terminal.colors.background": "#1e1e1e",
+  "terminal.colors.foreground": "#cccccc",
+  "terminal.colors.ansiBlack": "#000000",
+  "terminal.colors.ansiRed": "#cd3131",
+  "terminal.colors.ansiGreen": "#0dbc79",
+  "terminal.colors.ansiBlue": "#2472c8",
+  "terminal.colors.ansiMagenta": "#bc3fbc",
+  "terminal.colors.ansiCyan": "#11a8cd",
+  "terminal.colors.ansiWhite": "#e5e5e5",
+  "terminal.colors.ansiYellow": "#e5e510",
+  // ... plus 8 bright variants: ansiBrightBlack, ansiBrightRed, etc.
 }
 ```
 

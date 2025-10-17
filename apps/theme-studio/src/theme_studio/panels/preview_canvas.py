@@ -17,6 +17,7 @@ class PreviewCanvasPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._current_plugin = None
+        self._current_plugin_ref = None  # Store plugin reference for metadata access
         self._setup_ui()
 
     def _setup_ui(self):
@@ -95,7 +96,7 @@ class PreviewCanvasPanel(QWidget):
         # Will be implemented in Task 4.3 when plugins are integrated
         pass
 
-    def set_plugin_content(self, content_widget: QWidget):
+    def set_plugin_content(self, content_widget: QWidget, plugin_ref=None):
         """Set content widget from plugin.
 
         This method will be called by the plugin system (Task 4.3) to
@@ -103,6 +104,7 @@ class PreviewCanvasPanel(QWidget):
 
         Args:
             content_widget: Widget to display in canvas
+            plugin_ref: Optional plugin reference for metadata access
         """
         # Remove placeholder if present
         if self.placeholder_label:
@@ -131,6 +133,7 @@ class PreviewCanvasPanel(QWidget):
 
         # Add new plugin widget - it will expand to fill available space
         self._current_plugin = content_widget
+        self._current_plugin_ref = plugin_ref  # Store plugin reference for metadata access
         self.content_layout.addWidget(content_widget)
 
     def clear_content(self):
@@ -149,8 +152,9 @@ class PreviewCanvasPanel(QWidget):
                 # Widget already deleted
                 pass
             finally:
-                # Clear reference immediately
+                # Clear references immediately
                 self._current_plugin = None
+                self._current_plugin_ref = None
 
         # Show placeholder
         if not self.placeholder_label:

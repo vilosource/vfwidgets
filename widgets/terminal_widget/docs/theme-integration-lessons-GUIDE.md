@@ -54,7 +54,7 @@ def _on_global_theme_changed(self, theme_name: str) -> None:
 # ❌ NOT AVAILABLE in built-in themes
 "editor.background"    # None (returns None)
 "editor.foreground"    # None (returns None)
-"terminal.ansiRed"     # None (returns None)
+"terminal.colors.ansiRed"     # None (returns None)
 ```
 
 **Lesson Learned**: **Always provide comprehensive fallbacks. Don't assume tokens exist.**

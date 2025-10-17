@@ -5,6 +5,8 @@ This module defines the structure and defaults for all application preferences.
 
 from dataclasses import asdict, dataclass, field
 
+from vfwidgets_common import ThemeOverrides
+
 
 @dataclass
 class GeneralPreferences:
@@ -82,9 +84,15 @@ class MarkdownPreferences:
     auto_reload_on_change: bool = True
     scroll_sync: bool = False  # Future: sync scroll with source
 
+    # Theme Color Overrides
+    theme_overrides: ThemeOverrides = field(default_factory=ThemeOverrides)
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
-        return asdict(self)
+        data = asdict(self)
+        # Convert ThemeOverrides to dict
+        data["theme_overrides"] = self.theme_overrides.to_dict()
+        return data
 
     @classmethod
     def from_dict(cls, data: dict) -> "MarkdownPreferences":
@@ -96,7 +104,17 @@ class MarkdownPreferences:
         Returns:
             MarkdownPreferences instance
         """
-        return cls(**{k: v for k, v in data.items() if k in cls.__annotations__})
+        # Extract theme_overrides separately
+        theme_overrides_data = data.pop("theme_overrides", {})
+
+        # Create instance with other fields
+        prefs = cls(**{k: v for k, v in data.items() if k in cls.__annotations__})
+
+        # Reconstruct ThemeOverrides
+        if theme_overrides_data:
+            prefs.theme_overrides = ThemeOverrides.from_dict(theme_overrides_data)
+
+        return prefs
 
 
 @dataclass

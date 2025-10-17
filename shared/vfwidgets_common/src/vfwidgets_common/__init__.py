@@ -2,6 +2,8 @@
 
 __version__ = "0.1.0"
 
+# Widgets submodule (imported as submodule, not directly)
+from . import widgets
 from .base_widget import VFBaseWidget
 from .frameless import FramelessWindowBehavior
 from .platform import (
@@ -13,6 +15,11 @@ from .platform import (
     needs_software_rendering,
 )
 from .single_instance import SingleInstanceApplication
+from .theme_overrides import (
+    ThemeOverrides,
+    apply_theme_with_overrides,
+    get_tokens_by_category,
+)
 from .utils import load_widget_icon, setup_widget_style
 from .webengine import (
     configure_all_for_webengine,
@@ -43,4 +50,10 @@ __all__ = [
     "configure_all_for_webengine",
     "get_webengine_info",
     "log_webengine_configuration",
+    # Theme overrides
+    "ThemeOverrides",
+    "apply_theme_with_overrides",
+    "get_tokens_by_category",
+    # Widgets submodule
+    "widgets",
 ]

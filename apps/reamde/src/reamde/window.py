@@ -466,9 +466,19 @@ class ReamdeWindow(ViloCodeWindow):
         # Apply window opacity
         opacity = preferences.appearance.window_opacity / 100.0
         self.setWindowOpacity(opacity)
+        logger.debug(f"Set window opacity to {opacity}")
 
-        # TODO: Apply theme (if changed from current)
-        # This would require theme system integration
+        # Apply theme with markdown color overrides
+        from vfwidgets_common import apply_theme_with_overrides
+
+        theme_name = preferences.appearance.application_theme
+        markdown_overrides = preferences.markdown.theme_overrides
+
+        success = apply_theme_with_overrides(theme_name, markdown_overrides)
+        if success:
+            logger.info(f"Applied theme '{theme_name}' with markdown overrides")
+        else:
+            logger.warning(f"Failed to apply theme '{theme_name}' with overrides")
 
         # TODO: Apply markdown preferences to all open tabs
         # This would require MarkdownViewer.apply_preferences() method
@@ -521,6 +531,19 @@ class ReamdeWindow(ViloCodeWindow):
         # Apply window opacity
         opacity = self.preferences.appearance.window_opacity / 100.0
         self.setWindowOpacity(opacity)
+        logger.debug(f"Set window opacity to {opacity}")
+
+        # Apply theme with markdown color overrides
+        from vfwidgets_common import apply_theme_with_overrides
+
+        theme_name = self.preferences.appearance.application_theme
+        markdown_overrides = self.preferences.markdown.theme_overrides
+
+        success = apply_theme_with_overrides(theme_name, markdown_overrides)
+        if success:
+            logger.info(f"Applied startup theme '{theme_name}' with markdown overrides")
+        else:
+            logger.warning(f"Failed to apply startup theme '{theme_name}' with overrides")
 
         # Session restoration is already handled by controller
         # (uses its own SessionManager)

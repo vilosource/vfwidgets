@@ -10,9 +10,11 @@ from typing import Any, Callable, Optional
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QThread, QUrl, Signal, Slot, Qt
 from PySide6.QtGui import QAction, QContextMenuEvent, QMouseEvent
-from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QMenu, QVBoxLayout, QWidget
+
+# Import WebViewHost from vfwidgets_common
+from vfwidgets_common.webview import WebViewHost
 
 try:
     from vfwidgets_theme.widgets.base import ThemedWidget
@@ -518,7 +520,7 @@ class TerminalWidget(_BaseTerminalClass):
 
         # Phase 2: QWebChannel bridge for JavaScript communication
         self.bridge = None
-        self.web_channel = None
+        self._host: Optional[WebViewHost] = None  # WebViewHost manages page and channel
 
         # Phase 3: Event configuration system
         self.event_config = event_config or EventConfig()
@@ -730,11 +732,16 @@ class TerminalWidget(_BaseTerminalClass):
         self.web_view = DebugWebEngineView(self)
         self.web_view.set_debug(self.debug)
 
-        # Make web view transparent so parent widget background shows through
-        # This prevents white flash on startup and lets Qt stylesheets control the background
+        # Setup WebViewHost to manage page and channel (Phase 1 refactoring)
+        # Terminal widget uses local xterm.js files, so allow_remote_access=False (default)
+        self._host = WebViewHost(self.web_view)
+        page = self._host.initialize()  # Default: no remote access needed
+        self.web_view.setPage(page)
+
+        # Configure transparency (3-layer pattern via WebViewHost)
         self.web_view.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.web_view.setStyleSheet("background: transparent")
-        self.web_view.page().setBackgroundColor(Qt.GlobalColor.transparent)
+        self._host.set_transparent(True)
 
         layout.addWidget(self.web_view)
 
@@ -749,7 +756,7 @@ class TerminalWidget(_BaseTerminalClass):
         self.web_view.middle_clicked.connect(self._handle_middle_click)
 
         # Connect page load signals
-        self.web_view.loadFinished.connect(self._on_load_finished)
+        self._host.load_finished.connect(self._on_load_finished)
 
         # Install event filter on focus proxy for proper focus detection
         # This is needed because QWebEngineView doesn't propagate focus events normally
@@ -1112,21 +1119,19 @@ class TerminalWidget(_BaseTerminalClass):
         This enables bidirectional communication between xterm.js running in the
         QWebEngineView and this Python widget. JavaScript can call methods on
         the bridge, and the bridge can emit signals that this widget listens to.
+
+        Now uses WebViewHost to manage the channel (Phase 1 refactoring).
         """
-        # Create bridge and web channel
+        # Create bridge
         self.bridge = TerminalBridge(self)
-        self.web_channel = QWebChannel(self)
 
-        # Register the bridge object so JavaScript can access it
-        self.web_channel.registerObject("terminalBridge", self.bridge)
-
-        # Set the web channel on the QWebEngineView's page
-        self.web_view.page().setWebChannel(self.web_channel)
+        # Register bridge via WebViewHost (replaces manual QWebChannel setup)
+        self._host.register_bridge_object("terminalBridge", self.bridge)
 
         # Connect bridge signals to widget signals (Phase 3: Rich events)
         self._connect_bridge_signals()
 
-        logger.debug("QWebChannel bridge set up successfully")
+        logger.debug("QWebChannel bridge set up successfully via WebViewHost")
 
     def _connect_bridge_signals(self) -> None:
         """Connect TerminalBridge signals to TerminalWidget signals."""

@@ -156,7 +156,7 @@ if logger.isEnabledFor(logging.DEBUG):
 ### Issue 4: No Diagnostics for Missing Tokens 🔍
 
 **Current Problem:**
-When a theme is missing tokens (e.g., no `terminal.ansiRed`), the terminal silently falls back to defaults. Users in Theme Studio don't know which tokens are:
+When a theme is missing tokens (e.g., no `terminal.colors.ansiRed`), the terminal silently falls back to defaults. Users in Theme Studio don't know which tokens are:
 - Provided by the theme
 - Using fallback values
 - Required vs. optional
@@ -173,8 +173,8 @@ def _check_missing_tokens(self, colors: dict[str, str]) -> list[str]:
     required_tokens = [
         "editor.background",
         "editor.foreground",
-        "terminal.ansiBlack",
-        "terminal.ansiRed",
+        "terminal.colors.ansiBlack",
+        "terminal.colors.ansiRed",
         # ... all 16 ANSI colors
     ]
 
@@ -340,7 +340,7 @@ def get_preview_metadata() -> WidgetMetadata:
 Then Theme Studio can show:
 ```
 ⚠️ Terminal Widget: 5 tokens missing (using fallbacks)
-   Missing: terminal.ansiRed, terminal.ansiGreen, ...
+   Missing: terminal.colors.ansiRed, terminal.colors.ansiGreen, ...
 ```
 
 **Benefits:**

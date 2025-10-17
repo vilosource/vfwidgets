@@ -381,7 +381,7 @@ class ThemeStudioWindow(QMainWindow):
 
         # Create and set preview widget
         preview_widget = plugin.create_preview_widget()
-        self.preview_canvas.set_plugin_content(preview_widget)
+        self.preview_canvas.set_plugin_content(preview_widget, plugin_ref=plugin)
 
         # Update token browser with widget's tokens (for filtering)
         from .plugins.discovered_plugin import DiscoveredWidgetPlugin
@@ -707,11 +707,17 @@ class ThemeStudioWindow(QMainWindow):
                     logger.info(f"🔍 [Theme Studio] theme has fonts: {hasattr(theme, 'fonts')}")
                     if hasattr(theme, "fonts"):
                         logger.info(f"🔍 [Theme Studio] theme.fonts type: {type(theme.fonts)}")
-                        logger.info(f"🔍 [Theme Studio] theme.fonts keys: {list(theme.fonts.keys())[:10] if theme.fonts else 'None'}")
+                        logger.info(
+                            f"🔍 [Theme Studio] theme.fonts keys: {list(theme.fonts.keys())[:10] if theme.fonts else 'None'}"
+                        )
                         if theme.fonts and "terminal.fontSize" in theme.fonts:
-                            logger.info(f"🔍 [Theme Studio] theme.fonts['terminal.fontSize'] = {theme.fonts['terminal.fontSize']}")
+                            logger.info(
+                                f"🔍 [Theme Studio] theme.fonts['terminal.fontSize'] = {theme.fonts['terminal.fontSize']}"
+                            )
                         if theme.fonts and "fonts.mono" in theme.fonts:
-                            logger.info(f"🔍 [Theme Studio] theme.fonts['fonts.mono'] = {theme.fonts['fonts.mono']}")
+                            logger.info(
+                                f"🔍 [Theme Studio] theme.fonts['fonts.mono'] = {theme.fonts['fonts.mono']}"
+                            )
 
                     plugin_widget.on_theme_changed(theme)
 
@@ -728,8 +734,80 @@ class ThemeStudioWindow(QMainWindow):
                     )
 
             # Also apply theme to the canvas background for better visual feedback
+            # For widgets with widget-specific background colors (like terminal.colors.background),
+            # use the widget-specific color if available, otherwise fall back to base color
             try:
-                bg_color = theme.colors.get("colors.background", "#1e1e1e")
+                # Extract widget namespace from plugin metadata (metadata-driven approach)
+                widget_namespace = None
+                if (
+                    hasattr(self.preview_canvas, "_current_plugin_ref")
+                    and self.preview_canvas._current_plugin_ref
+                ):
+                    plugin_ref = self.preview_canvas._current_plugin_ref
+                    from .plugins.discovered_plugin import DiscoveredWidgetPlugin
+
+                    if isinstance(plugin_ref, DiscoveredWidgetPlugin):
+                        # Get token categories from metadata (e.g., ["terminal", "colors"])
+                        categories = plugin_ref.metadata.token_categories
+                        # Filter out base categories and common fallback categories
+                        base_categories = {"colors", "fonts"}
+                        common_fallback_categories = {
+                            "editor",
+                            "button",
+                            "input",
+                            "widget",
+                            "scrollbar",
+                        }
+                        widget_categories = [
+                            c
+                            for c in categories
+                            if c not in base_categories and c not in common_fallback_categories
+                        ]
+
+                        if widget_categories:
+                            # If multiple categories remain, prioritize the one that has .colors.background token
+                            # This identifies the primary widget namespace vs fallback namespaces
+                            if len(widget_categories) > 1:
+                                # Check which category has {namespace}.colors.background in optional_tokens
+                                for candidate in widget_categories:
+                                    bg_token = f"{candidate}.colors.background"
+                                    if bg_token in plugin_ref.metadata.optional_tokens:
+                                        widget_namespace = candidate
+                                        logger.debug(
+                                            f"_update_preview_theme: Identified primary namespace '{widget_namespace}' "
+                                            f"(has {bg_token} in optional_tokens)"
+                                        )
+                                        break
+                                else:
+                                    # Fallback to first category if none have background token
+                                    widget_namespace = widget_categories[0]
+                                    logger.debug(
+                                        f"_update_preview_theme: Using first category '{widget_namespace}' "
+                                        f"(no background token found)"
+                                    )
+                            else:
+                                # Only one category, use it
+                                widget_namespace = widget_categories[0]
+                                logger.debug(
+                                    f"_update_preview_theme: Extracted namespace '{widget_namespace}' from metadata"
+                                )
+
+                # Try widget-specific background first, then fall back to base
+                bg_color = "#1e1e1e"  # Default
+                if widget_namespace:
+                    widget_bg_key = f"{widget_namespace}.colors.background"
+                    bg_color = theme.colors.get(widget_bg_key) or theme.colors.get(
+                        "colors.background", "#1e1e1e"
+                    )
+                    logger.debug(
+                        f"_update_preview_theme: Checked {widget_bg_key} = {theme.colors.get(widget_bg_key)}"
+                    )
+                else:
+                    bg_color = theme.colors.get("colors.background", "#1e1e1e")
+                    logger.debug(
+                        "_update_preview_theme: No widget namespace, using base colors.background"
+                    )
+
                 fg_color = theme.colors.get("colors.foreground", "#d4d4d4")
                 logger.debug(
                     f"_update_preview_theme: Applying canvas theme: bg={bg_color}, fg={fg_color}"

@@ -12,11 +12,33 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QVBoxLayout,
 )
+from vfwidgets_common.widgets import ThemeOverrideEditor
 from vfwidgets_theme import ThemedQWidget
 
 from ..models.preferences_model import MarkdownPreferences
 
 logger = logging.getLogger(__name__)
+
+
+# Markdown theme tokens that can be customized
+MARKDOWN_TOKENS = [
+    # Content colors
+    ("markdown.colors.background", "Background", "Main background color"),
+    ("markdown.colors.foreground", "Text Color", "Main text color"),
+    ("markdown.colors.link", "Links", "Hyperlink color"),
+    # Code blocks
+    ("markdown.colors.code.background", "Code Background", "Code block background"),
+    ("markdown.colors.code.foreground", "Code Text", "Code block text color"),
+    # UI elements
+    ("markdown.colors.blockquote.border", "Blockquote Border", "Left border of blockquotes"),
+    ("markdown.colors.blockquote.background", "Blockquote Background", "Blockquote background"),
+    ("markdown.colors.table.border", "Table Border", "Table cell borders"),
+    ("markdown.colors.table.headerBackground", "Table Header", "Table header background"),
+    # Scrollbar
+    ("markdown.colors.scrollbar.background", "Scrollbar Track", "Scrollbar background"),
+    ("markdown.colors.scrollbar.thumb", "Scrollbar Thumb", "Scrollbar thumb"),
+    ("markdown.colors.scrollbar.thumbHover", "Scrollbar Hover", "Scrollbar thumb on hover"),
+]
 
 
 class MarkdownPreferencesTab(ThemedQWidget):
@@ -61,6 +83,7 @@ class MarkdownPreferencesTab(ThemedQWidget):
         # Create sections
         container_layout.addWidget(self._create_rendering_features_group())
         container_layout.addWidget(self._create_behavior_group())
+        container_layout.addWidget(self._create_theme_overrides_group())
 
         container_layout.addStretch()
 
@@ -110,6 +133,21 @@ class MarkdownPreferencesTab(ThemedQWidget):
 
         return group
 
+    def _create_theme_overrides_group(self) -> QGroupBox:
+        """Create the theme color overrides group.
+
+        Returns:
+            QGroupBox with theme override editor
+        """
+        group = QGroupBox("Theme Color Overrides")
+        layout = QVBoxLayout(group)
+
+        # Theme override editor
+        self.override_editor = ThemeOverrideEditor(MARKDOWN_TOKENS, parent=self)
+        layout.addWidget(self.override_editor)
+
+        return group
+
     def load_preferences(self, preferences: MarkdownPreferences) -> None:
         """Load preferences into UI.
 
@@ -127,6 +165,9 @@ class MarkdownPreferencesTab(ThemedQWidget):
         self.auto_reload_check.setChecked(preferences.auto_reload_on_change)
         self.scroll_sync_check.setChecked(preferences.scroll_sync)
 
+        # Theme Overrides
+        self.override_editor.load_overrides(preferences.theme_overrides)
+
     def save_preferences(self) -> MarkdownPreferences:
         """Collect preferences from UI.
 
@@ -141,4 +182,6 @@ class MarkdownPreferencesTab(ThemedQWidget):
             # Behavior
             auto_reload_on_change=self.auto_reload_check.isChecked(),
             scroll_sync=self.scroll_sync_check.isChecked(),
+            # Theme Overrides
+            theme_overrides=self.override_editor.save_overrides(),
         )

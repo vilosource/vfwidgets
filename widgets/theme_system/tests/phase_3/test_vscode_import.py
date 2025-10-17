@@ -127,7 +127,7 @@ class TestVSCodeColorMapper:
             ("editor.background", "window.background"),
             ("editor.foreground", "window.foreground"),
             ("button.background", "button.background"),
-            ("terminal.ansiRed", "terminal.ansi.red"),
+            ("terminal.ansiRed", "terminal.colors.ansiRed"),
             ("activityBar.background", "activitybar.background"),
             ("statusBar.background", "statusbar.background"),
         ]
