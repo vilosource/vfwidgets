@@ -38,8 +38,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-# Import our BrowserWidget
-from vfwidgets_webview import BrowserWidget
+# Import our BrowserWidget and helpers
+from vfwidgets_webview import BrowserWidget, WebChannelHelper
 
 # ===== Extension System: Python↔JavaScript Bridge =====
 
@@ -138,84 +138,42 @@ class ExtensionManager:
         self._setup_bridge()
 
     def _setup_bridge(self):
-        """Setup QWebChannel for Python↔JavaScript communication.
+        """Setup QWebChannel for Python↔JavaScript communication (CSP-safe).
 
         Educational Note:
-            This uses browser.page() to access QWebEnginePage,
-            which is needed to set the web channel.
+            OLD APPROACH (fails with CSP/Trusted Types):
+            - Use run_javascript() to create <script> element
+            - Set script.src = 'qrc:///qtwebchannel/qwebchannel.js'
+            - Fails on sites like Google, GitHub with Trusted Types
+
+            NEW APPROACH (CSP-safe):
+            - Use WebChannelHelper.setup_channel()
+            - Injects scripts via QWebEngineScript
+            - Scripts loaded BEFORE page CSP is applied
+            - Works on ALL websites, even with strict CSP
+
+            This is the CORRECT way to use QWebChannel in QtWebEngine!
         """
-        # Create channel
-        self.channel = QWebChannel()
+        print("\n" + "=" * 60)
+        print("Setting up QWebChannel bridge (CSP-safe method)")
+        print("=" * 60)
 
-        # Register our bridge object
-        # JavaScript can access as: qwebchannel.objects.extension
-        self.channel.registerObject("extension", self.bridge)
+        # Use WebChannelHelper for CSP-safe setup
+        # This handles everything:
+        # 1. Creates QWebChannel
+        # 2. Registers bridge object
+        # 3. Sets channel on page
+        # 4. Injects qwebchannel.js via QWebEngineScript (CSP-safe!)
+        # 5. Initializes bridge in JavaScript
+        self.channel = WebChannelHelper.setup_channel(
+            self.browser, self.bridge, object_name="extension"
+        )
 
-        # Set channel on page (Phase 1 API: browser.page())
-        self.browser.page().setWebChannel(self.channel)
-
-        # Inject QWebChannel JavaScript library
-        self._inject_qwebchannel_lib()
-
-    def _inject_qwebchannel_lib(self):
-        """Inject QWebChannel JavaScript library into page.
-
-        Educational Note:
-            QWebChannel requires two steps:
-            1. Load qwebchannel.js library from Qt resources
-            2. Initialize the channel to connect to Python bridge
-
-            This must be done on every page load.
-        """
-
-        def inject_channel():
-            """Inject QWebChannel library and initialize bridge."""
-            # Step 1: Create script element to load qwebchannel.js from Qt resources
-            load_script = """
-            (function() {
-                // Check if already loaded
-                if (window.QWebChannel) {
-                    console.log('QWebChannel already loaded, initializing...');
-                    initChannel();
-                    return;
-                }
-
-                // Load qwebchannel.js from Qt resources
-                var script = document.createElement('script');
-                script.src = 'qrc:///qtwebchannel/qwebchannel.js';
-                script.onload = function() {
-                    console.log('QWebChannel library loaded');
-                    initChannel();
-                };
-                script.onerror = function() {
-                    console.error('Failed to load QWebChannel library');
-                };
-                document.head.appendChild(script);
-
-                // Initialize channel once library is loaded
-                function initChannel() {
-                    if (typeof QWebChannel === 'undefined') {
-                        console.error('QWebChannel not available');
-                        return;
-                    }
-
-                    new QWebChannel(qt.webChannelTransport, function(channel) {
-                        window.extension = channel.objects.extension;
-                        console.log('✓ Extension bridge ready!');
-
-                        // Test the bridge
-                        if (window.extension && window.extension.log_from_js) {
-                            window.extension.log_from_js('info',
-                                'QWebChannel bridge connected successfully');
-                        }
-                    });
-                }
-            })();
-            """
-            self.browser.run_javascript(load_script)
-
-        # Inject on every successful page load
-        self.browser.load_finished.connect(lambda success: inject_channel() if success else None)
+        print("✓ QWebChannel setup complete")
+        print("  - Bridge object: window.extension")
+        print("  - Injection: QWebEngineScript (CSP-safe)")
+        print("  - Works on: ALL sites (Google, GitHub, etc.)")
+        print("=" * 60 + "\n")
 
     def enable_ad_blocker(self):
         """Enable ad blocker extension.

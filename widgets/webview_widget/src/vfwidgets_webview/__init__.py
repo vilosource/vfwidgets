@@ -24,13 +24,15 @@ Components:
 # Import all components
 from .browser_widget import BrowserWidget
 from .navigation_bar import NavigationBar
+from .webchannel_helper import WebChannelHelper
 from .webpage import WebPage
 from .webview import WebView
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"  # Phase 1 + User Scripts
 __all__ = [
     "BrowserWidget",
     "NavigationBar",
     "WebView",
     "WebPage",
+    "WebChannelHelper",
 ]

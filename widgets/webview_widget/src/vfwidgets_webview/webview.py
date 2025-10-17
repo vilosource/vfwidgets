@@ -17,7 +17,7 @@ from typing import Optional
 
 from PySide6.QtCore import QUrl, Signal, Slot
 from PySide6.QtGui import QIcon
-from PySide6.QtWebEngineCore import QWebEngineProfile
+from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEngineScript
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
 
@@ -468,3 +468,131 @@ class WebView(QWidget):
             The QWebEngineView instance
         """
         return self._engine_view
+
+    # ===== User Script Injection API =====
+    # These methods provide CSP-safe script injection using QWebEngineScript
+
+    def inject_user_script(
+        self,
+        source_code: str,
+        name: str = "user-script",
+        injection_point: QWebEngineScript.InjectionPoint = (
+            QWebEngineScript.InjectionPoint.DocumentCreation
+        ),
+        world_id: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld,
+        runs_on_subframes: bool = True,
+    ) -> None:
+        """Inject JavaScript that runs on every page load (CSP-safe).
+
+        This method uses Qt's QWebEngineScript to inject JavaScript before
+        the page's Content Security Policy (CSP) is applied, bypassing
+        Trusted Types and other CSP restrictions.
+
+        Educational Note:
+            Modern websites use Content Security Policy (CSP) to prevent
+            XSS attacks. CSP can block dynamic script injection via:
+            - script.src = "..." (Trusted Types)
+            - eval(), new Function() (unsafe-eval)
+            - Inline scripts (unsafe-inline)
+
+            QWebEngineScript bypasses these restrictions because Qt injects
+            scripts BEFORE the page's CSP is loaded. This is the recommended
+            way to inject scripts in QtWebEngine.
+
+            Use Cases:
+            - QWebChannel initialization (Python↔JavaScript bridge)
+            - Browser extensions
+            - Page modification scripts
+            - Automation scripts
+
+        Args:
+            source_code: JavaScript code to inject
+            name: Script identifier (used for removal/management)
+            injection_point: When to inject the script:
+                - DocumentCreation: Before DOM exists (earliest)
+                - DocumentReady: When DOM ready (DOMContentLoaded)
+                - Deferred: After page load or 500ms after ready
+            world_id: JavaScript world:
+                - MainWorld: Same context as page (can access window, document)
+                - ApplicationWorld: Isolated world (safer, can't access page JS)
+            runs_on_subframes: Whether to inject in iframes too
+
+        Example:
+            >>> # Inject QWebChannel initialization
+            >>> qwebchannel_init = '''
+            ... new QWebChannel(qt.webChannelTransport, function(channel) {
+            ...     window.pyBridge = channel.objects.pyBridge;
+            ... });
+            ... '''
+            >>> webview.inject_user_script(qwebchannel_init, name="qwebchannel")
+
+            >>> # Inject on every page, even with strict CSP
+            >>> webview.load("https://www.google.com")  # Works despite Trusted Types!
+        """
+        logger.info(f"Injecting user script: {name}")
+
+        # Create script
+        script = QWebEngineScript()
+        script.setName(name)
+        script.setSourceCode(source_code)
+        script.setInjectionPoint(injection_point)
+        script.setWorldId(world_id)
+        script.setRunsOnSubFrames(runs_on_subframes)
+
+        # Insert into page's script collection
+        # This makes it run on every page load automatically
+        self._page.scripts().insert(script)
+
+        logger.debug(
+            f"Script '{name}' injected: "
+            f"injection_point={injection_point.name}, "
+            f"world={world_id.name}, "
+            f"subframes={runs_on_subframes}"
+        )
+
+    def remove_user_script(self, name: str) -> bool:
+        """Remove a previously injected user script.
+
+        Args:
+            name: Script identifier (from inject_user_script)
+
+        Returns:
+            True if script was found and removed, False otherwise
+
+        Example:
+            >>> webview.inject_user_script("console.log('test')", name="test")
+            >>> webview.remove_user_script("test")  # Returns True
+            >>> webview.remove_user_script("test")  # Returns False (already removed)
+        """
+        logger.info(f"Removing user script: {name}")
+
+        # Find scripts by name (Qt 6 API returns list)
+        scripts = self._page.scripts()
+        found_scripts = scripts.find(name)
+
+        if not found_scripts:
+            logger.warning(f"Script '{name}' not found")
+            return False
+
+        # Remove the first match
+        scripts.remove(found_scripts[0])
+        logger.debug(f"Script '{name}' removed")
+        return True
+
+    def clear_user_scripts(self) -> None:
+        """Remove all user scripts.
+
+        This clears all scripts added via inject_user_script().
+
+        Educational Note:
+            Use this when navigating to a different site that shouldn't
+            have the same scripts, or when cleaning up before shutdown.
+
+        Example:
+            >>> webview.inject_user_script("script1", name="s1")
+            >>> webview.inject_user_script("script2", name="s2")
+            >>> webview.clear_user_scripts()  # Both removed
+        """
+        logger.info("Clearing all user scripts")
+        self._page.scripts().clear()
+        logger.debug("All user scripts cleared")

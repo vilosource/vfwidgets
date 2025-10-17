@@ -25,6 +25,7 @@ from typing import Optional
 
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtGui import QIcon
+from PySide6.QtWebEngineCore import QWebEngineScript
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from .navigation_bar import NavigationBar
@@ -472,3 +473,59 @@ class BrowserWidget(QWidget):
         """
         logger.info(f"Setting user agent: {user_agent}")
         self.profile().setHttpUserAgent(user_agent)
+
+    # ===== User Script Injection API =====
+
+    def inject_user_script(
+        self,
+        source_code: str,
+        name: str = "user-script",
+        injection_point: QWebEngineScript.InjectionPoint = (
+            QWebEngineScript.InjectionPoint.DocumentCreation
+        ),
+        world_id: QWebEngineScript.ScriptWorldId = QWebEngineScript.ScriptWorldId.MainWorld,
+        runs_on_subframes: bool = True,
+    ) -> None:
+        """Inject JavaScript that runs on every page load (CSP-safe).
+
+        This is a convenience method that delegates to the underlying WebView.
+        See WebView.inject_user_script() for full documentation.
+
+        Args:
+            source_code: JavaScript code to inject
+            name: Script identifier (used for removal/management)
+            injection_point: When to inject (DocumentCreation recommended)
+            world_id: JavaScript world (MainWorld for DOM access)
+            runs_on_subframes: Whether to inject in iframes too
+
+        Example:
+            >>> # Setup QWebChannel for extensions
+            >>> browser.inject_user_script(qwebchannel_init, name="qwebchannel")
+        """
+        logger.debug("Delegating user script injection to webview")
+        self.webview.inject_user_script(
+            source_code, name, injection_point, world_id, runs_on_subframes
+        )
+
+    def remove_user_script(self, name: str) -> bool:
+        """Remove a previously injected user script.
+
+        Args:
+            name: Script identifier
+
+        Returns:
+            True if script was found and removed
+
+        Example:
+            >>> browser.inject_user_script("test", name="test-script")
+            >>> browser.remove_user_script("test-script")  # Returns True
+        """
+        return self.webview.remove_user_script(name)
+
+    def clear_user_scripts(self) -> None:
+        """Remove all user scripts.
+
+        Example:
+            >>> browser.clear_user_scripts()
+        """
+        self.webview.clear_user_scripts()
