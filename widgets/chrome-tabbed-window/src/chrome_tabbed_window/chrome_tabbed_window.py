@@ -144,6 +144,10 @@ class ChromeTabbedWindow(_BaseClass):
         # Frameless window behavior (initialized after _setup_ui creates tab_bar)
         self._frameless_behavior: Optional[FramelessWindowBehavior] = None
 
+        # Accent line below tab bar (initialized in _setup_ui)
+        self._accent_line: Optional[QWidget] = None
+        self._accent_line_custom_color: Optional[str] = None  # Custom color override
+
         # Enable mouse tracking for edge resize cursor changes
         self.setMouseTracking(True)
 
@@ -207,14 +211,22 @@ class ChromeTabbedWindow(_BaseClass):
         else:
             self._window_controls = None
 
-        # Add tab bar layout to main layout
-        main_layout.addLayout(tab_bar_layout)
+        # Add tab bar layout to main layout with zero spacing
+        main_layout.addLayout(tab_bar_layout, 0)  # No stretch factor to keep it tight
+
+        # Add accent line below tab bar (matches active tab color)
+        self._accent_line = QWidget(self)
+        self._accent_line.setFixedHeight(3)  # 3px medium accent line
+        main_layout.addWidget(self._accent_line, 0)
 
         # Add content area
         main_layout.addWidget(self._content_area, 1)  # Stretch factor 1
 
         # Set layout
         self.setLayout(main_layout)
+
+        # Set initial accent line color
+        self._update_accent_line_color()
 
     def _on_theme_changed(self) -> None:
         """Called automatically when the application theme changes.
@@ -233,8 +245,39 @@ class ChromeTabbedWindow(_BaseClass):
         if hasattr(self, "_window_controls") and self._window_controls:
             self._window_controls.update()
 
+        # Update accent line color
+        self._update_accent_line_color()
+
         # Force full repaint
         self.update()
+
+    def _update_accent_line_color(self) -> None:
+        """Update the accent line color to match the active tab color.
+
+        Priority:
+        1. Custom color override (if set via set_accent_line_color())
+        2. Active tab color from theme (token 'tab.activeBackground')
+        3. Default fallback color (#FFFFFF)
+        """
+        if not self._accent_line:
+            return
+
+        # Use custom color if set
+        if self._accent_line_custom_color:
+            accent_color = self._accent_line_custom_color
+        else:
+            # Get active tab color from theme
+            accent_color = "#FFFFFF"  # Default fallback color
+
+            if THEME_AVAILABLE and hasattr(self, "theme"):
+                # Use ThemedWidget's theme property to get the active tab color
+                # This automatically uses the override system via _resolve_property_path()
+                tab_bg = getattr(self.theme, "tab_background", None)
+                if tab_bg:
+                    accent_color = tab_bg
+
+        # Apply color to accent line via stylesheet
+        self._accent_line.setStyleSheet(f"background-color: {accent_color};")
 
     def get_current_theme(self):
         """Get the current theme object.
@@ -254,6 +297,27 @@ class ChromeTabbedWindow(_BaseClass):
             return self._theme_manager.current_theme
 
         return None
+
+    def set_accent_line_visible(self, visible: bool) -> None:
+        """Show or hide the accent line below the tab bar.
+
+        Args:
+            visible: True to show accent line, False to hide it
+        """
+        if self._accent_line:
+            self._accent_line.setVisible(visible)
+
+    def set_accent_line_color(self, color: str) -> None:
+        """Set a custom color for the accent line.
+
+        Args:
+            color: Hex color string (e.g., "#FF0000") or empty string to use theme default
+
+        Note:
+            Empty string will use the active tab color from the theme.
+        """
+        self._accent_line_custom_color = color if color else None
+        self._update_accent_line_color()
 
     def _connect_signals(self) -> None:
         """Connect all internal signals."""
@@ -278,6 +342,9 @@ class ChromeTabbedWindow(_BaseClass):
 
         # Tab bar currentChanged should only be used for user clicks, not programmatic changes
         self._tab_bar.tabBarClicked.connect(self._on_tab_bar_clicked)
+
+        # Update accent line when active tab changes
+        self.currentChanged.connect(lambda: self._update_accent_line_color())
 
         # Set up MVC connections
         self._tab_bar.set_model(self._model)
@@ -397,6 +464,22 @@ class ChromeTabbedWindow(_BaseClass):
 
     # Note: eventFilter removed - window dragging now handled by FramelessWindowBehavior
 
+    def resizeEvent(self, event) -> None:
+        """Handle resize events and adjust accent line position to eliminate gap."""
+        super().resizeEvent(event)
+
+        # After layout has positioned widgets, manually adjust accent line to eliminate 1px gap
+        # This gap exists because Qt layouts position widgets on discrete pixel rows
+        if self._accent_line and self._tab_bar:
+            # Move accent line up by 1px to touch the tab bar directly
+            current_geom = self._accent_line.geometry()
+            self._accent_line.setGeometry(
+                current_geom.x(),
+                current_geom.y() - 1,  # Move up 1px
+                current_geom.width(),
+                current_geom.height()
+            )
+
     def paintEvent(self, event: QPaintEvent) -> None:
         """
         Paint the window background in frameless mode.
@@ -410,25 +493,27 @@ class ChromeTabbedWindow(_BaseClass):
             # Get theme colors for window background and border
             try:
                 from vfwidgets_theme.core.manager import ThemeManager
-                from vfwidgets_theme.core.tokens import ColorTokenRegistry
 
                 theme_mgr = ThemeManager.get_instance()
-                current_theme = theme_mgr.current_theme
 
-                # Get window background and border colors from theme
-                bg_color = QColor(ColorTokenRegistry.get("window.background", current_theme))
-                border_color = QColor(ColorTokenRegistry.get("window.border", current_theme))
-            except (ImportError, KeyError, AttributeError, Exception):
+                # Use resolve_color() to get colors WITH override support
+                bg_color_str = theme_mgr.resolve_color("window.background", fallback="#1e1e1e")
+                # Use tab bar background color for border to match top bar
+                border_color_str = theme_mgr.resolve_color("editorGroupHeader.tabsBackground", fallback="#2d2d2d")
+
+                bg_color = QColor(bg_color_str)
+                border_color = QColor(border_color_str)
+            except (ImportError, AttributeError, Exception):
                 # Fallback to dark theme colors if theme system not available
                 bg_color = QColor("#1e1e1e")
-                border_color = QColor("#333333")
+                border_color = QColor("#2d2d2d")
 
-            # Fill the entire widget with theme-aware background
-            painter.fillRect(self.rect(), bg_color)
+            # Fill entire widget with tab bar color (for 4px border)
+            painter.fillRect(self.rect(), border_color)
 
-            # Paint a subtle border for the window
-            painter.setPen(border_color)
-            painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
+            # Fill inner area (inset by 4px margin) with window background
+            inner_rect = self.rect().adjusted(4, 4, -4, -4)
+            painter.fillRect(inner_rect, bg_color)
 
         # Call parent paintEvent
         super().paintEvent(event)

@@ -62,6 +62,13 @@ class AppearancePreferences:
     focus_border_color: str = ""  # Empty = theme default
     unfocused_dim_amount: int = 0  # 0-50%
 
+    # Color Customization
+    top_bar_background_color: str = ""  # Empty = use theme default
+
+    # Accent Line
+    show_accent_line: bool = True  # Show line below tab bar
+    accent_line_color: str = ""  # Empty = use active tab color
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return asdict(self)

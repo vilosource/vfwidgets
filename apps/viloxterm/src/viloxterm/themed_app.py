@@ -34,17 +34,17 @@ class ViloxTermThemedApp(VFThemedApplication):
             # Example: "terminal.background": "#1e1e2e",
         },
 
-        # Future: Allow users to customize terminal colors
-        "allow_user_customization": False,  # Disabled for now
+        # Allow users to customize UI colors
+        "allow_user_customization": True,  # Enabled for UI customization
         "customizable_tokens": [
-            # Future customizable tokens
-            # "terminal.background",
-            # "terminal.foreground",
+            # UI customization tokens
+            "editorGroupHeader.tabsBackground",  # Top bar background (draggable area)
+            # Future: Add more UI tokens as needed
         ],
 
         # Persistence settings
         "persist_base_theme": True,
-        "persist_user_overrides": False,  # Not used yet
+        "persist_user_overrides": True,  # Save user color customizations
         "settings_key_prefix": "theme/",  # Uses "theme/base_theme"
     }
 

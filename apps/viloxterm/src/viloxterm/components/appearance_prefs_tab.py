@@ -111,6 +111,50 @@ class AppearancePreferencesTab(ThemedQWidget):
 
         layout.addRow("Custom theme:", theme_path_layout)
 
+        # Top bar background color - use theme-studio's color picker dialog
+        color_layout = QHBoxLayout()
+        self.top_bar_color_edit = QLineEdit()
+        self.top_bar_color_edit.setPlaceholderText("Theme default (empty = auto)")
+        self.top_bar_color_edit.setMaximumWidth(150)
+        color_layout.addWidget(self.top_bar_color_edit)
+
+        pick_color_btn = QPushButton("Pick Color...")
+        pick_color_btn.setMaximumWidth(120)
+        pick_color_btn.clicked.connect(self._pick_top_bar_color)
+        color_layout.addWidget(pick_color_btn)
+
+        clear_color_btn = QPushButton("Reset")
+        clear_color_btn.setMaximumWidth(80)
+        clear_color_btn.clicked.connect(lambda: self.top_bar_color_edit.setText(""))
+        color_layout.addWidget(clear_color_btn)
+
+        layout.addRow("Top bar background:", color_layout)
+
+        # Accent line below tab bar
+        self.show_accent_line_check = QCheckBox("Show accent line below tab bar")
+        self.show_accent_line_check.setChecked(True)
+        self.show_accent_line_check.stateChanged.connect(self._on_accent_line_toggled)
+        layout.addRow("", self.show_accent_line_check)
+
+        # Accent line color
+        accent_color_layout = QHBoxLayout()
+        self.accent_line_color_edit = QLineEdit()
+        self.accent_line_color_edit.setPlaceholderText("Active tab color (empty = auto)")
+        self.accent_line_color_edit.setMaximumWidth(150)
+        accent_color_layout.addWidget(self.accent_line_color_edit)
+
+        pick_accent_color_btn = QPushButton("Pick Color...")
+        pick_accent_color_btn.setMaximumWidth(120)
+        pick_accent_color_btn.clicked.connect(self._pick_accent_line_color)
+        accent_color_layout.addWidget(pick_accent_color_btn)
+
+        clear_accent_color_btn = QPushButton("Reset")
+        clear_accent_color_btn.setMaximumWidth(80)
+        clear_accent_color_btn.clicked.connect(lambda: self.accent_line_color_edit.setText(""))
+        accent_color_layout.addWidget(clear_accent_color_btn)
+
+        layout.addRow("Accent line color:", accent_color_layout)
+
         return group
 
     def _create_window_group(self) -> QGroupBox:
@@ -240,6 +284,73 @@ class AppearancePreferencesTab(ThemedQWidget):
         if file_path:
             self.custom_theme_edit.setText(file_path)
 
+    def _pick_top_bar_color(self) -> None:
+        """Open color picker dialog for top bar background (theme-studio style).
+
+        Uses the exact same QColorDialog configuration as theme-studio's token editor:
+        - ShowAlphaChannel: Enables alpha/transparency control
+        - DontUseNativeDialog: Uses Qt's custom dialog for consistency
+        """
+        from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QColorDialog
+
+        # Get current color from text field
+        current_text = self.top_bar_color_edit.text()
+        initial_color = QColor(current_text) if current_text else QColor("#2d2d30")
+
+        # Open color picker using theme-studio's exact configuration
+        selected_color = QColorDialog.getColor(
+            initial_color,
+            self,
+            "Edit Color: Top Bar Background",
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
+        )
+
+        # If user selected a color, update the text field
+        if selected_color.isValid():
+            hex_color = selected_color.name()
+            self.top_bar_color_edit.setText(hex_color)
+            logger.debug(f"Top bar color picked: {hex_color}")
+
+    def _pick_accent_line_color(self) -> None:
+        """Open color picker dialog for accent line color (theme-studio style).
+
+        Uses the exact same QColorDialog configuration as theme-studio's token editor:
+        - ShowAlphaChannel: Enables alpha/transparency control
+        - DontUseNativeDialog: Uses Qt's custom dialog for consistency
+        """
+        from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QColorDialog
+
+        # Get current color from text field
+        current_text = self.accent_line_color_edit.text()
+        initial_color = QColor(current_text) if current_text else QColor("#ffffff")
+
+        # Open color picker using theme-studio's exact configuration
+        selected_color = QColorDialog.getColor(
+            initial_color,
+            self,
+            "Edit Color: Accent Line",
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
+        )
+
+        # If user selected a color, update the text field
+        if selected_color.isValid():
+            hex_color = selected_color.name()
+            self.accent_line_color_edit.setText(hex_color)
+            logger.debug(f"Accent line color picked: {hex_color}")
+
+    def _on_accent_line_toggled(self, state: int) -> None:
+        """Handle accent line checkbox toggle.
+
+        Args:
+            state: Qt.CheckState value
+        """
+        # Enable/disable accent line color controls based on checkbox state
+        is_enabled = state == Qt.CheckState.Checked.value
+        self.accent_line_color_edit.setEnabled(is_enabled)
+        logger.debug(f"Accent line toggled: {is_enabled}")
+
     def _on_opacity_changed(self, value: int) -> None:
         """Handle opacity slider change.
 
@@ -291,6 +402,15 @@ class AppearancePreferencesTab(ThemedQWidget):
         self.focus_color_edit.setText(preferences.focus_border_color)
         self.unfocused_dim_slider.setValue(preferences.unfocused_dim_amount)
 
+        # Color Customization
+        self.top_bar_color_edit.setText(preferences.top_bar_background_color)
+
+        # Accent Line
+        self.show_accent_line_check.setChecked(preferences.show_accent_line)
+        self.accent_line_color_edit.setText(preferences.accent_line_color)
+        # Enable/disable color picker based on checkbox
+        self.accent_line_color_edit.setEnabled(preferences.show_accent_line)
+
     def save_preferences(self) -> AppearancePreferences:
         """Save UI values to preferences model.
 
@@ -319,5 +439,12 @@ class AppearancePreferencesTab(ThemedQWidget):
         self._preferences.focus_border_width = self.focus_border_width_spin.value()
         self._preferences.focus_border_color = self.focus_color_edit.text()
         self._preferences.unfocused_dim_amount = self.unfocused_dim_slider.value()
+
+        # Color Customization
+        self._preferences.top_bar_background_color = self.top_bar_color_edit.text()
+
+        # Accent Line
+        self._preferences.show_accent_line = self.show_accent_line_check.isChecked()
+        self._preferences.accent_line_color = self.accent_line_color_edit.text()
 
         return self._preferences

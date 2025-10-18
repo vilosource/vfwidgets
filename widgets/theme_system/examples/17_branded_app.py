@@ -15,13 +15,20 @@ Usage:
 """
 
 import sys
+
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QTextEdit, QComboBox, QGroupBox
+    QComboBox,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
 )
+
 from vfwidgets_theme import ThemedWidget
-from vfwidgets_theme.widgets.vf_themed_application import VFThemedApplication
 from vfwidgets_theme.core.manager import ThemeManager
+from vfwidgets_theme.widgets.vf_themed_application import VFThemedApplication
 
 
 class BrandedApp(VFThemedApplication):

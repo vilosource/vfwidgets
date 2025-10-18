@@ -122,6 +122,10 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Set up signals (after window controls exist)
         self._setup_signals()
 
+        # Apply loaded preferences (including color customizations)
+        self._apply_app_preferences(self.app_preferences)
+        logger.info("Applied loaded preferences on startup")
+
         # Create initial tab (unless caller explicitly requests not to)
         if create_initial_tab:
             self.add_new_terminal_tab("Terminal 1")
@@ -591,12 +595,39 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.setWindowOpacity(opacity)
         logger.debug(f"Set window opacity to {opacity}")
 
-        # Apply theme
+        # Apply theme and color customizations
         theme_name = preferences.appearance.application_theme
         app = QApplication.instance()
+
+        # First, apply or clear top bar background color customization
+        if preferences.appearance.top_bar_background_color:
+            if hasattr(app, "customize_color"):
+                app.customize_color(
+                    "editorGroupHeader.tabsBackground",
+                    preferences.appearance.top_bar_background_color,
+                    persist=True,
+                )
+                logger.info(
+                    f"Applied top bar background color: {preferences.appearance.top_bar_background_color}"
+                )
+        else:
+            # If color is cleared, reset to theme default
+            if hasattr(app, "clear_override"):
+                app.clear_override("user", "editorGroupHeader.tabsBackground")
+                logger.info("Cleared top bar background color override")
+
+        # Then set theme (this will apply theme + user overrides)
         if hasattr(app, "set_theme"):
             app.set_theme(theme_name)
-            logger.debug(f"Set application theme to {theme_name}")
+            logger.debug(f"Set application theme to {theme_name} (with user overrides)")
+
+        # Apply accent line configuration
+        self.set_accent_line_visible(preferences.appearance.show_accent_line)
+        self.set_accent_line_color(preferences.appearance.accent_line_color)
+        logger.debug(
+            f"Accent line: visible={preferences.appearance.show_accent_line}, "
+            f"color={preferences.appearance.accent_line_color or 'theme default'}"
+        )
 
         # Store preferences for future use
         self.app_preferences = preferences

@@ -57,6 +57,16 @@ from .theme import (
     save_theme_to_file,
     validate_theme_data,
 )
+from .token_types import (
+    ColorTokenResolver,
+    FontTokenResolver,
+    GenericTokenResolver,
+    SizeTokenResolver,
+    TokenResolver,
+    TokenType,
+    TOKEN_RESOLVERS,
+    get_resolver,
+)
 
 __all__ = [
     # Core data models
@@ -94,4 +104,13 @@ __all__ = [
     "resolve_font_family",
     "resolve_font_size",
     "resolve_font_weight",
+    # Token type system (v2.1.0)
+    "TokenType",
+    "TokenResolver",
+    "ColorTokenResolver",
+    "FontTokenResolver",
+    "SizeTokenResolver",
+    "GenericTokenResolver",
+    "TOKEN_RESOLVERS",
+    "get_resolver",
 ]

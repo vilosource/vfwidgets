@@ -26,15 +26,16 @@ Example:
     ...
     >>> app = MyApp(sys.argv)
     >>> app.run()
+
 """
 
-from typing import Dict, List, Optional
-from PySide6.QtCore import QSettings
-from PySide6.QtWidgets import QApplication
+from typing import Optional
 
-from .application import ThemedApplication
+from PySide6.QtCore import QSettings
+
 from ..core.manager import ThemeManager
 from ..logging import get_debug_logger
+from .application import ThemedApplication
 
 logger = get_debug_logger(__name__)
 
@@ -69,10 +70,11 @@ class VFThemedApplication(ThemedApplication):
         ...     }
         ...
         >>> app = BrandedApp(sys.argv)
+
     """
 
     # Default theme configuration (can be overridden in subclasses)
-    theme_config: Dict = {
+    theme_config: dict = {
         "base_theme": "dark",
         "app_overrides": {},
         "allow_user_customization": True,
@@ -84,7 +86,7 @@ class VFThemedApplication(ThemedApplication):
 
     def __init__(
         self,
-        argv: Optional[List[str]] = None,
+        argv: Optional[list[str]] = None,
         app_id: Optional[str] = None
     ):
         """Initialize application with theme configuration.
@@ -92,6 +94,7 @@ class VFThemedApplication(ThemedApplication):
         Args:
             argv: Command line arguments (default: None)
             app_id: Application ID for QSettings (default: None)
+
         """
         # Initialize ThemedApplication (parent class)
         super().__init__(argv)
@@ -161,11 +164,12 @@ class VFThemedApplication(ThemedApplication):
     # Persistence Methods
     # ========================================================================
 
-    def load_user_preferences(self) -> Dict[str, str]:
+    def load_user_preferences(self) -> dict[str, str]:
         """Load user override preferences from QSettings.
 
         Returns:
             Dictionary of user overrides (token -> color)
+
         """
         try:
             settings = self._get_settings()
@@ -184,11 +188,12 @@ class VFThemedApplication(ThemedApplication):
             logger.error(f"Error loading user preferences: {e}")
             return {}
 
-    def save_user_preferences(self, overrides: Optional[Dict[str, str]] = None) -> None:
+    def save_user_preferences(self, overrides: Optional[dict[str, str]] = None) -> None:
         """Save user override preferences to QSettings.
 
         Args:
             overrides: Overrides to save (default: current user overrides)
+
         """
         try:
             # Get current user overrides if not provided
@@ -211,6 +216,7 @@ class VFThemedApplication(ThemedApplication):
 
         Args:
             theme_name: Name of theme to save
+
         """
         try:
             if not self.theme_config.get("persist_base_theme", True):
@@ -266,6 +272,7 @@ class VFThemedApplication(ThemedApplication):
 
         Raises:
             ValueError: If token is not customizable (when customizable_tokens is defined)
+
         """
         try:
             # Check if user customization is allowed
@@ -305,6 +312,7 @@ class VFThemedApplication(ThemedApplication):
 
         Returns:
             True if successful, False otherwise
+
         """
         try:
             theme_manager = ThemeManager.get_instance()
@@ -321,11 +329,12 @@ class VFThemedApplication(ThemedApplication):
             logger.error(f"Error resetting color: {e}")
             return False
 
-    def get_customizable_tokens(self) -> List[str]:
+    def get_customizable_tokens(self) -> list[str]:
         """Get list of tokens that users can customize.
 
         Returns:
             List of customizable token names (empty list means all tokens allowed)
+
         """
         return self.theme_config.get("customizable_tokens", [])
 
@@ -337,6 +346,7 @@ class VFThemedApplication(ThemedApplication):
 
         Returns:
             True if token is customizable, False otherwise
+
         """
         if not self.theme_config.get("allow_user_customization", True):
             return False
@@ -357,6 +367,7 @@ class VFThemedApplication(ThemedApplication):
 
         Returns:
             QSettings instance
+
         """
         organization = self.organizationName() or "VFWidgets"
         application = self.applicationName() or "VFApp"
@@ -375,6 +386,7 @@ class VFThemedApplication(ThemedApplication):
 
         Returns:
             True if successful, False otherwise
+
         """
         # Call parent implementation
         success = super().set_theme(theme_name)

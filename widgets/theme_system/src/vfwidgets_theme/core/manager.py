@@ -56,13 +56,14 @@ from ..protocols import ThemeChangeCallback
 from ..threading import ThreadSafeThemeManager
 from .applicator import ThemeApplicator, create_theme_applicator
 from .notifier import ThemeNotifier, create_theme_notifier
+from .override_registry import OverrideRegistry
 from .provider import DefaultThemeProvider, create_default_provider
 from .registry import ThemeWidgetRegistry, create_widget_registry
 from .repository import ThemeRepository, create_theme_repository
 
 # Import core components
 from .theme import Theme
-from .override_registry import OverrideRegistry
+from .token_types import TokenType, get_resolver
 
 logger = get_debug_logger(__name__)
 
@@ -634,6 +635,7 @@ class ThemeManager:
 
         Example:
             manager.set_app_override("tab.activeBackground", "#89b4fa")
+
         """
         with self._lock:
             self._override_registry.set_override("app", token, value, validate=validate)
@@ -667,6 +669,7 @@ class ThemeManager:
 
         Example:
             manager.set_user_override("editor.background", "#ff0000")
+
         """
         with self._lock:
             self._override_registry.set_override("user", token, value, validate=validate)
@@ -686,6 +689,7 @@ class ThemeManager:
 
         Returns:
             True if override was removed, False if it didn't exist
+
         """
         with self._lock:
             removed = self._override_registry.remove_override("app", token)
@@ -704,6 +708,7 @@ class ThemeManager:
 
         Returns:
             True if override was removed, False if it didn't exist
+
         """
         with self._lock:
             removed = self._override_registry.remove_override("user", token)
@@ -721,6 +726,7 @@ class ThemeManager:
 
         Returns:
             Number of overrides that were cleared
+
         """
         with self._lock:
             count = self._override_registry.clear_layer("app")
@@ -738,6 +744,7 @@ class ThemeManager:
 
         Returns:
             Number of overrides that were cleared
+
         """
         with self._lock:
             count = self._override_registry.clear_layer("user")
@@ -766,6 +773,7 @@ class ThemeManager:
 
         Example:
             color = manager.get_effective_color("editor.background", "#ffffff")
+
         """
         with self._lock:
             # Check overrides first (user > app)
@@ -808,6 +816,7 @@ class ThemeManager:
                 "tab.activeBackground": "#89b4fa",
                 "button.background": "#313244",
             })
+
         """
         with self._lock:
             self._override_registry.set_overrides_bulk("app", overrides, validate=validate)
@@ -837,6 +846,7 @@ class ThemeManager:
                 "editor.background": "#2d2d2d",
                 "statusBar.background": "#3e3e3e",
             })
+
         """
         with self._lock:
             self._override_registry.set_overrides_bulk("user", overrides, validate=validate)
@@ -849,6 +859,7 @@ class ThemeManager:
 
         Returns:
             Dictionary copy of all app overrides
+
         """
         with self._lock:
             return self._override_registry.get_layer_overrides("app")
@@ -858,6 +869,7 @@ class ThemeManager:
 
         Returns:
             Dictionary copy of all user overrides
+
         """
         with self._lock:
             return self._override_registry.get_layer_overrides("user")
@@ -870,9 +882,145 @@ class ThemeManager:
 
         Returns:
             Dictionary of token -> effective color mappings
+
         """
         with self._lock:
             return self._override_registry.get_all_effective_overrides()
+
+    # ========================================================================
+    # Unified Token Resolution API (v2.1.0)
+    # ========================================================================
+
+    def resolve_token(
+        self,
+        token: str,
+        token_type: TokenType = TokenType.COLOR,
+        fallback: Optional[Any] = None,
+        check_overrides: bool = True
+    ) -> Optional[Any]:
+        """Resolve a theme token with override support.
+
+        This is the unified method for all token resolution. It checks
+        overrides first (if applicable), then falls back to theme data.
+
+        Resolution priority:
+        1. User override (if check_overrides=True and type supports it)
+        2. App override (if check_overrides=True and type supports it)
+        3. Base theme value
+        4. Fallback value
+
+        Args:
+            token: Token name (e.g., "editor.background", "text.font")
+            token_type: Type of token being resolved (default: COLOR)
+            fallback: Value to return if token not found
+            check_overrides: Whether to check override registry (default: True)
+
+        Returns:
+            Resolved token value or fallback
+
+        Examples:
+            # Resolve color with override checking
+            bg_color = manager.resolve_token(
+                "editor.background",
+                TokenType.COLOR,
+                fallback="#ffffff"
+            )
+
+            # Resolve font without override checking
+            font = manager.resolve_token(
+                "text.font",
+                TokenType.FONT,
+                fallback="Arial",
+                check_overrides=False
+            )
+
+        """
+        # Handle None or empty token
+        if not token:
+            return fallback
+
+        with self._lock:
+            try:
+                # Get resolver for this token type
+                resolver = get_resolver(token_type)
+
+                # Check overrides first (if supported and requested)
+                if check_overrides and resolver.can_override():
+                    override_value = self._override_registry.resolve(token)
+                    if override_value:
+                        return override_value
+
+                # Fall back to theme data
+                if self._current_theme:
+                    theme_value = resolver.resolve_from_theme(
+                        self._current_theme,
+                        token,
+                        fallback
+                    )
+                    if theme_value is not None:
+                        return theme_value
+
+                return fallback
+
+            except Exception as e:
+                logger.error(f"Error resolving token {token}: {e}")
+                return fallback
+
+    def resolve_color(
+        self,
+        token: str,
+        fallback: Optional[str] = None
+    ) -> Optional[str]:
+        """Convenience method for resolving color tokens.
+
+        Equivalent to: resolve_token(token, TokenType.COLOR, fallback)
+
+        Args:
+            token: Color token name (e.g., "editor.background")
+            fallback: Fallback color value
+
+        Returns:
+            Resolved color value or fallback
+
+        Example:
+            bg_color = manager.resolve_color("editor.background", "#ffffff")
+
+        """
+        return self.resolve_token(token, TokenType.COLOR, fallback)
+
+    def resolve_font(
+        self,
+        token: str,
+        fallback: Optional[str] = None
+    ) -> Optional[str]:
+        """Convenience method for resolving font tokens.
+
+        Args:
+            token: Font token name
+            fallback: Fallback font value
+
+        Returns:
+            Resolved font value or fallback
+
+        """
+        return self.resolve_token(token, TokenType.FONT, fallback)
+
+    def resolve_size(
+        self,
+        token: str,
+        fallback: Optional[str] = None
+    ) -> Optional[str]:
+        """Convenience method for resolving size tokens.
+
+        Args:
+            token: Size token name
+            fallback: Fallback size value
+
+        Returns:
+            Resolved size value or fallback
+
+        """
+        return self.resolve_token(token, TokenType.SIZE, fallback)
 
     def shutdown(self) -> None:
         """Shutdown theme manager and clean up resources."""

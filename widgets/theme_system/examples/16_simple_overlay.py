@@ -13,8 +13,10 @@ Usage:
 """
 
 import sys
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTextEdit
-from vfwidgets_theme import ThemedWidget, ThemedApplication
+
+from PySide6.QtWidgets import QLabel, QPushButton, QTextEdit, QVBoxLayout
+
+from vfwidgets_theme import ThemedApplication, ThemedWidget
 from vfwidgets_theme.core.manager import ThemeManager
 
 

@@ -101,6 +101,7 @@ except ImportError:
 # Import foundation modules
 from ..core.manager import ThemeManager
 from ..core.theme import Theme
+from ..core.token_types import TokenType
 from ..errors import PropertyNotFoundError, ThemeError, get_global_error_recovery_manager
 from ..lifecycle import LifecycleManager
 from ..logging import get_debug_logger
@@ -208,17 +209,22 @@ class ThemePropertiesManager:
                 if not theme_manager:
                     return default_value
 
-                current_theme = theme_manager.current_theme
-                if not current_theme:
-                    return default_value
-
                 # Look up the property path from theme_config
                 property_path = property_name
                 if hasattr(widget, "_theme_config") and property_name in widget._theme_config:
                     property_path = widget._theme_config[property_name]
 
-                # Resolve property path
-                value = self._resolve_property_path(current_theme, property_path)
+                # ✅ NEW: Use ThemeManager.resolve_token() instead of direct navigation
+                # Infer token type from property name (heuristic)
+                token_type = self._infer_token_type(property_name, property_path)
+
+                # Resolve using unified API (with override support!)
+                value = theme_manager.resolve_token(
+                    property_path,
+                    token_type,
+                    fallback=default_value
+                )
+
                 if value is not None:
                     # Cache the value
                     self._cache[property_name] = value
@@ -250,8 +256,62 @@ class ThemePropertiesManager:
             except Exception as e:
                 logger.error(f"Error setting theme property {property_path}: {e}")
 
+    def _infer_token_type(self, property_name: str, property_path: str) -> TokenType:
+        """Infer token type from property name or path.
+
+        Uses heuristics to determine what type of token is being requested
+        based on naming patterns in the property name or path.
+
+        Args:
+            property_name: Name from widget's theme_config
+            property_path: Token path (e.g., "editor.background")
+
+        Returns:
+            TokenType enum value
+
+        """
+        name_lower = property_name.lower()
+        path_lower = property_path.lower()
+
+        # Check for color indicators
+        if any(word in name_lower or word in path_lower for word in [
+            "color", "background", "foreground", "bg", "fg", "border"
+        ]):
+            return TokenType.COLOR
+
+        # Check for font indicators
+        if "font" in name_lower or "font" in path_lower:
+            if "size" in name_lower or "size" in path_lower:
+                return TokenType.FONT_SIZE
+            return TokenType.FONT
+
+        # Check for size indicators
+        if any(word in name_lower for word in ["width", "height", "size"]):
+            return TokenType.SIZE
+
+        # Check for spacing indicators
+        if any(word in name_lower for word in ["padding", "margin", "spacing", "gap"]):
+            return TokenType.SPACING
+
+        # Check for opacity indicators
+        if any(word in name_lower for word in ["opacity", "alpha"]):
+            return TokenType.OPACITY
+
+        # Check for radius indicators
+        if "radius" in name_lower:
+            return TokenType.RADIUS
+
+        # Default to OTHER
+        return TokenType.OTHER
+
     def _resolve_property_path(self, theme: Theme, property_path: str) -> Any:
-        """Resolve dot-separated property path in theme."""
+        """Resolve dot-separated property path in theme.
+
+        DEPRECATED: This method is kept for backward compatibility but
+        is no longer used internally. New code should use
+        ThemeManager.resolve_token() instead.
+
+        """
         try:
             # Split path and navigate through theme data
             parts = property_path.split(".")

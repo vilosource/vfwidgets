@@ -1,5 +1,4 @@
-"""
-Override Registry - Layered color override management.
+"""Override Registry - Layered color override management.
 
 This module implements the OverrideRegistry class which manages
 app-level and user-level color overrides with priority resolution.
@@ -35,7 +34,8 @@ Usage:
 
 import re
 import threading
-from typing import Dict, Optional, Set
+from typing import Optional
+
 from PySide6.QtGui import QColor
 
 
@@ -50,23 +50,24 @@ class OverrideRegistry:
         MAX_TOKEN_LENGTH: Maximum length for token names (255 chars)
         MAX_OVERRIDES_PER_LAYER: Maximum overrides per layer (10,000)
         TOKEN_PATTERN: Regex pattern for valid token names
+
     """
 
     # Class constants
-    VALID_LAYERS: Set[str] = {"app", "user"}
+    VALID_LAYERS: set[str] = {"app", "user"}
     MAX_TOKEN_LENGTH: int = 255
     MAX_OVERRIDES_PER_LAYER: int = 10000
     TOKEN_PATTERN: re.Pattern = re.compile(r'^[a-zA-Z][a-zA-Z0-9._]*$')
 
     # Layer priority (higher number = higher priority)
-    _LAYER_PRIORITY: Dict[str, int] = {
+    _LAYER_PRIORITY: dict[str, int] = {
         "app": 1,
         "user": 2,
     }
 
     def __init__(self):
         """Initialize empty override registry with thread safety."""
-        self._layers: Dict[str, Dict[str, str]] = {
+        self._layers: dict[str, dict[str, str]] = {
             "app": {},
             "user": {},
         }
@@ -94,6 +95,7 @@ class OverrideRegistry:
         Raises:
             ValueError: If layer is invalid, token is invalid, or color is invalid
             RuntimeError: If layer is at maximum capacity
+
         """
         with self._lock:
             # Validate layer
@@ -139,6 +141,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If layer is invalid
+
         """
         with self._lock:
             if layer not in self.VALID_LAYERS:
@@ -160,6 +163,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If layer is invalid
+
         """
         with self._lock:
             if layer not in self.VALID_LAYERS:
@@ -183,6 +187,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If layer is invalid
+
         """
         with self._lock:
             if layer not in self.VALID_LAYERS:
@@ -206,6 +211,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If layer is invalid
+
         """
         with self._lock:
             if layer not in self.VALID_LAYERS:
@@ -231,6 +237,7 @@ class OverrideRegistry:
 
         Returns:
             Color value from highest priority layer, or fallback
+
         """
         with self._lock:
             # Check user layer first (highest priority)
@@ -251,7 +258,7 @@ class OverrideRegistry:
     def set_overrides_bulk(
         self,
         layer: str,
-        overrides: Dict[str, str],
+        overrides: dict[str, str],
         validate: bool = True
     ) -> None:
         """Set multiple overrides at once for efficiency.
@@ -264,6 +271,7 @@ class OverrideRegistry:
         Raises:
             ValueError: If layer, any token, or any color is invalid
             RuntimeError: If bulk operation would exceed capacity
+
         """
         with self._lock:
             # Validate layer
@@ -289,7 +297,7 @@ class OverrideRegistry:
             # Set all overrides
             self._layers[layer].update(overrides)
 
-    def get_layer_overrides(self, layer: str) -> Dict[str, str]:
+    def get_layer_overrides(self, layer: str) -> dict[str, str]:
         """Get all overrides for a specific layer.
 
         Args:
@@ -300,6 +308,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If layer is invalid
+
         """
         with self._lock:
             if layer not in self.VALID_LAYERS:
@@ -309,7 +318,7 @@ class OverrideRegistry:
 
             return self._layers[layer].copy()
 
-    def get_all_effective_overrides(self) -> Dict[str, str]:
+    def get_all_effective_overrides(self) -> dict[str, str]:
         """Get all effective overrides with priority resolution.
 
         Returns a dictionary of all tokens with overrides,
@@ -317,6 +326,7 @@ class OverrideRegistry:
 
         Returns:
             Dictionary of token -> effective color mappings
+
         """
         with self._lock:
             result = {}
@@ -333,11 +343,12 @@ class OverrideRegistry:
     # Serialization
     # ========================================================================
 
-    def to_dict(self) -> Dict[str, Dict[str, str]]:
+    def to_dict(self) -> dict[str, dict[str, str]]:
         """Serialize registry to dictionary for persistence.
 
         Returns:
             Dictionary with layer -> overrides structure
+
         """
         with self._lock:
             return {
@@ -346,7 +357,7 @@ class OverrideRegistry:
             }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Dict[str, str]]) -> "OverrideRegistry":
+    def from_dict(cls, data: dict[str, dict[str, str]]) -> "OverrideRegistry":
         """Deserialize registry from dictionary.
 
         Args:
@@ -357,6 +368,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If data contains invalid layers
+
         """
         registry = cls()
 
@@ -385,6 +397,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If token name is invalid
+
         """
         if not token:
             raise ValueError("Token name cannot be empty")
@@ -410,6 +423,7 @@ class OverrideRegistry:
 
         Raises:
             ValueError: If color format is invalid
+
         """
         if not QColor.isValidColor(color):
             raise ValueError(f"Invalid color format: '{color}'")
@@ -418,11 +432,12 @@ class OverrideRegistry:
     # Utility Methods
     # ========================================================================
 
-    def get_statistics(self) -> Dict[str, int]:
+    def get_statistics(self) -> dict[str, int]:
         """Get statistics about current override state.
 
         Returns:
             Dictionary with statistics (override counts per layer)
+
         """
         with self._lock:
             return {

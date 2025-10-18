@@ -21,9 +21,6 @@ from .application import (
     get_themed_application,
     set_global_theme,
 )
-from .vf_themed_application import (
-    VFThemedApplication,
-)
 from .base import (
     ThemedWidget,
     create_themed_widget,
@@ -106,6 +103,9 @@ from .token_browser import (
 )
 from .validation_panel import (
     ValidationPanel,
+)
+from .vf_themed_application import (
+    VFThemedApplication,
 )
 
 __all__ = [

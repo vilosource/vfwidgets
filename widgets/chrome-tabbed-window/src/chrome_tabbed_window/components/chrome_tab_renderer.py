@@ -89,35 +89,62 @@ class ChromeTabRenderer:
                 "close_pressed": cls.COLOR_CLOSE_PRESSED,
             }
 
-        # Extract colors from theme
-        colors = theme.colors
+        # ✅ NEW: Use ThemeManager.resolve_color() to get colors WITH override support
+        try:
+            from vfwidgets_theme.core.manager import ThemeManager
 
-        # Try VS Code tokens first, fallback to generic theme colors
-        bg = colors.get("colors.background", "#2d2d2d")
-        fg = colors.get("colors.foreground", "#cccccc")
-        hover = colors.get("colors.hover", "#404040")
-        border_color = colors.get("colors.border", "#555555")
+            theme_mgr = ThemeManager.get_instance()
 
-        return {
-            "background": QColor(
-                colors.get(
-                    "tab.inactiveBackground", colors.get("editorGroupHeader.tabsBackground", hover)
-                )
-            ),
-            "tab_normal": QColor(colors.get("tab.inactiveBackground", bg)),
-            "tab_hover": QColor(colors.get("tab.hoverBackground", hover)),
-            "tab_active": QColor(
-                colors.get("tab.activeBackground", colors.get("colors.primary", "#007acc"))
-            ),
-            "tab_pressed": QColor(colors.get("tab.hoverBackground", hover)),
-            "border": QColor(
-                colors.get("tab.border", colors.get("editorGroupHeader.tabsBorder", border_color))
-            ),
-            "text": QColor(colors.get("tab.activeForeground", fg)),
-            "text_inactive": QColor(colors.get("tab.inactiveForeground", fg)),
-            "close_hover": QColor(colors.get("tab.inactiveForeground", fg)),
-            "close_pressed": QColor(colors.get("tab.activeForeground", fg)),
-        }
+            # Fallback values for missing tokens
+            default_bg = "#2d2d2d"
+            default_fg = "#cccccc"
+            default_hover = "#404040"
+            default_border = "#555555"
+
+            # Resolve tokens WITH override checking
+            bg = theme_mgr.resolve_color("colors.background", default_bg)
+            fg = theme_mgr.resolve_color("colors.foreground", default_fg)
+            hover = theme_mgr.resolve_color("colors.hover", default_hover)
+            border_color = theme_mgr.resolve_color("colors.border", default_border)
+
+            # Top bar background - this is the critical one for user customization!
+            tab_bar_bg = theme_mgr.resolve_color("editorGroupHeader.tabsBackground", hover)
+
+            return {
+                "background": QColor(tab_bar_bg),  # Top bar background
+                "tab_normal": QColor(theme_mgr.resolve_color("tab.inactiveBackground", bg)),
+                "tab_hover": QColor(theme_mgr.resolve_color("tab.hoverBackground", hover)),
+                "tab_active": QColor(theme_mgr.resolve_color("tab.activeBackground", "#007acc")),
+                "tab_pressed": QColor(theme_mgr.resolve_color("tab.hoverBackground", hover)),
+                "border": QColor(theme_mgr.resolve_color("editorGroupHeader.tabsBorder", border_color)),
+                "text": QColor(theme_mgr.resolve_color("tab.activeForeground", fg)),
+                "text_inactive": QColor(theme_mgr.resolve_color("tab.inactiveForeground", fg)),
+                "close_hover": QColor(theme_mgr.resolve_color("tab.inactiveForeground", fg)),
+                "close_pressed": QColor(theme_mgr.resolve_color("tab.activeForeground", fg)),
+            }
+
+        except (ImportError, AttributeError, Exception):
+            # Fallback to direct dictionary access if theme manager not available
+            colors = theme.colors
+            bg = colors.get("colors.background", "#2d2d2d")
+            fg = colors.get("colors.foreground", "#cccccc")
+            hover = colors.get("colors.hover", "#404040")
+            border_color = colors.get("colors.border", "#555555")
+
+            return {
+                "background": QColor(
+                    colors.get("editorGroupHeader.tabsBackground", hover)
+                ),
+                "tab_normal": QColor(colors.get("tab.inactiveBackground", bg)),
+                "tab_hover": QColor(colors.get("tab.hoverBackground", hover)),
+                "tab_active": QColor(colors.get("tab.activeBackground", "#007acc")),
+                "tab_pressed": QColor(colors.get("tab.hoverBackground", hover)),
+                "border": QColor(colors.get("editorGroupHeader.tabsBorder", border_color)),
+                "text": QColor(colors.get("tab.activeForeground", fg)),
+                "text_inactive": QColor(colors.get("tab.inactiveForeground", fg)),
+                "close_hover": QColor(colors.get("tab.inactiveForeground", fg)),
+                "close_pressed": QColor(colors.get("tab.activeForeground", fg)),
+            }
 
     @classmethod
     def draw_tab(
@@ -186,9 +213,9 @@ class ChromeTabRenderer:
         """
         path = QPainterPath()
 
-        # Adjust rect for active tab (slightly taller)
+        # Adjust rect for active tab (slightly taller and extend down to touch accent line)
         if state == TabState.ACTIVE:
-            rect = rect.adjusted(0, -2, 0, 0)
+            rect = rect.adjusted(0, -2, 0, 2)  # Extend down by 2px to eliminate gap
 
         # Tab shape coordinates
         left = rect.left()
