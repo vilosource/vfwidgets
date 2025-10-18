@@ -62,6 +62,7 @@ from .repository import ThemeRepository, create_theme_repository
 
 # Import core components
 from .theme import Theme
+from .override_registry import OverrideRegistry
 
 logger = get_debug_logger(__name__)
 
@@ -135,6 +136,9 @@ class ThemeManager:
         self._current_theme: Optional[Theme] = None
         self._stats = ThemeManagerStats()
         self._lock = threading.RLock()
+
+        # Initialize overlay system
+        self._override_registry = OverrideRegistry()
 
         # Initialize with built-in themes
         self._initialize_builtin_themes()
@@ -602,6 +606,273 @@ class ThemeManager:
                 logger.error(f"Error getting component statistics: {e}")
 
             return base_stats
+
+    # ========================================================================
+    # Theme Overlay System Methods (v2.0.0)
+    # ========================================================================
+
+    def set_app_override(
+        self,
+        token: str,
+        value: str,
+        validate: bool = True,
+        notify: bool = True
+    ) -> None:
+        """Set an app-level color override.
+
+        App overrides have lower priority than user overrides but higher
+        priority than the base theme.
+
+        Args:
+            token: Color token name (e.g., "editor.background")
+            value: Color value (hex, named color)
+            validate: Whether to validate the color (default: True)
+            notify: Whether to notify widgets of the change (default: True)
+
+        Raises:
+            ValueError: If token or color is invalid
+
+        Example:
+            manager.set_app_override("tab.activeBackground", "#89b4fa")
+        """
+        with self._lock:
+            self._override_registry.set_override("app", token, value, validate=validate)
+
+            if notify:
+                # Get effective color and notify widgets
+                effective_color = self.get_effective_color(token)
+                if effective_color and self._current_theme:
+                    self._notifier.notify_theme_changed(self._current_theme)
+
+    def set_user_override(
+        self,
+        token: str,
+        value: str,
+        validate: bool = True,
+        notify: bool = True
+    ) -> None:
+        """Set a user-level color override.
+
+        User overrides have the highest priority and override both
+        app overrides and the base theme.
+
+        Args:
+            token: Color token name (e.g., "editor.background")
+            value: Color value (hex, named color)
+            validate: Whether to validate the color (default: True)
+            notify: Whether to notify widgets of the change (default: True)
+
+        Raises:
+            ValueError: If token or color is invalid
+
+        Example:
+            manager.set_user_override("editor.background", "#ff0000")
+        """
+        with self._lock:
+            self._override_registry.set_override("user", token, value, validate=validate)
+
+            if notify:
+                # Get effective color and notify widgets
+                effective_color = self.get_effective_color(token)
+                if effective_color and self._current_theme:
+                    self._notifier.notify_theme_changed(self._current_theme)
+
+    def remove_app_override(self, token: str, notify: bool = True) -> bool:
+        """Remove an app-level override.
+
+        Args:
+            token: Color token name
+            notify: Whether to notify widgets (default: True)
+
+        Returns:
+            True if override was removed, False if it didn't exist
+        """
+        with self._lock:
+            removed = self._override_registry.remove_override("app", token)
+
+            if removed and notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+            return removed
+
+    def remove_user_override(self, token: str, notify: bool = True) -> bool:
+        """Remove a user-level override.
+
+        Args:
+            token: Color token name
+            notify: Whether to notify widgets (default: True)
+
+        Returns:
+            True if override was removed, False if it didn't exist
+        """
+        with self._lock:
+            removed = self._override_registry.remove_override("user", token)
+
+            if removed and notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+            return removed
+
+    def clear_app_overrides(self, notify: bool = True) -> int:
+        """Clear all app-level overrides.
+
+        Args:
+            notify: Whether to notify widgets (default: True)
+
+        Returns:
+            Number of overrides that were cleared
+        """
+        with self._lock:
+            count = self._override_registry.clear_layer("app")
+
+            if count > 0 and notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+            return count
+
+    def clear_user_overrides(self, notify: bool = True) -> int:
+        """Clear all user-level overrides.
+
+        Args:
+            notify: Whether to notify widgets (default: True)
+
+        Returns:
+            Number of overrides that were cleared
+        """
+        with self._lock:
+            count = self._override_registry.clear_layer("user")
+
+            if count > 0 and notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+            return count
+
+    def get_effective_color(
+        self,
+        token: str,
+        fallback: Optional[str] = None
+    ) -> Optional[str]:
+        """Get the effective color for a token with override resolution.
+
+        This method resolves color overrides with priority:
+        user override > app override > base theme > fallback
+
+        Args:
+            token: Color token name
+            fallback: Value to return if no color found
+
+        Returns:
+            Effective color value or fallback
+
+        Example:
+            color = manager.get_effective_color("editor.background", "#ffffff")
+        """
+        with self._lock:
+            # Check overrides first (user > app)
+            override_color = self._override_registry.resolve(token)
+            if override_color:
+                return override_color
+
+            # Fall back to base theme
+            if self._current_theme:
+                try:
+                    # Try to get from theme's color tokens
+                    if hasattr(self._current_theme, 'colors'):
+                        theme_color = getattr(self._current_theme.colors, token.replace('.', '_'), None)
+                        if theme_color:
+                            return theme_color
+                except AttributeError:
+                    pass
+
+            return fallback
+
+    def set_app_overrides_bulk(
+        self,
+        overrides: dict[str, str],
+        validate: bool = True,
+        notify: bool = True
+    ) -> None:
+        """Set multiple app-level overrides at once.
+
+        Args:
+            overrides: Dictionary of token -> color mappings
+            validate: Whether to validate colors (default: True)
+            notify: Whether to notify widgets (default: True)
+
+        Raises:
+            ValueError: If any token or color is invalid
+            RuntimeError: If bulk operation exceeds capacity
+
+        Example:
+            manager.set_app_overrides_bulk({
+                "tab.activeBackground": "#89b4fa",
+                "button.background": "#313244",
+            })
+        """
+        with self._lock:
+            self._override_registry.set_overrides_bulk("app", overrides, validate=validate)
+
+            if notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+    def set_user_overrides_bulk(
+        self,
+        overrides: dict[str, str],
+        validate: bool = True,
+        notify: bool = True
+    ) -> None:
+        """Set multiple user-level overrides at once.
+
+        Args:
+            overrides: Dictionary of token -> color mappings
+            validate: Whether to validate colors (default: True)
+            notify: Whether to notify widgets (default: True)
+
+        Raises:
+            ValueError: If any token or color is invalid
+            RuntimeError: If bulk operation exceeds capacity
+
+        Example:
+            manager.set_user_overrides_bulk({
+                "editor.background": "#2d2d2d",
+                "statusBar.background": "#3e3e3e",
+            })
+        """
+        with self._lock:
+            self._override_registry.set_overrides_bulk("user", overrides, validate=validate)
+
+            if notify and self._current_theme:
+                self._notifier.notify_theme_changed(self._current_theme)
+
+    def get_app_overrides(self) -> dict[str, str]:
+        """Get all app-level overrides.
+
+        Returns:
+            Dictionary copy of all app overrides
+        """
+        with self._lock:
+            return self._override_registry.get_layer_overrides("app")
+
+    def get_user_overrides(self) -> dict[str, str]:
+        """Get all user-level overrides.
+
+        Returns:
+            Dictionary copy of all user overrides
+        """
+        with self._lock:
+            return self._override_registry.get_layer_overrides("user")
+
+    def get_all_effective_overrides(self) -> dict[str, str]:
+        """Get all effective overrides with priority resolution.
+
+        Returns a dictionary where user overrides take priority
+        over app overrides for tokens that exist in both layers.
+
+        Returns:
+            Dictionary of token -> effective color mappings
+        """
+        with self._lock:
+            return self._override_registry.get_all_effective_overrides()
 
     def shutdown(self) -> None:
         """Shutdown theme manager and clean up resources."""

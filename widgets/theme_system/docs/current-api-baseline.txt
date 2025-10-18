@@ -1,0 +1,75 @@
+=== Current ThemeManager Public API ===
+
+Public Methods:
+  add_theme(self, theme: vfwidgets_theme.core.theme.Theme) -> None
+  clear_themes(self) -> None
+  discover_themes(self, directory: Union[str, pathlib.Path], recursive: bool = True) -> list[vfwidgets_theme.core.theme.Theme]
+  get_builtin_themes(self) -> list[str]
+  get_statistics(self) -> dict[str, typing.Any]
+  get_theme(self, name: str) -> vfwidgets_theme.core.theme.Theme
+  has_theme(self, name: str) -> bool
+  is_widget_registered(self, widget: PySide6.QtCore.QObject) -> bool
+  list_themes(self) -> list[str]
+  load_theme_from_file(self, file_path: Union[str, pathlib.Path]) -> vfwidgets_theme.core.theme.Theme
+  register_theme_change_callback(self, callback: Callable[[ForwardRef('ThemeData')], NoneType]) -> str
+  register_widget(self, widget: PySide6.QtCore.QObject) -> str
+  reset_to_default(self) -> None
+  save_theme_to_file(self, theme_name: str, file_path: Union[str, pathlib.Path]) -> None
+  set_theme(self, theme_name: str) -> None
+  shutdown(self) -> None
+  unregister_theme_change_callback(self, callback_id: str) -> bool
+  unregister_widget(self, widget: PySide6.QtCore.QObject) -> bool
+
+Public Properties:
+  current_theme (property)
+
+Class Methods:
+  get_instance() -> 'ThemeManager' (classmethod)
+
+=== API Baseline Notes ===
+
+Baseline Date: 2025-10-18
+Version: v1.x (before overlay system implementation)
+
+This baseline documents the ThemeManager API before implementing
+the Theme Overlay System (v2.0.0). Any changes to these methods
+or their signatures must be documented in BREAKING-CHANGES.md.
+
+Current Capabilities:
+- Theme loading and management (add_theme, get_theme, list_themes)
+- Widget registration for theme notifications
+- Theme switching (set_theme)
+- Built-in theme discovery
+- File I/O (load_theme_from_file, save_theme_to_file)
+- Callback system for theme changes
+- Statistics tracking
+
+NOT Currently Supported (will be added in v2.0.0):
+- Runtime color overrides (app-level, user-level)
+- Layered override priority resolution
+- Override persistence
+- Per-token color customization
+- Bulk override operations
+- Override validation
+- Thread-safe override operations
+
+Implementation Impact:
+The overlay system will ADD new methods to ThemeManager:
+- set_app_override(token, color)
+- set_user_override(token, color)
+- remove_app_override(token)
+- remove_user_override(token)
+- get_effective_color(token)
+- clear_app_overrides()
+- clear_user_overrides()
+- set_app_overrides_bulk(dict)
+- set_user_overrides_bulk(dict)
+- get_app_overrides() -> dict
+- get_user_overrides() -> dict
+
+Potential Breaking Changes:
+1. ColorTokenRegistry.get() - Will be modified to check overrides
+2. Theme change notifications - May include override information
+3. Internal state structure - May change for override support
+
+All breaking changes will be documented with migration paths.

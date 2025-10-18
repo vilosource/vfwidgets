@@ -1654,13 +1654,14 @@ class ColorTokenRegistry:
 
     @classmethod
     def get(cls, token: str, theme: "Theme") -> str:
-        """Get token value with theme-aware smart defaults.
+        """Get token value with theme-aware smart defaults and override support.
 
         This is the key integration point between ColorTokenRegistry and StylesheetGenerator.
-        It implements the fallback chain:
-        1. Check if theme defines this token
-        2. Use registry default based on theme type (dark/light)
-        3. Smart heuristic based on token name
+        It implements the fallback chain (v2.0.0 with overlay support):
+        1. Check ThemeManager overrides (user > app) [NEW in v2.0.0]
+        2. Check if theme defines this token
+        3. Use registry default based on theme type (dark/light)
+        4. Smart heuristic based on token name
 
         Args:
             token: Token name (e.g., 'button.background')
@@ -1676,7 +1677,19 @@ class ColorTokenRegistry:
             >>> # Returns '#0e639c' (dark default) instead of hardcoded light blue
 
         """
-        # 1. Check if theme defines this token (simplified - no dual-format support)
+        # 1. Check ThemeManager overrides FIRST (v2.0.0)
+        # This allows runtime color customization without modifying themes
+        try:
+            from .manager import ThemeManager
+            manager = ThemeManager.get_instance()
+            override_color = manager.get_effective_color(token)
+            if override_color:
+                return override_color
+        except Exception:
+            # If ThemeManager not available or fails, continue with normal resolution
+            pass
+
+        # 2. Check if theme defines this token (simplified - no dual-format support)
         # Use direct dict access instead of get_property to avoid exception
         value = None
         if token in theme.colors:

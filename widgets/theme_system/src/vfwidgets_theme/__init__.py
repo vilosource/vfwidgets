@@ -131,6 +131,7 @@ from .widgets import (
     ThemedMainWindow,
     ThemedQWidget,
     ThemedWidget,
+    VFThemedApplication,  # NEW in v2.0.0 - Declarative theme configuration
     create_themed_widget,
     get_global_available_themes,
     get_global_theme,
@@ -150,6 +151,7 @@ __all__ = [
     "ThemedMainWindow",  # Convenience class for themed QMainWindow (single inheritance)
     "ThemedDialog",  # Convenience class for themed QDialog (single inheritance)
     "ThemedApplication",  # THE way to manage themes
+    "VFThemedApplication",  # Declarative theme configuration with overlay system (NEW in v2.0.0)
     "create_themed_widget",  # Factory for themed widgets
     "create_themed_application",  # Factory for themed application
     "get_global_themed_application",  # Global application access

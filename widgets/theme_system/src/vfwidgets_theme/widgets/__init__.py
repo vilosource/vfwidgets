@@ -21,6 +21,9 @@ from .application import (
     get_themed_application,
     set_global_theme,
 )
+from .vf_themed_application import (
+    VFThemedApplication,
+)
 from .base import (
     ThemedWidget,
     create_themed_widget,
@@ -112,6 +115,7 @@ __all__ = [
     "ThemedMainWindow",  # Convenience class for themed QMainWindow (single inheritance)
     "ThemedDialog",  # Convenience class for themed QDialog (single inheritance)
     "ThemedApplication",  # THE way to manage themes
+    "VFThemedApplication",  # Declarative app with overlay system support (v2.0.0)
     "create_themed_widget",
     "get_themed_application",
     "set_global_theme",
