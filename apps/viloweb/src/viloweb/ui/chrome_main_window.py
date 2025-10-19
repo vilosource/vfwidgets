@@ -37,6 +37,7 @@ from chrome_tabbed_window import ChromeTabbedWindow
 from viloweb.browser.browser_tab import BrowserTab
 from viloweb.browser.viloweb_bridge import ViloWebBridge
 from viloweb.managers.bookmark_manager import BookmarkManager
+from viloweb.preferences_manager import PreferencesManager
 
 
 class ChromeMainWindow(ChromeTabbedWindow):
@@ -117,6 +118,7 @@ class ChromeMainWindow(ChromeTabbedWindow):
         self._bookmark_manager: Optional[BookmarkManager] = None
         self._bridge: Optional[ViloWebBridge] = None
         self._channel = None  # QWebChannel (created on first tab)
+        self._preferences_manager: Optional[PreferencesManager] = None
 
         # UI components (initialized later)
         self._hamburger_menu: Optional[QToolButton] = None
@@ -129,6 +131,9 @@ class ChromeMainWindow(ChromeTabbedWindow):
 
         # Initialize components (Task 2.2)
         self._initialize_components()
+
+        # Load preferences and apply styling
+        self._load_and_apply_preferences()
 
         # Setup hamburger menu (Task 2.3)
         self._setup_hamburger_menu()
@@ -173,6 +178,58 @@ class ChromeMainWindow(ChromeTabbedWindow):
         # When JavaScript calls window.viloWeb.bookmark_current_page(),
         # the bridge emits bookmark_requested signal which we handle here
         self._bridge.bookmark_requested.connect(self._add_bookmark)
+
+    def _load_and_apply_preferences(self):
+        """
+        Load preferences from disk and apply appearance settings.
+
+        Educational Note:
+            This method initializes the preferences system and applies
+            saved settings (or defaults) to the browser window, including:
+            - Top bar background color
+            - Accent line visibility and color
+            - Window opacity
+        """
+        # Initialize preferences manager
+        self._preferences_manager = PreferencesManager()
+
+        # Load preferences from disk (or get defaults)
+        preferences = self._preferences_manager.load_preferences()
+        print(f"[INFO] Loaded preferences: {preferences}")
+
+        # Apply appearance settings
+        self._apply_appearance_preferences(preferences)
+
+    def _apply_appearance_preferences(self, preferences):
+        """
+        Apply appearance preferences to the window.
+
+        Args:
+            preferences: PreferencesModel with appearance settings
+
+        Educational Note:
+            ChromeTabbedWindow provides methods for customizing the tab bar:
+            - set_tab_bar_background_color(color: str) - Set top bar background
+            - set_accent_line_color(color: str) - Set accent line color
+            - set_accent_line_visible(visible: bool) - Show/hide accent line
+        """
+        appearance = preferences.appearance
+
+        # Apply top bar background color (if set)
+        if appearance.top_bar_background_color:
+            self.set_tab_bar_background_color(appearance.top_bar_background_color)
+            print(f"[INFO] Applied top bar color: {appearance.top_bar_background_color}")
+
+        # Apply accent line settings
+        self.set_accent_line_visible(appearance.show_accent_line)
+        if appearance.accent_line_color:
+            self.set_accent_line_color(appearance.accent_line_color)
+            print(f"[INFO] Applied accent line color: {appearance.accent_line_color}")
+
+        # Apply window opacity
+        if appearance.window_opacity != 100:
+            self.setWindowOpacity(appearance.window_opacity / 100.0)
+            print(f"[INFO] Applied window opacity: {appearance.window_opacity}%")
 
     def _setup_hamburger_menu(self):
         """
@@ -229,6 +286,14 @@ class ChromeMainWindow(ChromeTabbedWindow):
 
         menu.addSeparator()
 
+        # Settings section
+        preferences_action = QAction("Preferences...", self)
+        preferences_action.setShortcut("Ctrl+,")
+        preferences_action.triggered.connect(self._show_preferences)
+        menu.addAction(preferences_action)
+
+        menu.addSeparator()
+
         # Help section
         about_action = QAction("About ViloWeb", self)
         about_action.triggered.connect(self._show_about)
@@ -257,6 +322,50 @@ class ChromeMainWindow(ChromeTabbedWindow):
             "- JSON-based bookmark system\n\n"
             "Built with VFWidgets and PySide6.",
         )
+
+    def _show_preferences(self):
+        """
+        Show preferences dialog.
+
+        Educational Note:
+            Opens the preferences dialog where users can customize:
+            - Application theme
+            - Top bar background color
+            - Accent line appearance
+            - Window opacity
+
+            When preferences are applied, the dialog emits preferences_applied
+            signal which we handle to update the UI in real-time.
+        """
+        from viloweb.components import PreferencesDialog
+
+        # Create preferences dialog
+        dialog = PreferencesDialog(parent=self)
+
+        # Connect signal to apply preferences in real-time when Apply is clicked
+        dialog.preferences_applied.connect(self._on_preferences_applied)
+
+        # Show dialog (modal)
+        result = dialog.exec()
+
+        if result == PreferencesDialog.DialogCode.Accepted:
+            print("[INFO] Preferences dialog accepted")
+        else:
+            print("[INFO] Preferences dialog cancelled")
+
+    def _on_preferences_applied(self, preferences):
+        """
+        Handle preferences being applied (from Apply or OK button).
+
+        Args:
+            preferences: PreferencesModel with updated settings
+
+        Educational Note:
+            This is called when the user clicks Apply or OK in the preferences dialog.
+            It updates the browser window appearance in real-time without requiring a restart.
+        """
+        self._apply_appearance_preferences(preferences)
+        print("[INFO] Applied preferences in real-time")
 
     # NOTE: _setup_navigation_bar() removed!
     # BrowserWidget already provides NavigationBar with all controls.

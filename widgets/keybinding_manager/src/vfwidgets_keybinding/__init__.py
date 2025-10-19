@@ -25,7 +25,7 @@ from .registry import ActionDefinition, ActionRegistry
 from .storage import KeybindingStorage
 
 # UI widgets (optional, for preferences dialogs)
-from .widgets import KeySequenceEdit, KeybindingDialog
+from .widgets import KeybindingDialog, KeySequenceEdit
 
 __all__ = [
     # Main API (most users only need this)

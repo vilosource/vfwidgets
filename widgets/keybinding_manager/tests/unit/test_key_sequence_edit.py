@@ -4,7 +4,6 @@ import pytest
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtTest import QSignalSpy
-
 from vfwidgets_keybinding.widgets import KeySequenceEdit
 
 
