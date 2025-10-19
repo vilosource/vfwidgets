@@ -11,6 +11,15 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QWidget
 
 from .window_controls import WindowControls
 
+# Try to import ThemedWidget
+try:
+    from vfwidgets_theme import ThemedWidget
+
+    THEME_AVAILABLE = True
+except ImportError:
+    THEME_AVAILABLE = False
+    ThemedWidget = object  # type: ignore
+
 
 class DraggableMenuBar(QMenuBar):
     """QMenuBar that allows window dragging when clicking on empty areas.
@@ -73,11 +82,25 @@ class DraggableMenuBar(QMenuBar):
                 super().mouseDoubleClickEvent(event)
 
 
-class TitleBar(QWidget):
+# Create base class with ThemedWidget if available
+if THEME_AVAILABLE:
+    _TitleBarBase = type("_TitleBarBase", (ThemedWidget, QWidget), {})
+else:
+    _TitleBarBase = QWidget  # type: ignore
+
+
+class TitleBar(_TitleBarBase):
     """Custom title bar for frameless windows.
 
     Includes title text, optional menu bar, window controls, and drag-to-move functionality.
     """
+
+    # Theme configuration (if theme system available)
+    if THEME_AVAILABLE:
+        theme_config = {
+            "background": "titleBar.activeBackground",
+            "foreground": "titleBar.activeForeground",
+        }
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -88,7 +111,10 @@ class TitleBar(QWidget):
     def _setup_ui(self) -> None:
         """Set up the user interface."""
         self.setFixedHeight(30)
-        self.setStyleSheet("background-color: #323233; color: #cccccc;")
+
+        # Only set hardcoded stylesheet if theme system is not available
+        if not THEME_AVAILABLE:
+            self.setStyleSheet("background-color: #323233; color: #cccccc;")
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 0, 0)
@@ -96,7 +122,11 @@ class TitleBar(QWidget):
 
         # Title label (will be set by parent window)
         self._title_label = QLabel("ViloCodeWindow")
-        self._title_label.setStyleSheet("color: #cccccc; font-size: 13px;")
+        # Only set hardcoded color if theme system is not available
+        if not THEME_AVAILABLE:
+            self._title_label.setStyleSheet("color: #cccccc; font-size: 13px;")
+        else:
+            self._title_label.setStyleSheet("font-size: 13px;")  # Theme will handle color
         # Allow mouse events to pass through to title bar for dragging
         self._title_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         layout.addWidget(self._title_label)
