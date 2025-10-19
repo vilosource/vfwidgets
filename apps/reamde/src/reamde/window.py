@@ -218,6 +218,28 @@ class ReamdeWindow(ViloCodeWindow):
         # Set as main content
         self.set_main_content(self._tabs)
 
+        # Apply topbar preferences (now that self._tabs exists)
+        self._apply_topbar_preferences()
+
+    def _apply_topbar_preferences(self) -> None:
+        """Apply topbar appearance preferences to the tabbed window."""
+        # Apply top bar background color (if set)
+        if self.preferences.appearance.top_bar_background_color:
+            self._tabs.set_tab_bar_background_color(
+                self.preferences.appearance.top_bar_background_color
+            )
+            logger.info(
+                f"Applied top bar color: {self.preferences.appearance.top_bar_background_color}"
+            )
+
+        # Apply accent line settings
+        self._tabs.set_accent_line_visible(self.preferences.appearance.show_accent_line)
+        if self.preferences.appearance.accent_line_color:
+            self._tabs.set_accent_line_color(self.preferences.appearance.accent_line_color)
+            logger.info(
+                f"Applied accent line color: {self.preferences.appearance.accent_line_color}"
+            )
+
     def open_file(self, file_path: str | Path, focus: bool = True) -> bool:
         """Open a markdown file in a new tab or focus existing tab.
 
@@ -468,6 +490,17 @@ class ReamdeWindow(ViloCodeWindow):
         self.setWindowOpacity(opacity)
         logger.debug(f"Set window opacity to {opacity}")
 
+        # Apply topbar background color (if set)
+        if preferences.appearance.top_bar_background_color:
+            self._tabs.set_tab_bar_background_color(preferences.appearance.top_bar_background_color)
+            logger.info(f"Applied top bar color: {preferences.appearance.top_bar_background_color}")
+
+        # Apply accent line settings
+        self._tabs.set_accent_line_visible(preferences.appearance.show_accent_line)
+        if preferences.appearance.accent_line_color:
+            self._tabs.set_accent_line_color(preferences.appearance.accent_line_color)
+            logger.info(f"Applied accent line color: {preferences.appearance.accent_line_color}")
+
         # Apply theme with markdown color overrides
         from vfwidgets_common import apply_theme_with_overrides
 
@@ -532,6 +565,9 @@ class ReamdeWindow(ViloCodeWindow):
         opacity = self.preferences.appearance.window_opacity / 100.0
         self.setWindowOpacity(opacity)
         logger.debug(f"Set window opacity to {opacity}")
+
+        # Note: Topbar colors will be applied after _setup_tabbed_content() creates self._tabs
+        # They are applied in _apply_topbar_preferences() called after tab setup
 
         # Apply theme with markdown color overrides
         from vfwidgets_common import apply_theme_with_overrides

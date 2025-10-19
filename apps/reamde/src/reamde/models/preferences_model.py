@@ -48,6 +48,11 @@ class AppearancePreferences:
     # Window
     window_opacity: int = 100  # 10-100%
 
+    # Color Customization
+    top_bar_background_color: str = ""  # Empty = use theme default
+    show_accent_line: bool = True  # Show line below tab bar
+    accent_line_color: str = ""  # Empty = use active tab color
+
     # Markdown Rendering
     font_family: str = ""  # Empty = default
     font_size: int = 16

@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
+    QPushButton,
     QScrollArea,
     QSlider,
     QSpinBox,
@@ -123,7 +125,92 @@ class AppearancePreferencesTab(ThemedQWidget):
 
         layout.addRow("Window opacity:", opacity_container)
 
+        # Top bar background color
+        color_layout = QHBoxLayout()
+        self.top_bar_color_edit = QLineEdit()
+        self.top_bar_color_edit.setPlaceholderText("Theme default (empty = auto)")
+        self.top_bar_color_edit.setMaximumWidth(150)
+        color_layout.addWidget(self.top_bar_color_edit)
+
+        pick_color_btn = QPushButton("Pick Color...")
+        pick_color_btn.setMaximumWidth(120)
+        pick_color_btn.clicked.connect(self._pick_top_bar_color)
+        color_layout.addWidget(pick_color_btn)
+
+        clear_color_btn = QPushButton("Reset")
+        clear_color_btn.setMaximumWidth(80)
+        clear_color_btn.clicked.connect(lambda: self.top_bar_color_edit.setText(""))
+        color_layout.addWidget(clear_color_btn)
+
+        layout.addRow("Top bar background:", color_layout)
+
+        # Accent line below tab bar
+        self.show_accent_line_check = QCheckBox("Show accent line below tab bar")
+        self.show_accent_line_check.setChecked(True)
+        self.show_accent_line_check.stateChanged.connect(self._on_accent_line_toggled)
+        layout.addRow("", self.show_accent_line_check)
+
+        # Accent line color
+        accent_color_layout = QHBoxLayout()
+        self.accent_line_color_edit = QLineEdit()
+        self.accent_line_color_edit.setPlaceholderText("Active tab color (empty = auto)")
+        self.accent_line_color_edit.setMaximumWidth(150)
+        accent_color_layout.addWidget(self.accent_line_color_edit)
+
+        pick_accent_color_btn = QPushButton("Pick Color...")
+        pick_accent_color_btn.setMaximumWidth(120)
+        pick_accent_color_btn.clicked.connect(self._pick_accent_line_color)
+        accent_color_layout.addWidget(pick_accent_color_btn)
+
+        clear_accent_color_btn = QPushButton("Reset")
+        clear_accent_color_btn.setMaximumWidth(80)
+        clear_accent_color_btn.clicked.connect(lambda: self.accent_line_color_edit.setText(""))
+        accent_color_layout.addWidget(clear_accent_color_btn)
+
+        layout.addRow("Accent line color:", accent_color_layout)
+
         return group
+
+    def _pick_top_bar_color(self) -> None:
+        """Open color picker for top bar background."""
+        from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QColorDialog
+
+        # Get current color if set
+        current_text = self.top_bar_color_edit.text()
+        initial_color = QColor(current_text) if current_text else QColor(30, 30, 30)
+
+        # Show color dialog
+        color = QColorDialog.getColor(initial_color, self, "Pick Top Bar Background Color")
+
+        if color.isValid():
+            # Format as #RRGGBB
+            self.top_bar_color_edit.setText(color.name())
+
+    def _pick_accent_line_color(self) -> None:
+        """Open color picker for accent line."""
+        from PySide6.QtGui import QColor
+        from PySide6.QtWidgets import QColorDialog
+
+        # Get current color if set
+        current_text = self.accent_line_color_edit.text()
+        initial_color = QColor(current_text) if current_text else QColor(0, 120, 215)
+
+        # Show color dialog
+        color = QColorDialog.getColor(initial_color, self, "Pick Accent Line Color")
+
+        if color.isValid():
+            # Format as #RRGGBB
+            self.accent_line_color_edit.setText(color.name())
+
+    def _on_accent_line_toggled(self, state: int) -> None:
+        """Handle accent line checkbox toggle.
+
+        Args:
+            state: Qt.CheckState value
+        """
+        enabled = state == Qt.CheckState.Checked.value
+        self.accent_line_color_edit.setEnabled(enabled)
 
     def _create_markdown_rendering_group(self) -> QGroupBox:
         """Create the markdown rendering settings group.
@@ -187,6 +274,9 @@ class AppearancePreferencesTab(ThemedQWidget):
 
         # Window
         self.opacity_slider.setValue(preferences.window_opacity)
+        self.top_bar_color_edit.setText(preferences.top_bar_background_color)
+        self.accent_line_color_edit.setText(preferences.accent_line_color)
+        self.show_accent_line_check.setChecked(preferences.show_accent_line)
 
         # Markdown Rendering
         # Font family (default = index 0)
@@ -221,6 +311,9 @@ class AppearancePreferencesTab(ThemedQWidget):
             sync_with_system=self.sync_system_check.isChecked(),
             # Window
             window_opacity=self.opacity_slider.value(),
+            top_bar_background_color=self.top_bar_color_edit.text(),
+            show_accent_line=self.show_accent_line_check.isChecked(),
+            accent_line_color=self.accent_line_color_edit.text(),
             # Markdown Rendering
             font_family=font_family,
             font_size=self.font_size_spin.value(),
