@@ -1620,6 +1620,76 @@ class ThemedApplication(QApplication if QT_AVAILABLE else QObject):
         except Exception as e:
             logger.error(f"Error during ThemedApplication cleanup: {e}")
 
+    def customize_color(self, token: str, color: str, persist: bool = False) -> bool:
+        """Customize a color token with user override.
+
+        This method sets a user-level color override that takes priority over
+        the base theme. The override persists across theme changes.
+
+        Args:
+            token: Token to customize (e.g., "titleBar.activeBackground")
+            color: New color value (hex format like "#ffffff")
+            persist: Whether to save override (not implemented in base class)
+
+        Returns:
+            True if successful, False otherwise
+
+        Example:
+            app.customize_color("titleBar.activeBackground", "#ff0000")
+
+        """
+        try:
+            if not self._theme_manager:
+                logger.warning("Theme manager not initialized")
+                return False
+
+            # Set user override using theme manager
+            self._theme_manager.set_user_override(token, color, validate=True, notify=True)
+
+            # Emit theme_changed signal to notify ThemedWidget instances
+            if self._current_theme:
+                self.theme_changed.emit(self._current_theme.name)
+                logger.debug(f"Emitted theme_changed for color override: {token} = {color}")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Error customizing color: {e}")
+            return False
+
+    def reset_color(self, token: str, persist: bool = False) -> bool:
+        """Reset a color token to its default value (remove user override).
+
+        Args:
+            token: Token to reset (e.g., "titleBar.activeBackground")
+            persist: Whether to save changes (not implemented in base class)
+
+        Returns:
+            True if override was removed, False otherwise
+
+        Example:
+            app.reset_color("titleBar.activeBackground")
+
+        """
+        try:
+            if not self._theme_manager:
+                logger.warning("Theme manager not initialized")
+                return False
+
+            # Remove user override using theme manager
+            removed = self._theme_manager.remove_user_override(token, notify=True)
+
+            # Emit theme_changed signal to notify ThemedWidget instances
+            if removed and self._current_theme:
+                self.theme_changed.emit(self._current_theme.name)
+                logger.debug(f"Emitted theme_changed for color reset: {token}")
+
+            return removed
+
+        except Exception as e:
+            logger.error(f"Error resetting color: {e}")
+            return False
+
 
 # Global convenience functions
 def get_themed_application() -> Optional[ThemedApplication]:
