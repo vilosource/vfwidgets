@@ -231,26 +231,20 @@ class ReamdeWindow(ViloCodeWindow):
                 f"Applied accent line color: {self.preferences.appearance.accent_line_color}"
             )
 
-        # Re-apply theme with title bar background override if set
+        # Apply title bar background color via user layer (like ViloxTerm)
         if self.preferences.appearance.top_bar_background_color:
-            from vfwidgets_common import ThemeOverrides, apply_theme_with_overrides
+            from PySide6.QtWidgets import QApplication
 
-            # Create theme overrides with title bar color
-            overrides = ThemeOverrides()
-            color = self.preferences.appearance.top_bar_background_color
-
-            # Add to all theme types so it works regardless of current theme
-            overrides.dark_overrides["titleBar.activeBackground"] = color
-            overrides.light_overrides["titleBar.activeBackground"] = color
-            overrides.high_contrast_overrides["titleBar.activeBackground"] = color
-
-            # Re-apply current theme with the override
-            theme_name = self.preferences.appearance.application_theme
-            success = apply_theme_with_overrides(theme_name, overrides)
-            if success:
-                logger.info(f"Applied title bar background color on startup: {color}")
-            else:
-                logger.warning("Failed to apply title bar background color on startup")
+            app = QApplication.instance()
+            if hasattr(app, "customize_color"):
+                app.customize_color(
+                    "titleBar.activeBackground",
+                    self.preferences.appearance.top_bar_background_color,
+                    persist=True,
+                )
+                logger.info(
+                    f"Applied title bar background color on startup: {self.preferences.appearance.top_bar_background_color}"
+                )
 
     def open_file(self, file_path: str | Path, focus: bool = True) -> bool:
         """Open a markdown file in a new tab or focus existing tab.
@@ -508,33 +502,34 @@ class ReamdeWindow(ViloCodeWindow):
             self._tabs.set_accent_line_color(preferences.appearance.accent_line_color)
             logger.info(f"Applied accent line color: {preferences.appearance.accent_line_color}")
 
-        # Combine title bar color override with markdown color overrides
-        from vfwidgets_common import ThemeOverrides, apply_theme_with_overrides
+        # Apply title bar background color via user layer (like ViloxTerm)
+        from PySide6.QtWidgets import QApplication
 
+        app = QApplication.instance()
         theme_name = preferences.appearance.application_theme
-        combined_overrides = ThemeOverrides(
-            dark_overrides=preferences.markdown.theme_overrides.dark_overrides.copy(),
-            light_overrides=preferences.markdown.theme_overrides.light_overrides.copy(),
-            high_contrast_overrides=preferences.markdown.theme_overrides.high_contrast_overrides.copy(),
-        )
 
-        # Add title bar background color override to ALL theme types if set
         if preferences.appearance.top_bar_background_color:
-            combined_overrides.dark_overrides["titleBar.activeBackground"] = (
-                preferences.appearance.top_bar_background_color
-            )
-            combined_overrides.light_overrides["titleBar.activeBackground"] = (
-                preferences.appearance.top_bar_background_color
-            )
-            combined_overrides.high_contrast_overrides["titleBar.activeBackground"] = (
-                preferences.appearance.top_bar_background_color
-            )
-            logger.info(
-                f"Added title bar background color override: {preferences.appearance.top_bar_background_color}"
-            )
+            # Use customize_color to set "user" layer override
+            if hasattr(app, "customize_color"):
+                app.customize_color(
+                    "titleBar.activeBackground",
+                    preferences.appearance.top_bar_background_color,
+                    persist=True,
+                )
+                logger.info(
+                    f"Applied title bar background color: {preferences.appearance.top_bar_background_color}"
+                )
+        else:
+            # Clear the override if color is empty
+            if hasattr(app, "clear_override"):
+                app.clear_override("user", "titleBar.activeBackground")
+                logger.info("Cleared title bar background color override")
 
-        # Apply theme with combined overrides (markdown + title bar)
-        success = apply_theme_with_overrides(theme_name, combined_overrides)
+        # Apply theme with markdown overrides (title bar override is in user layer)
+        from vfwidgets_common import apply_theme_with_overrides
+
+        markdown_overrides = preferences.markdown.theme_overrides
+        success = apply_theme_with_overrides(theme_name, markdown_overrides)
         if success:
             logger.info(f"Applied theme '{theme_name}' with markdown and title bar overrides")
         else:

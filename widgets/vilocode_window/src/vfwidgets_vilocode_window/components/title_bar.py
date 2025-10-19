@@ -356,6 +356,10 @@ class TitleBar(_TitleBarBase):
         Uses the same pattern as ChromeTabbedWindow - resolving colors via
         theme_mgr.resolve_color() which includes user override support.
         """
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         painter = QPainter(self)
 
         # Get background and foreground colors with theme override support
@@ -370,14 +374,18 @@ class TitleBar(_TitleBarBase):
                     "titleBar.activeForeground", fallback="#cccccc"
                 )
 
+                logger.info(f"[TitleBar] paintEvent: bg={bg_color_str}, fg={fg_color_str}")
+
                 bg_color = QColor(bg_color_str)
                 fg_color = QColor(fg_color_str)
-            except (ImportError, AttributeError, Exception):
+            except (ImportError, AttributeError, Exception) as e:
                 # Fallback if theme system fails
+                logger.error(f"[TitleBar] Theme system error: {e}")
                 bg_color = QColor("#323233")
                 fg_color = QColor("#cccccc")
         else:
             # Fallback when theme system not available
+            logger.warning("[TitleBar] Theme system not available")
             bg_color = QColor("#323233")
             fg_color = QColor("#cccccc")
 
