@@ -13,7 +13,8 @@ from .window_controls import WindowControls
 
 # Try to import theme system
 try:
-    from vfwidgets_theme import ThemedWidget, ThemeManager
+    from vfwidgets_theme import ThemedWidget
+    from vfwidgets_theme.core.manager import ThemeManager
 
     THEME_AVAILABLE = True
 except ImportError:
@@ -107,6 +108,11 @@ class TitleBar(_TitleBarBase):
         super().__init__(parent)
         self._drag_position: Optional[QPoint] = None
         self._menu_bar: Optional[QMenuBar] = None
+
+        # CRITICAL: Enable auto-fill background so paintEvent actually paints
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setAutoFillBackground(False)  # We handle painting in paintEvent
+
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -139,6 +145,10 @@ class TitleBar(_TitleBarBase):
 
         # Store layout for menu bar insertion
         self._layout = layout
+
+    def on_theme_changed(self) -> None:
+        """Handle theme changes - force repaint."""
+        self.update()  # Force repaint
 
     def _generate_stylesheet(self) -> str:
         """Disable stylesheet generation - TitleBar uses custom paintEvent.
@@ -367,10 +377,6 @@ class TitleBar(_TitleBarBase):
         Uses the same pattern as ChromeTabbedWindow - resolving colors via
         theme_mgr.resolve_color() which includes user override support.
         """
-        import logging
-
-        logger = logging.getLogger(__name__)
-
         painter = QPainter(self)
 
         # Get background and foreground colors with theme override support
@@ -385,18 +391,14 @@ class TitleBar(_TitleBarBase):
                     "titleBar.activeForeground", fallback="#cccccc"
                 )
 
-                logger.info(f"[TitleBar] paintEvent: bg={bg_color_str}, fg={fg_color_str}")
-
                 bg_color = QColor(bg_color_str)
                 fg_color = QColor(fg_color_str)
-            except (ImportError, AttributeError, Exception) as e:
+            except (ImportError, AttributeError, Exception):
                 # Fallback if theme system fails
-                logger.error(f"[TitleBar] Theme system error: {e}")
                 bg_color = QColor("#323233")
                 fg_color = QColor("#cccccc")
         else:
             # Fallback when theme system not available
-            logger.warning("[TitleBar] Theme system not available")
             bg_color = QColor("#323233")
             fg_color = QColor("#cccccc")
 
