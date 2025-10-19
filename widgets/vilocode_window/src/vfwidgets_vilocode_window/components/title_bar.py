@@ -140,6 +140,17 @@ class TitleBar(_TitleBarBase):
         # Store layout for menu bar insertion
         self._layout = layout
 
+    def _generate_stylesheet(self) -> str:
+        """Disable stylesheet generation - TitleBar uses custom paintEvent.
+
+        TitleBar uses paintEvent() to draw its background, so we don't want
+        ThemedWidget to generate a stylesheet that might override it.
+
+        Returns:
+            Empty string to prevent stylesheet generation
+        """
+        return ""
+
     def set_title(self, title: str) -> None:
         """Set the title text."""
         self._title_label.setText(title)
