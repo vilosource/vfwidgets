@@ -6,19 +6,20 @@ Provides a custom title bar with window controls and drag area.
 from typing import Optional
 
 from PySide6.QtCore import QPoint, Qt
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenuBar, QWidget
 
 from .window_controls import WindowControls
 
-# Try to import ThemedWidget
+# Try to import theme system
 try:
-    from vfwidgets_theme import ThemedWidget
+    from vfwidgets_theme import ThemedWidget, ThemeManager
 
     THEME_AVAILABLE = True
 except ImportError:
     THEME_AVAILABLE = False
     ThemedWidget = object  # type: ignore
+    ThemeManager = None  # type: ignore
 
 
 class DraggableMenuBar(QMenuBar):
@@ -112,9 +113,8 @@ class TitleBar(_TitleBarBase):
         """Set up the user interface."""
         self.setFixedHeight(30)
 
-        # Only set hardcoded stylesheet if theme system is not available
-        if not THEME_AVAILABLE:
-            self.setStyleSheet("background-color: #323233; color: #cccccc;")
+        # Background is painted in paintEvent() using theme colors
+        # No hardcoded stylesheet needed - paintEvent handles both themed and non-themed cases
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 0, 0)
@@ -122,11 +122,7 @@ class TitleBar(_TitleBarBase):
 
         # Title label (will be set by parent window)
         self._title_label = QLabel("ViloCodeWindow")
-        # Only set hardcoded color if theme system is not available
-        if not THEME_AVAILABLE:
-            self._title_label.setStyleSheet("color: #cccccc; font-size: 13px;")
-        else:
-            self._title_label.setStyleSheet("font-size: 13px;")  # Theme will handle color
+        self._title_label.setStyleSheet("font-size: 13px;")
         # Allow mouse events to pass through to title bar for dragging
         self._title_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         layout.addWidget(self._title_label)
@@ -353,6 +349,46 @@ class TitleBar(_TitleBarBase):
         This is kept for backward compatibility.
         """
         self._apply_menu_styling()
+
+    def paintEvent(self, event: QPaintEvent) -> None:
+        """Paint title bar background with theme color (including overrides).
+
+        Uses the same pattern as ChromeTabbedWindow - resolving colors via
+        theme_mgr.resolve_color() which includes user override support.
+        """
+        painter = QPainter(self)
+
+        # Get background and foreground colors with theme override support
+        if THEME_AVAILABLE and ThemeManager:
+            try:
+                theme_mgr = ThemeManager.get_instance()
+                # resolve_color() gets colors WITH override support
+                bg_color_str = theme_mgr.resolve_color(
+                    "titleBar.activeBackground", fallback="#323233"
+                )
+                fg_color_str = theme_mgr.resolve_color(
+                    "titleBar.activeForeground", fallback="#cccccc"
+                )
+
+                bg_color = QColor(bg_color_str)
+                fg_color = QColor(fg_color_str)
+            except (ImportError, AttributeError, Exception):
+                # Fallback if theme system fails
+                bg_color = QColor("#323233")
+                fg_color = QColor("#cccccc")
+        else:
+            # Fallback when theme system not available
+            bg_color = QColor("#323233")
+            fg_color = QColor("#cccccc")
+
+        # Paint background
+        painter.fillRect(self.rect(), bg_color)
+
+        # Update title label text color to match foreground
+        self._title_label.setStyleSheet(f"color: {fg_color.name()}; font-size: 13px;")
+
+        # Call parent paintEvent for proper event propagation
+        super().paintEvent(event)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """Handle mouse press - ignore to let parent window handle dragging."""
