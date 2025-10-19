@@ -521,8 +521,8 @@ class ReamdeWindow(ViloCodeWindow):
                 )
         else:
             # Clear the override if color is empty
-            if hasattr(app, "clear_override"):
-                app.clear_override("user", "titleBar.activeBackground")
+            if hasattr(app, "reset_color"):
+                app.reset_color("titleBar.activeBackground", persist=True)
                 logger.info("Cleared title bar background color override")
 
         # Apply theme with markdown overrides (title bar override is in user layer)

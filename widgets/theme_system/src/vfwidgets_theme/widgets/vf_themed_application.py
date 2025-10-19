@@ -84,11 +84,7 @@ class VFThemedApplication(ThemedApplication):
         "settings_key_prefix": "theme/",
     }
 
-    def __init__(
-        self,
-        argv: Optional[list[str]] = None,
-        app_id: Optional[str] = None
-    ):
+    def __init__(self, argv: Optional[list[str]] = None, app_id: Optional[str] = None):
         """Initialize application with theme configuration.
 
         Args:
@@ -110,7 +106,8 @@ class VFThemedApplication(ThemedApplication):
         self._apply_theme_config()
 
         logger.debug(
-            f"VFThemedApplication initialized with base_theme='{self.theme_config.get('base_theme')}', "
+            f"VFThemedApplication initialized with "
+            f"base_theme='{self.theme_config.get('base_theme')}', "
             f"app_overrides={len(self.theme_config.get('app_overrides', {}))}, "
             f"allow_user_customization={self.theme_config.get('allow_user_customization')}"
         )
@@ -254,12 +251,7 @@ class VFThemedApplication(ThemedApplication):
     # Customization Methods
     # ========================================================================
 
-    def customize_color(
-        self,
-        token: str,
-        color: str,
-        persist: bool = True
-    ) -> bool:
+    def customize_color(self, token: str, color: str, persist: bool = True) -> bool:
         """Customize a color token (user override).
 
         Args:
@@ -296,6 +288,12 @@ class VFThemedApplication(ThemedApplication):
             if persist:
                 self.save_user_preferences()
 
+            # Emit theme_changed signal to notify ThemedWidget instances
+            # (they connect to this signal to update their appearance)
+            if self._current_theme:
+                self.theme_changed.emit(self._current_theme.name)
+                logger.debug(f"Emitted theme_changed signal for color override: {token} = {color}")
+
             logger.debug(f"Customized color: {token} = {color} (persist={persist})")
             return True
 
@@ -321,6 +319,11 @@ class VFThemedApplication(ThemedApplication):
             # Persist if requested
             if persist:
                 self.save_user_preferences()
+
+            # Emit theme_changed signal to notify ThemedWidget instances
+            if removed and self._current_theme:
+                self.theme_changed.emit(self._current_theme.name)
+                logger.debug(f"Emitted theme_changed signal for color reset: {token}")
 
             logger.debug(f"Reset color: {token} (removed={removed}, persist={persist})")
             return removed
@@ -398,7 +401,7 @@ class VFThemedApplication(ThemedApplication):
         return success
 
     def __repr__(self) -> str:
-        """String representation for debugging."""
+        """Return string representation for debugging."""
         return (
             f"VFThemedApplication("
             f"base_theme='{self.theme_config.get('base_theme')}', "
