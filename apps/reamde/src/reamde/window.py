@@ -223,23 +223,6 @@ class ReamdeWindow(ViloCodeWindow):
 
     def _apply_topbar_preferences(self) -> None:
         """Apply topbar appearance preferences on startup."""
-        # Apply title bar background color via theme override
-        from PySide6.QtWidgets import QApplication
-
-        app = QApplication.instance()
-
-        if self.preferences.appearance.top_bar_background_color:
-            # Override titleBar token in "user" layer
-            if hasattr(app, "customize_color"):
-                app.customize_color(
-                    "titleBar.activeBackground",
-                    self.preferences.appearance.top_bar_background_color,
-                    persist=False,  # Don't persist on startup (already in preferences.json)
-                )
-                logger.info(
-                    f"Applied title bar background color on startup: {self.preferences.appearance.top_bar_background_color}"
-                )
-
         # Apply accent line settings (for ChromeTabbedWindow tabs)
         self._tabs.set_accent_line_visible(self.preferences.appearance.show_accent_line)
         if self.preferences.appearance.accent_line_color:
@@ -247,6 +230,27 @@ class ReamdeWindow(ViloCodeWindow):
             logger.info(
                 f"Applied accent line color: {self.preferences.appearance.accent_line_color}"
             )
+
+        # Re-apply theme with title bar background override if set
+        if self.preferences.appearance.top_bar_background_color:
+            from vfwidgets_common import ThemeOverrides, apply_theme_with_overrides
+
+            # Create theme overrides with title bar color
+            overrides = ThemeOverrides()
+            color = self.preferences.appearance.top_bar_background_color
+
+            # Add to all theme types so it works regardless of current theme
+            overrides.dark_overrides["titleBar.activeBackground"] = color
+            overrides.light_overrides["titleBar.activeBackground"] = color
+            overrides.high_contrast_overrides["titleBar.activeBackground"] = color
+
+            # Re-apply current theme with the override
+            theme_name = self.preferences.appearance.application_theme
+            success = apply_theme_with_overrides(theme_name, overrides)
+            if success:
+                logger.info(f"Applied title bar background color on startup: {color}")
+            else:
+                logger.warning("Failed to apply title bar background color on startup")
 
     def open_file(self, file_path: str | Path, focus: bool = True) -> bool:
         """Open a markdown file in a new tab or focus existing tab.
@@ -498,41 +502,39 @@ class ReamdeWindow(ViloCodeWindow):
         self.setWindowOpacity(opacity)
         logger.debug(f"Set window opacity to {opacity}")
 
-        # Apply title bar background color via theme override
-        from PySide6.QtWidgets import QApplication
-
-        app = QApplication.instance()
-        theme_name = preferences.appearance.application_theme
-
-        if preferences.appearance.top_bar_background_color:
-            # Override titleBar token in "user" layer
-            if hasattr(app, "customize_color"):
-                app.customize_color(
-                    "titleBar.activeBackground",
-                    preferences.appearance.top_bar_background_color,
-                    persist=True,
-                )
-                logger.info(
-                    f"Applied title bar background color override: {preferences.appearance.top_bar_background_color}"
-                )
-        else:
-            # Clear override to restore theme default
-            if hasattr(app, "clear_override"):
-                app.clear_override("user", "titleBar.activeBackground")
-                logger.info("Cleared title bar background color override")
-
         # Apply accent line settings (for ChromeTabbedWindow tabs)
         self._tabs.set_accent_line_visible(preferences.appearance.show_accent_line)
         if preferences.appearance.accent_line_color:
             self._tabs.set_accent_line_color(preferences.appearance.accent_line_color)
             logger.info(f"Applied accent line color: {preferences.appearance.accent_line_color}")
 
-        # Apply theme with markdown color overrides (will include title bar override)
-        from vfwidgets_common import apply_theme_with_overrides
+        # Combine title bar color override with markdown color overrides
+        from vfwidgets_common import ThemeOverrides, apply_theme_with_overrides
 
-        markdown_overrides = preferences.markdown.theme_overrides
+        theme_name = preferences.appearance.application_theme
+        combined_overrides = ThemeOverrides(
+            dark_overrides=preferences.markdown.theme_overrides.dark_overrides.copy(),
+            light_overrides=preferences.markdown.theme_overrides.light_overrides.copy(),
+            high_contrast_overrides=preferences.markdown.theme_overrides.high_contrast_overrides.copy(),
+        )
 
-        success = apply_theme_with_overrides(theme_name, markdown_overrides)
+        # Add title bar background color override to ALL theme types if set
+        if preferences.appearance.top_bar_background_color:
+            combined_overrides.dark_overrides["titleBar.activeBackground"] = (
+                preferences.appearance.top_bar_background_color
+            )
+            combined_overrides.light_overrides["titleBar.activeBackground"] = (
+                preferences.appearance.top_bar_background_color
+            )
+            combined_overrides.high_contrast_overrides["titleBar.activeBackground"] = (
+                preferences.appearance.top_bar_background_color
+            )
+            logger.info(
+                f"Added title bar background color override: {preferences.appearance.top_bar_background_color}"
+            )
+
+        # Apply theme with combined overrides (markdown + title bar)
+        success = apply_theme_with_overrides(theme_name, combined_overrides)
         if success:
             logger.info(f"Applied theme '{theme_name}' with markdown and title bar overrides")
         else:
