@@ -24,10 +24,16 @@ from .manager import KeybindingManager
 from .registry import ActionDefinition, ActionRegistry
 from .storage import KeybindingStorage
 
+# UI widgets (optional, for preferences dialogs)
+from .widgets import KeySequenceEdit, KeybindingDialog
+
 __all__ = [
     # Main API (most users only need this)
     "KeybindingManager",
     "ActionDefinition",
+    # UI Widgets
+    "KeySequenceEdit",
+    "KeybindingDialog",
     # Advanced usage
     "ActionRegistry",
     "KeybindingStorage",

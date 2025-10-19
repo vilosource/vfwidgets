@@ -24,6 +24,7 @@ from .general_prefs_tab import GeneralPreferencesTab
 from .appearance_prefs_tab import AppearancePreferencesTab
 from .terminal_prefs_tab import TerminalPreferencesTab
 from .advanced_prefs_tab import AdvancedPreferencesTab
+from .keyboard_shortcuts_tab import KeyboardShortcutsTab
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,9 @@ class PreferencesDialog(ThemedDialog):
             manager: KeybindingManager instance from main app
         """
         self.keybinding_manager = manager
-        # TODO: Pass to keyboard shortcuts tab when implemented
+        # Pass to keyboard shortcuts tab
+        if hasattr(self, "keyboard_shortcuts_tab"):
+            self.keyboard_shortcuts_tab.set_keybinding_manager(manager)
 
     def _setup_ui(self) -> None:
         """Set up the dialog UI."""
@@ -109,11 +112,9 @@ class PreferencesDialog(ThemedDialog):
         self.terminal_tab = TerminalPreferencesTab()
         self.tab_widget.addTab(self.terminal_tab, "Terminal")
 
-        # Keyboard Shortcuts tab (placeholder)
-        shortcuts_tab = ThemedQWidget()
-        shortcuts_layout = QVBoxLayout(shortcuts_tab)
-        shortcuts_layout.addWidget(self._create_placeholder("Keyboard shortcuts coming soon"))
-        self.tab_widget.addTab(shortcuts_tab, "Keyboard Shortcuts")
+        # Keyboard Shortcuts tab (implemented)
+        self.keyboard_shortcuts_tab = KeyboardShortcutsTab()
+        self.tab_widget.addTab(self.keyboard_shortcuts_tab, "Keyboard Shortcuts")
 
         # Advanced tab (implemented)
         self.advanced_tab = AdvancedPreferencesTab()
@@ -186,7 +187,9 @@ class PreferencesDialog(ThemedDialog):
         # Load into Advanced tab
         self.advanced_tab.load_preferences(self.app_preferences.advanced)
 
-        # TODO: Load into Keyboard Shortcuts tab
+        # Load into Keyboard Shortcuts tab
+        self.keyboard_shortcuts_tab.load_preferences()
+
         logger.debug("Loading preferences into dialog")
 
     def _save_preferences(self) -> None:
@@ -203,7 +206,9 @@ class PreferencesDialog(ThemedDialog):
         # Save from Advanced tab
         self.app_preferences.advanced = self.advanced_tab.save_preferences()
 
-        # TODO: Save from Keyboard Shortcuts tab
+        # Save from Keyboard Shortcuts tab
+        self.keyboard_shortcuts_tab.save_preferences()
+
         logger.debug("Saving preferences from dialog")
 
     def on_apply(self) -> None:
@@ -231,6 +236,12 @@ class PreferencesDialog(ThemedDialog):
         """Handle OK button click."""
         self.on_apply()
         self.accept()
+
+    def reject(self) -> None:
+        """Handle Cancel button click."""
+        # Cancel pending keyboard shortcut changes
+        self.keyboard_shortcuts_tab.cancel_changes()
+        super().reject()
 
     def get_app_preferences(self) -> PreferencesModel:
         """Get current application preferences.
