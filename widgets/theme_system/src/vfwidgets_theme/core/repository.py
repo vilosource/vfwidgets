@@ -585,6 +585,7 @@ class ThemeRepository:
         cache: Optional[ThemeCache] = None,
         discovery: Optional[ThemeDiscovery] = None,
         builtin_manager: Optional[BuiltinThemeManager] = None,
+        use_discovery_cache: bool = True,
     ):
         """Initialize theme repository.
 
@@ -592,6 +593,7 @@ class ThemeRepository:
             cache: Cache for theme performance optimization
             discovery: Theme discovery service
             builtin_manager: Built-in theme manager
+            use_discovery_cache: Whether to cache theme discovery results
 
         """
         self._themes: dict[str, Theme] = {}
@@ -602,6 +604,7 @@ class ThemeRepository:
         self._file_loader = FileThemeLoader()
         self._lock = threading.RLock()
         self._aliases: dict[str, str] = {}  # Theme name aliases
+        self._use_discovery_cache = use_discovery_cache
 
         # Load built-in themes
         self._load_builtin_themes()
@@ -611,6 +614,140 @@ class ThemeRepository:
         self._discover_user_themes()
 
         logger.debug("ThemeRepository initialized")
+
+    def _get_discovery_cache_key(self, directory: Path) -> str:
+        """Get QSettings key for directory discovery cache.
+
+        Args:
+            directory: Directory path
+
+        Returns:
+            QSettings key string
+
+        """
+        return f"theme_discovery/{directory.as_posix()}"
+
+    def _is_discovery_cache_valid(self, directory: Path) -> bool:
+        """Check if discovery cache is valid for directory.
+
+        Args:
+            directory: Directory to check
+
+        Returns:
+            True if cache is valid (directory unchanged since last scan)
+
+        """
+        if not self._use_discovery_cache:
+            return False
+
+        if not directory.exists():
+            return False
+
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "ThemeSystem")
+            cache_key = self._get_discovery_cache_key(directory)
+
+            # Get cached mtime
+            cached_mtime = settings.value(f"{cache_key}/mtime", type=float)
+            if cached_mtime is None:
+                return False
+
+            # Get current directory mtime
+            current_mtime = directory.stat().st_mtime
+
+            # Cache is valid if mtime matches
+            is_valid = abs(current_mtime - cached_mtime) < 1.0  # 1 second tolerance
+            if is_valid:
+                logger.debug(f"Discovery cache valid for: {directory}")
+            else:
+                logger.debug(
+                    f"Discovery cache stale for: {directory} "
+                    f"(cached={cached_mtime}, current={current_mtime})"
+                )
+
+            return is_valid
+
+        except Exception as e:
+            logger.warning(f"Failed to check discovery cache for {directory}: {e}")
+            return False
+
+    def _load_themes_from_cache(self, directory: Path) -> list[Theme]:
+        """Load themes from discovery cache.
+
+        Args:
+            directory: Directory to load cached themes for
+
+        Returns:
+            List of themes loaded from cache
+
+        """
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "ThemeSystem")
+            cache_key = self._get_discovery_cache_key(directory)
+
+            # Get cached theme data
+            cached_data = settings.value(f"{cache_key}/themes", type=list)
+            if not cached_data:
+                return []
+
+            themes = []
+            for theme_dict in cached_data:
+                try:
+                    theme = Theme.from_dict(theme_dict)
+                    themes.append(theme)
+                except Exception as e:
+                    logger.warning(f"Failed to load cached theme: {e}")
+
+            logger.debug(f"Loaded {len(themes)} themes from cache for: {directory}")
+            return themes
+
+        except Exception as e:
+            logger.warning(f"Failed to load themes from cache for {directory}: {e}")
+            return []
+
+    def _save_themes_to_cache(
+        self, directory: Path, themes: list[Theme], dir_mtime: Optional[float] = None
+    ) -> None:
+        """Save themes to discovery cache.
+
+        Args:
+            directory: Directory to cache themes for
+            themes: List of themes to cache
+            dir_mtime: Directory mtime to cache (uses current if None)
+
+        """
+        if not self._use_discovery_cache:
+            return
+
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "ThemeSystem")
+            cache_key = self._get_discovery_cache_key(directory)
+
+            # Save directory mtime (use provided or get current)
+            if dir_mtime is not None:
+                mtime_to_save = dir_mtime
+            elif directory.exists():
+                mtime_to_save = directory.stat().st_mtime
+            else:
+                return  # Can't cache non-existent directory
+
+            settings.setValue(f"{cache_key}/mtime", mtime_to_save)
+
+            # Save theme data (as list of dicts)
+            theme_data = [theme.to_dict() for theme in themes]
+            settings.setValue(f"{cache_key}/themes", theme_data)
+            settings.sync()
+
+            logger.debug(f"Saved {len(themes)} themes to cache for: {directory}")
+
+        except Exception as e:
+            logger.warning(f"Failed to save themes to cache for {directory}: {e}")
 
     def _load_builtin_themes(self) -> None:
         """Load built-in themes into repository."""
@@ -640,8 +777,17 @@ class ThemeRepository:
                 logger.debug(f"Package themes directory not found: {package_dir}")
                 return
 
-            logger.debug(f"Discovering package themes in: {package_dir}")
-            themes = self._discovery.discover_in_directory(package_dir, recursive=False)
+            # Check if we can use cached discovery results
+            if self._is_discovery_cache_valid(package_dir):
+                logger.debug(f"Using cached package themes from: {package_dir}")
+                themes = self._load_themes_from_cache(package_dir)
+            else:
+                # Capture directory mtime BEFORE discovery
+                dir_mtime = package_dir.stat().st_mtime
+                logger.debug(f"Discovering package themes in: {package_dir}")
+                themes = self._discovery.discover_in_directory(package_dir, recursive=False)
+                # Save to cache with pre-discovery mtime
+                self._save_themes_to_cache(package_dir, themes, dir_mtime)
 
             for theme in themes:
                 # Package themes override built-in themes with same name
@@ -678,8 +824,17 @@ class ThemeRepository:
                 if not theme_dir.exists():
                     continue
 
-                logger.debug(f"Discovering user themes in: {theme_dir}")
-                themes = self._discovery.discover_in_directory(theme_dir, recursive=False)
+                # Check if we can use cached discovery results
+                if self._is_discovery_cache_valid(theme_dir):
+                    logger.debug(f"Using cached user themes from: {theme_dir}")
+                    themes = self._load_themes_from_cache(theme_dir)
+                else:
+                    # Capture directory mtime BEFORE discovery
+                    dir_mtime = theme_dir.stat().st_mtime
+                    logger.debug(f"Discovering user themes in: {theme_dir}")
+                    themes = self._discovery.discover_in_directory(theme_dir, recursive=False)
+                    # Save to cache with pre-discovery mtime
+                    self._save_themes_to_cache(theme_dir, themes, dir_mtime)
 
                 for theme in themes:
                     # User themes have highest priority, override everything
@@ -973,6 +1128,7 @@ def create_theme_repository(
     cache_size: int = 100,
     discovery: Optional[ThemeDiscovery] = None,
     builtin_manager: Optional[BuiltinThemeManager] = None,
+    use_discovery_cache: bool = True,
 ) -> ThemeRepository:
     """Factory function for creating theme repository with defaults.
 
@@ -980,6 +1136,7 @@ def create_theme_repository(
         cache_size: Maximum cache size
         discovery: Custom theme discovery service
         builtin_manager: Custom built-in theme manager
+        use_discovery_cache: Whether to cache theme discovery results
 
     Returns:
         Configured theme repository
@@ -989,7 +1146,12 @@ def create_theme_repository(
     discovery = discovery or ThemeDiscovery()
     builtin_manager = builtin_manager or BuiltinThemeManager()
 
-    repository = ThemeRepository(cache=cache, discovery=discovery, builtin_manager=builtin_manager)
+    repository = ThemeRepository(
+        cache=cache,
+        discovery=discovery,
+        builtin_manager=builtin_manager,
+        use_discovery_cache=use_discovery_cache,
+    )
 
     logger.debug("Created theme repository with default configuration")
     return repository
