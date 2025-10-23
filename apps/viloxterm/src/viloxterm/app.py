@@ -68,18 +68,17 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Track parent window (None for main window, set by parent for child windows)
         self._parent_window = None
 
-        # Create or use shared terminal server
+        # Create or use shared terminal server (lazy initialization for new servers)
         if shared_server:
             # Share server with other windows
             self.terminal_server = shared_server
             self._owns_server = False
             logger.info("Using shared terminal server")
         else:
-            # Create own server (first window)
-            self.terminal_server = MultiSessionTerminalServer(port=0)
-            self.terminal_server.start()
+            # Defer server creation until first terminal is needed (saves ~500ms startup)
+            self.terminal_server = None
             self._owns_server = True
-            logger.info(f"Created terminal server on port {self.terminal_server.port}")
+            logger.info("Terminal server will be created on-demand (lazy initialization)")
 
         # Create preferences managers
         self.terminal_preferences_manager = TerminalPreferencesManager()
@@ -91,7 +90,10 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         # Create terminal provider for MultisplitWidget
         # Terminals automatically inherit theme from ThemedApplication via ThemedWidget
-        self.terminal_provider = TerminalProvider(self.terminal_server, event_filter=self)
+        # Pass server factory to enable lazy initialization
+        self.terminal_provider = TerminalProvider(
+            server_factory=self._ensure_terminal_server, event_filter=self
+        )
         logger.info("Terminal provider created - terminals will use app theme automatically")
 
         # Apply default terminal preferences to new terminals
@@ -114,7 +116,8 @@ class ViloxTermApp(ChromeTabbedWindow):
         # We override _on_new_tab_requested() to handle it
 
         # Set up keyboard shortcuts FIRST (so actions are available for menu)
-        self._setup_keybinding_manager()
+        # Use deferred registration to avoid blocking startup (~20ms improvement)
+        self._setup_keybinding_manager_deferred()
 
         # Set up window controls (must be after parent __init__ and keybindings)
         self._setup_window_controls()
@@ -129,6 +132,31 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Create initial tab (unless caller explicitly requests not to)
         if create_initial_tab:
             self.add_new_terminal_tab("Terminal 1")
+
+    def _ensure_terminal_server(self) -> MultiSessionTerminalServer:
+        """Ensure terminal server is started (lazy initialization).
+
+        Creates and starts the terminal server on first call.
+        Subsequent calls return the existing server instance.
+        This defers the ~500ms server startup cost until actually needed.
+
+        Returns:
+            MultiSessionTerminalServer instance
+        """
+        if self.terminal_server is None:
+            logger.info("Starting terminal server (lazy initialization)...")
+            self.terminal_server = MultiSessionTerminalServer(port=0)
+            self.terminal_server.start()
+            logger.info(f"Terminal server started on port {self.terminal_server.port}")
+
+            # Connect session_ended signal now that server exists
+            # Use QueuedConnection for cross-thread signal (Flask-SocketIO -> Qt main thread)
+            self.terminal_server.session_ended.connect(
+                self._on_session_ended, Qt.ConnectionType.QueuedConnection
+            )
+            logger.debug("Connected session_ended signal to terminal server")
+
+        return self.terminal_server
 
     def _setup_window_controls(self) -> None:
         """Set up custom window controls with menu button.
@@ -186,11 +214,229 @@ class ViloxTermApp(ChromeTabbedWindow):
             self.menu_button.new_window_requested.connect(self._open_new_window)
             self.menu_button.about_requested.connect(self._show_about_dialog)
 
-        # Handle terminal session ending (auto-close panes when terminal exits)
-        # Use QueuedConnection for cross-thread signal (Flask-SocketIO thread -> Qt main thread)
-        self.terminal_server.session_ended.connect(
-            self._on_session_ended, Qt.ConnectionType.QueuedConnection
-        )
+        # Note: session_ended signal connection moved to _ensure_terminal_server()
+        # to handle lazy initialization (server may not exist yet during __init__)
+
+    def _setup_keybinding_manager_deferred(self) -> None:
+        """Set up keyboard shortcut manager with deferred registration.
+
+        Creates the manager immediately (needed for menu), but defers
+        the actual action registration and binding to reduce startup time.
+        """
+        from PySide6.QtCore import QTimer
+
+        # Create manager with persistence (fast operation)
+        storage_path = Path.home() / ".config" / "viloxterm" / "keybindings.json"
+        self.keybinding_manager = KeybindingManager(storage_path=str(storage_path), auto_save=True)
+
+        # Create placeholder actions dict (needed for menu_button)
+        self.actions = {}
+
+        # Defer the heavy registration work (register_actions + load + apply)
+        QTimer.singleShot(100, self._register_keybindings)
+
+        logger.info("Keybinding manager created (registration deferred)")
+
+    def _register_keybindings(self) -> None:
+        """Register and apply keyboard shortcuts (deferred initialization).
+
+        Called 100ms after window creation to avoid blocking startup.
+        This is the heavy part that was moved out of __init__.
+        """
+        logger.debug("Registering keybindings (deferred)...")
+
+        try:
+            # Register all actions with callbacks (this is the slow part ~20ms)
+            self.keybinding_manager.register_actions(self._get_action_definitions())
+
+            # Load saved keybindings (file I/O)
+            self.keybinding_manager.load_bindings()
+
+            # Apply shortcuts to window
+            self.actions = self.keybinding_manager.apply_shortcuts(self)
+
+            logger.info(f"Registered {len(self.actions)} keyboard shortcuts")
+
+            # Update menu button with the loaded actions
+            if hasattr(self, "menu_button"):
+                self.menu_button.update_keybinding_actions(self.actions)
+                logger.debug("Updated menu button with keybinding actions")
+
+        except Exception as e:
+            logger.error(
+                f"Failed to register keybindings: {e}",
+                exc_info=True,
+            )
+            # Initialize empty actions dict so app doesn't crash
+            self.actions = {}
+            # Re-raise to make the error visible (not silent)
+            raise RuntimeError(f"Keybinding registration failed: {e}") from e
+
+    def _get_action_definitions(self) -> list:
+        """Get list of all action definitions.
+
+        Extracted from _setup_keybinding_manager for reuse in deferred registration.
+        """
+        return [
+            ActionDefinition(
+                id="pane.split_horizontal",
+                description="Split Horizontal",
+                default_shortcut="Ctrl+Shift+\\",  # \ = Vertical divider visual = side-by-side panes
+                category="Pane",
+                callback=self._on_split_horizontal,
+            ),
+            ActionDefinition(
+                id="pane.split_vertical",
+                description="Split Vertical",
+                default_shortcut="Ctrl+Shift+-",  # - = Horizontal divider visual = stacked panes
+                category="Pane",
+                callback=self._on_split_vertical,
+            ),
+            ActionDefinition(
+                id="pane.close",
+                description="Close Pane",
+                default_shortcut="Ctrl+W",
+                category="Pane",
+                callback=self._on_close_pane,
+            ),
+            # Pane Navigation
+            ActionDefinition(
+                id="pane.navigate_left",
+                description="Navigate Left",
+                default_shortcut="Ctrl+Shift+Left",
+                category="Pane",
+                callback=lambda: self._on_navigate_pane(Direction.LEFT),
+            ),
+            ActionDefinition(
+                id="pane.navigate_right",
+                description="Navigate Right",
+                default_shortcut="Ctrl+Shift+Right",
+                category="Pane",
+                callback=lambda: self._on_navigate_pane(Direction.RIGHT),
+            ),
+            ActionDefinition(
+                id="pane.navigate_up",
+                description="Navigate Up",
+                default_shortcut="Ctrl+Shift+Up",
+                category="Pane",
+                callback=lambda: self._on_navigate_pane(Direction.UP),
+            ),
+            ActionDefinition(
+                id="pane.navigate_down",
+                description="Navigate Down",
+                default_shortcut="Ctrl+Shift+Down",
+                category="Pane",
+                callback=lambda: self._on_navigate_pane(Direction.DOWN),
+            ),
+            ActionDefinition(
+                id="tab.close",
+                description="Close Tab",
+                default_shortcut="Ctrl+Shift+W",
+                category="Tab",
+                callback=self._on_close_tab,
+            ),
+            # Tab Navigation
+            ActionDefinition(
+                id="tab.new",
+                description="New Tab",
+                default_shortcut="Ctrl+Shift+T",
+                category="Tab",
+                callback=self._on_new_tab,
+            ),
+            ActionDefinition(
+                id="tab.next",
+                description="Next Tab",
+                default_shortcut="Ctrl+PgDown",
+                category="Tab",
+                callback=self._on_next_tab,
+            ),
+            ActionDefinition(
+                id="tab.previous",
+                description="Previous Tab",
+                default_shortcut="Ctrl+PgUp",
+                category="Tab",
+                callback=self._on_previous_tab,
+            ),
+            # Quick jump to tabs 1-9
+            ActionDefinition(
+                id="tab.jump_1",
+                description="Jump to Tab 1",
+                default_shortcut="Alt+1",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(1),
+            ),
+            ActionDefinition(
+                id="tab.jump_2",
+                description="Jump to Tab 2",
+                default_shortcut="Alt+2",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(2),
+            ),
+            ActionDefinition(
+                id="tab.jump_3",
+                description="Jump to Tab 3",
+                default_shortcut="Alt+3",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(3),
+            ),
+            ActionDefinition(
+                id="tab.jump_4",
+                description="Jump to Tab 4",
+                default_shortcut="Alt+4",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(4),
+            ),
+            ActionDefinition(
+                id="tab.jump_5",
+                description="Jump to Tab 5",
+                default_shortcut="Alt+5",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(5),
+            ),
+            ActionDefinition(
+                id="tab.jump_6",
+                description="Jump to Tab 6",
+                default_shortcut="Alt+6",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(6),
+            ),
+            ActionDefinition(
+                id="tab.jump_7",
+                description="Jump to Tab 7",
+                default_shortcut="Alt+7",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(7),
+            ),
+            ActionDefinition(
+                id="tab.jump_8",
+                description="Jump to Tab 8",
+                default_shortcut="Alt+8",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(8),
+            ),
+            ActionDefinition(
+                id="tab.jump_9",
+                description="Jump to Tab 9",
+                default_shortcut="Alt+9",
+                category="Tab",
+                callback=lambda: self._on_jump_to_tab(9),
+            ),
+            # Appearance
+            ActionDefinition(
+                id="appearance.preferences",
+                description="Preferences",
+                default_shortcut="Ctrl+,",
+                category="Appearance",
+                callback=self._show_preferences_dialog,
+            ),
+            ActionDefinition(
+                id="appearance.reset_zoom",
+                description="Reset Terminal Zoom",
+                default_shortcut="Ctrl+0",
+                category="Appearance",
+                callback=self._on_reset_zoom,
+            ),
+        ]
 
     def _setup_keybinding_manager(self) -> None:
         """Set up keyboard shortcut manager with user-customizable bindings."""

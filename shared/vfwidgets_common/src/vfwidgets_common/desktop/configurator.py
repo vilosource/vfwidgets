@@ -43,6 +43,74 @@ class DesktopConfigurator:
         self.env: Optional[EnvironmentInfo] = None
         self.backend: Optional[DesktopIntegrationBackend] = None
 
+    def _should_check_integration(self) -> bool:
+        """Check if desktop integration verification is needed.
+
+        Uses QSettings cache to skip repeated integration checks on subsequent
+        application starts, saving ~70ms.
+
+        Returns:
+            True if integration check is needed, False if cached
+        """
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "DesktopIntegration")
+
+            # Check if integration was previously verified
+            checked = settings.value("integration_checked", False, type=bool)
+            version = settings.value("integration_version", "", type=str)
+
+            # Re-check if version changed (allows upgrades to re-verify)
+            current_version = "1.0.0"
+
+            if checked and version == current_version:
+                logger.debug("Desktop integration previously verified, using cached status")
+                return False
+
+            return True
+
+        except Exception as e:
+            logger.warning(f"Could not check integration cache: {e}")
+            return True  # Check on error
+
+    def _cache_integration_status(self, success: bool) -> None:
+        """Cache desktop integration status.
+
+        Args:
+            success: Whether integration check/install succeeded
+        """
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "DesktopIntegration")
+
+            if success:
+                settings.setValue("integration_checked", True)
+                settings.setValue("integration_version", "1.0.0")
+                settings.sync()
+                logger.debug("Cached desktop integration status")
+        except Exception as e:
+            logger.warning(f"Could not cache integration status: {e}")
+
+    @staticmethod
+    def clear_integration_cache() -> None:
+        """Clear desktop integration cache.
+
+        Call this to force re-verification on next startup.
+        Useful after system updates or reinstallation.
+        """
+        try:
+            from PySide6.QtCore import QSettings
+
+            settings = QSettings("VFWidgets", "DesktopIntegration")
+            settings.remove("integration_checked")
+            settings.remove("integration_version")
+            settings.sync()
+            logger.info("Cleared desktop integration cache")
+        except Exception as e:
+            logger.error(f"Could not clear integration cache: {e}")
+
     def configure(self) -> "QApplication":
         """Execute complete desktop configuration pipeline.
 
@@ -71,17 +139,27 @@ class DesktopConfigurator:
         self.backend = self._select_backend()
         logger.debug(f"Using integration backend: {self.backend.platform_name}")
 
-        # Step 4: Check integration status
-        status = self.backend.check_status()
-        logger.debug(f"Integration status: installed={status.is_installed}")
+        # Step 4: Check integration status (with caching)
+        if self._should_check_integration():
+            status = self.backend.check_status()
+            logger.debug(f"Integration status: installed={status.is_installed}")
 
-        # Step 5: Auto-install if needed
-        if not status.is_installed and self.config.auto_install:
-            logger.info("Desktop integration not installed, attempting auto-install...")
-            if self.backend.install():
-                logger.info("Desktop integration installed successfully")
+            # Step 5: Auto-install if needed
+            if not status.is_installed and self.config.auto_install:
+                logger.info("Desktop integration not installed, attempting auto-install...")
+                install_success = self.backend.install()
+                if install_success:
+                    logger.info("Desktop integration installed successfully")
+                else:
+                    logger.warning("Desktop integration installation failed")
+
+                # Cache result
+                self._cache_integration_status(install_success)
             else:
-                logger.warning("Desktop integration installation failed")
+                # Already installed, cache success
+                self._cache_integration_status(status.is_installed)
+        else:
+            logger.info("Skipping desktop integration check (cached)")
 
         # Step 6: Create QApplication
         app = self._create_application()

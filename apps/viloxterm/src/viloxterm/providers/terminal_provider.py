@@ -1,7 +1,7 @@
 """Terminal widget provider for MultisplitWidget integration."""
 
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
 from PySide6.QtWidgets import QWidget
 
@@ -19,14 +19,18 @@ class TerminalProvider(WidgetProvider):
     embedded servers).
     """
 
-    def __init__(self, server: MultiSessionTerminalServer, event_filter=None) -> None:
+    def __init__(
+        self, server_factory: Callable[[], MultiSessionTerminalServer], event_filter=None
+    ) -> None:
         """Initialize terminal provider.
 
         Args:
-            server: Shared MultiSessionTerminalServer instance
+            server_factory: Callable that returns/creates MultiSessionTerminalServer instance
+                           (enables lazy initialization for ~500ms startup improvement)
             event_filter: Optional QObject to install as event filter on terminals
         """
-        self.server = server
+        self._server_factory = server_factory
+        self._server: Optional[MultiSessionTerminalServer] = None
         self.pane_to_session: dict[str, str] = {}  # Map pane_id -> session_id for cleanup
         self.session_to_pane: dict[str, str] = {}  # Map session_id -> pane_id for auto-close
         self._default_config: Optional[dict] = None  # Default terminal config for new terminals
@@ -35,6 +39,17 @@ class TerminalProvider(WidgetProvider):
         # OSC 7: Working directory tracking
         self.pane_to_cwd: dict[str, Optional[str]] = {}  # Track CWD per pane
         self._next_terminal_cwd: Optional[str] = None  # CWD for next terminal creation
+
+    @property
+    def server(self) -> MultiSessionTerminalServer:
+        """Get terminal server instance, creating on first access (lazy initialization).
+
+        Returns:
+            MultiSessionTerminalServer instance
+        """
+        if self._server is None:
+            self._server = self._server_factory()
+        return self._server
 
     def provide_widget(self, widget_id: str, pane_id: str) -> QWidget:
         """Create a new terminal widget for a pane.
