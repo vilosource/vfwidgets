@@ -257,6 +257,11 @@ class ViloxTermApp(ChromeTabbedWindow):
 
             logger.info(f"Registered {len(self.actions)} keyboard shortcuts")
 
+            # Update menu button with the loaded actions
+            if hasattr(self, "menu_button"):
+                self.menu_button.update_keybinding_actions(self.actions)
+                logger.debug("Updated menu button with keybinding actions")
+
         except Exception as e:
             logger.error(
                 f"Failed to register keybindings: {e}",

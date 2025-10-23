@@ -122,6 +122,96 @@ class MenuButton(WindowControlButton):
         """
         self._parent_app = app
 
+    def update_keybinding_actions(self, keybinding_actions: Dict[str, QAction]) -> None:
+        """Update menu with keybinding-managed actions.
+
+        This should be called after keybinding actions are loaded/registered.
+
+        Args:
+            keybinding_actions: Dict of action IDs to QActions from KeybindingManager
+        """
+        # Find the insertion points in the menu
+        actions = self._menu.actions()
+
+        # Find the first separator (after "New Window" section)
+        first_separator_idx = -1
+        for i, action in enumerate(actions):
+            if action.isSeparator():
+                first_separator_idx = i
+                break
+
+        if first_separator_idx < 0:
+            # No separator found, can't update safely
+            return
+
+        # Remove old keybinding actions (everything after first separator up to "Change Theme")
+        # We'll rebuild from scratch
+        actions_to_remove = []
+        for action in actions[first_separator_idx + 1 :]:
+            if action.text() == "Change App Theme...":
+                break
+            actions_to_remove.append(action)
+
+        for action in actions_to_remove:
+            self._menu.removeAction(action)
+
+        # Get the action to insert before (should be "Change Theme" or separator before it)
+        insert_point = None
+        for action in self._menu.actions():
+            if action.text() == "Change App Theme...":
+                # Find the separator before "Change Theme"
+                all_actions = self._menu.actions()
+                idx = all_actions.index(action)
+                if idx > 0 and all_actions[idx - 1].isSeparator():
+                    insert_point = all_actions[idx - 1]
+                else:
+                    insert_point = action
+                break
+
+        # Rebuild keybinding-managed sections
+        # Tab management section
+        if "tab.new" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["tab.new"])
+        if "tab.next" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["tab.next"])
+        if "tab.previous" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["tab.previous"])
+
+        # Add separator
+        self._menu.insertSeparator(insert_point)
+
+        # Pane actions
+        if "pane.split_vertical" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["pane.split_vertical"])
+        if "pane.split_horizontal" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["pane.split_horizontal"])
+
+        # Add separator
+        self._menu.insertSeparator(insert_point)
+
+        # Close actions
+        if "pane.close" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["pane.close"])
+        if "tab.close" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["tab.close"])
+
+        # Add separator - Appearance section
+        self._menu.insertSeparator(insert_point)
+
+        # Appearance actions
+        if "appearance.preferences" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["appearance.preferences"])
+        elif "appearance.terminal_preferences" in keybinding_actions:
+            self._menu.insertAction(
+                insert_point, keybinding_actions["appearance.terminal_preferences"]
+            )
+
+        if "appearance.terminal_theme" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["appearance.terminal_theme"])
+
+        if "appearance.reset_zoom" in keybinding_actions:
+            self._menu.insertAction(insert_point, keybinding_actions["appearance.reset_zoom"])
+
     def _update_move_to_window_submenu(self) -> None:
         """Update 'Move Tab to Window' submenu with current available windows.
 
@@ -162,9 +252,9 @@ class MenuButton(WindowControlButton):
                 action = self._move_to_window_submenu.addAction(window_title)
                 # Use lambda with default arguments to capture current values
                 action.triggered.connect(
-                    lambda checked=False,
-                    idx=current_tab_index,
-                    win=window_ref: self._parent_app._move_tab_to_window(idx, win)
+                    lambda checked=False, idx=current_tab_index, win=window_ref: self._parent_app._move_tab_to_window(
+                        idx, win
+                    )
                 )
 
             # Insert submenu after "New Window", before separator
