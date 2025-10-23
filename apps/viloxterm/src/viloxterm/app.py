@@ -68,18 +68,17 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Track parent window (None for main window, set by parent for child windows)
         self._parent_window = None
 
-        # Create or use shared terminal server
+        # Create or use shared terminal server (lazy initialization for new servers)
         if shared_server:
             # Share server with other windows
             self.terminal_server = shared_server
             self._owns_server = False
             logger.info("Using shared terminal server")
         else:
-            # Create own server (first window)
-            self.terminal_server = MultiSessionTerminalServer(port=0)
-            self.terminal_server.start()
+            # Defer server creation until first terminal is needed (saves ~500ms startup)
+            self.terminal_server = None
             self._owns_server = True
-            logger.info(f"Created terminal server on port {self.terminal_server.port}")
+            logger.info("Terminal server will be created on-demand (lazy initialization)")
 
         # Create preferences managers
         self.terminal_preferences_manager = TerminalPreferencesManager()
@@ -91,7 +90,10 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         # Create terminal provider for MultisplitWidget
         # Terminals automatically inherit theme from ThemedApplication via ThemedWidget
-        self.terminal_provider = TerminalProvider(self.terminal_server, event_filter=self)
+        # Pass server factory to enable lazy initialization
+        self.terminal_provider = TerminalProvider(
+            server_factory=self._ensure_terminal_server, event_filter=self
+        )
         logger.info("Terminal provider created - terminals will use app theme automatically")
 
         # Apply default terminal preferences to new terminals
@@ -129,6 +131,31 @@ class ViloxTermApp(ChromeTabbedWindow):
         # Create initial tab (unless caller explicitly requests not to)
         if create_initial_tab:
             self.add_new_terminal_tab("Terminal 1")
+
+    def _ensure_terminal_server(self) -> MultiSessionTerminalServer:
+        """Ensure terminal server is started (lazy initialization).
+
+        Creates and starts the terminal server on first call.
+        Subsequent calls return the existing server instance.
+        This defers the ~500ms server startup cost until actually needed.
+
+        Returns:
+            MultiSessionTerminalServer instance
+        """
+        if self.terminal_server is None:
+            logger.info("Starting terminal server (lazy initialization)...")
+            self.terminal_server = MultiSessionTerminalServer(port=0)
+            self.terminal_server.start()
+            logger.info(f"Terminal server started on port {self.terminal_server.port}")
+
+            # Connect session_ended signal now that server exists
+            # Use QueuedConnection for cross-thread signal (Flask-SocketIO -> Qt main thread)
+            self.terminal_server.session_ended.connect(
+                self._on_session_ended, Qt.ConnectionType.QueuedConnection
+            )
+            logger.debug("Connected session_ended signal to terminal server")
+
+        return self.terminal_server
 
     def _setup_window_controls(self) -> None:
         """Set up custom window controls with menu button.
@@ -186,11 +213,8 @@ class ViloxTermApp(ChromeTabbedWindow):
             self.menu_button.new_window_requested.connect(self._open_new_window)
             self.menu_button.about_requested.connect(self._show_about_dialog)
 
-        # Handle terminal session ending (auto-close panes when terminal exits)
-        # Use QueuedConnection for cross-thread signal (Flask-SocketIO thread -> Qt main thread)
-        self.terminal_server.session_ended.connect(
-            self._on_session_ended, Qt.ConnectionType.QueuedConnection
-        )
+        # Note: session_ended signal connection moved to _ensure_terminal_server()
+        # to handle lazy initialization (server may not exist yet during __init__)
 
     def _setup_keybinding_manager(self) -> None:
         """Set up keyboard shortcut manager with user-customizable bindings."""
