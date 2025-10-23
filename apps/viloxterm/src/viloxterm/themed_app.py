@@ -5,6 +5,7 @@ to provide automatic theme persistence and potential future color customization.
 """
 
 import logging
+import os
 from typing import List, Optional
 
 from PySide6.QtCore import QSettings
@@ -27,13 +28,11 @@ class ViloxTermThemedApp(VFThemedApplication):
     theme_config = {
         # Base theme
         "base_theme": "dark",
-
         # Future: App-level terminal branding
         "app_overrides": {
             # Could override terminal colors here for branding
             # Example: "terminal.background": "#1e1e2e",
         },
-
         # Allow users to customize UI colors
         "allow_user_customization": True,  # Enabled for UI customization
         "customizable_tokens": [
@@ -41,7 +40,6 @@ class ViloxTermThemedApp(VFThemedApplication):
             "editorGroupHeader.tabsBackground",  # Top bar background (draggable area)
             # Future: Add more UI tokens as needed
         ],
-
         # Persistence settings
         "persist_base_theme": True,
         "persist_user_overrides": True,  # Save user color customizations
@@ -54,6 +52,12 @@ class ViloxTermThemedApp(VFThemedApplication):
         Args:
             argv: Command line arguments (optional)
         """
+        # Reduce theme system logging overhead in production
+        # DEBUG logging adds ~30ms during startup due to ~100+ log statements
+        # IMPORTANT: Must be set BEFORE super().__init__() which initializes theme system
+        if os.environ.get("VILOXTERM_DEBUG") != "1":
+            logging.getLogger("vftheme").setLevel(logging.WARNING)
+
         # Migrate old theme settings before initialization
         self._migrate_old_theme_settings()
 
@@ -84,7 +88,9 @@ class ViloxTermThemedApp(VFThemedApplication):
                 # Migration needed: copy old to new
                 settings.setValue(new_key, old_theme)
                 settings.sync()
-                logger.info(f"Migrated theme preference from '{old_key}' to '{new_key}': {old_theme}")
+                logger.info(
+                    f"Migrated theme preference from '{old_key}' to '{new_key}': {old_theme}"
+                )
 
                 # Optionally remove old key (commented out to preserve backward compat)
                 # settings.remove(old_key)
