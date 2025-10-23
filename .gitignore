@@ -218,6 +218,13 @@ $RECYCLE.BIN/
 test_output/
 test_results/
 
+# Profiling output
+profiling/
+**/profiling/*.prof
+**/profiling/*.txt
+results/
+**/results/*.txt
+
 # Temporary/scratch directories
 tmp/
 
