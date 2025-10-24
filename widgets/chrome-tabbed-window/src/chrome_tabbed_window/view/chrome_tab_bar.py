@@ -184,6 +184,11 @@ class ChromeTabBar(QTabBar):
         # Get theme from parent ChromeTabbedWindow
         theme = self._get_theme_from_parent()
 
+        # Update editor stylesheet if editing is active (for live theme switching)
+        if self._tab_editor and self._tab_editor.isVisible():
+            themed_stylesheet = self._build_editor_stylesheet()
+            self._tab_editor.setStyleSheet(themed_stylesheet)
+
         # Use ChromeTabRenderer for background
         ChromeTabRenderer.draw_tab_bar_background(painter, self.rect(), theme)
 
@@ -840,18 +845,9 @@ class ChromeTabBar(QTabBar):
         self._tab_editor.setFrame(True)  # Show border for visibility
         self._tab_editor.selectAll()  # Select all text for easy replacement
 
-        # Set styling to match tab appearance
-        self._tab_editor.setStyleSheet(
-            """
-            QLineEdit {
-                background: white;
-                border: 1px solid #0078d4;
-                border-radius: 2px;
-                padding: 2px 4px;
-                font-size: 12px;
-            }
-            """
-        )
+        # Set theme-aware styling
+        themed_stylesheet = self._build_editor_stylesheet()
+        self._tab_editor.setStyleSheet(themed_stylesheet)
 
         # Connect signals
         self._tab_editor.returnPressed.connect(lambda: self._finish_tab_editing(accept=True))
@@ -905,6 +901,79 @@ class ChromeTabBar(QTabBar):
         height = tab_rect.height() - 12  # Leave some vertical padding
 
         return QRect(x, y, width, height)
+
+    def _build_editor_stylesheet(self) -> str:
+        """
+        Build theme-aware stylesheet for QLineEdit tab editor.
+
+        Uses theme tokens from the theme system with fallback to sensible defaults.
+        Tokens used:
+        - input.background: Editor background color
+        - input.foreground: Editor text color
+        - input.focusBorder: Editor border (always focused)
+        - editor.selectionBackground: Text selection background
+        - editor.selectionForeground: Text selection foreground
+
+        Returns:
+            Qt stylesheet string for QLineEdit
+        """
+        # Get theme from parent
+        theme = self._get_theme_from_parent()
+
+        # Default fallback colors (dark theme style)
+        default_bg = "#3c3c3c"
+        default_fg = "#cccccc"
+        default_border = "#0078d4"
+        default_selection_bg = "#264f78"
+        default_selection_fg = "#ffffff"
+
+        # Try to use ThemeManager for token resolution
+        try:
+            from vfwidgets_theme.core.manager import ThemeManager
+
+            theme_mgr = ThemeManager.get_instance()
+
+            # Resolve colors from theme tokens
+            bg = theme_mgr.resolve_color("input.background", default_bg)
+            fg = theme_mgr.resolve_color("input.foreground", default_fg)
+            border = theme_mgr.resolve_color("input.focusBorder", default_border)
+            selection_bg = theme_mgr.resolve_color(
+                "editor.selectionBackground", default_selection_bg
+            )
+            selection_fg = theme_mgr.resolve_color(
+                "editor.selectionForeground", default_selection_fg
+            )
+
+        except (ImportError, AttributeError, Exception):
+            # Fallback to direct theme dictionary access
+            if theme and hasattr(theme, "colors"):
+                colors = theme.colors
+                bg = colors.get("input.background", default_bg)
+                fg = colors.get("input.foreground", default_fg)
+                border = colors.get("input.focusBorder", default_border)
+                selection_bg = colors.get("editor.selectionBackground", default_selection_bg)
+                selection_fg = colors.get("editor.selectionForeground", default_selection_fg)
+            else:
+                # No theme available - use fallback defaults
+                bg = default_bg
+                fg = default_fg
+                border = default_border
+                selection_bg = default_selection_bg
+                selection_fg = default_selection_fg
+
+        # Build Qt stylesheet
+        return f"""
+            QLineEdit {{
+                background: {bg};
+                color: {fg};
+                border: 2px solid {border};
+                border-radius: 2px;
+                padding: 2px 4px;
+                font-size: 12px;
+                selection-background-color: {selection_bg};
+                selection-color: {selection_fg};
+            }}
+        """
 
     def _finish_tab_editing(self, accept: bool) -> None:
         """
