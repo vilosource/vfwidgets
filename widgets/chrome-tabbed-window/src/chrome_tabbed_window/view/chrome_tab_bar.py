@@ -11,7 +11,7 @@ from typing import Optional
 
 from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QBrush, QColor, QMouseEvent, QPainter, QPainterPath, QPaintEvent, QPen
-from PySide6.QtWidgets import QSizePolicy, QTabBar, QWidget
+from PySide6.QtWidgets import QLineEdit, QSizePolicy, QTabBar, QWidget
 
 from ..components import ChromeTabRenderer, TabState
 from ..model import TabModel
@@ -36,6 +36,11 @@ class ChromeTabBar(QTabBar):
     tabMoveToWindowRequested = Signal(
         int, object
     )  # Request to move tab to existing window (tab_index, target_window)
+
+    # Tab editing signals (new in v1.1)
+    tabEditingStarted = Signal(int)  # index
+    tabEditingFinished = Signal(int, str)  # index, new_text
+    tabEditingCancelled = Signal(int)  # index
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """Initialize the Chrome tab bar."""
@@ -77,6 +82,11 @@ class ChromeTabBar(QTabBar):
         # Detach preview state
         self._detach_preview = None  # TabDetachPreview widget
         self._is_detaching = False  # Flag: in detach mode
+
+        # Tab editing state (new in v1.1)
+        self._tab_editor = None  # QLineEdit for editing tab text
+        self._editing_tab_index = -1  # Currently editing tab (-1 = none)
+        self._rename_validator = None  # Optional validation callback
 
         # Chrome-like tab constraints
         self.CHROME_MIN_TAB_WIDTH = 52  # Minimum width (favicon + close button)
@@ -213,6 +223,10 @@ class ChromeTabBar(QTabBar):
         """Paint a single Chrome-style tab using ChromeTabRenderer."""
         rect = self.tabRect(index)
         text = self.tabText(index)
+
+        # Suppress text rendering if this tab is being edited
+        if index == self._editing_tab_index and self._tab_editor:
+            text = ""  # Empty text so ChromeTabRenderer doesn't paint it
 
         # Determine tab state
         if is_active:
@@ -489,6 +503,38 @@ class ChromeTabBar(QTabBar):
 
         super().mouseReleaseEvent(event)
 
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        """Handle double-click to start tab editing (if tabs are editable)."""
+        # Check if tabs are editable
+        if not (hasattr(self, "_model") and self._model.tabs_editable()):
+            # Not editable, use default behavior (e.g., maximize window)
+            super().mouseDoubleClickEvent(event)
+            return
+
+        # Only handle left button double-click
+        if event.button() != Qt.MouseButton.LeftButton:
+            super().mouseDoubleClickEvent(event)
+            return
+
+        # Find which tab was double-clicked
+        index = self.tabAt(event.pos())
+        if index < 0 or index >= self.count():
+            # Not on a tab, let parent handle (e.g., maximize window)
+            super().mouseDoubleClickEvent(event)
+            return
+
+        # Check if double-click was on close button
+        tab_rect = self.tabRect(index)
+        close_rect = self._close_button_rect(tab_rect)
+        if close_rect.contains(event.pos()):
+            # Double-clicked close button, don't start editing
+            super().mouseDoubleClickEvent(event)
+            return
+
+        # Start editing this tab
+        self._start_tab_editing(index)
+        event.accept()
+
     def contextMenuEvent(self, event) -> None:
         """Handle context menu (right-click) on tabs.
 
@@ -751,5 +797,160 @@ class ChromeTabBar(QTabBar):
         self._drag_indicator_position = -1
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.update()
+
+    # ==================== Tab Editing Support (v1.1) ====================
+
+    def _set_rename_validator(self, validator) -> None:
+        """
+        Set optional validation callback for tab renaming.
+
+        Args:
+            validator: Callable[[int, str], tuple[bool, str]] that returns
+                      (is_valid, sanitized_text) for a given index and proposed text
+        """
+        self._rename_validator = validator
+
+    def _start_tab_editing(self, index: int) -> None:
+        """
+        Start inline editing of tab text.
+
+        Args:
+            index: Tab index to edit
+        """
+        if index < 0 or index >= self.count():
+            return
+
+        # Clean up any existing editor
+        if self._tab_editor:
+            self._finish_tab_editing(accept=False)
+
+        # Store editing index
+        self._editing_tab_index = index
+
+        # Get current tab text
+        current_text = self.tabText(index)
+
+        # Calculate editor geometry
+        editor_rect = self._calculate_editor_geometry(index)
+
+        # Create QLineEdit positioned over the tab text area
+        self._tab_editor = QLineEdit(self)
+        self._tab_editor.setText(current_text)
+        self._tab_editor.setGeometry(editor_rect)
+        self._tab_editor.setFrame(True)  # Show border for visibility
+        self._tab_editor.selectAll()  # Select all text for easy replacement
+
+        # Set styling to match tab appearance
+        self._tab_editor.setStyleSheet(
+            """
+            QLineEdit {
+                background: white;
+                border: 1px solid #0078d4;
+                border-radius: 2px;
+                padding: 2px 4px;
+                font-size: 12px;
+            }
+            """
+        )
+
+        # Connect signals
+        self._tab_editor.returnPressed.connect(lambda: self._finish_tab_editing(accept=True))
+        self._tab_editor.editingFinished.connect(
+            lambda: self._finish_tab_editing(accept=True) if self._tab_editor else None
+        )
+
+        # Install event filter to handle ESC key
+        self._tab_editor.installEventFilter(self)
+
+        # Show editor and focus
+        self._tab_editor.show()
+        self._tab_editor.setFocus()
+
+        # Emit signal
+        self.tabEditingStarted.emit(index)
+
+        # Force repaint to hide text rendering for this tab
+        self.update()
+
+    def _calculate_editor_geometry(self, index: int) -> QRect:
+        """
+        Calculate QLineEdit geometry to match tab text area.
+
+        Args:
+            index: Tab index
+
+        Returns:
+            QRect for editor positioning
+        """
+        tab_rect = self.tabRect(index)
+
+        # Match ChromeTabRenderer text positioning
+        # From ChromeTabRenderer.draw_tab():
+        #   text_rect = rect.adjusted(
+        #       cls.TAB_CURVE_WIDTH,  # Left padding = 15
+        #       0,
+        #       -cls.TAB_CURVE_WIDTH - (30 if is_closable else 10),  # Right padding
+        #       0,
+        #   )
+
+        # Calculate text area (matching renderer)
+        left_padding = ChromeTabRenderer.TAB_CURVE_WIDTH  # 15
+        right_padding = ChromeTabRenderer.TAB_CURVE_WIDTH + (
+            30 if (hasattr(self, "_model") and self._model.tabs_closable()) else 10
+        )
+
+        x = tab_rect.left() + left_padding
+        y = tab_rect.top() + 6  # Vertical centering offset
+        width = tab_rect.width() - left_padding - right_padding
+        height = tab_rect.height() - 12  # Leave some vertical padding
+
+        return QRect(x, y, width, height)
+
+    def _finish_tab_editing(self, accept: bool) -> None:
+        """
+        Complete tab editing.
+
+        Args:
+            accept: True to apply changes, False to cancel
+        """
+        if not self._tab_editor or self._editing_tab_index < 0:
+            return
+
+        new_text = self._tab_editor.text().strip() if accept else ""
+
+        # Clean up editor first (before emitting signals)
+        self._tab_editor.removeEventFilter(self)
+        self._tab_editor.deleteLater()
+        self._tab_editor = None
+        editing_index = self._editing_tab_index
+        self._editing_tab_index = -1
+
+        # Force repaint to show text again
+        self.update()
+
+        if accept and new_text:
+            # Validate if validator is set
+            if self._rename_validator:
+                is_valid, sanitized_text = self._rename_validator(editing_index, new_text)
+                if not is_valid:
+                    # Validation failed, emit cancelled signal
+                    self.tabEditingCancelled.emit(editing_index)
+                    return
+                new_text = sanitized_text
+
+            # Emit finished signal with new text
+            self.tabEditingFinished.emit(editing_index, new_text)
+        else:
+            # Emit cancelled signal
+            self.tabEditingCancelled.emit(editing_index)
+
+    def eventFilter(self, obj, event) -> bool:
+        """Filter events for tab editor to handle ESC key."""
+        if obj == self._tab_editor and event.type() == event.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Escape:
+                # ESC pressed - cancel editing
+                self._finish_tab_editing(accept=False)
+                return True
+        return super().eventFilter(obj, event)
 
     # Dynamic width calculation is now handled in tabSizeHint()

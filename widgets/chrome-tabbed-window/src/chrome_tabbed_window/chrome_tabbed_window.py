@@ -107,6 +107,11 @@ class ChromeTabbedWindow(_BaseClass):
         int, object
     )  # Emitted when user wants to move tab to existing window
 
+    # Tab editing signals (new in v1.1)
+    tabRenameStarted = Signal(int)  # Emitted when user starts editing tab text
+    tabRenameFinished = Signal(int, str)  # Emitted when editing completes (index, new_text)
+    tabRenameCancelled = Signal(int)  # Emitted when editing is cancelled
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         """
         Initialize ChromeTabbedWindow.
@@ -340,6 +345,11 @@ class ChromeTabbedWindow(_BaseClass):
         # Connect tab move to window signal (forward from tab bar to public signal)
         self._tab_bar.tabMoveToWindowRequested.connect(self.tabMoveToWindowRequested)
 
+        # Tab editing signals (new in v1.1)
+        self._tab_bar.tabEditingStarted.connect(self._on_tab_editing_started)
+        self._tab_bar.tabEditingFinished.connect(self._on_tab_editing_finished)
+        self._tab_bar.tabEditingCancelled.connect(self._on_tab_editing_cancelled)
+
         # Tab bar currentChanged should only be used for user clicks, not programmatic changes
         self._tab_bar.tabBarClicked.connect(self._on_tab_bar_clicked)
 
@@ -477,7 +487,7 @@ class ChromeTabbedWindow(_BaseClass):
                 current_geom.x(),
                 current_geom.y() - 1,  # Move up 1px
                 current_geom.width(),
-                current_geom.height()
+                current_geom.height(),
             )
 
     def paintEvent(self, event: QPaintEvent) -> None:
@@ -499,7 +509,9 @@ class ChromeTabbedWindow(_BaseClass):
                 # Use resolve_color() to get colors WITH override support
                 bg_color_str = theme_mgr.resolve_color("window.background", fallback="#1e1e1e")
                 # Use tab bar background color for border to match top bar
-                border_color_str = theme_mgr.resolve_color("editorGroupHeader.tabsBackground", fallback="#2d2d2d")
+                border_color_str = theme_mgr.resolve_color(
+                    "editorGroupHeader.tabsBackground", fallback="#2d2d2d"
+                )
 
                 bg_color = QColor(bg_color_str)
                 border_color = QColor(border_color_str)
@@ -667,6 +679,26 @@ class ChromeTabbedWindow(_BaseClass):
         if index != self.currentIndex():
             self.setCurrentIndex(index)
 
+    def _on_tab_editing_started(self, index: int) -> None:
+        """Handle tab editing started."""
+        # Forward to model and public signal
+        self._model.tabRenameStarted.emit(index)
+        self.tabRenameStarted.emit(index)
+
+    def _on_tab_editing_finished(self, index: int, new_text: str) -> None:
+        """Handle tab editing completed with new text."""
+        # Update the tab text in the model
+        self._model.set_tab_text(index, new_text)
+        # Forward to model and public signal
+        self._model.tabRenameFinished.emit(index, new_text)
+        self.tabRenameFinished.emit(index, new_text)
+
+    def _on_tab_editing_cancelled(self, index: int) -> None:
+        """Handle tab editing cancelled."""
+        # Forward to model and public signal
+        self._model.tabRenameCancelled.emit(index)
+        self.tabRenameCancelled.emit(index)
+
     # ==================== Core Tab Management (QTabWidget API) ====================
 
     def addTab(self, widget: QWidget, *args) -> int:
@@ -759,6 +791,14 @@ class ChromeTabbedWindow(_BaseClass):
         signal timing and current index adjustment.
         """
         if 0 <= index < self.count():
+            # Clean up editor if this tab is being edited
+            if (
+                hasattr(self._tab_bar, "_editing_tab_index")
+                and self._tab_bar._editing_tab_index == index
+            ):
+                if hasattr(self._tab_bar, "_finish_tab_editing"):
+                    self._tab_bar._finish_tab_editing(accept=False)
+
             self._model.remove_tab(index)
         # Update Qt properties for compatibility
         self._update_qt_property("count", self.count())
@@ -1131,6 +1171,54 @@ class ChromeTabbedWindow(_BaseClass):
         This method matches QTabWidget.isMovable() exactly.
         """
         return self._model.tabs_movable()
+
+    def setTabsEditable(self, editable: bool) -> None:
+        """
+        Set whether tabs can be renamed via double-click.
+
+        Args:
+            editable: True to enable inline tab editing, False to disable
+
+        When enabled, double-clicking a tab's text area will show an inline
+        editor allowing the user to rename the tab. Connect to tabRenameFinished
+        signal to handle the rename event.
+
+        Example:
+            >>> window.setTabsEditable(True)
+            >>> window.tabRenameFinished.connect(lambda idx, text: print(f"Renamed to: {text}"))
+        """
+        self._model.set_tabs_editable(editable)
+
+    def tabsEditable(self) -> bool:
+        """
+        Check if tabs can be renamed via double-click.
+
+        Returns:
+            True if tabs are editable, False otherwise
+        """
+        return self._model.tabs_editable()
+
+    def setTabRenameValidator(self, validator) -> None:
+        """
+        Set optional validation callback for tab renaming.
+
+        Args:
+            validator: Callable[[int, str], tuple[bool, str]] that accepts
+                      (tab_index, proposed_text) and returns (is_valid, sanitized_text)
+
+        The validator is called when the user finishes editing a tab name.
+        If is_valid is False, the rename is cancelled. If True, the sanitized_text
+        is used as the final tab text.
+
+        Example:
+            >>> def validate_tab_name(index, text):
+            ...     if not text.strip():
+            ...         return (False, "")  # Reject empty names
+            ...     return (True, text.strip())  # Accept trimmed text
+            >>> window.setTabRenameValidator(validate_tab_name)
+        """
+        if hasattr(self._tab_bar, "_set_rename_validator"):
+            self._tab_bar._set_rename_validator(validator)
 
     def setDocumentMode(self, enabled: bool) -> None:
         """

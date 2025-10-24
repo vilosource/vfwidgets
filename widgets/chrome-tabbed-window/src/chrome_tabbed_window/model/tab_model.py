@@ -33,6 +33,11 @@ class TabModel(QObject):
     tabBarClicked = Signal(int)  # index
     tabBarDoubleClicked = Signal(int)  # index
 
+    # Tab editing signals (new in v1.1)
+    tabRenameStarted = Signal(int)  # index
+    tabRenameFinished = Signal(int, str)  # index, new_text
+    tabRenameCancelled = Signal(int)  # index
+
     # Internal model signals (not exposed in v1.0)
     _tabAdded = Signal(int)  # index
     _tabRemoved = Signal(int)  # index
@@ -55,6 +60,7 @@ class TabModel(QObject):
         self._document_mode: bool = False
         self._tabs_closable: bool = False
         self._movable: bool = False
+        self._tabs_editable: bool = False  # New in v1.1: inline tab text editing
         self._icon_size = None  # Will use default
 
     # ==================== Core Tab Management ====================
@@ -365,6 +371,24 @@ class TabModel(QObject):
     def set_tabs_movable(self, movable: bool) -> None:
         """Set whether tabs can be moved."""
         self._movable = movable
+
+    def tabs_editable(self) -> bool:
+        """
+        Check if tabs can be renamed via double-click.
+
+        Returns:
+            True if tabs are editable, False otherwise
+        """
+        return self._tabs_editable
+
+    def set_tabs_editable(self, editable: bool) -> None:
+        """
+        Set whether tabs can be renamed via double-click.
+
+        Args:
+            editable: True to enable inline tab editing, False to disable
+        """
+        self._tabs_editable = editable
 
     # ==================== Qt Properties ====================
 
