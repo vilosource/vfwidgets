@@ -111,6 +111,7 @@ class ViloxTermApp(ChromeTabbedWindow):
         self.setWindowTitle(f"ViloxTerm - Window {self._window_id}")
         self.resize(1200, 800)
         self.setTabsClosable(True)
+        self.setTabsEditable(True)  # Enable tab renaming via double-click
 
         # Note: ChromeTabbedWindow has a built-in "+" button
         # We override _on_new_tab_requested() to handle it
@@ -204,6 +205,9 @@ class ViloxTermApp(ChromeTabbedWindow):
 
         # Handle tab detachment
         self.tabDetachRequested.connect(self._detach_tab_to_window)
+
+        # Handle tab renaming (new in v1.1)
+        self.tabRenameFinished.connect(self._on_tab_renamed)
 
         # Note: Tab migration to existing window is handled directly in
         # _customize_tab_context_menu() via action.triggered connections
@@ -1148,6 +1152,17 @@ class ViloxTermApp(ChromeTabbedWindow):
             # Last tab - close the window
             logger.info("Closing last tab - exiting application")
             self.close()
+
+    def _on_tab_renamed(self, index: int, new_text: str) -> None:
+        """Handle tab rename completion.
+
+        Args:
+            index: Tab index
+            new_text: New tab title text
+        """
+        logger.info(f"Tab {index} renamed to: '{new_text}'")
+        # The tab text has already been updated by ChromeTabbedWindow
+        # Log the rename for now - could be extended to update session metadata
 
     def _get_next_focus_pane(
         self, multisplit: "MultisplitWidget", closing_pane_id: str
