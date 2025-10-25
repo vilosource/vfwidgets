@@ -58,11 +58,18 @@ vfwidgets/
 │   ├── multisplit_widget/     # Complex widget with MVC
 │   ├── chrome-tabbed-window/  # QTabWidget-compatible with Chrome styling
 │   ├── terminal_widget/       # Terminal emulator widget
-│   └── keybinding_manager/    # Keyboard shortcut manager
+│   ├── markdown_widget/       # Markdown editor/viewer with MVC
+│   ├── vilocode_window/       # VS Code-style application window
+│   ├── webview_widget/        # Web browser widget with QWebChannel
+│   ├── keybinding_manager/    # Keyboard shortcut manager
+│   └── workspace_widget/      # Multi-folder workspace explorer
 ├── shared/                     # Shared utilities
-│   └── vfwidgets_common/      # Base classes and utilities
+│   └── vfwidgets_common/      # Base classes, platform detection, desktop integration
 ├── apps/                       # Full applications
-│   └── viloxterm/             # Terminal application
+│   ├── viloxterm/             # Terminal emulator application
+│   ├── reamde/                # Markdown viewer application
+│   ├── theme-studio/          # Theme editor application
+│   └── viloweb/               # Educational web browser
 └── tools/                      # Development scripts
     └── create_widget.py       # Widget generator
 ```
@@ -112,6 +119,124 @@ widgets/my_widget/
 - Theme system integration
 - Package: `vfwidgets_terminal`
 
+**markdown_widget** - MVC markdown editor with live preview:
+- Model: MarkdownDocument (pure data, no Qt)
+- View: MarkdownViewer (QWebEngineView-based HTML renderer)
+- Controller: Commands for document manipulation
+- Features: Syntax highlighting (Prism.js), diagrams (Mermaid.js), math (KaTeX)
+- Theme-aware rendering with automatic color injection
+- Package: `vfwidgets_markdown`
+
+**vilocode_window** - VS Code-style application window:
+- Activity bar (vertical icon bar on left)
+- Collapsible sidebar with multiple panels
+- Auxiliary bar (optional right sidebar)
+- Frameless window with custom title bar
+- Automatic theme integration when vfwidgets-theme installed
+- Package: `vfwidgets_vilocode_window`
+
+**webview_widget** - Clean web browser widget with QWebChannel:
+- BrowserWidget: Complete browser with navigation bar
+- NavigationBar: Reusable navigation controls
+- WebView: Theme-integrated QWebEngineView wrapper
+- CSP-safe QWebChannel bridge for Python↔JavaScript communication
+- Educational code with extensive comments
+- Package: `vfwidgets_webview`
+
+### Shared Utilities (vfwidgets_common)
+
+**vfwidgets_common** is the foundational package providing cross-platform utilities and base classes:
+
+**Platform Detection**:
+- `is_wsl()` - Detect Windows Subsystem for Linux
+- `is_wayland()` - Detect Wayland display server
+- `is_remote_desktop()` - Detect RDP/VNC sessions
+- `get_desktop_environment()` - Identify GNOME/KDE/XFCE
+- Automatic platform quirks application
+
+**Desktop Integration API** (RECOMMENDED):
+```python
+from vfwidgets_common.desktop import configure_desktop
+
+# Single call handles everything
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+)
+```
+- Automatically detects platform (WSL, Wayland, X11, Remote Desktop)
+- Applies platform-specific quirks (software rendering, scaling fixes)
+- Checks/installs desktop integration (icons, .desktop files on Linux)
+- Creates QApplication with proper metadata
+- Integrates with ThemedApplication when vfwidgets-theme is installed
+
+**Single Instance Applications**:
+```python
+from vfwidgets_common import SingleInstanceApplication
+
+class MyApp(SingleInstanceApplication):
+    def __init__(self, argv):
+        super().__init__(argv, app_id="myapp")
+
+    def handle_message(self, message: dict):
+        # Handle IPC messages from other instances
+        if message["action"] == "open":
+            self.window.open_file(message["file"])
+```
+- IPC via QLocalSocket/QLocalServer
+- Automatic primary/secondary instance detection
+- JSON message protocol
+- Optional ThemedApplication integration
+
+**Base Classes**:
+- Abstract protocols for dependency injection
+- Common signal definitions
+- Utility functions for Qt applications
+
+Package: `vfwidgets_common` (required by most widgets and all applications)
+
+### Applications
+
+The repository includes four production applications demonstrating VFWidgets integration:
+
+**ViloxTerm** - Modern terminal emulator:
+- Chrome-style tabs with split panes (using chrome-tabbed-window + multisplit_widget)
+- Multi-session terminal server with xterm.js (using terminal_widget)
+- VSCode-compatible themes with live switching (using theme_system)
+- Comprehensive preferences: 58 settings across 4 tabs
+- User-customizable keyboard shortcuts (using keybinding_manager)
+- Cross-platform desktop integration (using vfwidgets_common.desktop)
+- Installation: `cd apps/viloxterm && make local-release`
+
+**Reamde** - Single-instance markdown viewer:
+- VS Code-style interface (using vilocode_window)
+- Tabbed navigation (using chrome-tabbed-window)
+- Single-instance behavior via IPC (using vfwidgets_common.SingleInstanceApplication)
+- Live markdown rendering with syntax highlighting, diagrams, math (using markdown_widget)
+- Theme system integration with auto-propagation
+- Command-line file opening with cross-directory support
+- Installation: `cd apps/reamde && pip install -e .`
+
+**Theme Studio** - Visual theme editor:
+- Interactive theme token editing (color and font properties)
+- Real-time preview of theme changes
+- VSCode-compatible JSON theme export
+- Font/color token browsers with hierarchical organization
+- Undo/redo support for all edits
+- System font detection and preview
+- Installation: `cd apps/theme-studio && pip install -e .`
+
+**ViloWeb** - Educational web browser:
+- Chrome-style frameless window (using chrome-tabbed-window)
+- Multi-tab browsing with unified title bar
+- JSON-based bookmark system with search
+- QWebChannel bridge for Python↔JavaScript communication (using webview_widget)
+- Dark theme by default with automatic theme integration
+- Educational codebase with extensive comments
+- Installation: `cd apps/viloweb && pip install -e .`
+
 ### Theme System Integration Pattern
 Widgets can optionally integrate with vfwidgets-theme:
 
@@ -160,7 +285,7 @@ Complex widgets follow clean architecture:
 - **Controller**: Command pattern with undo/redo
 - **Protocols**: Dependency injection via abstract protocols
 
-Reference: `CleanArchitectureAsTheWay.md`
+Examples: multisplit_widget and markdown_widget both use MVC architecture
 
 ### Creating New Widgets
 ```bash
@@ -191,8 +316,8 @@ python tools/create_widget.py my_new_widget
 - `pyproject.toml` (root) - Workspace-wide tool configuration
 - `README.md` - User-facing documentation
 - `writing-dev-AGENTS-v2.md` - Agent development philosophy (execution evidence required)
-- `CleanArchitectureAsTheWay.md` - Architecture principles
 - `tools/create_widget.py` - Widget template generator
+- `docs/` - Documentation and guides (widget development, task-driven development, theme integration, etc.)
 
 ## Testing Philosophy
 
@@ -264,17 +389,25 @@ class MyThemedWidget(ThemedWidget):
 
 ## Version Information
 
-Widgets maintain independent semantic versioning. Current major widgets:
-- `vfwidgets-theme-system`: 2.0.0-rc4 (mature, stable)
-- `vfwidgets-multisplit`: 0.1.0 (stable)
-- `chrome-tabbed-window`: development phase
-- `vfwidgets-terminal`: development phase
+Widgets maintain independent semantic versioning. Current versions:
+- `vfwidgets-theme-system`: 2.0.0-rc4 (Beta, mature and stable)
+- `vfwidgets-multisplit`: 1.0.0 (Alpha, stable)
+- `vfwidgets-terminal`: 1.0.0 (Alpha, production-ready)
+- `vfwidgets-markdown`: 2.0.0 (Beta, production-ready)
+- `chrome-tabbed-window`: 1.1.1 (Beta, production-ready with tab renaming)
+- `vfwidgets-vilocode-window`: 0.1.0 (Alpha, development)
+- `vfwidgets-webview`: 0.2.0 (Alpha, educational/development)
+- `vfwidgets-common`: 0.1.0 (Beta, foundational utilities)
+- `vfwidgets-keybinding-manager`: (version TBD)
 
 ## Dependencies
 
 Core dependencies across all widgets:
 - Python 3.9+
-- PySide6 >= 6.5.0 (some widgets require 6.9.0+)
+- **PySide6 >= 6.9.0** (recommended for all widgets)
+  - theme_system and chrome-tabbed-window support 6.5.0+ for broader compatibility
+  - Most widgets (multisplit, terminal, markdown, vfwidgets_common) require 6.9.0+
+  - WebEngine-based widgets (terminal, markdown, webview) specifically need QtWebEngine
 - typing-extensions >= 4.0.0 (for Python 3.9 compatibility)
 
 Development dependencies (standardized):
@@ -283,6 +416,11 @@ Development dependencies (standardized):
 - black >= 23.0
 - ruff >= 0.1.0
 - mypy >= 1.0
+
+**Note**: vfwidgets_common is required by most widgets and all applications. Install it first:
+```bash
+pip install -e ./shared/vfwidgets_common
+```
 
 ## Running in WSL (Windows Subsystem for Linux)
 

@@ -89,6 +89,9 @@ class MarkdownPreferences:
     auto_reload_on_change: bool = True
     scroll_sync: bool = False  # Future: sync scroll with source
 
+    # UI Controls
+    show_view_mode_toolbar: bool = False  # Show/hide view mode toolbar (default: hidden)
+
     # Theme Color Overrides
     theme_overrides: ThemeOverrides = field(default_factory=ThemeOverrides)
 

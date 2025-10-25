@@ -1,6 +1,7 @@
 """Tests for RecentFilesManager."""
 
 import pytest
+
 from reamde.models.recent_files import RecentFilesManager
 
 

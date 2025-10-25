@@ -1,6 +1,7 @@
 """Tests for SessionManager."""
 
 import pytest
+
 from reamde.models.session import SessionManager, SessionState
 
 

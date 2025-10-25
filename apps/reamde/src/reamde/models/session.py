@@ -27,11 +27,17 @@ class SessionState:
         active_file_index: Index of the currently active file (or -1 if none)
         window_geometry: Window geometry as QByteArray base64 string (optional)
         scroll_positions: Dict mapping file paths to scroll positions
+        view_modes: Dict mapping file paths to view mode strings (preview/editor/split)
+        workspace_folders: List of workspace folder paths (absolute paths)
+        workspace_expanded: List of expanded folder paths in workspace tree
+        workspace_files: List of files inside workspace (categorized)
+        external_files: List of files outside workspace (categorized)
 
     Example:
         >>> state = SessionState(
         ...     open_files=["/home/user/README.md", "/home/user/TODO.md"],
-        ...     active_file_index=1
+        ...     active_file_index=1,
+        ...     view_modes={"/home/user/README.md": "preview"}
         ... )
         >>> state.active_file_index
         1
@@ -41,11 +47,27 @@ class SessionState:
     active_file_index: int = -1
     window_geometry: Optional[str] = None
     scroll_positions: Optional[dict[str, int]] = None
+    view_modes: Optional[dict[str, str]] = None
+    # Workspace state (added for workspace integration)
+    workspace_folders: Optional[list[str]] = None
+    workspace_expanded: Optional[list[str]] = None
+    workspace_files: Optional[list[str]] = None  # Files inside workspace
+    external_files: Optional[list[str]] = None  # Files outside workspace
 
     def __post_init__(self):
         """Validate session state after initialization."""
         if self.scroll_positions is None:
             self.scroll_positions = {}
+        if self.view_modes is None:
+            self.view_modes = {}
+        if self.workspace_folders is None:
+            self.workspace_folders = []
+        if self.workspace_expanded is None:
+            self.workspace_expanded = []
+        if self.workspace_files is None:
+            self.workspace_files = []
+        if self.external_files is None:
+            self.external_files = []
 
 
 class SessionManager:
@@ -68,7 +90,7 @@ class SessionManager:
     """
 
     # Version for migration handling
-    SESSION_VERSION = 1
+    SESSION_VERSION = 2
 
     def __init__(self):
         """Initialize session manager with QSettings."""

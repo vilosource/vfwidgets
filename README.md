@@ -102,7 +102,9 @@ sys.exit(app.exec())
 | markdown_widget | Professional markdown editor/viewer with theme support | 🟢 Ready | [Docs](widgets/markdown_widget/README.md) |
 | chrome-tabbed-window | Chrome-style tabbed window | 🟢 Ready | [Docs](widgets/chrome-tabbed-window/README.md) |
 | vilocode_window | VS Code-style frameless window | 🟢 Ready | [Docs](widgets/vilocode_window/README.md) |
+| webview_widget | Web browser widget with navigation and QWebChannel | 🟢 Ready | [Docs](widgets/webview_widget/README.md) |
 | keybinding_manager | User-customizable keyboard shortcuts | 🟢 Ready | [Docs](widgets/keybinding_manager/README.md) |
+| workspace_widget | Multi-folder workspace with VS Code-like file explorer | 🟢 Ready | [Docs](widgets/workspace_widget/README.md) |
 
 ## Applications
 
@@ -150,6 +152,50 @@ python -m theme_studio
 - Undo/redo support
 
 **Documentation:** [apps/theme-studio/README.md](apps/theme-studio/README.md)
+
+### Reamde - Markdown Viewer
+
+Single-instance markdown document viewer with VS Code-style interface and tabbed navigation.
+
+**Installation:**
+```bash
+cd apps/reamde
+pip install -e .
+reamde README.md
+```
+
+**Features:**
+- Single-instance behavior with IPC (opens files in existing window)
+- VS Code-style layout (using vilocode_window)
+- Chrome-style tabs for multiple documents
+- Live markdown rendering with syntax highlighting (Prism.js)
+- Diagram support (Mermaid.js) and math equations (KaTeX)
+- Automatic theme integration with VFWidgets theme system
+- Command-line file opening: `reamde file.md`
+
+**Documentation:** [apps/reamde/README.md](apps/reamde/README.md)
+
+### ViloWeb - Educational Web Browser
+
+Educational web browser demonstrating Qt WebEngine integration and modern browser architecture.
+
+**Installation:**
+```bash
+cd apps/viloweb
+pip install -e .
+viloweb
+```
+
+**Features:**
+- Chrome-style frameless window with unified title bar
+- Multi-tab browsing with tab compression
+- JSON-based bookmark system with search and import/export
+- QWebChannel bridge for Python↔JavaScript communication
+- Dark theme by default with automatic theme integration
+- Educational codebase with extensive architectural comments
+- Built on vfwidgets-webview for clean, reusable components
+
+**Documentation:** [apps/viloweb/README.md](apps/viloweb/README.md)
 
 ## Development
 

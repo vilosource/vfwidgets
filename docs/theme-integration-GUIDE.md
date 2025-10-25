@@ -12,6 +12,7 @@
 - `ChromeTabbedWindow`
 - `MarkdownViewer`
 - `TerminalWidget`
+- `WorkspaceWidget`
 - Any custom widget inheriting from `ThemedWidget`
 
 ## Quick Start
@@ -24,6 +25,7 @@ Look at your imports:
 from vfwidgets_vilocode_window import ViloCodeWindow  # ← ThemedWidget
 from chrome_tabbed_window import ChromeTabbedWindow   # ← ThemedWidget
 from vfwidgets_markdown import MarkdownViewer         # ← ThemedWidget
+from vfwidgets_workspace import WorkspaceWidget       # ← ThemedWidget
 ```
 
 **If you're using any of these → You need theme support**

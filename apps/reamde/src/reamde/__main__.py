@@ -10,7 +10,7 @@ from vfwidgets_common import configure_all_for_webengine
 # Configure WSL/Remote Desktop environment variables BEFORE Qt initialization
 configure_all_for_webengine()
 
-from .app import ReamdeApp
+from .app import ReamdeApp  # noqa: E402
 
 
 def main() -> int:

@@ -1,6 +1,7 @@
 """Tests for FileWatcher."""
 
 import pytest
+
 from reamde.models.file_watcher import FileWatcher
 
 

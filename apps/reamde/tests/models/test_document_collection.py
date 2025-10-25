@@ -1,6 +1,7 @@
 """Tests for DocumentCollection."""
 
 import pytest
+
 from reamde.models.document import DocumentCollection
 
 

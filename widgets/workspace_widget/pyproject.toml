@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vfwidgets-workspace"
+version = "0.1.0"
+description = "Multi-folder workspace widget with VS Code-like file explorer for PySide6"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "VFWidgets Contributors"}
+]
+keywords = ["qt", "pyside6", "workspace", "file-explorer", "tree-view", "multi-folder"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Widget Sets",
+]
+dependencies = [
+    "PySide6>=6.5.0",
+    "typing-extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-qt>=4.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+theme = [
+    "vfwidgets-theme>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/vfwidgets"
+Documentation = "https://github.com/yourusername/vfwidgets/tree/main/widgets/workspace_widget"
+Repository = "https://github.com/yourusername/vfwidgets"
+Issues = "https://github.com/yourusername/vfwidgets/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["vfwidgets_workspace*"]
+
+[tool.setuptools.package-data]
+vfwidgets_workspace = ["py.typed"]

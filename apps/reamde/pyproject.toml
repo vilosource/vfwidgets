@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reamde"
-version = "0.1.0"
+version = "1.0.0"
 description = "Single-instance markdown document viewer with tabbed interface"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -19,6 +19,7 @@ dependencies = [
     "chrome-tabbed-window>=0.1.0",
     "vfwidgets-markdown>=2.0.0",
     "vfwidgets-theme-system>=2.0.0rc4",
+    "vfwidgets-workspace>=0.1.0",
 ]
 keywords = ["markdown", "viewer", "document", "pyside6", "qt"]
 classifiers = [

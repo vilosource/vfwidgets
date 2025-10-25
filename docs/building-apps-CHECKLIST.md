@@ -15,6 +15,8 @@ This checklist ensures you don't miss critical integration requirements when bui
   - [ ] ChromeTabbedWindow?
   - [ ] MarkdownViewer?
   - [ ] TerminalWidget?
+  - [ ] WorkspaceWidget?
+  - [ ] KeybindingManager?
   - [ ] Other themed widgets?
 
 ### Special Behaviors
@@ -84,6 +86,43 @@ class MyApp(SingleInstanceApplication):
 ```
 **Use when**: Most applications using ViloCodeWindow or ChromeTabbedWindow
 **Benefits**: Single-instance behavior + theme support + optional theme dependency
+
+#### Pattern E: Modern Desktop Integration ✅ HIGHLY RECOMMENDED
+```python
+from vfwidgets_common.desktop import configure_desktop
+
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+)
+window = ViloCodeWindow()
+window.show()
+sys.exit(app.exec())
+```
+**Use when**: Building production applications that need full desktop integration
+**Benefits**:
+- Automatic platform detection (WSL, Wayland, X11, Remote Desktop)
+- Automatic platform quirks (software rendering, scaling fixes)
+- Desktop integration (icons, .desktop files) with auto-install
+- QApplication creation with proper metadata
+- Works with any QApplication subclass (including ThemedApplication, SingleInstanceApplication)
+
+**Note**: To use with SingleInstanceApplication, pass `application_class` parameter:
+```python
+from vfwidgets_common import SingleInstanceApplication
+from vfwidgets_common.desktop import configure_desktop
+
+app = configure_desktop(
+    app_name="myapp",
+    app_display_name="My Application",
+    icon_name="myapp",
+    desktop_categories="Utility;",
+    application_class=SingleInstanceApplication,
+    app_id="myapp",  # Passed to SingleInstanceApplication
+)
+```
 
 ### Architecture Checklist
 - [ ] Base class selected and documented

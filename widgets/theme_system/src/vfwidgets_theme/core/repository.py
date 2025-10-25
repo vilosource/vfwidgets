@@ -245,9 +245,9 @@ class FileThemeLoader:
             return theme
 
         except (json.JSONDecodeError, yaml.YAMLError) as e:
-            raise ThemeLoadError(f"Failed to parse theme file {path}: {e}")
+            raise ThemeLoadError(f"Failed to parse theme file {path}: {e}") from e
         except Exception as e:
-            raise ThemeLoadError(f"Error loading theme from {path}: {e}")
+            raise ThemeLoadError(f"Error loading theme from {path}: {e}") from e
 
 
 class BuiltinThemeManager:
@@ -285,12 +285,26 @@ class BuiltinThemeManager:
                 "colors.warning": "#f57c00",
                 "colors.success": "#2e7d32",
                 "colors.info": "#1976d2",
+                # VS Code semantic tokens for sidebar/list
+                "sideBar.background": "#f3f3f3",
+                "sideBar.foreground": "#333333",
+                "sideBar.border": "#e0e0e0",
+                "sideBarTitle.foreground": "#333333",
+                "list.background": "#ffffff",
+                "list.foreground": "#333333",
+                "list.hoverBackground": "#e8e8e8",
+                "list.activeSelectionBackground": "#0078d4",
+                "list.activeSelectionForeground": "#ffffff",
+                "list.inactiveSelectionBackground": "#e0e0e0",
+                "list.inactiveSelectionForeground": "#333333",
+                "tree.indentGuidesStroke": "#d0d0d0",
+                "icon.foreground": "#424242",
             },
             "styles": {
-                "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
+                "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",  # noqa: E501
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
-                "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",
+                "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",  # noqa: E501
                 "label": "color: @colors.foreground;",
             },
             "metadata": {
@@ -338,6 +352,11 @@ class BuiltinThemeManager:
                 "toolbar.hoverBackground": "rgba(255, 255, 255, 0.1)",
                 "toolbar.hoverForeground": "#ffffff",
                 "toolbar.activeBackground": "rgba(255, 255, 255, 0.15)",
+                # Sidebar tokens (VS Code compatibility)
+                "sideBar.background": "#252526",
+                "sideBar.foreground": "#cccccc",
+                "sideBar.border": "#1e1e1e",
+                "sideBarTitle.foreground": "#cccccc",
                 # List/Tree view tokens (for QPalette integration)
                 "list.background": "#252526",
                 "list.foreground": "#cccccc",
@@ -346,6 +365,7 @@ class BuiltinThemeManager:
                 "list.activeSelectionForeground": "#ffffff",
                 "list.inactiveSelectionBackground": "#3a3d41",
                 "list.inactiveSelectionForeground": "#cccccc",
+                "tree.indentGuidesStroke": "#585858",
                 # Input tokens
                 "input.background": "#3c3c3c",
                 "input.foreground": "#cccccc",
@@ -369,10 +389,10 @@ class BuiltinThemeManager:
                 "table.gridColor": "#3a3a3a",
             },
             "styles": {
-                "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",
+                "button": "background-color: @colors.primary; color: @colors.secondary; border: 1px solid @colors.border;",  # noqa: E501
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
-                "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",
+                "input": "background-color: @colors.background; color: @colors.foreground; border: 1px solid @colors.border;",  # noqa: E501
                 "label": "color: @colors.foreground;",
             },
             "metadata": {
@@ -419,6 +439,11 @@ class BuiltinThemeManager:
                 "toolbar.hoverBackground": "rgba(0, 0, 0, 0.1)",
                 "toolbar.hoverForeground": "#000000",
                 "toolbar.activeBackground": "rgba(0, 0, 0, 0.15)",
+                # Sidebar tokens (VS Code compatibility)
+                "sideBar.background": "#f3f3f3",
+                "sideBar.foreground": "#000000",
+                "sideBar.border": "#cccccc",
+                "sideBarTitle.foreground": "#000000",
                 # List/Tree view tokens (for QPalette integration)
                 "list.background": "#ffffff",
                 "list.foreground": "#000000",
@@ -427,6 +452,7 @@ class BuiltinThemeManager:
                 "list.activeSelectionForeground": "#ffffff",
                 "list.inactiveSelectionBackground": "#e0e0e0",
                 "list.inactiveSelectionForeground": "#000000",
+                "tree.indentGuidesStroke": "#d0d0d0",
                 # Input tokens
                 "input.background": "#ffffff",
                 "input.foreground": "#000000",
@@ -450,10 +476,10 @@ class BuiltinThemeManager:
                 "table.gridColor": "#e0e0e0",
             },
             "styles": {
-                "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",
+                "button": "background-color: @colors.primary; color: @colors.secondary; border: 2px solid @colors.border;",  # noqa: E501
                 "button:hover": "background-color: @colors.hover;",
                 "button:active": "background-color: @colors.active;",
-                "input": "background-color: @colors.background; color: @colors.foreground; border: 2px solid @colors.border;",
+                "input": "background-color: @colors.background; color: @colors.foreground; border: 2px solid @colors.border;",  # noqa: E501
                 "label": "color: @colors.foreground; font-weight: bold;",
             },
             "metadata": {
@@ -1062,7 +1088,7 @@ class ThemeRepository:
             logger.debug(f"Saved theme '{theme.name}' to file: {path}")
 
         except Exception as e:
-            raise ThemeLoadError(f"Failed to save theme to {path}: {e}")
+            raise ThemeLoadError(f"Failed to save theme to {path}: {e}") from e
 
     def discover_themes(self, directory: Union[str, Path], recursive: bool = True) -> list[Theme]:
         """Discover and load themes from directory.
@@ -1130,7 +1156,7 @@ def create_theme_repository(
     builtin_manager: Optional[BuiltinThemeManager] = None,
     use_discovery_cache: bool = True,
 ) -> ThemeRepository:
-    """Factory function for creating theme repository with defaults.
+    """Create theme repository with defaults.
 
     Args:
         cache_size: Maximum cache size

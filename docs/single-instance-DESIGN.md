@@ -177,16 +177,35 @@ if not app.is_primary_instance():
 ### Constructor
 
 ```python
-def __init__(self, argv: list[str], app_id: str)
+def __init__(
+    self,
+    argv: list[str],
+    app_id: str,
+    prefer_dark: bool = False,
+    theme_config: Optional[dict] = None,
+)
 ```
 
 **Parameters**:
 - `argv`: Command-line arguments (passed to QApplication)
 - `app_id`: Unique application identifier (used for IPC server name)
+- `prefer_dark`: If True, automatically select a dark theme on startup (default: False)
+- `theme_config`: Optional theme configuration dict (for ThemedApplication, if available)
 
 **Example**:
 ```python
+# Basic usage
 app = SingleInstanceApplication(sys.argv, app_id="reamde")
+
+# With dark theme preference
+app = SingleInstanceApplication(sys.argv, app_id="myapp", prefer_dark=True)
+
+# With custom theme config
+app = SingleInstanceApplication(
+    sys.argv,
+    app_id="myapp",
+    theme_config={"default_theme": "monokai", "persist_theme": True}
+)
 ```
 
 ### Properties

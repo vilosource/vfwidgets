@@ -301,7 +301,7 @@ class WindowController(QObject):
     def save_session(self) -> None:
         """Save current session state to disk.
 
-        Saves list of open files and active file index for restoration.
+        Saves list of open files, active file index, and workspace state.
 
         Example:
             >>> controller.save_session()
@@ -319,8 +319,59 @@ class WindowController(QObject):
                 except ValueError:
                     pass
 
-            # Create session state
-            state = SessionState(open_files=open_files, active_file_index=active_index)
+            # Get workspace state if available
+            workspace_folders = []
+            workspace_expanded = []
+            workspace_files = []
+            external_files = []
+
+            if hasattr(self.parent_widget, "workspace_manager"):
+                workspace_manager = self.parent_widget.workspace_manager
+
+                # Get workspace folders
+                workspace_folders = workspace_manager.get_workspace_folders()
+
+                # Get expanded folders
+                workspace_expanded = workspace_manager.get_expanded_folders()
+
+                # Categorize open files as workspace vs external
+                if workspace_folders:
+                    for file_path in open_files:
+                        # Check if file is inside any workspace folder
+                        file_path_obj = Path(file_path)
+                        is_in_workspace = False
+
+                        for folder in workspace_folders:
+                            try:
+                                file_path_obj.relative_to(folder)
+                                is_in_workspace = True
+                                break
+                            except ValueError:
+                                # Not relative to this folder
+                                continue
+
+                        if is_in_workspace:
+                            workspace_files.append(file_path)
+                        else:
+                            external_files.append(file_path)
+                else:
+                    # No workspace - all files are external
+                    external_files = open_files.copy()
+
+                logger.debug(
+                    f"Session: {len(workspace_folders)} workspace folders, "
+                    f"{len(workspace_files)} workspace files, {len(external_files)} external files"
+                )
+
+            # Create session state with workspace info
+            state = SessionState(
+                open_files=open_files,
+                active_file_index=active_index,
+                workspace_folders=workspace_folders,
+                workspace_expanded=workspace_expanded,
+                workspace_files=workspace_files,
+                external_files=external_files,
+            )
 
             # Save
             self.session_manager.save_session(state)
@@ -333,7 +384,7 @@ class WindowController(QObject):
     def restore_session(self) -> None:
         """Restore previous session from disk.
 
-        Opens all files that were open in the previous session.
+        Opens all files and restores workspace state from previous session.
 
         Example:
             >>> controller.restore_session()
@@ -345,6 +396,41 @@ class WindowController(QObject):
                 logger.info("No previous session to restore")
                 return
 
+            # Restore workspace folders first (if any)
+            if hasattr(self.parent_widget, "workspace_manager") and state.workspace_folders:
+                workspace_manager = self.parent_widget.workspace_manager
+
+                # Close any existing workspace first (clean slate)
+                if workspace_manager.is_workspace_open():
+                    workspace_manager.close_workspace()
+                    logger.debug("Closed existing workspace before restoration")
+
+                # Open first folder as workspace
+                if len(state.workspace_folders) > 0:
+                    first_folder = Path(state.workspace_folders[0])
+                    if first_folder.exists():
+                        workspace_manager.open_folder(first_folder)
+                        logger.info(f"Restored workspace folder: {first_folder}")
+
+                        # Add additional folders if multi-root workspace
+                        for folder_path in state.workspace_folders[1:]:
+                            folder = Path(folder_path)
+                            if folder.exists():
+                                workspace_manager.add_folder(folder)
+                                logger.info(f"Restored additional workspace folder: {folder}")
+
+                        # Restore expanded state after a short delay (let workspace populate first)
+                        if state.workspace_expanded:
+                            # Use QTimer to defer expansion until workspace is fully loaded
+                            from PySide6.QtCore import QTimer
+
+                            QTimer.singleShot(
+                                100,
+                                lambda: workspace_manager.restore_expanded_state(
+                                    state.workspace_expanded
+                                ),
+                            )
+
             # Open files
             for file_path in state.open_files:
                 # Don't set active yet
@@ -355,7 +441,10 @@ class WindowController(QObject):
                 active_path = state.open_files[state.active_file_index]
                 self.documents.set_active_document(active_path)
 
-            logger.info(f"Session restored: {len(state.open_files)} files")
+            logger.info(
+                f"Session restored: {len(state.open_files)} files, "
+                f"{len(state.workspace_folders or [])} workspace folders"
+            )
             self.session_restored.emit()
 
         except Exception as e:

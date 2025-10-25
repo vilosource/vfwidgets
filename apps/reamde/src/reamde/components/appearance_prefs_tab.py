@@ -172,7 +172,11 @@ class AppearancePreferencesTab(ThemedQWidget):
         return group
 
     def _pick_top_bar_color(self) -> None:
-        """Open color picker for top bar background."""
+        """Open color picker for top bar background (with screen picker support).
+
+        Uses Qt's custom color dialog with ShowAlphaChannel and DontUseNativeDialog
+        flags to enable the eyedropper/"Pick Screen Color" feature.
+        """
         from PySide6.QtGui import QColor
         from PySide6.QtWidgets import QColorDialog
 
@@ -180,15 +184,25 @@ class AppearancePreferencesTab(ThemedQWidget):
         current_text = self.top_bar_color_edit.text()
         initial_color = QColor(current_text) if current_text else QColor(30, 30, 30)
 
-        # Show color dialog
-        color = QColorDialog.getColor(initial_color, self, "Pick Top Bar Background Color")
+        # Show color dialog with screen picker support
+        # DontUseNativeDialog enables Qt's custom dialog with eyedropper tool
+        color = QColorDialog.getColor(
+            initial_color,
+            self,
+            "Pick Top Bar Background Color",
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
+        )
 
         if color.isValid():
             # Format as #RRGGBB
             self.top_bar_color_edit.setText(color.name())
 
     def _pick_accent_line_color(self) -> None:
-        """Open color picker for accent line."""
+        """Open color picker for accent line (with screen picker support).
+
+        Uses Qt's custom color dialog with ShowAlphaChannel and DontUseNativeDialog
+        flags to enable the eyedropper/"Pick Screen Color" feature.
+        """
         from PySide6.QtGui import QColor
         from PySide6.QtWidgets import QColorDialog
 
@@ -196,8 +210,14 @@ class AppearancePreferencesTab(ThemedQWidget):
         current_text = self.accent_line_color_edit.text()
         initial_color = QColor(current_text) if current_text else QColor(0, 120, 215)
 
-        # Show color dialog
-        color = QColorDialog.getColor(initial_color, self, "Pick Accent Line Color")
+        # Show color dialog with screen picker support
+        # DontUseNativeDialog enables Qt's custom dialog with eyedropper tool
+        color = QColorDialog.getColor(
+            initial_color,
+            self,
+            "Pick Accent Line Color",
+            QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog,
+        )
 
         if color.isValid():
             # Format as #RRGGBB

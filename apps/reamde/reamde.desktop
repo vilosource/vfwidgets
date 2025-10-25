@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Reamde
+GenericName=Markdown Viewer
+Comment=Single-instance markdown document viewer with tabbed interface
+Icon=reamde
+Exec=reamde %F
+Terminal=false
+Categories=Office;Viewer;Qt;
+MimeType=text/markdown;text/x-markdown;
+Keywords=markdown;viewer;document;md;
+StartupNotify=true
+StartupWMClass=reamde

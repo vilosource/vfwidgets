@@ -83,6 +83,7 @@ class MarkdownPreferencesTab(ThemedQWidget):
         # Create sections
         container_layout.addWidget(self._create_rendering_features_group())
         container_layout.addWidget(self._create_behavior_group())
+        container_layout.addWidget(self._create_ui_controls_group())
         container_layout.addWidget(self._create_theme_overrides_group())
 
         container_layout.addStretch()
@@ -133,6 +134,23 @@ class MarkdownPreferencesTab(ThemedQWidget):
 
         return group
 
+    def _create_ui_controls_group(self) -> QGroupBox:
+        """Create the UI controls settings group.
+
+        Returns:
+            QGroupBox with UI control settings
+        """
+        group = QGroupBox("User Interface")
+        layout = QFormLayout(group)
+
+        # Show view mode toolbar
+        self.show_view_toolbar_check = QCheckBox(
+            "Show view mode toolbar in tabs (Preview/Split/Editor buttons)"
+        )
+        layout.addRow("", self.show_view_toolbar_check)
+
+        return group
+
     def _create_theme_overrides_group(self) -> QGroupBox:
         """Create the theme color overrides group.
 
@@ -165,6 +183,9 @@ class MarkdownPreferencesTab(ThemedQWidget):
         self.auto_reload_check.setChecked(preferences.auto_reload_on_change)
         self.scroll_sync_check.setChecked(preferences.scroll_sync)
 
+        # UI Controls
+        self.show_view_toolbar_check.setChecked(preferences.show_view_mode_toolbar)
+
         # Theme Overrides
         self.override_editor.load_overrides(preferences.theme_overrides)
 
@@ -182,6 +203,8 @@ class MarkdownPreferencesTab(ThemedQWidget):
             # Behavior
             auto_reload_on_change=self.auto_reload_check.isChecked(),
             scroll_sync=self.scroll_sync_check.isChecked(),
+            # UI Controls
+            show_view_mode_toolbar=self.show_view_toolbar_check.isChecked(),
             # Theme Overrides
             theme_overrides=self.override_editor.save_overrides(),
         )

@@ -41,7 +41,7 @@ vfwidgets/widgets/YOUR_WIDGET_NAME/
 
 ### ✅ Must Have
 - [ ] `pyproject.toml` - Package metadata and build config
-- [ ] `requirements.txt` - Runtime dependencies (usually just `PySide6>=6.x.x`)
+- [ ] `requirements.txt` - Runtime dependencies (usually just `PySide6>=6.5.0` or `>=6.9.0` for WebEngine widgets)
 - [ ] `requirements-dev.txt` - Dev dependencies (include `-r requirements.txt`)
 - [ ] `README.md` - User-facing documentation
 - [ ] `LICENSE` - License file (copy from another widget)
@@ -102,7 +102,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 dependencies = [
-    "PySide6>=6.5.0",
+    "PySide6>=6.5.0",  # Use >=6.9.0 if widget uses QWebEngineView
 ]
 
 [tool.setuptools.packages.find]

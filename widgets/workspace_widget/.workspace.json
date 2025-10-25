@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "name": "Example Multi-Folder Project",
+  "folders": [
+    {
+      "path": "/home/kuja/GitHub/vfwidgets/widgets/workspace_widget/src",
+      "name": "Source Code"
+    },
+    {
+      "path": "/home/kuja/GitHub/vfwidgets/widgets/workspace_widget/tests",
+      "name": "Tests"
+    },
+    {
+      "path": "/home/kuja/GitHub/vfwidgets/widgets/workspace_widget/examples",
+      "name": "Examples"
+    }
+  ],
+  "excluded_folders": [
+    "node_modules",
+    "__pycache__",
+    ".git"
+  ]
+}
